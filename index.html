@@ -3,20 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase with Separate JS</title>
+    <title>Welcome to anbae</title>
+    
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts & Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@800&display=swap');
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #fdfcff; /* A very light, soft background */
+        }
+    </style>
 </head>
 <body>
 
-    <h1>My Firebase App</h1>
-    <p>Welcome, <span id="nickname-display">loading...</span></p>
+    <!-- Loading UI -->
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <!-- Animated Logo -->
+        <h1 class="text-8xl font-extrabold tracking-tighter animate-pulse">
+            <span class="text-blue-500">a</span>
+            <span class="text-red-500">n</span>
+            <span class="text-yellow-500">b</span>
+            <span class="text-blue-500">a</span>
+            <span class="text-green-500">e</span>
+        </h1>
+    </div>
 
-    <!-- Firebase SDKs - These provide the `firebase` object -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-    <!-- Your custom JavaScript file - MUST be after the Firebase SDKs -->
-    <script src="app.js"></script>
+    <!-- Firebase Configuration and Redirect Logic -->
+    <script>
+        // 1. PASTE YOUR FIREBASE CONFIGURATION HERE
+        const firebaseConfig = {
+            apiKey: "AIza...",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "12345...",
+            appId: "1:12345..."
+        };
 
+        // 2. Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 3. Set up the redirect logic
+        // This function runs automatically whenever the user's login state is first checked
+        auth.onAuthStateChanged(user => {
+            // Add a small delay to prevent a jarring flash of content
+            setTimeout(() => {
+                if (user) {
+                    // If a user object exists, they are logged in
+                    console.log("User is logged in. Redirecting to dashboard...");
+                    window.location.replace('dashboard.html');
+                } else {
+                    // If the user object is null, they are not logged in
+                    console.log("No user logged in. Redirecting to login page...");
+                    window.location.replace('login.html');
+                }
+            }, 500); // 500ms delay
+        });
+
+        // Initialize any icons if needed (though none are used in the final state)
+        lucide.createIcons();
+    </script>
 </body>
 </html>
