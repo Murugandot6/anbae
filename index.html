@@ -3,122 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anbae</title>
-    
-    <!-- Tailwind CSS CDN for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts for a clean, modern look -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap');
-        body {
-            font-family: 'Manrope', sans-serif;
-        }
-        /* Adding a blinking cursor effect */
-        #typing-cursor {
-            animation: blink 1s step-end infinite;
-        }
-        @keyframes blink {
-            from, to { border-color: transparent; }
-            50% { border-color: black; }
-        }
-    </style>
+    <title>Firebase with Separate JS</title>
 </head>
-<body class="bg-white text-gray-800">
+<body>
 
-    <div class="min-h-screen flex flex-col items-center justify-center p-4 -mt-20">
-        
-        <main class="flex flex-col items-center w-full max-w-xl text-center">
-            
-            <!-- Logo -->
-            <h1 class="text-8xl md:text-9xl font-extrabold tracking-tighter">
-                <span class="text-blue-500">a</span>
-                <span class="text-red-500">n</span>
-                <span class="text-yellow-500">b</span>
-                <span class="text-blue-500">a</span>
-                <span class="text-green-500">e</span>
-            </h1>
+    <h1>My Firebase App</h1>
+    <p>Welcome, <span id="nickname-display">loading...</span></p>
 
-            <!-- Animated Search Bar -->
-            <div class="mt-8 w-full">
-                <div class="relative w-full max-w-xl mx-auto">
-                    <div class="mx-auto flex h-12 w-full items-center justify-between rounded-full border border-gray-200 px-5 shadow-sm hover:shadow-md transition-shadow">
-                        <span id="typing-text" class="text-gray-500"></span>
-                        <span id="typing-cursor" class="border-r-2 border-gray-700 h-5"></span>
-                    </div>
-                </div>
-            </div>
+    <!-- Firebase SDKs - These provide the `firebase` object -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-x-4 mt-8">
-                <button class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:shadow-sm hover:border-gray-300 border border-transparent transition-all">
-                    Login
-                </button>
-                <button class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:shadow-sm hover:border-gray-300 border border-transparent transition-all">
-                    Register
-                </button>
-            </div>
-            
-        </main>
-
-        <!-- Footer -->
-        <footer class="absolute bottom-8 text-sm text-gray-500">
-            Built with love for better communication
-        </footer>
-    </div>
-
-    <!-- JavaScript for Typing Animation -->
-    <script>
-        const typingTextElement = document.getElementById('typing-text');
-        const sentences = [
-            "Express how you feel...",
-            "Share a beautiful memory...",
-            "Let's resolve this together...",
-            "Send a compliment to your partner...",
-            "Start a fresh chapter..."
-        ];
-
-        let sentenceIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-
-        function type() {
-            const currentSentence = sentences[sentenceIndex];
-            
-            if (isDeleting) {
-                // Deleting text
-                typingTextElement.textContent = currentSentence.substring(0, charIndex - 1);
-                charIndex--;
-            } else {
-                // Typing text
-                typingTextElement.textContent = currentSentence.substring(0, charIndex + 1);
-                charIndex++;
-            }
-
-            // Determine speed
-            let typeSpeed = 150;
-            if (isDeleting) {
-                typeSpeed /= 2; // Faster when deleting
-            }
-
-            // If sentence is fully typed
-            if (!isDeleting && charIndex === currentSentence.length) {
-                typeSpeed = 2000; // Pause at the end
-                isDeleting = true;
-            } 
-            // If sentence is fully deleted
-            else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                sentenceIndex = (sentenceIndex + 1) % sentences.length; // Move to the next sentence
-                typeSpeed = 500; // Pause before typing new sentence
-            }
-
-            setTimeout(type, typeSpeed);
-        }
-
-        // Start the animation on page load
-        document.addEventListener('DOMContentLoaded', type);
-    </script>
+    <!-- Your custom JavaScript file - MUST be after the Firebase SDKs -->
+    <script src="app.js"></script>
 
 </body>
 </html>

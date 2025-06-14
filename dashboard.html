@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" class=""> <!-- The 'dark' class is managed by JavaScript -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - anbae</title>
+
+    <!-- Tailwind CSS & Lucide Icons CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts & Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap');
+        body { font-family: 'Manrope', sans-serif; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+        .tab-button{color:#6b7280}.dark .tab-button{color:#9ca3af}.tab-active{color:#111827;background-color:white;box-shadow:0 1px 3px 0 rgb(0 0 0 / .1),0 1px 2px -1px rgb(0 0 0 / .1)}.dark .tab-active{color:#f9fafb;background-color:#374151}
+        select{-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center;background-size:1em;padding-right:2.5rem}
+    </style>
+</head>
+<body class="bg-[#fdfcff] dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg sticky top-0 z-20 border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Welcome chikku!</h1>
+                <div class="flex items-center gap-x-2 sm:gap-x-4">
+                    <button onclick="toggleTheme()" title="Toggle Theme" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><i id="theme-icon" class="h-5 w-5"></i></button>
+                    <button onclick="showClearAllModal()" class="flex items-center gap-x-1.5 px-3 py-2 text-sm text-red-600 bg-red-100 dark:bg-red-900/50 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/80 transition-colors"><i data-lucide="heart-crack" class="h-4 w-4"></i><span>Clear All</span></button>
+                    <a href="login.html" class="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Profile Section -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">
+            <div class="flex items-center justify-around mb-6">
+                <!-- User/Partner Profile cards -->
+                 <div class="flex flex-col items-center gap-y-2"><div class="h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center border-2 border-pink-200"><i data-lucide="heart" class="h-10 w-10 text-red-500" style="fill: currentColor;"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400 text-center">You</p><p class="text-lg font-bold dark:text-white text-center">chikku</p></div></div>
+                <div class="text-red-300 dark:text-red-500/70"><i data-lucide="heart" class="h-6 w-6"></i></div>
+                <div class="flex flex-col items-center gap-y-2"><div class="h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600"><i data-lucide="heart" class="h-10 w-10 text-red-500" style="fill: currentColor;"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400 text-center">Partner</p><p class="text-lg font-bold dark:text-white text-center">Anbae</p></div></div>
+            </div>
+            <div class="text-center border-t border-gray-200 dark:border-gray-700 pt-4">
+                 <button onclick="showEditProfileModal()" class="w-full py-3 bg-violet-500 text-white font-bold rounded-lg hover:bg-violet-600 transition-all">Edit Profile</button>
+            </div>
+        </div>
+        <!-- Action Buttons & Recent Messages... -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"><button onclick="showSendMessageModal()" class="w-full flex items-center justify-center gap-x-3 p-6 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"><i data-lucide="send" class="h-6 w-6"></i><span class="text-lg font-bold">Send New Message</span></button><button onclick="showMessageHistoryModal()" class="w-full flex items-center justify-center gap-x-3 p-6 bg-gradient-to-r from-violet-500 to-blue-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"><i data-lucide="inbox" class="h-6 w-6"></i><span class="text-lg font-bold">View Inbox & Outbox</span></button></div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Recent Messages</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col text-center"><h3 class="font-bold text-lg mb-4">Outbox (0)</h3><p class="text-gray-500 dark:text-gray-400 text-sm">No messages sent yet.</p></div><div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col text-center"><h3 class="font-bold text-lg mb-4">Inbox (0)</h3><p class="text-gray-500 dark:text-gray-400 text-sm">No messages received yet.</p></div></div>
+    </main>
+    
+    <!-- MODALS CONTAINER -->
+
+    <!-- 1. Send Message Modal -->
+    <div id="send-message-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div id="message-card" class="bg-red-50 dark:bg-gray-800 border-red-200 dark:border-red-900/50 border w-full max-w-lg p-6 rounded-2xl shadow-2xl transition-colors duration-300">
+            <form onsubmit="event.preventDefault(); alert('Message Sent!'); hideSendMessageModal();">
+                <div id="form-header" class="flex items-center gap-x-3 mb-6 text-red-600 dark:text-red-400"><i id="header-icon" data-lucide="heart-crack"></i><h3 id="header-title" class="text-2xl font-bold">Send a Grievance</h3></div>
+                <div class="space-y-4">
+                    <div><label for="message-type" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Message Type</label><select onchange="changeMessageType(this.value)" id="message-type" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option value="grievance">Grievance</option><option value="compliment">Compliment</option><option value="memory">Good Memory</option><option value="feeling">Feeling</option></select></div>
+                    <div><label for="title" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Title</label><input type="text" id="title" placeholder="A brief summary..." class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"></div>
+                    <div><label for="description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label><textarea id="description" rows="4" placeholder="Explain the situation..." class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"></textarea></div>
+                    <div class="grid grid-cols-2 gap-4"><div><label for="priority" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Priority</label><select id="priority" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div><label for="mood" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Your Mood</label><select id="mood" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option>😊 Happy</option><option>😢 Sad</option><option>😠 Angry</option><option>🥰 Loved</option></select></div></div>
+                </div>
+                <div class="flex justify-end gap-x-4 mt-8"><button type="button" onclick="hideSendMessageModal()" class="px-6 py-2 text-sm font-semibold bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">Cancel</button><button type="submit" id="submit-button" class="px-6 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-md flex items-center gap-x-2"><i data-lucide="send" class="h-4 w-4"></i><span id="submit-button-text">Send Grievance</span></button></div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 2. Clear All Modal -->
+    <div id="clear-all-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded-xl shadow-2xl border dark:border-gray-700">
+            <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-x-2"><i data-lucide="heart-crack" class="h-6 w-6 text-red-500"></i><h3 class="text-lg font-bold text-red-500">Clear All Grievances</h3></div><button onclick="hideClearAllModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+            <div class="space-y-4"><p class="text-sm text-gray-600 dark:text-gray-400">This will send a request to your partner to clear all grievances. <strong>Both of you need to agree for this to happen.</strong></p><div><label for="reason" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Reason for clearing all grievances:</label><textarea id="reason" rows="3" placeholder="Please explain why you want to start fresh..." class="block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 p-2 bg-white dark:bg-gray-700 dark:text-gray-200"></textarea></div></div>
+            <div class="flex justify-end gap-x-4 mt-6"><button onclick="hideClearAllModal()" class="px-6 py-2 text-sm font-semibold bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">Cancel</button><button onclick="alert('Request Sent!'); hideClearAllModal();" class="px-6 py-2 text-sm font-semibold bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors flex items-center gap-x-2"><i data-lucide="send" class="h-4 w-4"></i>Send Request</button></div>
+        </div>
+    </div>
+    
+    <!-- 3. Message History Modal -->
+    <div id="message-history-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 modal-backdrop hidden">
+         <div class="bg-white dark:bg-gray-800 w-full max-w-2xl p-4 sm:p-6 rounded-2xl shadow-2xl border border-pink-200 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-6"><div class="flex items-center gap-x-3"><i data-lucide="message-square-heart" class="h-8 w-8 text-pink-500"></i><h3 class="text-2xl font-bold text-gray-800 dark:text-white">Messages</h3></div><button onclick="hideMessageHistoryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i data-lucide="x-circle" class="h-6 w-6"></i></button></div>
+            <div class="bg-gray-100 dark:bg-gray-900 p-1 rounded-lg flex items-center mb-4"><button id="inbox-tab" onclick="switchTab('inbox')" class="tab-button tab-active w-full flex items-center justify-center gap-x-2 p-2 rounded-md font-semibold transition-colors"><i data-lucide="inbox"></i> Inbox (0)</button><button id="outbox-tab" onclick="switchTab('outbox')" class="tab-button w-full flex items-center justify-center gap-x-2 p-2 rounded-md font-semibold transition-colors"><i data-lucide="send"></i> Outbox (0)</button></div>
+            <div class="min-h-[200px] flex items-center justify-center text-center"><div id="inbox-content"><i data-lucide="archive" class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto"></i><p class="mt-2 text-gray-500 dark:text-gray-400">No messages received yet.</p></div><div id="outbox-content" class="hidden"><i data-lucide="archive-x" class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto"></i><p class="mt-2 text-gray-500 dark:text-gray-400">No messages sent yet.</p></div></div>
+        </div>
+    </div>
+
+    <!-- 4. Edit Profile Modal (NEWLY ADDED) -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="relative bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-gray-700">
+            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-pink-100 h-16 w-16 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-800"><i data-lucide="user-cog" class="h-8 w-8 text-pink-500"></i></div>
+            <div class="text-center mt-6 mb-8"><h2 class="text-2xl font-bold text-gray-800 dark:text-white">Edit Your Profile</h2></div>
+            <form onsubmit="event.preventDefault(); alert('Profile Saved!'); hideEditProfileModal();" class="space-y-6">
+                <div><label for="nickname" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i data-lucide="user-circle" class="h-4 w-4 text-green-500"></i><span>Nickname</span></label><input id="nickname" type="text" value="chikku" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div><label for="partner-email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i data-lucide="mail-heart" class="h-4 w-4 text-red-500"></i><span>Partner's Email</span></label><input id="partner-email" type="email" value="anbae@example.com" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div class="pt-4"><button type="submit" class="w-full flex justify-center items-center gap-x-2 py-3 px-4 rounded-lg shadow-md text-sm font-medium text-white bg-green-500 hover:bg-green-600"><i data-lucide="save" class="h-5 w-5"></i>Save Changes</button></div>
+            </form>
+             <div class="text-center mt-6"><button onclick="hideEditProfileModal()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-white">&larr; Back to Dashboard</button></div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- THEME ---
+        const themeIcon = document.getElementById('theme-icon');
+        const applyTheme = (theme) => {
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+            lucide.createIcons();
+        };
+        const toggleTheme = () => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        };
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(savedTheme);
+        });
+
+        // --- MODAL CONTROLS ---
+        const clearAllModal = document.getElementById('clear-all-modal');
+        const messageHistoryModal = document.getElementById('message-history-modal');
+        const sendMessageModal = document.getElementById('send-message-modal');
+        const editProfileModal = document.getElementById('edit-profile-modal'); // Get the new modal
+
+        function showClearAllModal() { clearAllModal.classList.remove('hidden'); }
+        function hideClearAllModal() { clearAllModal.classList.add('hidden'); }
+        
+        function showMessageHistoryModal() { messageHistoryModal.classList.remove('hidden'); }
+        function hideMessageHistoryModal() { messageHistoryModal.classList.add('hidden'); }
+
+        function showSendMessageModal() { sendMessageModal.classList.remove('hidden'); }
+        function hideSendMessageModal() { sendMessageModal.classList.add('hidden'); }
+
+        function showEditProfileModal() { editProfileModal.classList.remove('hidden'); }
+        function hideEditProfileModal() { editProfileModal.classList.add('hidden'); }
+        
+        // --- MESSAGE HISTORY TABS ---
+        const inboxTab = document.getElementById('inbox-tab'), outboxTab = document.getElementById('outbox-tab'), inboxContent = document.getElementById('inbox-content'), outboxContent = document.getElementById('outbox-content');
+        function switchTab(tab) { const isInbox = tab === 'inbox'; inboxTab.classList.toggle('tab-active', isInbox); outboxTab.classList.toggle('tab-active', !isInbox); inboxContent.classList.toggle('hidden', !isInbox); outboxContent.classList.toggle('hidden', isInbox); }
+
+        // --- SEND MESSAGE THEME CHANGER ---
+        const msgCard = document.getElementById('message-card'), formHeader = document.getElementById('form-header'), headerIcon = document.getElementById('header-icon'), headerTitle = document.getElementById('header-title'), submitButton = document.getElementById('submit-button'), submitButtonText = document.getElementById('submit-button-text');
+        const messageThemes = {
+            grievance: { card: 'bg-red-50 dark:bg-gray-800 border-red-200 dark:border-red-900/50', header: 'text-red-600 dark:text-red-400', button: 'bg-red-500 hover:bg-red-600', icon: 'heart-crack', title: 'Send a Grievance' },
+            compliment: { card: 'bg-pink-50 dark:bg-gray-800 border-pink-200 dark:border-pink-900/50', header: 'text-pink-600 dark:text-pink-400', button: 'bg-pink-500 hover:bg-pink-600', icon: 'gift', title: 'Send a Compliment' },
+            memory: { card: 'bg-yellow-50 dark:bg-gray-800 border-yellow-200 dark:border-yellow-900/50', header: 'text-yellow-600 dark:text-yellow-400', button: 'bg-yellow-500 hover:bg-yellow-600', icon: 'camera', title: 'Share a Good Memory' },
+            feeling: { card: 'bg-purple-50 dark:bg-gray-800 border-purple-200 dark:border-purple-900/50', header: 'text-purple-600 dark:text-purple-400', button: 'bg-purple-500 hover:bg-purple-600', icon: 'smile-plus', title: 'Share a Feeling' }
+        };
+        function changeMessageType(type) {
+            const theme = messageThemes[type];
+            msgCard.className = `border w-full max-w-lg p-6 rounded-2xl shadow-2xl transition-colors duration-300 ${theme.card}`;
+            formHeader.className = `flex items-center gap-x-3 mb-6 ${theme.header}`;
+            submitButton.className = `px-6 py-2 text-sm font-semibold text-white rounded-md flex items-center gap-x-2 ${theme.button}`;
+            headerIcon.setAttribute('data-lucide', theme.icon);
+            headerTitle.textContent = theme.title;
+            submitButtonText.textContent = theme.title;
+            lucide.createIcons();
+        }
+
+        // --- INITIALIZE ICONS ---
+        lucide.createIcons();
+    </script>
+</body>
+</html>
