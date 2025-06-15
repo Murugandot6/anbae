@@ -179,8 +179,26 @@
         <button id="messageBoxClose">OK</button>
     </div>
 
-    <script>
-        document.getElementById('register-form').addEventListener('submit', function(event) {
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8QfLoifA2-DjldYaMBeIge1D6TbRpBWw",
+            authDomain: "summa-57ad5.firebaseapp.com",
+            projectId: "summa-57ad5",
+            storageBucket: "summa-57ad5.firebasestorage.app",
+            messagingSenderId: "472212537134",
+            appId: "1:472212537134:web:fc930ea95fa9b7ffc4c4bf"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.getElementById('register-form').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
 
             const email = document.getElementById('email').value;
@@ -188,17 +206,31 @@
             const nickname = document.getElementById('nickname').value;
             const partnerEmail = document.getElementById('partner-email').value;
 
-            // Simple validation (can be expanded)
+            // Simple validation
             if (!email || !password || !nickname) {
                 showMessage("Please fill in all required fields (Email, Password, Nickname).");
                 return;
             }
 
-            // Simulate registration success
-            console.log("Registering user:", { email, nickname, partnerEmail });
-            showMessage("Account created successfully! Redirecting to dashboard...", () => {
-                window.location.href = 'dashboard.html'; // Redirect to dashboard
-            });
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                console.log("User registered:", userCredential.user);
+                // Optionally, store nickname and partnerEmail in Firestore here
+                showMessage("Account created successfully! Redirecting to dashboard...", () => {
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard
+                });
+            } catch (error) {
+                console.error("Error registering:", error);
+                let errorMessage = "Registration failed. Please try again.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "This email is already registered. Try logging in or use a different email.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address format.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "Password is too weak. Please choose a stronger password.";
+                }
+                showMessage(errorMessage);
+            }
         });
 
         // Function to show custom message box
