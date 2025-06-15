@@ -56,29 +56,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LOGIC FOR: register.html ---
-    if (pagePath === 'register.html') {
-        const registerForm = document.getElementById('register-form');
-        registerForm?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitButton = registerForm.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.querySelector('span').textContent = 'Creating Account...';
+  // --- LOGIC FOR: register.html ---
+if (pagePath === 'register.html') {
+    const registerForm = document.getElementById('register-form');
+    registerForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitButton = registerForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        
+        // --- CHANGE THIS LINE ---
+        // FROM: submitButton.querySelector('span').textContent = 'Creating Account...';
+        // TO:
+        submitButton.textContent = 'Creating Account...'; // This is simpler and more robust
 
-            const email = registerForm.email.value, password = registerForm.password.value, nickname = registerForm.nickname.value, partnerEmail = registerForm['partner-email'].value;
+        const email = registerForm.email.value, password = registerForm.password.value, nickname = registerForm.nickname.value, partnerEmail = registerForm['partner-email'].value;
 
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await setDoc(doc(db, "users", userCredential.user.uid), { email: email.toLowerCase(), nickname, partnerEmail: partnerEmail.toLowerCase(), createdAt: serverTimestamp() });
-                window.location.replace('dashboard.html');
-            } catch (error) {
-                alert('Registration Error: ' + error.message);
-                submitButton.disabled = false;
-                submitButton.querySelector('span').textContent = 'Create Account';
-            }
-        });
-    }
-
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, "users", userCredential.user.uid), { email: email.toLowerCase(), nickname, partnerEmail: partnerEmail.toLowerCase(), createdAt: serverTimestamp() });
+            window.location.replace('dashboard.html');
+        } catch (error) {
+            alert('Registration Error: ' + error.message);
+            submitButton.disabled = false;
+            
+            // --- AND CHANGE THIS LINE ---
+            // You will need to restore the icon and text here
+            // FROM: submitButton.querySelector('span').textContent = 'Create Account';
+            // TO:
+            submitButton.innerHTML = `<i data-lucide="sparkles" class="h-5 w-5"></i><span>Create Account</span>`;
+            lucide.createIcons(); // Re-render the icon
+        }
+    });
+}
     // --- LOGIC FOR: login.html ---
     if (pagePath === 'login.html') {
         const loginForm = document.getElementById('login-form');
