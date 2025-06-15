@@ -3,14 +3,19 @@
 // --- 1. FIREBASE CONFIGURATION (GLOBAL) ---
 // This section is available to all parts of the script.
 
-// PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIza...",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "12345...",
-    appId: "1:12345..."
+  apiKey: "AIzaSyA8QfLoifA2-DjldYaMBeIge1D6TbRpBWw",
+  authDomain: "summa-57ad5.firebaseapp.com",
+  projectId: "summa-57ad5",
+  storageBucket: "summa-57ad5.firebasestorage.app",
+  messagingSenderId: "472212537134",
+  appId: "1:472212537134:web:fc930ea95fa9b7ffc4c4bf"
 };
 
 // Initialize Firebase
