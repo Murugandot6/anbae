@@ -3,51 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anbae</title>
+    <title>Anbae - Discover Love</title>
+    <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap');
-        body { font-family: 'Manrope', sans-serif; background-color: #fff; }
-        /* Blinking cursor effect for the animation */
-        #typing-cursor { animation: blink 1s step-end infinite; }
-        @keyframes blink { from, to { border-color: transparent; } 50% { border-color: black; } }
+        /* Import Inter font from Google Fonts for a modern, clean look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; /* White background */
+            color: #202124; /* Dark gray text */
+        }
+        /* Custom styles for focus state and shadow for search input */
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            border-color: transparent; /* Remove default blue border */
+        }
+        /* Blinking cursor effect for the typing animation (handled by JS, but CSS defines the animation) */
+        #typing-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            from, to { border-color: transparent; }
+            50% { border-color: #202124; /* Dark gray cursor */ }
+        }
     </style>
 </head>
-<body>
-    <div class="min-h-screen flex flex-col items-center justify-center p-4 -mt-20">
-        <main class="flex flex-col items-center w-full max-w-xl text-center">
-            
-            <!-- Logo -->
-            <h1 class="text-8xl md:text-9xl font-extrabold tracking-tighter">
-                <span class="text-blue-500">a</span><span class="text-red-500">n</span><span class="text-yellow-500">b</span><span class="text-blue-500">a</span><span class="text-green-500">e</span>
-            </h1>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <main class="flex flex-col items-center w-full max-w-2xl text-center -mt-20 sm:-mt-10 md:-mt-5">
 
-            <!-- Animated Search Bar Placeholder -->
-            <div class="mt-8 w-full">
-                <div class="relative w-full max-w-xl mx-auto">
-                    <div class="mx-auto flex h-12 w-full items-center justify-between rounded-full border border-gray-200 px-5 shadow-sm hover:shadow-md transition-shadow">
-                        <span id="typing-text" class="text-gray-500"></span>
-                        <span id="typing-cursor" class="border-r-2 border-gray-700 h-5"></span>
-                    </div>
-                </div>
-            </div>
+        <!-- Logo/Title - All lowercase "anbae" with colored letters -->
+        <h1 class="text-6xl md:text-8xl font-bold tracking-tight mb-8">
+            <span class="text-blue-500">a</span><span class="text-red-500">n</span><span class="text-yellow-500">b</span><span class="text-blue-500">a</span><span class="text-green-500">e</span>
+        </h1>
 
-            <!-- Action Buttons -->
-            <div id="home-page-buttons" class="flex items-center gap-x-4 mt-8">
-                <button id="login-button" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:shadow-sm hover:border-gray-300 border border-transparent transition-all">
-                    Login
-                </button>
-                <button id="register-button" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:shadow-sm hover:border-gray-300 border border-transparent transition-all">
-                    Register
-                </button>
+        <!-- Search Bar -->
+        <div class="w-full px-4 mb-6">
+            <div class="relative w-full mx-auto flex items-center rounded-full border border-gray-300 hover:shadow-md transition-shadow duration-200 search-input-container">
+                <input
+                    type="text"
+                    id="search-input"
+                    class="search-input flex-grow h-12 px-5 py-2 text-gray-900 rounded-full bg-transparent focus:outline-none focus:border-transparent"
+                    placeholder=""
+                    aria-label="Search Anbae"
+                >
+                <!-- Blinking cursor for the placeholder animation, positioned by JS -->
+                <span id="typing-cursor" class="absolute left-5 top-1/2 -translate-y-1/2 border-r-2 border-gray-700 h-5 pointer-events-none transition-all duration-300 ease-out"></span>
             </div>
-        </main>
-        <footer class="absolute bottom-8 text-sm text-gray-500">
-            Built with love for better communication
-        </footer>
-    </div>
-    
-    <!-- This links to your central JavaScript file -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-y-4 sm:gap-x-4 mt-4">
+            <button
+                id="login-button"
+                class="px-5 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all shadow-sm"
+            >
+                Login
+            </button>
+            <button
+                id="register-button"
+                class="px-5 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 transition-all shadow-sm"
+            >
+                Register
+            </button>
+        </div>
+    </main>
+
+    <footer class="absolute bottom-8 text-sm text-gray-500">
+        Built with love for better communication and discovery
+    </footer>
+
+    <!-- This links to your central JavaScript file (app.js) -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
