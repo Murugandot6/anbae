@@ -424,7 +424,8 @@ function setupLatestMessagesListener() {
         let allUserMessages = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            if (data.senderId === currentUser.uid || data.receiverEmail === currentUser.email) {
+            // This is where the read rule applies: only show if current user is sender OR receiver (by email or UID)
+            if (data.senderId === currentUser.uid || data.receiverEmail === currentUser.email || data.receiverUid === currentUser.uid) {
                 allUserMessages.push({ id: doc.id, ...data });
             }
         });
@@ -439,7 +440,7 @@ function setupLatestMessagesListener() {
         renderLatestMessages(latestMessagesContent, top3Messages);
     }, (error) => {
         console.error("Error listening to latest messages:", error);
-        showMessage("Error loading latest messages.");
+        showMessage("Error loading latest messages: " + error.message);
     });
 }
 
@@ -478,6 +479,7 @@ function setupFullMessagesModalListeners() {
 
     const messagesRef = collection(db, "messages");
 
+    // Outbox Query (messages sent by current user)
     const modalOutboxQuery = query(
         messagesRef,
         where("senderId", "==", currentUser.uid),
@@ -493,25 +495,42 @@ function setupFullMessagesModalListeners() {
         modalOutboxCountSpan.textContent = messages.length;
     }, (error) => {
         console.error("Error listening to modal outbox:", error);
-        showMessage("Error loading sent messages in modal.");
+        showMessage("Error loading sent messages in modal: " + error.message);
     });
 
+    // Inbox Query (messages received by current user - checking by email OR receiverUid)
     const modalInboxQuery = query(
         messagesRef,
-        where("receiverEmail", "==", currentUser.email),
+        where("receiverEmail", "==", currentUser.email), // Primary check
+        // Note: Firestore does not support OR queries directly on different fields in security rules or client queries easily.
+        // If receiverUid is *also* needed for the query, it would typically require a composite index and/or multiple queries.
+        // For simplicity and alignment with security rules, we'll primarily use receiverEmail as per rule:
+        // (resource.data.receiverId == request.auth.uid || resource.data.receiverEmail == request.auth.token.email)
+        // The client-side query must match an index.
         orderBy("timestamp", "desc")
     );
 
     onSnapshot(modalInboxQuery, (snapshot) => {
         const messages = [];
         snapshot.forEach(d => {
-            messages.push({ id: d.id, ...d.data(), direction: 'received' });
+            const data = d.data();
+            // Client-side filter to strictly match rule logic if query is broad
+            if (data.receiverEmail === currentUser.email || data.receiverUid === currentUser.uid) {
+                messages.push({ id: d.id, ...data, direction: 'received' });
+            }
         });
+        // Sort client-side if data is retrieved broadly but filtered more strictly by rules
+        messages.sort((a, b) => {
+            const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+            const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+            return timeB - timeA;
+        });
+
         renderFullModalMessages(modalInboxContent, messages, 'inbox');
         modalInboxCountSpan.textContent = messages.length;
     }, (error) => {
         console.error("Error listening to modal inbox:", error);
-        showMessage("Error loading received messages in modal.");
+        showMessage("Error loading received messages in modal: " + error.message);
     });
 }
 
@@ -553,6 +572,7 @@ function setupIncomingClearRequestListener() {
         updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
     }, (error) => {
         console.error("Error listening for incoming clear requests:", error);
+        showMessage("Error listening for clear requests: " + error.message);
     });
 }
 
@@ -600,6 +620,8 @@ function setupOutgoingClearRequestListener() {
         });
     }, (error) => {
         console.error("Error listening for outgoing clear requests:", error);
+        showMessage("Error listening for outgoing clear requests: " + error.message);
+        // The URL for index creation is printed here in the console during development
     });
 }
 
@@ -854,7 +876,7 @@ function updateSendMessageModalHeader(messageType) {
     switch (messageType) {
         case 'grievance':
             titleText = "Send a Grievance";
-            iconEmoji = '�';
+            iconEmoji = '😡';
             iconColorClass = 'text-red-500';
             modalBgClass = 'modal-bg-grievance';
             break;
@@ -866,7 +888,7 @@ function updateSendMessageModalHeader(messageType) {
             break;
         case 'good-memory':
             titleText = "Share a Good Memory";
-            iconEmoji = '📸';
+            iconEmoji = '�';
             iconColorClass = 'text-blue-500';
             modalBgClass = 'modal-bg-good-memory';
             break;
