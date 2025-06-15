@@ -56,35 +56,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-  // --- LOGIC FOR: register.html ---
+// app.js
+
+// --- LOGIC FOR: register.html ---
 if (pagePath === 'register.html') {
     const registerForm = document.getElementById('register-form');
     registerForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitButton = registerForm.querySelector('button[type="submit"]');
         submitButton.disabled = true;
-        
-        // --- CHANGE THIS LINE ---
-        // FROM: submitButton.querySelector('span').textContent = 'Creating Account...';
-        // TO:
-        submitButton.textContent = 'Creating Account...'; // This is simpler and more robust
+        submitButton.textContent = 'Creating Account...';
 
-        const email = registerForm.email.value, password = registerForm.password.value, nickname = registerForm.nickname.value, partnerEmail = registerForm['partner-email'].value;
+        const email = registerForm.email.value;
+        const password = registerForm.password.value;
+        const nickname = registerForm.nickname.value;
+        const partnerEmail = registerForm['partner-email'].value;
+
+        // --- FIX #1: VALIDATE THAT USER AND PARTNER EMAILS ARE NOT THE SAME ---
+        // We do this *before* calling Firebase to save a network request.
+        if (email.trim().toLowerCase() === partnerEmail.trim().toLowerCase()) {
+            alert("Validation Error: Your email and your partner's email cannot be the same. Please enter a different email for your partner.");
+            submitButton.disabled = false;
+            // Restore the original button content with the icon
+            submitButton.innerHTML = `<i data-lucide="sparkles" class="h-5 w-5"></i><span>Create Account</span>`;
+            lucide.createIcons();
+            return; // Stop the function here
+        }
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await setDoc(doc(db, "users", userCredential.user.uid), { email: email.toLowerCase(), nickname, partnerEmail: partnerEmail.toLowerCase(), createdAt: serverTimestamp() });
             window.location.replace('dashboard.html');
         } catch (error) {
-            alert('Registration Error: ' + error.message);
-            submitButton.disabled = false;
+            // --- FIX #2: SHOW A CUSTOM ERROR FOR "EMAIL ALREADY IN USE" ---
+            if (error.code === 'auth/email-already-in-use') {
+                alert('Registration Error: This email address is already in use. Please go to the login page to sign in.');
+            } else {
+                // For all other errors (weak password, network error, etc.)
+                alert('Registration Error: ' + error.message);
+            }
             
-            // --- AND CHANGE THIS LINE ---
-            // You will need to restore the icon and text here
-            // FROM: submitButton.querySelector('span').textContent = 'Create Account';
-            // TO:
+            submitButton.disabled = false;
+            // Restore the original button content with the icon
             submitButton.innerHTML = `<i data-lucide="sparkles" class="h-5 w-5"></i><span>Create Account</span>`;
-            lucide.createIcons(); // Re-render the icon
+            lucide.createIcons();
         }
     });
 }
