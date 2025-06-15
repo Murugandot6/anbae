@@ -34,25 +34,43 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-        <!-- Profile Section -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">
-            <div class="flex items-center justify-around mb-6">
-                <!-- User/Partner Profile cards -->
-                 <div class="flex flex-col items-center gap-y-2"><div class="h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center border-2 border-pink-200"><i data-lucide="heart" class="h-10 w-10 text-red-500" style="fill: currentColor;"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400 text-center">You</p><p class="text-lg font-bold dark:text-white text-center">chikku</p></div></div>
-                <div class="text-red-300 dark:text-red-500/70"><i data-lucide="heart" class="h-6 w-6"></i></div>
-                <div class="flex flex-col items-center gap-y-2"><div class="h-20 w-20 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600"><i data-lucide="heart" class="h-10 w-10 text-red-500" style="fill: currentColor;"></i></div><div><p class="text-sm text-gray-500 dark:text-gray-400 text-center">Partner</p><p class="text-lg font-bold dark:text-white text-center">Anbae</p></div></div>
+           <!-- Main Content Area -->
+        <main class="flex-grow container mx-auto px-4 mt-6">
+            <div class="text-center mb-10">
+                <h2 class="text-xl font-semibold mb-4">What's on your mind?</h2>
+                <button onclick="showModal('sendMessage')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2 mx-auto">
+                    <i data-lucide="message-square-plus"></i>
+                    <span>Send a New Message</span>
+                </button>
             </div>
-            <div class="text-center border-t border-gray-200 dark:border-gray-700 pt-4">
-                 <button onclick="showEditProfileModal()" class="w-full py-3 bg-violet-500 text-white font-bold rounded-lg hover:bg-violet-600 transition-all">Edit Profile</button>
+
+            <!-- Message Display Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- INBOX Section -->
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 border-b-2 border-pink-500 pb-2 flex items-center gap-2">
+                        <i data-lucide="inbox"></i> Inbox
+                    </h3>
+                    <div id="inbox-container" class="space-y-4">
+                        <!-- Messages received by you will appear here -->
+                        <p class="text-gray-500 dark:text-gray-400">No new messages.</p>
+                    </div>
+                </div>
+
+                <!-- OUTBOX Section -->
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 border-b-2 border-gray-400 pb-2 flex items-center gap-2">
+                        <i data-lucide="send"></i> Outbox
+                    </h3>
+                    <div id="outbox-container" class="space-y-4">
+                        <!-- Messages sent by you will appear here -->
+                        <p class="text-gray-500 dark:text-gray-400">You haven't sent any messages.</p>
+                    </div>
+                </div>
+
             </div>
-        </div>
-        <!-- Action Buttons & Recent Messages... -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"><button onclick="showSendMessageModal()" class="w-full flex items-center justify-center gap-x-3 p-6 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"><i data-lucide="send" class="h-6 w-6"></i><span class="text-lg font-bold">Send New Message</span></button><button onclick="showMessageHistoryModal()" class="w-full flex items-center justify-center gap-x-3 p-6 bg-gradient-to-r from-violet-500 to-blue-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"><i data-lucide="inbox" class="h-6 w-6"></i><span class="text-lg font-bold">View Inbox & Outbox</span></button></div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Recent Messages</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col text-center"><h3 class="font-bold text-lg mb-4">Outbox (0)</h3><p class="text-gray-500 dark:text-gray-400 text-sm">No messages sent yet.</p></div><div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex flex-col text-center"><h3 class="font-bold text-lg mb-4">Inbox (0)</h3><p class="text-gray-500 dark:text-gray-400 text-sm">No messages received yet.</p></div></div>
-    </main>
+        </main>
     
     <!-- MODALS CONTAINER -->
 
