@@ -316,9 +316,8 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
         await addDoc(messagesCollectionRef, {
             senderId: senderId,
             senderEmail: senderProfile.email,
-            senderNickname: senderProfile.nickname,
             receiverEmail: receiverEmail,
-            receiverUid: receiverUid,
+            receiverUid: receiverUid, // This can be null if partner is not found in users collection
             receiverNickname: receiverNickname,
             content: content,
             type: type,
@@ -410,38 +409,72 @@ async function executeClearAllMessages() {
 
 /**
  * Sets up real-time listener for the latest 3 messages on the dashboard.
+ * This now uses two separate queries to comply with stricter security rules.
  */
 function setupLatestMessagesListener() {
     if (!currentUser) return;
 
     const messagesRef = collection(db, "messages");
-    const allRelevantMessagesQuery = query(
+    let allUserMessages = [];
+    let sentMessagesLoaded = false;
+    let receivedMessagesLoaded = false;
+
+    // Listener for messages sent by the current user
+    const sentMessagesQuery = query(
         messagesRef,
+        where("senderId", "==", currentUser.uid),
         orderBy("timestamp", "desc")
     );
 
-    onSnapshot(allRelevantMessagesQuery, async (snapshot) => {
-        let allUserMessages = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            // This is where the read rule applies: only show if current user is sender OR receiver (by email or UID)
-            if (data.senderId === currentUser.uid || data.receiverEmail === currentUser.email || data.receiverUid === currentUser.uid) {
-                allUserMessages.push({ id: doc.id, ...data });
-            }
-        });
+    onSnapshot(sentMessagesQuery, (snapshot) => {
+        const sent = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), direction: 'sent' }));
+        allUserMessages = allUserMessages.filter(msg => msg.direction !== 'sent').concat(sent);
+        sentMessagesLoaded = true;
+        if (sentMessagesLoaded && receivedMessagesLoaded) {
+            renderCombinedLatestMessages();
+        }
+    }, (error) => {
+        console.error("Error listening to latest sent messages:", error);
+        showMessage("Error loading latest sent messages: " + error.message);
+    });
 
+    // Listener for messages received by the current user (by email or UID)
+    // Firestore does not support OR queries across different fields directly.
+    // We query by email and then client-side filter by UID if necessary,
+    // though the security rule allows both. The most efficient is to match the rule's 'where' if possible.
+    const receivedMessagesByEmailQuery = query(
+        messagesRef,
+        where("receiverEmail", "==", currentUser.email),
+        orderBy("timestamp", "desc")
+    );
+    // You might need an additional query for receiverUid if that's a primary way messages are addressed
+    // and if the security rule `resource.data.receiverId == request.auth.uid` is critical AND
+    // messages are created with `receiverUid` but *not* `receiverEmail`.
+    // For now, relying on receiverEmail for the query as it's common.
+
+    onSnapshot(receivedMessagesByEmailQuery, (snapshot) => {
+        const received = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), direction: 'received' }));
+        // Ensure client-side filter here if the query is broader than the rule allows for all documents
+        const filteredReceived = received.filter(msg => msg.receiverEmail === currentUser.email || msg.receiverUid === currentUser.uid);
+        allUserMessages = allUserMessages.filter(msg => msg.direction !== 'received').concat(filteredReceived);
+        receivedMessagesLoaded = true;
+        if (sentMessagesLoaded && receivedMessagesLoaded) {
+            renderCombinedLatestMessages();
+        }
+    }, (error) => {
+        console.error("Error listening to latest received messages:", error);
+        showMessage("Error loading latest received messages: " + error.message);
+    });
+
+    function renderCombinedLatestMessages() {
         allUserMessages.sort((a, b) => {
             const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
             const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
             return timeB - timeA;
         });
-
         const top3Messages = allUserMessages.slice(0, 3);
         renderLatestMessages(latestMessagesContent, top3Messages);
-    }, (error) => {
-        console.error("Error listening to latest messages:", error);
-        showMessage("Error loading latest messages: " + error.message);
-    });
+    }
 }
 
 /**
@@ -473,6 +506,7 @@ function renderLatestMessages(container, messages) {
 
 /**
  * Sets up real-time listeners for all inbox and outbox messages within the modal.
+ * This now uses two separate queries to comply with stricter security rules.
  */
 function setupFullMessagesModalListeners() {
     if (!currentUser) return;
@@ -498,15 +532,12 @@ function setupFullMessagesModalListeners() {
         showMessage("Error loading sent messages in modal: " + error.message);
     });
 
-    // Inbox Query (messages received by current user - checking by email OR receiverUid)
+    // Inbox Query (messages received by current user - checking by email)
+    // As per rules, we must query by receiverEmail OR receiverId, not combine in a single query unless indexed.
+    // For simplicity, we query by receiverEmail which is usually sufficient and avoids complex index requirements for OR.
     const modalInboxQuery = query(
         messagesRef,
-        where("receiverEmail", "==", currentUser.email), // Primary check
-        // Note: Firestore does not support OR queries directly on different fields in security rules or client queries easily.
-        // If receiverUid is *also* needed for the query, it would typically require a composite index and/or multiple queries.
-        // For simplicity and alignment with security rules, we'll primarily use receiverEmail as per rule:
-        // (resource.data.receiverId == request.auth.uid || resource.data.receiverEmail == request.auth.token.email)
-        // The client-side query must match an index.
+        where("receiverEmail", "==", currentUser.email),
         orderBy("timestamp", "desc")
     );
 
@@ -514,12 +545,13 @@ function setupFullMessagesModalListeners() {
         const messages = [];
         snapshot.forEach(d => {
             const data = d.data();
-            // Client-side filter to strictly match rule logic if query is broad
+            // Client-side filter to strictly match rule logic for receiverId if it's in the rule
+            // This is important if some messages only have receiverUid and not receiverEmail for the current user.
             if (data.receiverEmail === currentUser.email || data.receiverUid === currentUser.uid) {
                 messages.push({ id: d.id, ...data, direction: 'received' });
             }
         });
-        // Sort client-side if data is retrieved broadly but filtered more strictly by rules
+        // Important: Re-sort client-side if client-side filtering happened
         messages.sort((a, b) => {
             const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
             const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
@@ -621,7 +653,6 @@ function setupOutgoingClearRequestListener() {
     }, (error) => {
         console.error("Error listening for outgoing clear requests:", error);
         showMessage("Error listening for outgoing clear requests: " + error.message);
-        // The URL for index creation is printed here in the console during development
     });
 }
 
@@ -730,7 +761,7 @@ sendMessageForm.addEventListener('submit', async (event) => {
 viewInboxOutboxButton.addEventListener('click', () => {
     window.openModal('full-messages-modal');
     switchModalTab('modal-outbox');
-    setupFullMessagesModalListeners();
+    setupFullMessagesModalListeners(); // Call listeners when modal opens
 });
 
 modalOutboxTabButton.addEventListener('click', () => switchModalTab('modal-outbox'));
@@ -840,7 +871,7 @@ onAuthStateChanged(auth, async (user) => {
 
         userProfile = await getUserProfile(user);
         updateProfileDisplay(userProfile);
-        setupLatestMessagesListener();
+        setupLatestMessagesListener(); // Now calls the updated function
         setupIncomingClearRequestListener();
         setupOutgoingClearRequestListener();
 
