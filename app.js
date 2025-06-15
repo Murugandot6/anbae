@@ -122,43 +122,29 @@ if (pagePath === 'register.html') {
         });
     }
 
-    // --- LOGIC FOR: dashboard.html ---
-    if (pagePath === 'dashboard.html') {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const welcomeMessage = document.getElementById('welcome-message');
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists() && welcomeMessage) {
-                    welcomeMessage.textContent = `Welcome, ${userDoc.data().nickname}!`;
-                }
-            } else {
-                window.location.replace('login.html');
-            }
-        });
-
-        document.getElementById('logout-button')?.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html'));
-        
-        const themeIcon = document.getElementById('theme-icon');
-        const applyTheme = (theme) => {
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-            if(themeIcon) themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-            lucide.createIcons();
-        };
-        const toggleTheme = () => {
-            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-        };
-        document.getElementById('theme-toggle-button')?.addEventListener('click', toggleTheme);
-        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        applyTheme(savedTheme);
-
-        const modals = { clearAll: 'clear-all-modal', sendMessage: 'send-message-modal', messageHistory: 'message-history-modal', editProfile: 'edit-profile-modal' };
-        window.showModal = (name) => document.getElementById(modals[name])?.classList.remove('hidden');
-        window.hideModal = (name) => document.getElementById(modals[name])?.classList.add('hidden');
-        
-        // You would add more dashboard-specific logic here, like fetching messages.
+  rules_version = '2';
+service cloud.google.com/firestore {
+  match /databases/{database}/documents {
+    
+    // Users can read their own user document, but not others.
+    match /users/{userId} {
+      allow read, update: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
     }
+
+    // Rules for the 'messages' collection
+    match /messages/{messageId} {
+      // A user can CREATE a message if they are logged in and the senderId matches their own.
+      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      
+      // A user can READ a message if their UID is either the senderId or the receiverId.
+      allow read: if request.auth != null && (request.resource.data.senderId == request.auth.uid || request.resource.data.receiverId == request.auth.uid);
+      
+      // For now, prevent updates and deletes to keep messages immutable.
+      allow update, delete: if false;
+    }
+  }
+}
     
     // --- Initialize Lucide Icons on all pages ---
     lucide.createIcons();
