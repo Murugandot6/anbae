@@ -16,29 +16,51 @@
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@800&display=swap');
         body {
             font-family: 'Manrope', sans-serif;
-            background-color: #fdfcff; /* A very light, soft background */
+            background-color: #fdfcff;
         }
     </style>
 </head>
 <body>
 
-    <!-- Loading UI -->
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <!-- Animated Logo -->
-        <h1 class="text-8xl font-extrabold tracking-tighter animate-pulse">
-            <span class="text-blue-500">a</span>
-            <span class="text-red-500">n</span>
-            <span class="text-yellow-500">b</span>
-            <span class="text-blue-500">a</span>
-            <span class="text-green-500">e</span>
-        </h1>
+        
+        <main class="flex flex-col items-center gap-y-8 w-full max-w-lg text-center">
+            
+            <!-- Logo -->
+            <h1 class="text-8xl md:text-9xl font-extrabold tracking-tighter">
+                <span class="text-blue-500">a</span>
+                <span class="text-red-500">n</span>
+                <span class="text-yellow-500">b</span>
+                <span class="text-blue-500">a</span>
+                <span class="text-green-500">e</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-lg text-gray-500">A private space for better communication.</p>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-x-4 mt-4">
+                <button id="login-button" class="px-8 py-3 bg-violet-500 text-white font-bold rounded-lg hover:bg-violet-600 transition-all shadow-lg">
+                    Login
+                </button>
+                <button id="register-button" class="px-8 py-3 bg-pink-500 text-white font-bold rounded-lg hover:bg-pink-600 transition-all shadow-lg">
+                    Register
+                </button>
+            </div>
+            
+        </main>
+
+        <!-- Footer -->
+        <footer class="absolute bottom-8 text-sm text-gray-400">
+            Built with love for better communication
+        </footer>
     </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
-    <!-- Firebase Configuration and Redirect Logic -->
+    <!-- Firebase Configuration and Logic -->
     <script>
         // 1. PASTE YOUR FIREBASE CONFIGURATION HERE
         const firebaseConfig = {
@@ -54,24 +76,27 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // 3. Set up the redirect logic
-        // This function runs automatically whenever the user's login state is first checked
+        // 3. Smart Redirect for LOGGED-IN users
         auth.onAuthStateChanged(user => {
-            // Add a small delay to prevent a jarring flash of content
-            setTimeout(() => {
-                if (user) {
-                    // If a user object exists, they are logged in
-                    console.log("User is logged in. Redirecting to dashboard...");
-                    window.location.replace('dashboard.html');
-                } else {
-                    // If the user object is null, they are not logged in
-                    console.log("No user logged in. Redirecting to login page...");
-                    window.location.replace('login.html');
-                }
-            }, 500); // 500ms delay
+            if (user) {
+                // If the user is already logged in, they shouldn't see this page.
+                // Redirect them straight to their dashboard.
+                console.log("User is already logged in. Redirecting to dashboard...");
+                window.location.replace('dashboard.html');
+            }
+            // If there's NO user, DO NOTHING. Let them stay on this homepage.
         });
 
-        // Initialize any icons if needed (though none are used in the final state)
+        // 4. Add click handlers for the buttons
+        document.getElementById('login-button').addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+
+        document.getElementById('register-button').addEventListener('click', () => {
+            window.location.href = 'register.html';
+        });
+
+        // Initialize any icons if needed
         lucide.createIcons();
     </script>
 </body>
