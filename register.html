@@ -4,70 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join LoveResolve</title>
-    
-    <!-- Tailwind CSS & Lucide Icons CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Google Fonts & Styles -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap');
-        body { font-family: 'Manrope', sans-serif; background-color: #fdfcff; }
-    </style>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap'); body { font-family: 'Manrope', sans-serif; background-color: #fdfcff; }</style>
 </head>
 <body>
-
     <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <!-- Registration Card -->
         <div class="relative bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border border-gray-100">
-             <!-- Floating Heart Icon -->
-            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-pink-100 h-16 w-16 rounded-full flex items-center justify-center border-4 border-white">
-                <i data-lucide="heart" class="h-8 w-8 text-pink-500"></i>
-            </div>
-            <!-- Header -->
-            <div class="text-center mt-6 mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-x-2">
-                    <i data-lucide="heart-handshake" class="h-6 w-6 text-pink-500"></i>
-                    <span class="text-pink-500">Join LoveResolve</span>
-                </h2>
-            </div>
-            <!-- Registration Form -->
+            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-pink-100 h-16 w-16 rounded-full flex items-center justify-center border-4 border-white"><i data-lucide="heart" class="h-8 w-8 text-pink-500"></i></div>
+            <div class="text-center mt-6 mb-8"><h2 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-x-2"><i data-lucide="heart-handshake" class="h-6 w-6 text-pink-500"></i><span class="text-pink-500">Join LoveResolve</span></h2></div>
+            
+            <!-- THIS ID IS CRITICAL FOR THE JAVASCRIPT TO WORK -->
             <form id="register-form" class="space-y-6">
-                <!-- Email Input -->
-                <div>
-                    <label for="email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="mail" class="h-4 w-4 text-blue-500"></i><span>Email</span></label>
-                    <input id="email" name="email" type="email" required placeholder="your.email@example.com" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm">
-                </div>
-                <!-- Password Input -->
-                <div>
-                    <label for="password" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="lock" class="h-4 w-4 text-yellow-500"></i><span>Password</span></label>
-                    <input id="password" name="password" type="password" required minlength="6" placeholder="Your password" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm">
-                </div>
-                <!-- Nickname Input -->
-                <div>
-                    <label for="nickname" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="user-circle" class="h-4 w-4 text-green-500"></i><span>Nickname</span></label>
-                    <input id="nickname" name="nickname" type="text" required placeholder="Your Nickname" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm">
-                </div>
-                <!-- Partner's Email Input -->
-                <div>
-                    <label for="partner-email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="mail-heart" class="h-4 w-4 text-red-500"></i><span>Partner's Email</span></label>
-                    <input id="partner-email" name="partner-email" type="email" required placeholder="partner@example.com" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm">
-                </div>
-                <!-- Create Account Button -->
-                <div class="pt-4">
-                    <button id="submit-button" type="submit" class="w-full flex justify-center items-center gap-x-2 py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i data-lucide="sparkles" class="h-5 w-5"></i>
-                        <span>Create Account</span>
-                    </button>
-                </div>
+                <div><label for="email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="mail" class="h-4 w-4 text-blue-500"></i><span>Email</span></label><input id="email" name="email" type="email" required placeholder="your.email@example.com" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div><label for="password" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="lock" class="h-4 w-4 text-yellow-500"></i><span>Password</span></label><input id="password" name="password" type="password" required minlength="6" placeholder="Your password" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div><label for="nickname" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="user-circle" class="h-4 w-4 text-green-500"></i><span>Nickname</span></label><input id="nickname" name="nickname" type="text" required placeholder="Your Nickname" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div><label for="partner-email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 mb-1.5"><i data-lucide="mail-heart" class="h-4 w-4 text-red-500"></i><span>Partner's Email</span></label><input id="partner-email" name="partner-email" type="email" required placeholder="partner@example.com" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
+                <div class="pt-4"><button id="submit-button" type="submit" class="w-full flex justify-center items-center gap-x-2 py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="sparkles" class="h-5 w-5"></i><span>Create Account</span></button></div>
             </form>
-            <!-- Back to Home Link -->
             <div class="text-center mt-8"><a href="index.html" class="text-sm font-semibold text-pink-500 hover:text-pink-600 transition-colors">← Back to Home</a></div>
         </div>
     </div>
-
-    <!-- This is the ONLY script tag you need. It links to your central app.js file. -->
     <script type="module" src="app.js"></script>
-    
 </body>
 </html>
