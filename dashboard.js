@@ -68,7 +68,7 @@ const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content');
 const messageTypeSelect = document.getElementById('message-type-select');
 const messagePrioritySelect = document.getElementById('message-priority');
-const messageMoodSelect = document.getElementById('message-mood');
+const messageMoodSelect = document = document.getElementById('message-mood');
 const sendMessageModalTitle = sendMessageModal.querySelector('h3');
 const sendMessageModalContent = document.getElementById('send-message-modal-content');
 
@@ -94,7 +94,7 @@ const requestReasonSpan = document.getElementById('request-reason');
 const declineReasonInput = document.getElementById('decline-reason');
 const declineClearButton = document.getElementById('decline-clear-button');
 const acceptClearButton = document.getElementById('accept-clear-button');
-const minimizeClearButton = document.getElementById('minimize-clear-button'); // NEW: Minimize button for clear response modal
+const minimizeClearButton = document.getElementById('minimize-clear-button');
 
 const clearFinalConfirmModal = document.getElementById('clear-final-confirm-modal');
 const finalConfirmClearButton = document.getElementById('final-confirm-clear-button');
@@ -104,21 +104,15 @@ const statusModalTitle = document.getElementById('status-modal-title');
 const statusModalMessage = document.getElementById('status-modal-message');
 const statusModalReason = document.getElementById('status-modal-reason');
 
-// NEW: Pending Clear Request Indicator DOM element
 const clearRequestPendingIndicator = document.getElementById('clear-request-pending-indicator');
 
 
 let currentUser = null;
-let userProfile = null; // To store the current user's profile data
-let activeClearRequestDocId = null; // To store the ID of the clear request being processed by the receiver
+let userProfile = null;
+let activeClearRequestDocId = null;
 
 // --- Utility Functions ---
 
-/**
- * Displays a custom message box.
- * @param {string} message - The message to display.
- * @param {function} [callback] - An optional callback function to execute when the message box is closed.
- */
 function showMessage(message, callback) {
     messageText.textContent = message;
     messageBox.style.display = 'block';
@@ -132,44 +126,26 @@ function showMessage(message, callback) {
     };
 }
 
-/**
- * Opens a given modal.
- * @param {string} modalId - The ID of the modal element to open.
- */
 window.openModal = function(modalId) {
     document.getElementById(modalId).classList.add('open');
-    // Hide the indicator if the clear response modal is opened
     if (modalId === 'clear-response-modal') {
         updateClearRequestIndicatorVisibility(false);
     }
 }
 
-/**
- * Closes a given modal.
- * @param {string} modalId - The ID of the modal element to close.
- */
 window.closeModal = function(modalId) {
     document.getElementById(modalId).classList.remove('open');
-    // Show the indicator if the clear response modal is closed AND a request is pending
     if (modalId === 'clear-response-modal' && activeClearRequestDocId) {
         updateClearRequestIndicatorVisibility(true);
     }
 }
 
-/**
- * Updates the visibility of the clear request pending indicator.
- * @param {boolean} visible - True to show, false to hide.
- */
 function updateClearRequestIndicatorVisibility(visible) {
     if (clearRequestPendingIndicator) {
         clearRequestPendingIndicator.style.display = visible ? 'flex' : 'none';
     }
 }
 
-/**
- * Switches between message tabs within a modal.
- * @param {string} tabName - 'modal-outbox' or 'modal-inbox'.
- */
 function switchModalTab(tabName) {
     modalOutboxTabButton.classList.remove('active');
     modalInboxTabButton.classList.remove('active');
@@ -185,13 +161,6 @@ function switchModalTab(tabName) {
     }
 }
 
-/**
- * Renders a single message item HTML.
- * @param {object} message - The message object from Firestore.
- * @param {string} typeClass - CSS class for message type color (e.g., 'msg-compliment').
- * @param {boolean} isLatestHighlight - True if this message should have the latest highlight.
- * @returns {string} HTML string for the message.
- */
 function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
     const date = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
     const senderDisplayName = message.senderNickname || message.senderEmail;
@@ -217,11 +186,6 @@ function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
 
 // --- Firebase Data Operations ---
 
-/**
- * Fetches user profile from Firestore. If not exists, creates a basic one.
- * @param {object} user - The Firebase Auth user object.
- * @returns {Promise<object>} The user's profile data.
- */
 async function getUserProfile(user) {
     const userDocRef = doc(db, "users", user.uid);
     const userDocSnap = await getDoc(userDocRef);
@@ -231,7 +195,7 @@ async function getUserProfile(user) {
     } else {
         const newProfile = {
             email: user.email,
-            nickname: user.email.split('@')[0], // Default nickname from email prefix
+            nickname: user.email.split('@')[0],
             partnerEmail: '',
             partnerNickname: ''
         };
@@ -240,11 +204,6 @@ async function getUserProfile(user) {
     }
 }
 
-/**
- * Saves user profile data to Firestore.
- * @param {string} userId - The Firebase User ID.
- * @param {object} profileData - The profile data to save.
- */
 async function saveUserProfile(userId, profileData) {
     const userDocRef = doc(db, "users", userId);
     try {
@@ -257,9 +216,6 @@ async function saveUserProfile(userId, profileData) {
     }
 }
 
-/**
- * Sends a new message and saves it to Firestore.
- */
 async function sendMessage(senderId, senderProfile, receiverEmail, content, type, priority, mood) {
     try {
         let receiverUid = null;
@@ -298,10 +254,6 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
     }
 }
 
-/**
- * Sends a request to the partner to clear all messages.
- * @param {string} reason - The reason for clearing messages.
- */
 async function sendClearAllRequest(reason) {
     if (!currentUser || !userProfile || !userProfile.partnerEmail) {
         showMessage("Cannot send clear request. Please ensure you are logged in and have a partner email set.");
@@ -327,9 +279,6 @@ async function sendClearAllRequest(reason) {
     }
 }
 
-/**
- * Clears all messages (sent and received) for the current user.
- */
 async function executeClearAllMessages() {
     if (!currentUser) {
         showMessage("Please log in to clear messages.");
@@ -373,9 +322,6 @@ async function executeClearAllMessages() {
 
 // --- Real-time Listeners and Renderers ---
 
-/**
- * Sets up real-time listener for the latest 3 messages on the dashboard.
- */
 function setupLatestMessagesListener() {
     if (!currentUser) return;
 
@@ -408,9 +354,6 @@ function setupLatestMessagesListener() {
     });
 }
 
-/**
- * Renders only the latest messages on the main dashboard.
- */
 function renderLatestMessages(container, messages) {
     container.innerHTML = '';
     if (messages.length === 0) {
@@ -435,9 +378,6 @@ function renderLatestMessages(container, messages) {
     });
 }
 
-/**
- * Sets up real-time listeners for all inbox and outbox messages within the modal.
- */
 function setupFullMessagesModalListeners() {
     if (!currentUser) return;
 
@@ -480,9 +420,6 @@ function setupFullMessagesModalListeners() {
     });
 }
 
-/**
- * Sets up listeners for incoming clear requests (for partners).
- */
 function setupIncomingClearRequestListener() {
     if (!currentUser) return;
 
@@ -498,32 +435,26 @@ function setupIncomingClearRequestListener() {
         snapshot.docChanges().forEach(change => {
             if (change.type === "added") {
                 const request = change.doc.data();
-                activeClearRequestDocId = change.doc.id; // Store for response handling
+                activeClearRequestDocId = change.doc.id;
                 requesterNameSpan.textContent = request.requesterNickname || request.requesterEmail;
                 requestReasonSpan.textContent = request.reason;
-                declineReasonInput.value = ''; // Clear any previous decline reason
+                declineReasonInput.value = '';
                 window.openModal('clear-response-modal');
-                pendingRequestFound = true; // Mark that a pending request was found and opened
+                pendingRequestFound = true;
                 console.log("New clear request received:", request);
             } else if (change.type === "removed") {
-                // If a pending request is removed (e.g., accepted/declined elsewhere)
                 if (change.doc.id === activeClearRequestDocId) {
-                    activeClearRequestDocId = null; // Clear the ID
-                    window.closeModal('clear-response-modal'); // Close the modal if it's open
+                    activeClearRequestDocId = null;
+                    window.closeModal('clear-response-modal');
                 }
             }
         });
-        // After processing all changes, update indicator visibility
-        // Show indicator if active request exists AND modal is NOT open
         updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
     }, (error) => {
         console.error("Error listening for incoming clear requests:", error);
     });
 }
 
-/**
- * Sets up listener for outgoing clear request status changes (for sender).
- */
 function setupOutgoingClearRequestListener() {
     if (!currentUser) return;
 
@@ -543,29 +474,24 @@ function setupOutgoingClearRequestListener() {
                 if (request.status === "accepted") {
                     console.log("Clear request accepted by partner:", request);
                     window.openModal('clear-final-confirm-modal');
-                    // Store the request ID temporarily to delete it after final clear
                     finalConfirmClearButton.dataset.requestId = requestId;
                 } else if (request.status === "declined") {
                     console.log("Clear request declined by partner:", request);
                     statusModalTitle.innerHTML = `❌ Request Declined`;
-                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`; // Use partnerNickname
+                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`;
                     statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
                     window.openModal('clear-status-modal');
-                    // Delete the request from Firestore after showing status
                     await deleteDoc(doc(db, "clearRequests", requestId));
                 }
             }
-            // If type is 'removed', it means the request has been fully processed and deleted
             if (change.type === "removed" && change.doc.id === finalConfirmClearButton.dataset.requestId) {
                  console.log("Clear request document removed after full processing.");
-                 // Clear the stored request ID
                  delete finalConfirmClearButton.dataset.requestId;
-                 updateClearRequestIndicatorVisibility(false); // Hide indicator on final completion
+                 updateClearRequestIndicatorVisibility(false);
             }
         });
     }, (error) => {
         console.error("Error listening for outgoing clear requests:", error);
-        // The URL for index creation is printed here in the console during development
     });
 }
 
@@ -606,7 +532,6 @@ editProfileForm.addEventListener('submit', async (event) => {
         showMessage("Nickname cannot be empty.");
         return;
     }
-    // Make Partner's Email and Nickname required
     if (!newPartnerEmail) {
         showMessage("Partner's Email is required.");
         return;
@@ -622,7 +547,7 @@ editProfileForm.addEventListener('submit', async (event) => {
             partnerEmail: newPartnerEmail,
             partnerNickname: newPartnerNickname
         };
-        await setDoc(doc(db, "users", currentUser.uid), updatedProfile, { merge: true }); // Explicitly use doc() here
+        await setDoc(doc(db, "users", currentUser.uid), updatedProfile, { merge: true });
         userProfile = { ...userProfile, ...updatedProfile };
         updateProfileDisplay(userProfile);
         showMessage("Profile updated successfully!");
@@ -636,10 +561,10 @@ editProfileForm.addEventListener('submit', async (event) => {
 
 sendMessageButton.addEventListener('click', () => {
     messageContentInput.value = '';
-    messageTypeSelect.value = 'grievance'; // Default to Grievance
+    messageTypeSelect.value = 'grievance';
     messagePrioritySelect.value = 'medium';
     messageMoodSelect.value = 'happy';
-    updateSendMessageModalHeader('grievance'); // Set initial header and background
+    updateSendMessageModalHeader('grievance');
     window.openModal('send-message-modal');
 });
 
@@ -716,8 +641,8 @@ declineClearButton.addEventListener('click', async () => {
         });
         showMessage("You declined the clear request.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null; // Clear active request ID
-        updateClearRequestIndicatorVisibility(false); // Hide indicator on action
+        activeClearRequestDocId = null;
+        updateClearRequestIndicatorVisibility(false);
     } catch (error) {
         console.error("Error declining clear request:", error);
         showMessage("Failed to decline request: " + error.message);
@@ -736,19 +661,17 @@ acceptClearButton.addEventListener('click', async () => {
         });
         showMessage("You accepted the clear request. Messages will be cleared for both of you once your partner confirms.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null; // Clear active request ID
-        updateClearRequestIndicatorVisibility(false); // Hide indicator on action
+        activeClearRequestDocId = null;
+        updateClearRequestIndicatorVisibility(false);
     } catch (error) {
         console.error("Error accepting clear request:", error);
         showMessage("Failed to accept request: " + error.message);
     }
 });
 
-// NEW: "Later" button functionality for clear response modal
 minimizeClearButton.addEventListener('click', () => {
-    if (activeClearRequestDocId) { // Only if there's an actual pending request
-        window.closeModal('clear-response-modal'); // Just close the modal
-        // The closeModal function now handles showing the indicator if activeClearRequestDocId is present
+    if (activeClearRequestDocId) {
+        window.closeModal('clear-response-modal');
     } else {
         showMessage("No active clear request to minimize.");
     }
@@ -764,14 +687,13 @@ finalConfirmClearButton.addEventListener('click', async () => {
 
     try {
         window.closeModal('clear-final-confirm-modal');
-        await executeClearAllMessages(); // Perform the actual deletion
-        // Delete the clear request document from Firestore after messages are cleared
+        await executeClearAllMessages();
         await deleteDoc(doc(db, "clearRequests", requestId));
-        statusModalTitle.innerHTML = `🎉 Messages Cleared!`; // Emoji
+        statusModalTitle.innerHTML = `🎉 Messages Cleared!`;
         statusModalMessage.textContent = "All your messages have been successfully cleared.";
-        statusModalReason.textContent = ""; // No reason needed for successful clear status
+        statusModalReason.textContent = "";
         window.openModal('clear-status-modal');
-        updateClearRequestIndicatorVisibility(false); // Hide indicator on final completion
+        updateClearRequestIndicatorVisibility(false);
     } catch (error) {
         console.error("Error during final clear confirmation:", error);
         showMessage("An error occurred during message clearing: " + error.message);
@@ -788,12 +710,10 @@ onAuthStateChanged(auth, async (user) => {
 
         userProfile = await getUserProfile(user);
         updateProfileDisplay(userProfile);
-        setupLatestMessagesListener(); // Listen for latest messages on dashboard
-        setupIncomingClearRequestListener(); // Listen for incoming clear requests (if current user is partner)
-        setupOutgoingClearRequestListener(); // Listen for outgoing clear requests status (if current user is requester)
+        setupLatestMessagesListener();
+        setupIncomingClearRequestListener();
+        setupOutgoingClearRequestListener();
 
-        // Initial check for indicator visibility after user and profile are loaded
-        // This is important if a request was pending before page load
         updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
 
     } else {
@@ -804,32 +724,22 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-/**
- * Updates the displayed user and partner information on the dashboard.
- * @param {object} profile - The user's current profile data.
- */
 function updateProfileDisplay(profile) {
     userNicknameSpan.textContent = profile.nickname || profile.email;
     profileYouName.textContent = profile.nickname || profile.email;
     profilePartnerName.textContent = profile.partnerNickname || profile.partnerEmail || 'Not set';
 }
 
-/**
- * Updates the title, icon, and background of the "Send Message" modal based on selected message type.
- * @param {string} messageType - The selected message type (e.g., 'grievance', 'compliment').
- */
 function updateSendMessageModalHeader(messageType) {
     let titleText = "Send Message";
     let iconEmoji = '';
     let iconColorClass = '';
     let modalBgClass = '';
 
-    // Get the modal content element
     const currentSendMessageModalContent = document.getElementById('send-message-modal-content');
-    const currentSendMessageModalTitle = sendMessageModal.querySelector('h3'); // Get the h3 element for title
+    const currentSendMessageModalTitle = sendMessageModal.querySelector('h3');
     if (!currentSendMessageModalContent || !currentSendMessageModalTitle) return;
 
-    // Remove all previous background classes first
     currentSendMessageModalContent.classList.remove('modal-bg-grievance', 'modal-bg-compliment', 'modal-bg-good-memory', 'modal-bg-how-i-feel');
 
     switch (messageType) {
@@ -842,7 +752,7 @@ function updateSendMessageModalHeader(messageType) {
         case 'compliment':
             titleText = "Send a Compliment";
             iconEmoji = '❤️';
-            iconColorClass = 'text-orange-500'; // Using orange as red might conflict with grievance
+            iconColorClass = 'text-orange-500';
             modalBgClass = 'modal-bg-compliment';
             break;
         case 'good-memory':
@@ -853,24 +763,19 @@ function updateSendMessageModalHeader(messageType) {
             break;
         case 'how-i-feel':
             titleText = "How I Feel";
-            iconEmoji = '�';
+            iconEmoji = '🤔';
             iconColorClass = 'text-yellow-500';
             modalBgClass = 'modal-bg-how-i-feel';
             break;
     }
-    // Update the innerHTML of the h3 with emoji and text
     currentSendMessageModalTitle.innerHTML = `<span class="${iconColorClass} mr-2">${iconEmoji}</span> ${titleText}`;
     currentSendMessageModalContent.classList.add(modalBgClass);
 }
 
-// Add event listener to the new clear request pending indicator
 document.addEventListener('DOMContentLoaded', () => {
-    // Ensure the indicator element is available when the DOM is ready
     if (clearRequestPendingIndicator) {
         clearRequestPendingIndicator.addEventListener('click', () => {
-            // Re-open the clear response modal when the indicator is clicked
             window.openModal('clear-response-modal');
         });
     }
 });
-�
