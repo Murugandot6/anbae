@@ -3,7 +3,7 @@
 // Firebase SDK imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -20,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DOM Elements
+// DOM Elements - Main Dashboard
 const userNicknameSpan = document.getElementById('user-nickname');
 const profileYouName = document.getElementById('profile-you-name');
 const profilePartnerName = document.getElementById('profile-partner-name');
@@ -28,29 +28,65 @@ const logoutButton = document.getElementById('logout-button');
 const clearAllButton = document.getElementById('clear-all-button');
 const editProfileButton = document.getElementById('edit-profile-button');
 const sendMessageButton = document.getElementById('send-message-button');
+const viewInboxOutboxButton = document.getElementById('view-inbox-outbox-button');
 
-// Modals
+const latestMessagesContent = document.getElementById('latest-messages-content');
+const latestMessagesEmptyMessage = document.getElementById('latest-messages-empty-message');
+
+// Modals - General
+const messageBox = document.getElementById('messageBox');
+const messageText = document.getElementById('messageText');
+const messageBoxClose = document.getElementById('messageBoxClose');
+
+// Modals - Edit Profile
 const editProfileModal = document.getElementById('edit-profile-modal');
 const editProfileForm = document.getElementById('edit-profile-form');
 const editNicknameInput = document.getElementById('edit-nickname');
 const editPartnerEmailInput = document.getElementById('edit-partner-email');
 
+// Modals - Send Message
 const sendMessageModal = document.getElementById('send-message-modal');
 const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content');
+const messageTypeSelect = document.getElementById('message-type-select');
+const messagePrioritySelect = document.getElementById('message-priority');
+const messageMoodSelect = document.getElementById('message-mood');
+const sendMessageModalTitle = sendMessageModal.querySelector('h3');
 
-// Message Tabs
-const outboxTabButton = document.querySelector('.tab-button[data-tab="outbox"]');
-const inboxTabButton = document.querySelector('.tab-button[data-tab="inbox"]');
-const outboxContent = document.getElementById('outbox-content');
-const inboxContent = document.getElementById('inbox-content');
-const outboxCountSpan = document.getElementById('outbox-count');
-const inboxCountSpan = document.getElementById('inbox-count');
-const outboxEmptyMessage = document.getElementById('outbox-empty-message');
-const inboxEmptyMessage = document.getElementById('inbox-empty-message');
+// Modals - Full Messages
+const fullMessagesModal = document.getElementById('full-messages-modal');
+const modalOutboxTabButton = document.querySelector('.modal-tab-button[data-modal-tab="modal-outbox"]');
+const modalInboxTabButton = document.querySelector('.modal-tab-button[data-modal-tab="modal-inbox"]');
+const modalOutboxContent = document.getElementById('modal-outbox-content');
+const modalInboxContent = document.getElementById('modal-inbox-content');
+const modalOutboxCountSpan = document.getElementById('modal-outbox-count');
+const modalInboxCountSpan = document.getElementById('modal-inbox-count');
+const modalOutboxEmptyMessage = document.getElementById('modal-outbox-empty-message');
+const modalInboxEmptyMessage = document.getElementById('modal-inbox-empty-message');
+
+// Modals - Clear All Request/Response/Status (NEW)
+const clearRequestModal = document.getElementById('clear-request-modal');
+const clearRequestForm = document.getElementById('clear-request-form');
+const clearReasonInput = document.getElementById('clear-reason');
+
+const clearResponseModal = document.getElementById('clear-response-modal');
+const requesterNameSpan = document.getElementById('requester-name');
+const requestReasonSpan = document.getElementById('request-reason');
+const declineReasonInput = document.getElementById('decline-reason');
+const declineClearButton = document.getElementById('decline-clear-button');
+const acceptClearButton = document.getElementById('accept-clear-button');
+
+const clearFinalConfirmModal = document.getElementById('clear-final-confirm-modal');
+const finalConfirmClearButton = document.getElementById('final-confirm-clear-button');
+
+const clearStatusModal = document.getElementById('clear-status-modal');
+const statusModalTitle = document.getElementById('status-modal-title');
+const statusModalMessage = document.getElementById('status-modal-message');
+const statusModalReason = document.getElementById('status-modal-reason');
 
 let currentUser = null;
 let userProfile = null; // To store the current user's profile data
+let activeClearRequestDocId = null; // To store the ID of the clear request being processed by the receiver
 
 // --- Utility Functions ---
 
@@ -60,13 +96,11 @@ let userProfile = null; // To store the current user's profile data
  * @param {function} [callback] - An optional callback function to execute when the message box is closed.
  */
 function showMessage(message, callback) {
-    const messageBox = document.getElementById('messageBox');
-    const messageText = document.getElementById('messageText');
-    const messageBoxClose = document.getElementById('messageBoxClose');
-
     messageText.textContent = message;
     messageBox.style.display = 'block';
 
+    // Remove any previous event listeners to prevent multiple calls
+    messageBoxClose.onclick = null;
     messageBoxClose.onclick = () => {
         messageBox.style.display = 'none';
         if (callback) {
@@ -92,39 +126,45 @@ window.closeModal = function(modalId) { // Exposed to global scope for onclick i
 }
 
 /**
- * Switches between message tabs (Outbox/Inbox).
- * @param {string} tabName - 'outbox' or 'inbox'.
+ * Switches between message tabs within a modal.
+ * @param {string} tabName - 'modal-outbox' or 'modal-inbox'.
  */
-function switchTab(tabName) {
-    outboxTabButton.classList.remove('active');
-    inboxTabButton.classList.remove('active');
-    outboxContent.classList.remove('active');
-    inboxContent.classList.remove('active');
+function switchModalTab(tabName) {
+    modalOutboxTabButton.classList.remove('active');
+    modalInboxTabButton.classList.remove('active');
+    modalOutboxContent.classList.remove('active');
+    modalInboxContent.classList.remove('active');
 
-    if (tabName === 'outbox') {
-        outboxTabButton.classList.add('active');
-        outboxContent.classList.add('active');
-    } else if (tabName === 'inbox') {
-        inboxTabButton.classList.add('active');
-        inboxContent.classList.add('active');
+    if (tabName === 'modal-outbox') {
+        modalOutboxTabButton.classList.add('active');
+        modalOutboxContent.classList.add('active');
+    } else if (tabName === 'modal-inbox') {
+        modalInboxTabButton.classList.add('active');
+        modalInboxContent.classList.add('active');
     }
 }
 
 /**
- * Renders a single message item.
+ * Renders a single message item HTML.
  * @param {object} message - The message object from Firestore.
  * @param {string} typeClass - CSS class for message type color (e.g., 'msg-compliment').
+ * @param {boolean} isLatestHighlight - True if this message should have the latest highlight.
  * @returns {string} HTML string for the message.
  */
-function renderMessage(message, typeClass) {
+function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
     const date = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
     const senderName = message.senderNickname || message.senderEmail;
     const receiverName = message.receiverNickname || message.receiverEmail;
+    const highlightClass = isLatestHighlight ? 'msg-latest-highlight' : '';
 
     return `
-        <div class="p-3 mb-3 rounded-lg ${typeClass} flex justify-between items-start">
+        <div class="p-3 mb-3 rounded-lg ${typeClass} ${highlightClass} flex justify-between items-start">
             <div>
-                <p class="text-sm text-gray-700 font-medium">${message.type.charAt(0).toUpperCase() + message.type.slice(1)}</p>
+                <p class="text-sm text-gray-700 font-medium">
+                    ${message.type.charAt(0).toUpperCase() + message.type.slice(1)}
+                    ${message.priority ? ` (Priority: ${message.priority.charAt(0).toUpperCase() + message.priority.slice(1)})` : ''}
+                    ${message.mood ? ` (Mood: ${message.mood.charAt(0).toUpperCase() + message.mood.slice(1)})` : ''}
+                </p>
                 <p class="text-gray-800">${message.content}</p>
                 <p class="text-xs text-gray-500 mt-1">
                     ${message.direction === 'sent' ? `To: ${receiverName}` : `From: ${senderName}`} on ${date}
@@ -148,11 +188,10 @@ async function getUserProfile(user) {
     if (userDocSnap.exists()) {
         return userDocSnap.data();
     } else {
-        // Create a basic profile if it doesn't exist (e.g., first-time login via third-party provider)
         const newProfile = {
             email: user.email,
-            nickname: user.email.split('@')[0], // Default nickname
-            partnerEmail: '' // No partner by default
+            nickname: user.email.split('@')[0],
+            partnerEmail: ''
         };
         await setDoc(userDocRef, newProfile);
         return newProfile;
@@ -166,34 +205,27 @@ async function getUserProfile(user) {
  */
 async function saveUserProfile(userId, profileData) {
     const userDocRef = doc(db, "users", userId);
-    await setDoc(userDocRef, profileData, { merge: true }); // Merge to avoid overwriting other fields
+    await setDoc(userDocRef, profileData, { merge: true });
 }
 
 /**
  * Sends a new message and saves it to Firestore.
- * @param {string} senderId - The UID of the sender.
- * @param {object} senderProfile - The profile of the sender.
- * @param {string} receiverEmail - The email of the receiver.
- * @param {string} content - The message content.
- * @param {string} type - The message type (compliment, grievance, how-i-felt).
  */
-async function sendMessage(senderId, senderProfile, receiverEmail, content, type) {
+async function sendMessage(senderId, senderProfile, receiverEmail, content, type, priority, mood) {
     try {
-        // Fetch receiver's UID if they exist and are registered
         let receiverUid = null;
-        let receiverNickname = receiverEmail; // Default to email if no profile found
+        let receiverNickname = receiverEmail;
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("email", "==", receiverEmail));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            querySnapshot.forEach((doc) => {
-                receiverUid = doc.id;
-                receiverNickname = doc.data().nickname || receiverEmail;
+            querySnapshot.forEach((d) => {
+                receiverUid = d.id;
+                receiverNickname = d.data().nickname || receiverEmail;
             });
         } else {
             showMessage("Partner email is not registered with Anbae. Message will be sent, but partner might not see it in their Anbae inbox if they don't register.");
-            // You might want to prevent sending or handle this case differently
         }
 
         const messagesCollectionRef = collection(db, "messages");
@@ -202,11 +234,13 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
             senderEmail: senderProfile.email,
             senderNickname: senderProfile.nickname,
             receiverEmail: receiverEmail,
-            receiverUid: receiverUid, // Null if partner not registered
+            receiverUid: receiverUid,
             receiverNickname: receiverNickname,
             content: content,
             type: type,
-            timestamp: serverTimestamp() // Firestore server timestamp
+            priority: priority,
+            mood: mood,
+            timestamp: serverTimestamp()
         });
         showMessage("Message sent successfully!");
     } catch (error) {
@@ -216,81 +250,291 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
 }
 
 /**
- * Sets up real-time listeners for inbox and outbox messages.
+ * Sends a request to the partner to clear all messages.
+ * @param {string} reason - The reason for clearing messages.
  */
-function setupMessageListeners() {
+async function sendClearAllRequest(reason) {
+    if (!currentUser || !userProfile || !userProfile.partnerEmail) {
+        showMessage("Cannot send clear request. Please ensure you are logged in and have a partner email set.");
+        return;
+    }
+
+    try {
+        const clearRequestsRef = collection(db, "clearRequests");
+        await addDoc(clearRequestsRef, {
+            requesterId: currentUser.uid,
+            requesterEmail: currentUser.email,
+            requesterNickname: userProfile.nickname,
+            partnerEmail: userProfile.partnerEmail,
+            reason: reason,
+            status: 'pending', // pending, accepted, declined
+            timestamp: serverTimestamp()
+        });
+        showMessage("Clear request sent to your partner!");
+        window.closeModal('clear-request-modal');
+    } catch (error) {
+        console.error("Error sending clear request:", error);
+        showMessage("Failed to send clear request: " + error.message);
+    }
+}
+
+/**
+ * Clears all messages (sent and received) for the current user.
+ */
+async function executeClearAllMessages() {
+    if (!currentUser) {
+        showMessage("Please log in to clear messages.");
+        return;
+    }
+
+    try {
+        const messagesRef = collection(db, "messages");
+        const userSentMessagesQuery = query(
+            messagesRef,
+            where("senderId", "==", currentUser.uid)
+        );
+        const userReceivedMessagesQuery = query(
+            messagesRef,
+            where("receiverEmail", "==", currentUser.email)
+        );
+
+        const [sentSnapshot, receivedSnapshot] = await Promise.all([
+            getDocs(userSentMessagesQuery),
+            getDocs(receivedMessagesQuery)
+        ]);
+
+        const batch = writeBatch(db);
+
+        sentSnapshot.docs.forEach(d => {
+            batch.delete(d.ref);
+        });
+
+        receivedSnapshot.docs.forEach(d => {
+            batch.delete(d.ref);
+        });
+
+        await batch.commit();
+        showMessage("All your messages have been cleared!");
+    } catch (error) {
+        console.error("Error clearing messages:", error);
+        showMessage("Failed to clear messages: " + error.message);
+    }
+}
+
+
+// --- Real-time Listeners and Renderers ---
+
+/**
+ * Sets up real-time listener for the latest 3 messages on the dashboard.
+ */
+function setupLatestMessagesListener() {
+    if (!currentUser) return;
+
+    const messagesRef = collection(db, "messages");
+    const allRelevantMessagesQuery = query(
+        messagesRef,
+        orderBy("timestamp", "desc")
+    );
+
+    onSnapshot(allRelevantMessagesQuery, async (snapshot) => {
+        let allUserMessages = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.senderId === currentUser.uid || data.receiverEmail === currentUser.email) {
+                allUserMessages.push({ id: doc.id, ...data });
+            }
+        });
+
+        allUserMessages.sort((a, b) => {
+            const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+            const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+            return timeB - timeA;
+        });
+
+        const top3Messages = allUserMessages.slice(0, 3);
+        renderLatestMessages(latestMessagesContent, top3Messages);
+    }, (error) => {
+        console.error("Error listening to latest messages:", error);
+        showMessage("Error loading latest messages.");
+    });
+}
+
+/**
+ * Renders only the latest messages on the main dashboard.
+ */
+function renderLatestMessages(container, messages) {
+    container.innerHTML = '';
+    if (messages.length === 0) {
+        latestMessagesEmptyMessage.style.display = 'block';
+        container.appendChild(latestMessagesEmptyMessage);
+        return;
+    } else {
+        latestMessagesEmptyMessage.style.display = 'none';
+    }
+
+    messages.forEach((msg, index) => {
+        let typeClass = '';
+        switch (msg.type) {
+            case 'grievance': typeClass = 'msg-grievance'; break;
+            case 'compliment': typeClass = 'msg-compliment'; break;
+            case 'good-memory': typeClass = 'msg-good-memory'; break;
+            case 'how-i-feel': typeClass = 'msg-how-i-feel'; break;
+            default: typeClass = 'bg-gray-100';
+        }
+        // Apply highlight to the very first message (index 0)
+        const isFirstMessage = (index === 0);
+        container.innerHTML += renderMessageHtml(msg, typeClass, isFirstMessage);
+    });
+}
+
+/**
+ * Sets up real-time listeners for all inbox and outbox messages within the modal.
+ */
+function setupFullMessagesModalListeners() {
     if (!currentUser) return;
 
     const messagesRef = collection(db, "messages");
 
-    // Outbox Listener: Messages sent by the current user
-    const outboxQuery = query(
+    const modalOutboxQuery = query(
         messagesRef,
         where("senderId", "==", currentUser.uid),
         orderBy("timestamp", "desc")
     );
 
-    onSnapshot(outboxQuery, (snapshot) => {
+    onSnapshot(modalOutboxQuery, (snapshot) => {
         const messages = [];
-        snapshot.forEach(doc => {
-            messages.push({ id: doc.id, ...doc.data(), direction: 'sent' });
+        snapshot.forEach(d => {
+            messages.push({ id: d.id, ...d.data(), direction: 'sent' });
         });
-        renderMessages(outboxContent, messages, 'outbox');
-        outboxCountSpan.textContent = messages.length;
+        renderFullModalMessages(modalOutboxContent, messages, 'outbox');
+        modalOutboxCountSpan.textContent = messages.length;
     }, (error) => {
-        console.error("Error listening to outbox:", error);
-        showMessage("Error loading sent messages.");
+        console.error("Error listening to modal outbox:", error);
+        showMessage("Error loading sent messages in modal.");
     });
 
-    // Inbox Listener: Messages received by the current user (where current user's email matches receiverEmail)
-    const inboxQuery = query(
+    const modalInboxQuery = query(
         messagesRef,
         where("receiverEmail", "==", currentUser.email),
         orderBy("timestamp", "desc")
     );
 
-    onSnapshot(inboxQuery, (snapshot) => {
+    onSnapshot(modalInboxQuery, (snapshot) => {
         const messages = [];
-        snapshot.forEach(doc => {
-            messages.push({ id: doc.id, ...doc.data(), direction: 'received' });
+        snapshot.forEach(d => {
+            messages.push({ id: d.id, ...d.data(), direction: 'received' });
         });
-        renderMessages(inboxContent, messages, 'inbox');
-        inboxCountSpan.textContent = messages.length;
+        renderFullModalMessages(modalInboxContent, messages, 'inbox');
+        modalInboxCountSpan.textContent = messages.length;
     }, (error) => {
-        console.error("Error listening to inbox:", error);
-        showMessage("Error loading received messages.");
+        console.error("Error listening to modal inbox:", error);
+        showMessage("Error loading received messages in modal.");
     });
 }
 
 /**
- * Renders messages into the specified container.
- * @param {HTMLElement} container - The DOM element to render messages into.
- * @param {Array<object>} messages - Array of message objects.
- * @param {string} boxType - 'outbox' or 'inbox'.
+ * Renders messages into the specified container for the full messages modal.
  */
-function renderMessages(container, messages, boxType) {
-    container.innerHTML = ''; // Clear previous messages
-    const emptyMessageElement = boxType === 'outbox' ? outboxEmptyMessage : inboxEmptyMessage;
+function renderFullModalMessages(container, messages, boxType) {
+    container.innerHTML = '';
+    let emptyMessageElement = boxType === 'outbox' ? modalOutboxEmptyMessage : modalInboxEmptyMessage;
 
     if (messages.length === 0) {
-        container.appendChild(emptyMessageElement);
         emptyMessageElement.style.display = 'block';
+        container.appendChild(emptyMessageElement);
         return;
     } else {
-         if (emptyMessageElement) {
-            emptyMessageElement.style.display = 'none'; // Hide empty message if there are messages
-        }
+        emptyMessageElement.style.display = 'none';
     }
 
     messages.forEach(msg => {
         let typeClass = '';
         switch (msg.type) {
-            case 'compliment': typeClass = 'msg-compliment'; break;
             case 'grievance': typeClass = 'msg-grievance'; break;
-            case 'how-i-felt': typeClass = 'msg-how-i-felt'; break;
-            default: typeClass = 'bg-gray-100'; // Default styling
+            case 'compliment': typeClass = 'msg-compliment'; break;
+            case 'good-memory': typeClass = 'msg-good-memory'; break;
+            case 'how-i-feel': typeClass = 'msg-how-i-feel'; break;
+            default: typeClass = 'bg-gray-100';
         }
-        container.innerHTML += renderMessage(msg, typeClass);
+        container.innerHTML += renderMessageHtml(msg, typeClass, false); // No highlight in full modal
+    });
+}
+
+/**
+ * Sets up listeners for incoming clear requests (for partners).
+ */
+function setupIncomingClearRequestListener() {
+    if (!currentUser) return;
+
+    const clearRequestsRef = collection(db, "clearRequests");
+    const incomingRequestsQuery = query(
+        clearRequestsRef,
+        where("partnerEmail", "==", currentUser.email),
+        where("status", "==", "pending")
+    );
+
+    onSnapshot(incomingRequestsQuery, (snapshot) => {
+        snapshot.docChanges().forEach(change => {
+            if (change.type === "added") {
+                const request = change.doc.data();
+                activeClearRequestDocId = change.doc.id; // Store for response handling
+                requesterNameSpan.textContent = request.requesterNickname || request.requesterEmail;
+                requestReasonSpan.textContent = request.reason;
+                declineReasonInput.value = ''; // Clear any previous decline reason
+                window.openModal('clear-response-modal');
+                console.log("New clear request received:", request);
+            }
+        });
+    }, (error) => {
+        console.error("Error listening for incoming clear requests:", error);
+    });
+}
+
+/**
+ * Sets up listener for outgoing clear request status changes (for sender).
+ */
+function setupOutgoingClearRequestListener() {
+    if (!currentUser) return;
+
+    const clearRequestsRef = collection(db, "clearRequests");
+    const outgoingRequestsQuery = query(
+        clearRequestsRef,
+        where("requesterId", "==", currentUser.uid),
+        where("status", "!=", "pending") // Listen for accepted or declined
+    );
+
+    onSnapshot(outgoingRequestsQuery, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+            if (change.type === "modified") {
+                const request = change.doc.data();
+                const requestId = change.doc.id;
+
+                if (request.status === "accepted") {
+                    console.log("Clear request accepted by partner:", request);
+                    window.openModal('clear-final-confirm-modal');
+                    // Store the request ID temporarily to delete it after final clear
+                    finalConfirmClearButton.dataset.requestId = requestId;
+                } else if (request.status === "declined") {
+                    console.log("Clear request declined by partner:", request);
+                    statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2A9 9 0 111 10a9 9 0 0118 0z" />
+                    </svg> Request Declined`;
+                    statusModalMessage.textContent = `Your partner, ${request.partnerEmail}, has declined your request to clear all messages.`;
+                    statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
+                    window.openModal('clear-status-modal');
+                    // Delete the request from Firestore after showing status
+                    await deleteDoc(doc(db, "clearRequests", requestId));
+                }
+            }
+            // If type is 'removed', it means the request has been fully processed and deleted
+            if (change.type === "removed" && change.doc.id === finalConfirmClearButton.dataset.requestId) {
+                 console.log("Clear request document removed after full processing.");
+                 // Clear the stored request ID
+                 delete finalConfirmClearButton.dataset.requestId;
+            }
+        });
+    }, (error) => {
+        console.error("Error listening for outgoing clear requests:", error);
     });
 }
 
@@ -300,8 +544,7 @@ function renderMessages(container, messages, boxType) {
 logoutButton.addEventListener('click', async () => {
     try {
         await signOut(auth);
-        // Using window.location.replace for robust redirect and clear history
-        window.location.replace(window.location.origin + '/index.html'); // Redirect to home page
+        window.location.replace(window.location.origin + '/index.html');
     } catch (error) {
         console.error("Error logging out:", error);
         showMessage("Failed to log out. Please try again.");
@@ -313,7 +556,7 @@ editProfileButton.addEventListener('click', () => {
         editNicknameInput.value = userProfile.nickname || '';
         editPartnerEmailInput.value = userProfile.partnerEmail || '';
     }
-    window.openModal('edit-profile-modal'); // Use window.openModal
+    window.openModal('edit-profile-modal');
 });
 
 editProfileForm.addEventListener('submit', async (event) => {
@@ -337,10 +580,10 @@ editProfileForm.addEventListener('submit', async (event) => {
             partnerEmail: newPartnerEmail
         };
         await saveUserProfile(currentUser.uid, updatedProfile);
-        userProfile = { ...userProfile, ...updatedProfile }; // Update local profile
-        updateProfileDisplay(userProfile); // Update UI
+        userProfile = { ...userProfile, ...updatedProfile };
+        updateProfileDisplay(userProfile);
         showMessage("Profile updated successfully!");
-        window.closeModal('edit-profile-modal'); // Use window.closeModal
+        window.closeModal('edit-profile-modal');
     } catch (error) {
         console.error("Error updating profile:", error);
         showMessage("Failed to update profile: " + error.message);
@@ -348,10 +591,16 @@ editProfileForm.addEventListener('submit', async (event) => {
 });
 
 sendMessageButton.addEventListener('click', () => {
-    messageContentInput.value = ''; // Clear previous message
-    const radioButtons = sendMessageForm.querySelectorAll('input[name="message-type"]');
-    if (radioButtons.length > 0) radioButtons[0].checked = true; // Default to first option
-    window.openModal('send-message-modal'); // Use window.openModal
+    messageContentInput.value = '';
+    messageTypeSelect.value = 'grievance';
+    messagePrioritySelect.value = 'medium';
+    messageMoodSelect.value = 'happy';
+    updateSendMessageModalHeader('grievance');
+    window.openModal('send-message-modal');
+});
+
+messageTypeSelect.addEventListener('change', (event) => {
+    updateSendMessageModalHeader(event.target.value);
 });
 
 sendMessageForm.addEventListener('submit', async (event) => {
@@ -362,7 +611,9 @@ sendMessageForm.addEventListener('submit', async (event) => {
     }
 
     const content = messageContentInput.value.trim();
-    const type = sendMessageForm.querySelector('input[name="message-type"]:checked').value;
+    const type = messageTypeSelect.value;
+    const priority = messagePrioritySelect.value;
+    const mood = messageMoodSelect.value;
 
     if (!content) {
         showMessage("Message cannot be empty.");
@@ -373,32 +624,123 @@ sendMessageForm.addEventListener('submit', async (event) => {
          return;
     }
 
-    await sendMessage(currentUser.uid, userProfile, userProfile.partnerEmail, content, type);
-    window.closeModal('send-message-modal'); // Use window.closeModal
+    await sendMessage(currentUser.uid, userProfile, userProfile.partnerEmail, content, type, priority, mood);
+    window.closeModal('send-message-modal');
 });
 
-// Tab switching logic
-outboxTabButton.addEventListener('click', () => switchTab('outbox'));
-inboxTabButton.addEventListener('click', () => switchTab('inbox'));
+viewInboxOutboxButton.addEventListener('click', () => {
+    window.openModal('full-messages-modal');
+    switchModalTab('modal-outbox');
+    setupFullMessagesModalListeners();
+});
+
+modalOutboxTabButton.addEventListener('click', () => switchModalTab('modal-outbox'));
+modalInboxTabButton.addEventListener('click', () => switchModalTab('modal-inbox'));
+
+// --- Clear All Specific Event Listeners (NEW) ---
+clearAllButton.addEventListener('click', () => {
+    if (!currentUser || !userProfile || !userProfile.partnerEmail) {
+        showMessage("Please ensure you are logged in and have a partner email set in your profile to use this feature.");
+        return;
+    }
+    clearReasonInput.value = ''; // Clear previous reason
+    window.openModal('clear-request-modal');
+});
+
+clearRequestForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const reason = clearReasonInput.value.trim();
+    if (!reason) {
+        showMessage("Please provide a reason to clear messages.");
+        return;
+    }
+    await sendClearAllRequest(reason);
+});
+
+// Partner's side: Accept/Decline logic
+declineClearButton.addEventListener('click', async () => {
+    if (!activeClearRequestDocId) {
+        showMessage("No active clear request to decline.");
+        return;
+    }
+    const declineReason = declineReasonInput.value.trim();
+    try {
+        const requestDocRef = doc(db, "clearRequests", activeClearRequestDocId);
+        await updateDoc(requestDocRef, {
+            status: 'declined',
+            declineReason: declineReason || 'No specific reason provided.'
+        });
+        showMessage("You declined the clear request.");
+        window.closeModal('clear-response-modal');
+        activeClearRequestDocId = null; // Clear active request ID
+    } catch (error) {
+        console.error("Error declining clear request:", error);
+        showMessage("Failed to decline request: " + error.message);
+    }
+});
+
+acceptClearButton.addEventListener('click', async () => {
+    if (!activeClearRequestDocId) {
+        showMessage("No active clear request to accept.");
+        return;
+    }
+    try {
+        const requestDocRef = doc(db, "clearRequests", activeClearRequestDocId);
+        await updateDoc(requestDocRef, {
+            status: 'accepted'
+        });
+        showMessage("You accepted the clear request. Messages will be cleared for both of you once your partner confirms.");
+        window.closeModal('clear-response-modal');
+        activeClearRequestDocId = null; // Clear active request ID
+    } catch (error) {
+        console.error("Error accepting clear request:", error);
+        showMessage("Failed to accept request: " + error.message);
+    }
+});
+
+// Sender's side: Final confirmation after partner accepts
+finalConfirmClearButton.addEventListener('click', async () => {
+    const requestId = finalConfirmClearButton.dataset.requestId;
+    if (!currentUser || !requestId) {
+        showMessage("Authentication error or no active clear request for final confirmation.");
+        return;
+    }
+
+    try {
+        window.closeModal('clear-final-confirm-modal');
+        await executeClearAllMessages(); // Perform the actual deletion
+        // Delete the clear request document after messages are cleared
+        await deleteDoc(doc(db, "clearRequests", requestId));
+        statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg> Messages Cleared!`;
+        statusModalMessage.textContent = "All your messages have been successfully cleared.";
+        statusModalReason.textContent = ""; // No reason needed for successful clear status
+        window.openModal('clear-status-modal');
+    } catch (error) {
+        console.error("Error during final clear confirmation:", error);
+        showMessage("An error occurred during message clearing: " + error.message);
+    }
+});
 
 
 // --- Authentication State Observer ---
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // User is signed in
         currentUser = user;
         console.log("User authenticated:", user.email);
 
         userProfile = await getUserProfile(user);
         updateProfileDisplay(userProfile);
-        setupMessageListeners(); // Start listening for messages
+        setupLatestMessagesListener(); // Listen for latest messages on dashboard
+        setupIncomingClearRequestListener(); // Listen for incoming clear requests (if current user is partner)
+        setupOutgoingClearRequestListener(); // Listen for outgoing clear requests status (if current user is requester)
     } else {
-        // User is signed out, redirect to login or home
         currentUser = null;
         userProfile = null;
         console.log("No user signed in. Redirecting to index.html");
-        window.location.replace(window.location.origin + '/index.html'); // Use window.location.replace
+        window.location.replace(window.location.origin + '/index.html');
     }
 });
 
@@ -412,53 +754,39 @@ function updateProfileDisplay(profile) {
     profilePartnerName.textContent = profile.partnerEmail || 'Not set';
 }
 
-// Initial tab activation
-switchTab('outbox');
+/**
+ * Updates the title and icon of the "Send Message" modal based on selected message type.
+ * @param {string} messageType - The selected message type (e.g., 'grievance', 'compliment').
+ */
+function updateSendMessageModalHeader(messageType) {
+    let titleText = "Send Message";
+    let iconSvg = '';
+    let iconColorClass = '';
 
-// Clear all messages (utility for development/testing)
-clearAllButton.addEventListener('click', async () => {
-    if (!currentUser) {
-        showMessage("Please log in to clear messages.");
-        return;
+    switch (messageType) {
+        case 'grievance':
+            titleText = "Send a Grievance";
+            iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293A1 1 0 007.293 8.707L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />`; // X icon
+            iconColorClass = 'text-red-500';
+            break;
+        case 'compliment':
+            titleText = "Send a Compliment";
+            iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`; // Checkmark icon
+            iconColorClass = 'text-green-500';
+            break;
+        case 'good-memory':
+            titleText = "Share a Good Memory";
+            iconSvg = `<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3V2a2 2 0 00-2-2H6a2 2 0 00-2 2v1H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2h-2V2a2 2 0 00-2-2H9a2 2 0 00-2 2v1H4a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm-1 5a1 1 0 100 2h10a1 1 0 100-2H3z" clip-rule="evenodd" />`; // Calendar/Memory icon
+            iconColorClass = 'text-blue-500';
+            break;
+        case 'how-i-feel':
+            titleText = "How I Feel";
+            iconSvg = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-4-3a1 1 0 000 2h.01a1 1 0 000-2H7zm4-2a1 1 0 10-2 0 1 1 0 002 0zm2 2a1 1 0 000 2h.01a1 1 0 000-2H13z" clip-rule="evenodd" />`; // Emoji icon
+            iconColorClass = 'text-yellow-500';
+            break;
     }
+    sendMessageModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 ${iconColorClass}" viewBox="0 0 20 20" fill="currentColor">${iconSvg}</svg>${titleText}`;
+}
 
-    // Using custom message box instead of alert/confirm
-    showMessage("Are you sure you want to clear ALL your messages (sent and received)? This action cannot be undone.", async () => {
-        try {
-            const messagesRef = collection(db, "messages");
-            const userMessagesQuery = query(
-                messagesRef,
-                where("senderId", "==", currentUser.uid)
-            );
-            const receivedMessagesQuery = query(
-                messagesRef,
-                where("receiverEmail", "==", currentUser.email)
-            );
-
-            const [sentSnapshot, receivedSnapshot] = await Promise.all([
-                getDocs(userMessagesQuery),
-                getDocs(receivedMessagesQuery)
-            ]);
-
-            const batch = writeBatch(db); // Use batched writes for efficiency
-
-            sentSnapshot.docs.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-
-            receivedSnapshot.docs.forEach(doc => {
-                // Only delete if the message is *only* received by current user
-                // This prevents deleting messages sent by others if they also sent it to someone else
-                // For a simple app, deleting all messages where current user is receiver is fine.
-                // For more complex apps, consider message ownership more carefully.
-                batch.delete(doc.ref);
-            });
-
-            await batch.commit();
-            showMessage("All your messages have been cleared!");
-        } catch (error) {
-            console.error("Error clearing messages:", error);
-            showMessage("Failed to clear messages: " + error.message);
-        }
-    });
-});
+// Initial dashboard setup
+// No initial tab activation needed as latest messages are directly shown
