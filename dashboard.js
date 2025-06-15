@@ -1,9 +1,26 @@
 // dashboard.js
 
 // Firebase SDK imports
+// Ensure all necessary Firestore functions are explicitly imported here.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc,
+    collection,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    addDoc,
+    serverTimestamp,
+    writeBatch,
+    getDocs,
+    deleteDoc,
+    updateDoc // <--- THIS IS THE CRITICAL IMPORT THAT WAS LIKELY MISSING
+} from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -53,7 +70,7 @@ const messageTypeSelect = document.getElementById('message-type-select');
 const messagePrioritySelect = document.getElementById('message-priority');
 const messageMoodSelect = document.getElementById('message-mood');
 const sendMessageModalTitle = sendMessageModal.querySelector('h3');
-const sendMessageModalContent = document.getElementById('send-message-modal-content'); // Reference to the modal content div
+const sendMessageModalContent = document.getElementById('send-message-modal-content');
 
 // Modals - Full Messages
 const fullMessagesModal = document.getElementById('full-messages-modal');
@@ -191,7 +208,7 @@ async function getUserProfile(user) {
     } else {
         const newProfile = {
             email: user.email,
-            nickname: user.email.split('@')[0],
+            nickname: user.email.split('@')[0], // Default nickname from email prefix
             partnerEmail: '',
             partnerNickname: ''
         };
@@ -441,34 +458,6 @@ function setupFullMessagesModalListeners() {
 }
 
 /**
- * Renders messages into the specified container for the full messages modal.
- */
-function renderFullModalMessages(container, messages, boxType) {
-    container.innerHTML = '';
-    let emptyMessageElement = boxType === 'outbox' ? modalOutboxEmptyMessage : modalInboxEmptyMessage;
-
-    if (messages.length === 0) {
-        emptyMessageElement.style.display = 'block';
-        container.appendChild(emptyMessageElement);
-        return;
-    } else {
-        emptyMessageElement.style.display = 'none';
-    }
-
-    messages.forEach(msg => {
-        let typeClass = '';
-        switch (msg.type) {
-            case 'grievance': typeClass = 'msg-grievance'; break;
-            case 'compliment': typeClass = 'msg-compliment'; break;
-            case 'good-memory': typeClass = 'msg-good-memory'; break;
-            case 'how-i-feel': typeClass = 'msg-how-i-feel'; break;
-            default: typeClass = 'bg-gray-100';
-        }
-        container.innerHTML += renderMessageHtml(msg, typeClass, false); // No highlight in full modal
-    });
-}
-
-/**
  * Sets up listeners for incoming clear requests (for partners).
  */
 function setupIncomingClearRequestListener() {
@@ -520,25 +509,30 @@ function setupOutgoingClearRequestListener() {
                 if (request.status === "accepted") {
                     console.log("Clear request accepted by partner:", request);
                     window.openModal('clear-final-confirm-modal');
-                    finalConfirmClearButton.dataset.requestId = requestId; // Store the request ID temporarily
+                    // Store the request ID temporarily to delete it after final clear
+                    finalConfirmClearButton.dataset.requestId = requestId;
                 } else if (request.status === "declined") {
                     console.log("Clear request declined by partner:", request);
                     statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2A9 9 0 111 10a9 9 0 0118 0z" />
                     </svg> Request Declined`;
-                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`;
+                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`; // Use partnerNickname
                     statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
                     window.openModal('clear-status-modal');
+                    // Delete the request from Firestore after showing status
                     await deleteDoc(doc(db, "clearRequests", requestId));
                 }
             }
+            // If type is 'removed', it means the request has been fully processed and deleted
             if (change.type === "removed" && change.doc.id === finalConfirmClearButton.dataset.requestId) {
                  console.log("Clear request document removed after full processing.");
+                 // Clear the stored request ID
                  delete finalConfirmClearButton.dataset.requestId;
             }
         });
     }, (error) => {
         console.error("Error listening for outgoing clear requests:", error);
+        // The URL for index creation is printed here in the console during development
     });
 }
 
@@ -549,8 +543,7 @@ logoutButton.addEventListener('click', async () => {
     try {
         await signOut(auth);
         window.location.replace(window.location.origin + '/index.html');
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error logging out:", error);
         showMessage("Failed to log out. Please try again.");
     }
@@ -589,7 +582,6 @@ editProfileForm.addEventListener('submit', async (event) => {
         showMessage("Partner's Nickname is required.");
         return;
     }
-
 
     try {
         const updatedProfile = {
@@ -691,7 +683,7 @@ declineClearButton.addEventListener('click', async () => {
         });
         showMessage("You declined the clear request.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null;
+        activeClearRequestDocId = null; // Clear active request ID
     } catch (error) {
         console.error("Error declining clear request:", error);
         showMessage("Failed to decline request: " + error.message);
@@ -710,7 +702,7 @@ acceptClearButton.addEventListener('click', async () => {
         });
         showMessage("You accepted the clear request. Messages will be cleared for both of you once your partner confirms.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null;
+        activeClearRequestDocId = null; // Clear active request ID
     } catch (error) {
         console.error("Error accepting clear request:", error);
         showMessage("Failed to accept request: " + error.message);
@@ -727,13 +719,14 @@ finalConfirmClearButton.addEventListener('click', async () => {
 
     try {
         window.closeModal('clear-final-confirm-modal');
-        await executeClearAllMessages();
+        await executeClearAllMessages(); // Perform the actual deletion
+        // Delete the clear request document from Firestore after messages are cleared
         await deleteDoc(doc(db, "clearRequests", requestId));
         statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg> Messages Cleared!`;
         statusModalMessage.textContent = "All your messages have been successfully cleared.";
-        statusModalReason.textContent = "";
+        statusModalReason.textContent = ""; // No reason needed for successful clear status
         window.openModal('clear-status-modal');
     } catch (error) {
         console.error("Error during final clear confirmation:", error);
@@ -751,9 +744,9 @@ onAuthStateChanged(auth, async (user) => {
 
         userProfile = await getUserProfile(user);
         updateProfileDisplay(userProfile);
-        setupLatestMessagesListener();
-        setupIncomingClearRequestListener();
-        setupOutgoingClearRequestListener();
+        setupLatestMessagesListener(); // Listen for latest messages on dashboard
+        setupIncomingClearRequestListener(); // Listen for incoming clear requests (if current user is partner)
+        setupOutgoingClearRequestListener(); // Listen for outgoing clear requests status (if current user is requester)
     } else {
         currentUser = null;
         userProfile = null;
@@ -782,8 +775,12 @@ function updateSendMessageModalHeader(messageType) {
     let iconColorClass = '';
     let modalBgClass = '';
 
+    // Get the modal content element
+    const currentSendMessageModalContent = document.getElementById('send-message-modal-content');
+    if (!currentSendMessageModalContent) return; // Exit if element not found
+
     // Remove all previous background classes first
-    sendMessageModalContent.classList.remove('modal-bg-grievance', 'modal-bg-compliment', 'modal-bg-good-memory', 'modal-bg-how-i-feel');
+    currentSendMessageModalContent.classList.remove('modal-bg-grievance', 'modal-bg-compliment', 'modal-bg-good-memory', 'modal-bg-how-i-feel');
 
     switch (messageType) {
         case 'grievance':
@@ -812,5 +809,5 @@ function updateSendMessageModalHeader(messageType) {
             break;
     }
     sendMessageModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 ${iconColorClass}" viewBox="0 0 20 20" fill="currentColor">${iconSvg}</svg>${titleText}`;
-    sendMessageModalContent.classList.add(modalBgClass);
+    currentSendMessageModalContent.classList.add(modalBgClass);
 }
