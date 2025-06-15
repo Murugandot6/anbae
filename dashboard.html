@@ -1,190 +1,463 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <!-- The 'dark' class is managed by JavaScript -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - anbae</title>
-
-    <!-- Tailwind CSS & Lucide Icons CDN -->
+    <title>Anbae - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Google Fonts & Custom Styles -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap');
-        body { font-family: 'Manrope', sans-serif; }
-        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-        .tab-button{color:#6b7280}.dark .tab-button{color:#9ca3af}.tab-active{color:#111827;background-color:white;box-shadow:0 1px 3px 0 rgb(0 0 0 / .1),0 1px 2px -1px rgb(0 0 0 / .1)}.dark .tab-active{color:#f9fafb;background-color:#374151}
-        select{-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center;background-size:1em;padding-right:2.5rem}
+        /* Import Inter font for a consistent look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce7f3; /* Light pink background consistent with other pages */
+            color: #202124;
+        }
+        .pink-button {
+            background-color: #ec4899;
+            color: white;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            cursor: pointer;
+        }
+        .pink-button:hover {
+            background-color: #db2777;
+            transform: translateY(-1px);
+        }
+        .pink-button:active {
+            background-color: #be185d;
+            transform: translateY(0);
+        }
+        .dashboard-card {
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* More prominent shadow */
+        }
+        .text-pink-primary {
+            color: #ec4899; /* Define a custom pink text color */
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px; /* Increased max-width for message modal */
+            max-height: 90vh; /* Make content scrollable if it exceeds viewport height */
+            overflow-y: auto; /* Enable scrolling for modal content */
+            position: relative;
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        .modal-input, .modal-select, .modal-textarea { /* Added modal-textarea */
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        .modal-button {
+            background-color: #3b82f6; /* Blue for general modal actions */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .modal-button:hover {
+            background-color: #2563eb;
+        }
+        .modal-red-button { /* For decline/cancel actions */
+            background-color: #ef4444;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .modal-red-button:hover {
+            background-color: #dc2626;
+        }
+
+        /* Message Box Styling */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1001; /* Higher z-index for message box */
+            display: none; /* Hidden by default */
+            text-align: center;
+        }
+        .message-box button {
+            margin-top: 15px;
+            background-color: #ec4899;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Message Type Colors */
+        .msg-grievance { background-color: #ffe0e0; border-left: 5px solid #ff4d4d; } /* Red for Grievance */
+        .msg-compliment { background-color: #e0ffe0; border-left: 5px solid #4dff4d; } /* Green for Compliment */
+        .msg-good-memory { background-color: #e0f2ff; border-left: 5px solid #4d99ff; } /* Blue for Good Memory */
+        .msg-how-i-feel { background-color: #fff9e0; border-left: 5px solid #ffcc00; } /* Yellow for How I Feel */
+
+        /* Highlight for Latest Message */
+        .msg-latest-highlight {
+            border: 2px solid #ec4899; /* Pink border */
+            box-shadow: 0 4px 10px rgba(236, 72, 153, 0.2); /* Soft pink shadow */
+            background-color: #fff5f8; /* Very light pink background */
+            position: relative; /* For potential future additions like a "New" badge */
+        }
+        .msg-latest-highlight::before {
+            content: "LATEST";
+            position: absolute;
+            top: -10px; /* Adjust as needed */
+            left: 10px; /* Adjust as needed */
+            background-color: #ef4444; /* Red badge */
+            color: white;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            transform: rotate(-3deg);
+        }
+
+
+        /* Tabs Styling for Dashboard */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            border-color: #ec4899;
+            color: #ec4899;
+            font-weight: 700;
+        }
+        .tab-button:hover:not(.active) {
+            color: #9ca3af; /* Gray on hover for inactive */
+        }
+        .tab-content {
+            display: none;
+            padding: 1rem 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tabs Styling for Modals */
+        .modal-tab-button {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .modal-tab-button.active {
+            border-color: #ec4899;
+            color: #ec4899;
+            font-weight: 700;
+        }
+        .modal-tab-button:hover:not(.active) {
+            color: #9ca3af;
+        }
+        .modal-tab-content {
+            display: none;
+            padding: 1rem 0;
+        }
+        .modal-tab-content.active {
+            display: block;
+        }
     </style>
 </head>
-<body class="bg-[#fdfcff] dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <main class="flex flex-col items-center w-full max-w-4xl text-center">
+        <div class="dashboard-card w-full">
+            <!-- Top Right Buttons -->
+            <div class="flex justify-end gap-4 mb-4">
+                <button id="clear-all-button" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200">Clear All</button>
+                <button id="logout-button" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">Logout</button>
+            </div>
 
-    <!-- Header -->
-    <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg sticky top-0 z-20 border-b border-gray-200 dark:border-gray-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Welcome chikku!</h1>
-                <div class="flex items-center gap-x-2 sm:gap-x-4">
-                    <button onclick="toggleTheme()" title="Toggle Theme" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><i id="theme-icon" class="h-5 w-5"></i></button>
-                    <button onclick="showClearAllModal()" class="flex items-center gap-x-1.5 px-3 py-2 text-sm text-red-600 bg-red-100 dark:bg-red-900/50 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/80 transition-colors"><i data-lucide="heart-crack" class="h-4 w-4"></i><span>Clear All</span></button>
-                    <a href="login.html" class="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Logout</a>
+            <!-- Anbae Logo/Title -->
+            <h1 class="text-6xl font-bold tracking-tight mb-8">
+                <span class="text-blue-500">a</span><span class="text-red-500">n</span><span class="text-yellow-500">b</span><span class="text-blue-500">a</span><span class="text-green-500">e</span>
+            </h1>
+
+            <h2 class="text-4xl font-semibold mb-4 text-pink-primary flex items-center justify-center gap-2">
+                ✨ Welcome <span id="user-nickname"></span>!
+            </h2>
+            <p class="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
+                Your personalized space to connect and express.
+            </p>
+
+            <!-- User and Partner Profile Cards -->
+            <div class="flex flex-col sm:flex-row justify-center gap-6 mb-10">
+                <div class="bg-purple-50 p-6 rounded-xl shadow-sm text-left border border-purple-100 flex-1 flex flex-col items-center">
+                    <div class="bg-purple-100 p-4 rounded-full flex items-center justify-center mb-3" style="width: 60px; height: 60px; box-shadow: 0 0 0 3px #f3e8ff;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-1">You</h3>
+                    <p id="profile-you-name" class="text-gray-600 text-sm"></p>
+                </div>
+
+                <div class="bg-pink-50 p-6 rounded-xl shadow-sm text-left border border-pink-100 flex-1 flex flex-col items-center">
+                    <div class="bg-pink-100 p-4 rounded-full flex items-center justify-center mb-3" style="width: 60px; height: 60px; box-shadow: 0 0 0 3px #fce7f3;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pink-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-1">Partner</h3>
+                    <p id="profile-partner-name" class="text-gray-600 text-sm"></p>
                 </div>
             </div>
-        </div>
-    </header>
 
-           <!-- Main Content Area -->
-        <main class="flex-grow container mx-auto px-4 mt-6">
-            <div class="text-center mb-10">
-                <h2 class="text-xl font-semibold mb-4">What's on your mind?</h2>
-                <button onclick="showModal('sendMessage')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2 mx-auto">
-                    <i data-lucide="message-square-plus"></i>
-                    <span>Send a New Message</span>
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10">
+                <button id="edit-profile-button" class="pink-button">
+                    Edit Profile
+                </button>
+                <button id="send-message-button" class="pink-button">
+                    Send New Message
+                </button>
+                <button id="view-inbox-outbox-button" class="pink-button">
+                    View Inbox & Outbox
                 </button>
             </div>
 
-            <!-- Message Display Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <!-- INBOX Section -->
-                <div>
-                    <h3 class="text-2xl font-bold mb-4 border-b-2 border-pink-500 pb-2 flex items-center gap-2">
-                        <i data-lucide="inbox"></i> Inbox
-                    </h3>
-                    <div id="inbox-container" class="space-y-4">
-                        <!-- Messages received by you will appear here -->
-                        <p class="text-gray-500 dark:text-gray-400">No new messages.</p>
-                    </div>
+            <!-- Latest Messages Section on main dashboard -->
+            <div class="mt-10">
+                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Latest Messages</h3>
+                <div id="latest-messages-content" class="p-4 border rounded-lg bg-gray-50 max-h-80 overflow-y-auto">
+                    <p id="latest-messages-empty-message" class="text-gray-500 text-center">No recent messages.</p>
                 </div>
-
-                <!-- OUTBOX Section -->
-                <div>
-                    <h3 class="text-2xl font-bold mb-4 border-b-2 border-gray-400 pb-2 flex items-center gap-2">
-                        <i data-lucide="send"></i> Outbox
-                    </h3>
-                    <div id="outbox-container" class="space-y-4">
-                        <!-- Messages sent by you will appear here -->
-                        <p class="text-gray-500 dark:text-gray-400">You haven't sent any messages.</p>
-                    </div>
-                </div>
-
             </div>
-        </main>
-    
-    <!-- MODALS CONTAINER -->
+        </div>
+    </main>
 
-    <!-- 1. Send Message Modal -->
-    <div id="send-message-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
-        <div id="message-card" class="bg-red-50 dark:bg-gray-800 border-red-200 dark:border-red-900/50 border w-full max-w-lg p-6 rounded-2xl shadow-2xl transition-colors duration-300">
-            <form onsubmit="event.preventDefault(); alert('Message Sent!'); hideSendMessageModal();">
-                <div id="form-header" class="flex items-center gap-x-3 mb-6 text-red-600 dark:text-red-400"><i id="header-icon" data-lucide="heart-crack"></i><h3 id="header-title" class="text-2xl font-bold">Send a Grievance</h3></div>
-                <div class="space-y-4">
-                    <div><label for="message-type" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Message Type</label><select onchange="changeMessageType(this.value)" id="message-type" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option value="grievance">Grievance</option><option value="compliment">Compliment</option><option value="memory">Good Memory</option><option value="feeling">Feeling</option></select></div>
-                    <div><label for="title" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Title</label><input type="text" id="title" placeholder="A brief summary..." class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"></div>
-                    <div><label for="description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label><textarea id="description" rows="4" placeholder="Explain the situation..." class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"></textarea></div>
-                    <div class="grid grid-cols-2 gap-4"><div><label for="priority" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Priority</label><select id="priority" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option>Low</option><option selected>Medium</option><option>High</option></select></div><div><label for="mood" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Your Mood</label><select id="mood" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 bg-white dark:bg-gray-700 dark:text-gray-200"><option>😊 Happy</option><option>😢 Sad</option><option>😠 Angry</option><option>🥰 Loved</option></select></div></div>
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeModal('edit-profile-modal')">&times;</button>
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800">Edit Profile</h3>
+            <form id="edit-profile-form">
+                <label for="edit-nickname" class="block text-left text-sm font-medium text-gray-700">Your Nickname</label>
+                <input type="text" id="edit-nickname" class="modal-input" required>
+
+                <label for="edit-partner-email" class="block text-left text-sm font-medium text-gray-700">Partner's Email</label>
+                <input type="email" id="edit-partner-email" class="modal-input" placeholder="Optional">
+
+                <button type="submit" class="modal-button w-full pink-button">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Send Message Modal -->
+    <div id="send-message-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeModal('send-message-modal')">&times;</button>
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293A1 1 0 007.293 8.707L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                Send a Grievance
+            </h3>
+            <form id="send-message-form">
+                <label for="message-type-select" class="block text-left text-sm font-medium text-gray-700 mb-1">Message Type</label>
+                <select id="message-type-select" class="modal-select mb-4">
+                    <option value="grievance">Grievance</option>
+                    <option value="compliment">Compliment</option>
+                    <option value="good-memory">Good Memory</option>
+                    <option value="how-i-feel">How I Feel</option>
+                </select>
+
+                <label for="message-content" class="block text-left text-sm font-medium text-gray-700 mb-1">Explain the situation, how it makes you feel, and what you need</label>
+                <textarea id="message-content" class="modal-input h-24 resize-none" placeholder="Type your message here..." required></textarea>
+
+                <div class="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+                    <div class="flex-1">
+                        <label for="message-priority" class="block text-left text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select id="message-priority" class="modal-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="message-mood" class="block text-left text-sm font-medium text-gray-700 mb-1">Your Mood</label>
+                        <select id="message-mood" class="modal-select">
+                            <option value="happy">Happy</option>
+                            <option value="neutral">Neutral</option>
+                            <option value="sad">Sad</option>
+                            <option value="angry">Angry</option>
+                            <option value="anxious">Anxious</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="flex justify-end gap-x-4 mt-8"><button type="button" onclick="hideSendMessageModal()" class="px-6 py-2 text-sm font-semibold bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">Cancel</button><button type="submit" id="submit-button" class="px-6 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-md flex items-center gap-x-2"><i data-lucide="send" class="h-4 w-4"></i><span id="submit-button-text">Send Grievance</span></button></div>
+
+                <button type="submit" class="modal-button w-full pink-button mt-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l.607-.23a1.125 1.125 0 011.834.418l1.33 4a1 1 0 001.664 0l1.33-4a1.125 1.125 0 011.834-.418l.607.23a1 1 0 001.169-1.409l-7-14z" />
+                    </svg>
+                    Send Message
+                </button>
             </form>
         </div>
     </div>
-    
-    <!-- 2. Clear All Modal -->
-    <div id="clear-all-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
-        <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded-xl shadow-2xl border dark:border-gray-700">
-            <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-x-2"><i data-lucide="heart-crack" class="h-6 w-6 text-red-500"></i><h3 class="text-lg font-bold text-red-500">Clear All Grievances</h3></div><button onclick="hideClearAllModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i data-lucide="x" class="h-5 w-5"></i></button></div>
-            <div class="space-y-4"><p class="text-sm text-gray-600 dark:text-gray-400">This will send a request to your partner to clear all grievances. <strong>Both of you need to agree for this to happen.</strong></p><div><label for="reason" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Reason for clearing all grievances:</label><textarea id="reason" rows="3" placeholder="Please explain why you want to start fresh..." class="block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 p-2 bg-white dark:bg-gray-700 dark:text-gray-200"></textarea></div></div>
-            <div class="flex justify-end gap-x-4 mt-6"><button onclick="hideClearAllModal()" class="px-6 py-2 text-sm font-semibold bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">Cancel</button><button onclick="alert('Request Sent!'); hideClearAllModal();" class="px-6 py-2 text-sm font-semibold bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors flex items-center gap-x-2"><i data-lucide="send" class="h-4 w-4"></i>Send Request</button></div>
-        </div>
-    </div>
-    
-    <!-- 3. Message History Modal -->
-    <div id="message-history-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 modal-backdrop hidden">
-         <div class="bg-white dark:bg-gray-800 w-full max-w-2xl p-4 sm:p-6 rounded-2xl shadow-2xl border border-pink-200 dark:border-gray-700">
-            <div class="flex items-center justify-between mb-6"><div class="flex items-center gap-x-3"><i data-lucide="message-square-heart" class="h-8 w-8 text-pink-500"></i><h3 class="text-2xl font-bold text-gray-800 dark:text-white">Messages</h3></div><button onclick="hideMessageHistoryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-white"><i data-lucide="x-circle" class="h-6 w-6"></i></button></div>
-            <div class="bg-gray-100 dark:bg-gray-900 p-1 rounded-lg flex items-center mb-4"><button id="inbox-tab" onclick="switchTab('inbox')" class="tab-button tab-active w-full flex items-center justify-center gap-x-2 p-2 rounded-md font-semibold transition-colors"><i data-lucide="inbox"></i> Inbox (0)</button><button id="outbox-tab" onclick="switchTab('outbox')" class="tab-button w-full flex items-center justify-center gap-x-2 p-2 rounded-md font-semibold transition-colors"><i data-lucide="send"></i> Outbox (0)</button></div>
-            <div class="min-h-[200px] flex items-center justify-center text-center"><div id="inbox-content"><i data-lucide="archive" class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto"></i><p class="mt-2 text-gray-500 dark:text-gray-400">No messages received yet.</p></div><div id="outbox-content" class="hidden"><i data-lucide="archive-x" class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto"></i><p class="mt-2 text-gray-500 dark:text-gray-400">No messages sent yet.</p></div></div>
+
+    <!-- Full Messages Modal (NEW) -->
+    <div id="full-messages-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeModal('full-messages-modal')">&times;</button>
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800">Your Messages</h3>
+
+            <div class="flex justify-center border-b border-gray-200 mb-4">
+                <button class="modal-tab-button active" data-modal-tab="modal-outbox">Outbox (<span id="modal-outbox-count">0</span>)</button>
+                <button class="modal-tab-button" data-modal-tab="modal-inbox">Inbox (<span id="modal-inbox-count">0</span>)</button>
+            </div>
+
+            <div id="modal-outbox-content" class="modal-tab-content active p-4 border rounded-lg bg-gray-50 max-h-96 overflow-y-auto">
+                <p id="modal-outbox-empty-message" class="text-gray-500 text-center">No messages sent yet.</p>
+            </div>
+            <div id="modal-inbox-content" class="modal-tab-content p-4 border rounded-lg bg-gray-50 max-h-96 overflow-y-auto">
+                <p id="modal-inbox-empty-message" class="text-gray-500 text-center">No messages received yet.</p>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button class="pink-button" onclick="window.closeModal('full-messages-modal')">Close</button>
+            </div>
         </div>
     </div>
 
-    <!-- 4. Edit Profile Modal (NEWLY ADDED) -->
-    <div id="edit-profile-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 modal-backdrop hidden">
-        <div class="relative bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-sm border border-gray-200 dark:border-gray-700">
-            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-pink-100 h-16 w-16 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-800"><i data-lucide="user-cog" class="h-8 w-8 text-pink-500"></i></div>
-            <div class="text-center mt-6 mb-8"><h2 class="text-2xl font-bold text-gray-800 dark:text-white">Edit Your Profile</h2></div>
-            <form onsubmit="event.preventDefault(); alert('Profile Saved!'); hideEditProfileModal();" class="space-y-6">
-                <div><label for="nickname" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i data-lucide="user-circle" class="h-4 w-4 text-green-500"></i><span>Nickname</span></label><input id="nickname" type="text" value="chikku" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
-                <div><label for="partner-email" class="flex items-center gap-x-2 text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1.5"><i data-lucide="mail-heart" class="h-4 w-4 text-red-500"></i><span>Partner's Email</span></label><input id="partner-email" type="email" value="anbae@example.com" class="block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm"></div>
-                <div class="pt-4"><button type="submit" class="w-full flex justify-center items-center gap-x-2 py-3 px-4 rounded-lg shadow-md text-sm font-medium text-white bg-green-500 hover:bg-green-600"><i data-lucide="save" class="h-5 w-5"></i>Save Changes</button></div>
+    <!-- Clear Request Modal (NEW) -->
+    <div id="clear-request-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeModal('clear-request-modal')">&times;</button>
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Clear All Messages
+            </h3>
+            <p class="text-gray-600 mb-4">This will send a request to your partner to clear all messages. Both of you need to agree for this to happen.</p>
+            <form id="clear-request-form">
+                <label for="clear-reason" class="block text-left text-sm font-medium text-gray-700 mb-1">Reason for clearing all messages:</label>
+                <textarea id="clear-reason" class="modal-textarea h-24 resize-none" placeholder="Please explain why you want to start fresh..." required></textarea>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" class="modal-red-button" onclick="window.closeModal('clear-request-modal')">Cancel</button>
+                    <button type="submit" class="modal-button pink-button">Send Request</button>
+                </div>
             </form>
-             <div class="text-center mt-6"><button onclick="hideEditProfileModal()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-white">&larr; Back to Dashboard</button></div>
+        </div>
+    </div>
+
+    <!-- Clear Response Modal (NEW - for partner to accept/decline) -->
+    <div id="clear-response-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17l-3 3m0 0l-3-3m3 3V10m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Clear Messages Request
+            </h3>
+            <p class="text-gray-600 mb-2">Your partner <span id="requester-name" class="font-semibold"></span> wants to clear all messages.</p>
+            <p class="text-gray-600 mb-4">Reason: <span id="request-reason" class="font-medium italic"></span></p>
+
+            <form id="clear-response-form">
+                <label for="decline-reason" class="block text-left text-sm font-medium text-gray-700 mb-1">Reason for declining (Optional):</label>
+                <textarea id="decline-reason" class="modal-textarea h-20 resize-none" placeholder="Enter reason if declining..."></textarea>
+                <div class="flex justify-between gap-3 mt-4">
+                    <button type="button" id="decline-clear-button" class="modal-red-button">Decline</button>
+                    <button type="button" id="accept-clear-button" class="modal-button pink-button">Accept</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Clear Final Confirmation Modal (NEW - for sender after partner accepts) -->
+    <div id="clear-final-confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Partner Accepted!
+            </h3>
+            <p class="text-gray-700 mb-6">Your partner has accepted your request to clear all messages. Are you sure you want to proceed? This action is irreversible.</p>
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" class="modal-red-button" onclick="window.closeModal('clear-final-confirm-modal')">Cancel</button>
+                <button type="button" id="final-confirm-clear-button" class="modal-button pink-button">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Status Modal (NEW - for sender to see decline/success) -->
+    <div id="clear-status-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeModal('clear-status-modal')">&times;</button>
+            <h3 id="status-modal-title" class="text-2xl font-semibold mb-4 text-gray-800 flex items-center gap-2"></h3>
+            <p id="status-modal-message" class="text-gray-700 mb-4"></p>
+            <p id="status-modal-reason" class="text-gray-600 italic mb-6"></p>
+            <div class="flex justify-end mt-4">
+                <button type="button" class="pink-button" onclick="window.closeModal('clear-status-modal')">OK</button>
+            </div>
         </div>
     </div>
 
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // --- THEME ---
-        const themeIcon = document.getElementById('theme-icon');
-        const applyTheme = (theme) => {
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-            themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
-            lucide.createIcons();
-        };
-        const toggleTheme = () => {
-            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-        };
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            applyTheme(savedTheme);
-        });
+    <!-- Custom message box for alerts -->
+    <div id="messageBox" class="message-box">
+        <p id="messageText"></p>
+        <button id="messageBoxClose">OK</button>
+    </div>
 
-        // --- MODAL CONTROLS ---
-        const clearAllModal = document.getElementById('clear-all-modal');
-        const messageHistoryModal = document.getElementById('message-history-modal');
-        const sendMessageModal = document.getElementById('send-message-modal');
-        const editProfileModal = document.getElementById('edit-profile-modal'); // Get the new modal
-
-        function showClearAllModal() { clearAllModal.classList.remove('hidden'); }
-        function hideClearAllModal() { clearAllModal.classList.add('hidden'); }
-        
-        function showMessageHistoryModal() { messageHistoryModal.classList.remove('hidden'); }
-        function hideMessageHistoryModal() { messageHistoryModal.classList.add('hidden'); }
-
-        function showSendMessageModal() { sendMessageModal.classList.remove('hidden'); }
-        function hideSendMessageModal() { sendMessageModal.classList.add('hidden'); }
-
-        function showEditProfileModal() { editProfileModal.classList.remove('hidden'); }
-        function hideEditProfileModal() { editProfileModal.classList.add('hidden'); }
-        
-        // --- MESSAGE HISTORY TABS ---
-        const inboxTab = document.getElementById('inbox-tab'), outboxTab = document.getElementById('outbox-tab'), inboxContent = document.getElementById('inbox-content'), outboxContent = document.getElementById('outbox-content');
-        function switchTab(tab) { const isInbox = tab === 'inbox'; inboxTab.classList.toggle('tab-active', isInbox); outboxTab.classList.toggle('tab-active', !isInbox); inboxContent.classList.toggle('hidden', !isInbox); outboxContent.classList.toggle('hidden', isInbox); }
-
-        // --- SEND MESSAGE THEME CHANGER ---
-        const msgCard = document.getElementById('message-card'), formHeader = document.getElementById('form-header'), headerIcon = document.getElementById('header-icon'), headerTitle = document.getElementById('header-title'), submitButton = document.getElementById('submit-button'), submitButtonText = document.getElementById('submit-button-text');
-        const messageThemes = {
-            grievance: { card: 'bg-red-50 dark:bg-gray-800 border-red-200 dark:border-red-900/50', header: 'text-red-600 dark:text-red-400', button: 'bg-red-500 hover:bg-red-600', icon: 'heart-crack', title: 'Send a Grievance' },
-            compliment: { card: 'bg-pink-50 dark:bg-gray-800 border-pink-200 dark:border-pink-900/50', header: 'text-pink-600 dark:text-pink-400', button: 'bg-pink-500 hover:bg-pink-600', icon: 'gift', title: 'Send a Compliment' },
-            memory: { card: 'bg-yellow-50 dark:bg-gray-800 border-yellow-200 dark:border-yellow-900/50', header: 'text-yellow-600 dark:text-yellow-400', button: 'bg-yellow-500 hover:bg-yellow-600', icon: 'camera', title: 'Share a Good Memory' },
-            feeling: { card: 'bg-purple-50 dark:bg-gray-800 border-purple-200 dark:border-purple-900/50', header: 'text-purple-600 dark:text-purple-400', button: 'bg-purple-500 hover:bg-purple-600', icon: 'smile-plus', title: 'Share a Feeling' }
-        };
-        function changeMessageType(type) {
-            const theme = messageThemes[type];
-            msgCard.className = `border w-full max-w-lg p-6 rounded-2xl shadow-2xl transition-colors duration-300 ${theme.card}`;
-            formHeader.className = `flex items-center gap-x-3 mb-6 ${theme.header}`;
-            submitButton.className = `px-6 py-2 text-sm font-semibold text-white rounded-md flex items-center gap-x-2 ${theme.button}`;
-            headerIcon.setAttribute('data-lucide', theme.icon);
-            headerTitle.textContent = theme.title;
-            submitButtonText.textContent = theme.title;
-            lucide.createIcons();
-        }
-
-        // --- INITIALIZE ICONS ---
-        lucide.createIcons();
-    </script>
+    <script type="module" src="dashboard.js"></script>
 </body>
 </html>
