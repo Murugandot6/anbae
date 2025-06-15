@@ -68,7 +68,7 @@ const sendMessageForm = document.getElementById('send-message-form');
 const messageContentInput = document.getElementById('message-content');
 const messageTypeSelect = document.getElementById('message-type-select');
 const messagePrioritySelect = document.getElementById('message-priority');
-const messageMoodSelect = document = document.getElementById('message-mood');
+const messageMoodSelect = document.getElementById('message-mood'); // Corrected this line
 const sendMessageModalTitle = sendMessageModal.querySelector('h3');
 const sendMessageModalContent = document.getElementById('send-message-modal-content');
 
@@ -298,7 +298,7 @@ async function executeClearAllMessages() {
 
         const [sentSnapshot, receivedSnapshot] = await Promise.all([
             getDocs(userSentMessagesQuery),
-            getDocs(receivedMessagesQuery)
+            getDocs(userReceivedMessagesQuery) // Corrected variable name from 'receivedMessagesQuery'
         ]);
 
         const batch = writeBatch(db);
@@ -420,6 +420,30 @@ function setupFullMessagesModalListeners() {
     });
 }
 
+function renderFullModalMessages(container, messages, type) {
+    container.innerHTML = '';
+    const emptyMessageElement = type === 'outbox' ? modalOutboxEmptyMessage : modalInboxEmptyMessage;
+
+    if (messages.length === 0) {
+        emptyMessageElement.style.display = 'block';
+        container.appendChild(emptyMessageElement);
+    } else {
+        emptyMessageElement.style.display = 'none';
+        messages.forEach(msg => {
+            let typeClass = '';
+            switch (msg.type) {
+                case 'grievance': typeClass = 'msg-grievance'; break;
+                case 'compliment': typeClass = 'msg-compliment'; break;
+                case 'good-memory': typeClass = 'msg-good-memory'; break;
+                case 'how-i-feel': typeClass = 'msg-how-i-feel'; break;
+                default: typeClass = 'bg-gray-100';
+            }
+            container.innerHTML += renderMessageHtml(msg, typeClass);
+        });
+    }
+}
+
+
 function setupIncomingClearRequestListener() {
     if (!currentUser) return;
 
@@ -449,6 +473,7 @@ function setupIncomingClearRequestListener() {
                 }
             }
         });
+        // This line ensures the indicator is shown if there's a request and the modal is NOT open
         updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
     }, (error) => {
         console.error("Error listening for incoming clear requests:", error);
@@ -485,9 +510,9 @@ function setupOutgoingClearRequestListener() {
                 }
             }
             if (change.type === "removed" && change.doc.id === finalConfirmClearButton.dataset.requestId) {
-                 console.log("Clear request document removed after full processing.");
-                 delete finalConfirmClearButton.dataset.requestId;
-                 updateClearRequestIndicatorVisibility(false);
+                    console.log("Clear request document removed after full processing.");
+                    delete finalConfirmClearButton.dataset.requestId;
+                    updateClearRequestIndicatorVisibility(false);
             }
         });
     }, (error) => {
@@ -589,8 +614,8 @@ sendMessageForm.addEventListener('submit', async (event) => {
         return;
     }
     if (!userProfile.partnerEmail) {
-         showMessage("Please set your partner's email in 'Edit Profile' before sending messages.");
-         return;
+        showMessage("Please set your partner's email in 'Edit Profile' before sending messages.");
+        return;
     }
 
     await sendMessage(currentUser.uid, userProfile, userProfile.partnerEmail, content, type, priority, mood);
@@ -600,7 +625,7 @@ sendMessageForm.addEventListener('submit', async (event) => {
 viewInboxOutboxButton.addEventListener('click', () => {
     window.openModal('full-messages-modal');
     switchModalTab('modal-outbox');
-    setupFullMessagesModalListeners();
+    setupFullMessagesModalListeners(); // Ensure listeners are active when modal is opened
 });
 
 modalOutboxTabButton.addEventListener('click', () => switchModalTab('modal-outbox'));
@@ -714,7 +739,13 @@ onAuthStateChanged(auth, async (user) => {
         setupIncomingClearRequestListener();
         setupOutgoingClearRequestListener();
 
-        updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
+        // Check for active clear requests only after all listeners are setup
+        // and only show if the modal isn't already open
+        if (activeClearRequestDocId && !clearResponseModal.classList.contains('open')) {
+             updateClearRequestIndicatorVisibility(true);
+        } else {
+            updateClearRequestIndicatorVisibility(false);
+        }
 
     } else {
         currentUser = null;
