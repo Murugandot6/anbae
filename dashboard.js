@@ -211,7 +211,7 @@ async function saveUserProfile(userId, profileData) {
         await setDoc(userDocRef, profileData, { merge: true });
     } catch (error) {
         console.error("Error saving user profile:", error);
-        showMessage("Failed to save profile changes. Please check your Firestore security rules and internet connection.");
+        showMessage("Failed to save profile changes. Please check your user permissions in Firestore security rules. Error: " + error.message);
         console.warn("Firestore Security Rule Hint: Ensure your 'users' collection rules allow authenticated users to 'write' to their own document (e.g., 'allow write: if request.auth != null && request.auth.uid == userId;').");
         throw error;
     }
@@ -549,7 +549,8 @@ logoutButton.addEventListener('click', async () => {
     try {
         await signOut(auth);
         window.location.replace(window.location.origin + '/index.html');
-    } catch (error) {
+    }
+    catch (error) {
         console.error("Error logging out:", error);
         showMessage("Failed to log out. Please try again.");
     }
@@ -579,6 +580,16 @@ editProfileForm.addEventListener('submit', async (event) => {
         showMessage("Nickname cannot be empty.");
         return;
     }
+    // Make Partner's Email and Nickname required
+    if (!newPartnerEmail) {
+        showMessage("Partner's Email is required.");
+        return;
+    }
+    if (!newPartnerNickname) {
+        showMessage("Partner's Nickname is required.");
+        return;
+    }
+
 
     try {
         const updatedProfile = {
@@ -593,6 +604,8 @@ editProfileForm.addEventListener('submit', async (event) => {
         window.closeModal('edit-profile-modal');
     } catch (error) {
         console.error("Error updating profile:", error);
+        // The specific error message about permissions is handled inside saveUserProfile
+        // No need to show a generic message here again, as saveUserProfile already does.
     }
 });
 
