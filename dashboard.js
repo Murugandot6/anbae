@@ -43,7 +43,7 @@ const editProfileModal = document.getElementById('edit-profile-modal');
 const editProfileForm = document.getElementById('edit-profile-form');
 const editNicknameInput = document.getElementById('edit-nickname');
 const editPartnerEmailInput = document.getElementById('edit-partner-email');
-const editPartnerNicknameInput = document.getElementById('edit-partner-nickname'); // NEW: Partner Nickname Input
+const editPartnerNicknameInput = document.getElementById('edit-partner-nickname');
 
 // Modals - Send Message
 const sendMessageModal = document.getElementById('send-message-modal');
@@ -53,6 +53,7 @@ const messageTypeSelect = document.getElementById('message-type-select');
 const messagePrioritySelect = document.getElementById('message-priority');
 const messageMoodSelect = document.getElementById('message-mood');
 const sendMessageModalTitle = sendMessageModal.querySelector('h3');
+const sendMessageModalContent = document.getElementById('send-message-modal-content'); // Reference to the modal content div
 
 // Modals - Full Messages
 const fullMessagesModal = document.getElementById('full-messages-modal');
@@ -65,7 +66,7 @@ const modalInboxCountSpan = document.getElementById('modal-inbox-count');
 const modalOutboxEmptyMessage = document.getElementById('modal-outbox-empty-message');
 const modalInboxEmptyMessage = document.getElementById('modal-inbox-empty-message');
 
-// Modals - Clear All Request/Response/Status (NEW)
+// Modals - Clear All Request/Response/Status
 const clearRequestModal = document.getElementById('clear-request-modal');
 const clearRequestForm = document.getElementById('clear-request-form');
 const clearReasonInput = document.getElementById('clear-reason');
@@ -100,7 +101,6 @@ function showMessage(message, callback) {
     messageText.textContent = message;
     messageBox.style.display = 'block';
 
-    // Remove any previous event listeners to prevent multiple calls
     messageBoxClose.onclick = null;
     messageBoxClose.onclick = () => {
         messageBox.style.display = 'none';
@@ -114,7 +114,7 @@ function showMessage(message, callback) {
  * Opens a given modal.
  * @param {string} modalId - The ID of the modal element to open.
  */
-window.openModal = function(modalId) { // Exposed to global scope for onclick in HTML
+window.openModal = function(modalId) {
     document.getElementById(modalId).classList.add('open');
 }
 
@@ -122,7 +122,7 @@ window.openModal = function(modalId) { // Exposed to global scope for onclick in
  * Closes a given modal.
  * @param {string} modalId - The ID of the modal element to close.
  */
-window.closeModal = function(modalId) { // Exposed to global scope for onclick in HTML
+window.closeModal = function(modalId) {
     document.getElementById(modalId).classList.remove('open');
 }
 
@@ -154,8 +154,8 @@ function switchModalTab(tabName) {
  */
 function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
     const date = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
-    const senderDisplayName = message.senderNickname || message.senderEmail; // Use nickname if available
-    const receiverDisplayName = message.receiverNickname || message.receiverEmail; // Use nickname if available
+    const senderDisplayName = message.senderNickname || message.senderEmail;
+    const receiverDisplayName = message.receiverNickname || message.receiverEmail;
     const highlightClass = isLatestHighlight ? 'msg-latest-highlight' : '';
 
     return `
@@ -193,7 +193,7 @@ async function getUserProfile(user) {
             email: user.email,
             nickname: user.email.split('@')[0],
             partnerEmail: '',
-            partnerNickname: '' // NEW: Initialize partnerNickname
+            partnerNickname: ''
         };
         await setDoc(userDocRef, newProfile);
         return newProfile;
@@ -212,9 +212,8 @@ async function saveUserProfile(userId, profileData) {
     } catch (error) {
         console.error("Error saving user profile:", error);
         showMessage("Failed to save profile changes. Please check your Firestore security rules and internet connection.");
-        // Crucial: Remind user to check Firestore Security Rules
         console.warn("Firestore Security Rule Hint: Ensure your 'users' collection rules allow authenticated users to 'write' to their own document (e.g., 'allow write: if request.auth != null && request.auth.uid == userId;').");
-        throw error; // Re-throw to propagate the error
+        throw error;
     }
 }
 
@@ -224,7 +223,7 @@ async function saveUserProfile(userId, profileData) {
 async function sendMessage(senderId, senderProfile, receiverEmail, content, type, priority, mood) {
     try {
         let receiverUid = null;
-        let receiverNickname = receiverEmail; // Default to email if no profile found
+        let receiverNickname = receiverEmail;
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("email", "==", receiverEmail));
         const querySnapshot = await getDocs(q);
@@ -245,7 +244,7 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
             senderNickname: senderProfile.nickname,
             receiverEmail: receiverEmail,
             receiverUid: receiverUid,
-            receiverNickname: receiverNickname, // NEW: Include receiver's nickname
+            receiverNickname: receiverNickname,
             content: content,
             type: type,
             priority: priority,
@@ -277,7 +276,7 @@ async function sendClearAllRequest(reason) {
             requesterNickname: userProfile.nickname,
             partnerEmail: userProfile.partnerEmail,
             reason: reason,
-            status: 'pending', // pending, accepted, declined
+            status: 'pending',
             timestamp: serverTimestamp()
         });
         showMessage("Clear request sent to your partner!");
@@ -391,7 +390,6 @@ function renderLatestMessages(container, messages) {
             case 'how-i-feel': typeClass = 'msg-how-i-feel'; break;
             default: typeClass = 'bg-gray-100';
         }
-        // Apply highlight to the very first message (index 0)
         const isFirstMessage = (index === 0);
         container.innerHTML += renderMessageHtml(msg, typeClass, isFirstMessage);
     });
@@ -510,7 +508,7 @@ function setupOutgoingClearRequestListener() {
     const outgoingRequestsQuery = query(
         clearRequestsRef,
         where("requesterId", "==", currentUser.uid),
-        where("status", "!=", "pending") // Listen for accepted or declined
+        where("status", "!=", "pending")
     );
 
     onSnapshot(outgoingRequestsQuery, (snapshot) => {
@@ -522,24 +520,20 @@ function setupOutgoingClearRequestListener() {
                 if (request.status === "accepted") {
                     console.log("Clear request accepted by partner:", request);
                     window.openModal('clear-final-confirm-modal');
-                    // Store the request ID temporarily to delete it after final clear
-                    finalConfirmClearButton.dataset.requestId = requestId;
+                    finalConfirmClearButton.dataset.requestId = requestId; // Store the request ID temporarily
                 } else if (request.status === "declined") {
                     console.log("Clear request declined by partner:", request);
                     statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2A9 9 0 111 10a9 9 0 0118 0z" />
                     </svg> Request Declined`;
-                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`; // Use partnerNickname
+                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`;
                     statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
                     window.openModal('clear-status-modal');
-                    // Delete the request from Firestore after showing status
                     await deleteDoc(doc(db, "clearRequests", requestId));
                 }
             }
-            // If type is 'removed', it means the request has been fully processed and deleted
             if (change.type === "removed" && change.doc.id === finalConfirmClearButton.dataset.requestId) {
                  console.log("Clear request document removed after full processing.");
-                 // Clear the stored request ID
                  delete finalConfirmClearButton.dataset.requestId;
             }
         });
@@ -565,7 +559,7 @@ editProfileButton.addEventListener('click', () => {
     if (userProfile) {
         editNicknameInput.value = userProfile.nickname || '';
         editPartnerEmailInput.value = userProfile.partnerEmail || '';
-        editPartnerNicknameInput.value = userProfile.partnerNickname || ''; // NEW: Populate partner nickname
+        editPartnerNicknameInput.value = userProfile.partnerNickname || '';
     }
     window.openModal('edit-profile-modal');
 });
@@ -579,7 +573,7 @@ editProfileForm.addEventListener('submit', async (event) => {
 
     const newNickname = editNicknameInput.value.trim();
     const newPartnerEmail = editPartnerEmailInput.value.trim();
-    const newPartnerNickname = editPartnerNicknameInput.value.trim(); // NEW: Get partner nickname
+    const newPartnerNickname = editPartnerNicknameInput.value.trim();
 
     if (!newNickname) {
         showMessage("Nickname cannot be empty.");
@@ -589,9 +583,8 @@ editProfileForm.addEventListener('submit', async (event) => {
     try {
         const updatedProfile = {
             nickname: newNickname,
-            // partnerEmail is optional now, so we save it as is
             partnerEmail: newPartnerEmail,
-            partnerNickname: newPartnerNickname // NEW: Save partner nickname
+            partnerNickname: newPartnerNickname
         };
         await saveUserProfile(currentUser.uid, updatedProfile);
         userProfile = { ...userProfile, ...updatedProfile };
@@ -600,17 +593,15 @@ editProfileForm.addEventListener('submit', async (event) => {
         window.closeModal('edit-profile-modal');
     } catch (error) {
         console.error("Error updating profile:", error);
-        // The specific error message about permissions is handled inside saveUserProfile
-        // No need to show a generic message here again, as saveUserProfile already does.
     }
 });
 
 sendMessageButton.addEventListener('click', () => {
     messageContentInput.value = '';
-    messageTypeSelect.value = 'grievance';
+    messageTypeSelect.value = 'grievance'; // Default to Grievance
     messagePrioritySelect.value = 'medium';
     messageMoodSelect.value = 'happy';
-    updateSendMessageModalHeader('grievance');
+    updateSendMessageModalHeader('grievance'); // Set initial header and background
     window.openModal('send-message-modal');
 });
 
@@ -634,8 +625,6 @@ sendMessageForm.addEventListener('submit', async (event) => {
         showMessage("Message cannot be empty.");
         return;
     }
-    // Partner email is optional for profile, but required for sending messages.
-    // If not set, show a message.
     if (!userProfile.partnerEmail) {
          showMessage("Please set your partner's email in 'Edit Profile' before sending messages.");
          return;
@@ -654,13 +643,13 @@ viewInboxOutboxButton.addEventListener('click', () => {
 modalOutboxTabButton.addEventListener('click', () => switchModalTab('modal-outbox'));
 modalInboxTabButton.addEventListener('click', () => switchModalTab('modal-inbox'));
 
-// --- Clear All Specific Event Listeners (NEW) ---
+// --- Clear All Specific Event Listeners ---
 clearAllButton.addEventListener('click', () => {
     if (!currentUser || !userProfile || !userProfile.partnerEmail) {
         showMessage("Please ensure you are logged in and have a partner email set in your profile to use this feature.");
         return;
     }
-    clearReasonInput.value = ''; // Clear previous reason
+    clearReasonInput.value = '';
     window.openModal('clear-request-modal');
 });
 
@@ -689,7 +678,7 @@ declineClearButton.addEventListener('click', async () => {
         });
         showMessage("You declined the clear request.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null; // Clear active request ID
+        activeClearRequestDocId = null;
     } catch (error) {
         console.error("Error declining clear request:", error);
         showMessage("Failed to decline request: " + error.message);
@@ -708,7 +697,7 @@ acceptClearButton.addEventListener('click', async () => {
         });
         showMessage("You accepted the clear request. Messages will be cleared for both of you once your partner confirms.");
         window.closeModal('clear-response-modal');
-        activeClearRequestDocId = null; // Clear active request ID
+        activeClearRequestDocId = null;
     } catch (error) {
         console.error("Error accepting clear request:", error);
         showMessage("Failed to accept request: " + error.message);
@@ -725,14 +714,13 @@ finalConfirmClearButton.addEventListener('click', async () => {
 
     try {
         window.closeModal('clear-final-confirm-modal');
-        await executeClearAllMessages(); // Perform the actual deletion
-        // Delete the clear request document after messages are cleared
+        await executeClearAllMessages();
         await deleteDoc(doc(db, "clearRequests", requestId));
         statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg> Messages Cleared!`;
         statusModalMessage.textContent = "All your messages have been successfully cleared.";
-        statusModalReason.textContent = ""; // No reason needed for successful clear status
+        statusModalReason.textContent = "";
         window.openModal('clear-status-modal');
     } catch (error) {
         console.error("Error during final clear confirmation:", error);
@@ -750,9 +738,9 @@ onAuthStateChanged(auth, async (user) => {
 
         userProfile = await getUserProfile(user);
         updateProfileDisplay(userProfile);
-        setupLatestMessagesListener(); // Listen for latest messages on dashboard
-        setupIncomingClearRequestListener(); // Listen for incoming clear requests (if current user is partner)
-        setupOutgoingClearRequestListener(); // Listen for outgoing clear requests status (if current user is requester)
+        setupLatestMessagesListener();
+        setupIncomingClearRequestListener();
+        setupOutgoingClearRequestListener();
     } else {
         currentUser = null;
         userProfile = null;
@@ -768,43 +756,48 @@ onAuthStateChanged(auth, async (user) => {
 function updateProfileDisplay(profile) {
     userNicknameSpan.textContent = profile.nickname || profile.email;
     profileYouName.textContent = profile.nickname || profile.email;
-    // Display partner's nickname if available, otherwise email, otherwise 'Not set'
     profilePartnerName.textContent = profile.partnerNickname || profile.partnerEmail || 'Not set';
 }
 
 /**
- * Updates the title and icon of the "Send Message" modal based on selected message type.
+ * Updates the title, icon, and background of the "Send Message" modal based on selected message type.
  * @param {string} messageType - The selected message type (e.g., 'grievance', 'compliment').
  */
 function updateSendMessageModalHeader(messageType) {
     let titleText = "Send Message";
     let iconSvg = '';
     let iconColorClass = '';
+    let modalBgClass = '';
+
+    // Remove all previous background classes first
+    sendMessageModalContent.classList.remove('modal-bg-grievance', 'modal-bg-compliment', 'modal-bg-good-memory', 'modal-bg-how-i-feel');
 
     switch (messageType) {
         case 'grievance':
             titleText = "Send a Grievance";
             iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293A1 1 0 007.293 8.707L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />`; // X icon
             iconColorClass = 'text-red-500';
+            modalBgClass = 'modal-bg-grievance';
             break;
         case 'compliment':
             titleText = "Send a Compliment";
             iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`; // Checkmark icon
-            iconColorClass = 'text-green-500';
+            iconColorClass = 'text-orange-500';
+            modalBgClass = 'modal-bg-compliment';
             break;
         case 'good-memory':
             titleText = "Share a Good Memory";
             iconSvg = `<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3V2a2 2 0 00-2-2H6a2 2 0 00-2 2v1H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2h-2V2a2 2 0 00-2-2H9a2 2 0 00-2 2v1H4a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm-1 5a1 1 0 100 2h10a1 1 0 100-2H3z" clip-rule="evenodd" />`; // Calendar/Memory icon
             iconColorClass = 'text-blue-500';
+            modalBgClass = 'modal-bg-good-memory';
             break;
         case 'how-i-feel':
             titleText = "How I Feel";
             iconSvg = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-4-3a1 1 0 000 2h.01a1 1 0 000-2H7zm4-2a1 1 0 10-2 0 1 1 0 002 0zm2 2a1 1 0 000 2h.01a1 1 0 000-2H13z" clip-rule="evenodd" />`; // Emoji icon
             iconColorClass = 'text-yellow-500';
+            modalBgClass = 'modal-bg-how-i-feel';
             break;
     }
     sendMessageModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 ${iconColorClass}" viewBox="0 0 20 20" fill="currentColor">${iconSvg}</svg>${titleText}`;
+    sendMessageModalContent.classList.add(modalBgClass);
 }
-
-// Initial dashboard setup
-// No initial tab activation needed as latest messages are directly shown
