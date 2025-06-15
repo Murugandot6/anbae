@@ -19,7 +19,7 @@ import {
     writeBatch,
     getDocs,
     deleteDoc,
-    updateDoc // <--- THIS IS THE CRITICAL IMPORT THAT WAS LIKELY MISSING
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 // Your Firebase configuration
@@ -94,6 +94,7 @@ const requestReasonSpan = document.getElementById('request-reason');
 const declineReasonInput = document.getElementById('decline-reason');
 const declineClearButton = document.getElementById('decline-clear-button');
 const acceptClearButton = document.getElementById('accept-clear-button');
+const minimizeClearButton = document.getElementById('minimize-clear-button'); // NEW: Minimize button for clear response modal
 
 const clearFinalConfirmModal = document.getElementById('clear-final-confirm-modal');
 const finalConfirmClearButton = document.getElementById('final-confirm-clear-button');
@@ -102,6 +103,10 @@ const clearStatusModal = document.getElementById('clear-status-modal');
 const statusModalTitle = document.getElementById('status-modal-title');
 const statusModalMessage = document.getElementById('status-modal-message');
 const statusModalReason = document.getElementById('status-modal-reason');
+
+// NEW: Pending Clear Request Indicator DOM element
+const clearRequestPendingIndicator = document.getElementById('clear-request-pending-indicator');
+
 
 let currentUser = null;
 let userProfile = null; // To store the current user's profile data
@@ -133,6 +138,10 @@ function showMessage(message, callback) {
  */
 window.openModal = function(modalId) {
     document.getElementById(modalId).classList.add('open');
+    // Hide the indicator if the clear response modal is opened
+    if (modalId === 'clear-response-modal') {
+        updateClearRequestIndicatorVisibility(false);
+    }
 }
 
 /**
@@ -141,6 +150,20 @@ window.openModal = function(modalId) {
  */
 window.closeModal = function(modalId) {
     document.getElementById(modalId).classList.remove('open');
+    // Show the indicator if the clear response modal is closed AND a request is pending
+    if (modalId === 'clear-response-modal' && activeClearRequestDocId) {
+        updateClearRequestIndicatorVisibility(true);
+    }
+}
+
+/**
+ * Updates the visibility of the clear request pending indicator.
+ * @param {boolean} visible - True to show, false to hide.
+ */
+function updateClearRequestIndicatorVisibility(visible) {
+    if (clearRequestPendingIndicator) {
+        clearRequestPendingIndicator.style.display = visible ? 'flex' : 'none';
+    }
 }
 
 /**
@@ -471,6 +494,7 @@ function setupIncomingClearRequestListener() {
     );
 
     onSnapshot(incomingRequestsQuery, (snapshot) => {
+        let pendingRequestFound = false;
         snapshot.docChanges().forEach(change => {
             if (change.type === "added") {
                 const request = change.doc.data();
@@ -479,9 +503,19 @@ function setupIncomingClearRequestListener() {
                 requestReasonSpan.textContent = request.reason;
                 declineReasonInput.value = ''; // Clear any previous decline reason
                 window.openModal('clear-response-modal');
+                pendingRequestFound = true; // Mark that a pending request was found and opened
                 console.log("New clear request received:", request);
+            } else if (change.type === "removed") {
+                // If a pending request is removed (e.g., accepted/declined elsewhere)
+                if (change.doc.id === activeClearRequestDocId) {
+                    activeClearRequestDocId = null; // Clear the ID
+                    window.closeModal('clear-response-modal'); // Close the modal if it's open
+                }
             }
         });
+        // After processing all changes, update indicator visibility
+        // Show indicator if active request exists AND modal is NOT open
+        updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
     }, (error) => {
         console.error("Error listening for incoming clear requests:", error);
     });
@@ -513,9 +547,7 @@ function setupOutgoingClearRequestListener() {
                     finalConfirmClearButton.dataset.requestId = requestId;
                 } else if (request.status === "declined") {
                     console.log("Clear request declined by partner:", request);
-                    statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2A9 9 0 111 10a9 9 0 0118 0z" />
-                    </svg> Request Declined`;
+                    statusModalTitle.innerHTML = `❌ Request Declined`;
                     statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`; // Use partnerNickname
                     statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
                     window.openModal('clear-status-modal');
@@ -528,6 +560,7 @@ function setupOutgoingClearRequestListener() {
                  console.log("Clear request document removed after full processing.");
                  // Clear the stored request ID
                  delete finalConfirmClearButton.dataset.requestId;
+                 updateClearRequestIndicatorVisibility(false); // Hide indicator on final completion
             }
         });
     }, (error) => {
@@ -589,15 +622,15 @@ editProfileForm.addEventListener('submit', async (event) => {
             partnerEmail: newPartnerEmail,
             partnerNickname: newPartnerNickname
         };
-        await saveUserProfile(currentUser.uid, updatedProfile);
+        await setDoc(doc(db, "users", currentUser.uid), updatedProfile, { merge: true }); // Explicitly use doc() here
         userProfile = { ...userProfile, ...updatedProfile };
         updateProfileDisplay(userProfile);
         showMessage("Profile updated successfully!");
         window.closeModal('edit-profile-modal');
     } catch (error) {
         console.error("Error updating profile:", error);
-        // The specific error message about permissions is handled inside saveUserProfile
-        // No need to show a generic message here again, as saveUserProfile already does.
+        showMessage("Failed to save profile changes. Please check your user permissions in Firestore security rules. Error: " + error.message);
+        console.warn("Firestore Security Rule Hint: Ensure your 'users' collection rules allow authenticated users to 'write' to their own document (e.g., 'allow write: if request.auth != null && request.auth.uid == userId;').");
     }
 });
 
@@ -684,6 +717,7 @@ declineClearButton.addEventListener('click', async () => {
         showMessage("You declined the clear request.");
         window.closeModal('clear-response-modal');
         activeClearRequestDocId = null; // Clear active request ID
+        updateClearRequestIndicatorVisibility(false); // Hide indicator on action
     } catch (error) {
         console.error("Error declining clear request:", error);
         showMessage("Failed to decline request: " + error.message);
@@ -703,9 +737,20 @@ acceptClearButton.addEventListener('click', async () => {
         showMessage("You accepted the clear request. Messages will be cleared for both of you once your partner confirms.");
         window.closeModal('clear-response-modal');
         activeClearRequestDocId = null; // Clear active request ID
+        updateClearRequestIndicatorVisibility(false); // Hide indicator on action
     } catch (error) {
         console.error("Error accepting clear request:", error);
         showMessage("Failed to accept request: " + error.message);
+    }
+});
+
+// NEW: "Later" button functionality for clear response modal
+minimizeClearButton.addEventListener('click', () => {
+    if (activeClearRequestDocId) { // Only if there's an actual pending request
+        window.closeModal('clear-response-modal'); // Just close the modal
+        // The closeModal function now handles showing the indicator if activeClearRequestDocId is present
+    } else {
+        showMessage("No active clear request to minimize.");
     }
 });
 
@@ -722,12 +767,11 @@ finalConfirmClearButton.addEventListener('click', async () => {
         await executeClearAllMessages(); // Perform the actual deletion
         // Delete the clear request document from Firestore after messages are cleared
         await deleteDoc(doc(db, "clearRequests", requestId));
-        statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg> Messages Cleared!`;
+        statusModalTitle.innerHTML = `🎉 Messages Cleared!`; // Emoji
         statusModalMessage.textContent = "All your messages have been successfully cleared.";
         statusModalReason.textContent = ""; // No reason needed for successful clear status
         window.openModal('clear-status-modal');
+        updateClearRequestIndicatorVisibility(false); // Hide indicator on final completion
     } catch (error) {
         console.error("Error during final clear confirmation:", error);
         showMessage("An error occurred during message clearing: " + error.message);
@@ -747,6 +791,11 @@ onAuthStateChanged(auth, async (user) => {
         setupLatestMessagesListener(); // Listen for latest messages on dashboard
         setupIncomingClearRequestListener(); // Listen for incoming clear requests (if current user is partner)
         setupOutgoingClearRequestListener(); // Listen for outgoing clear requests status (if current user is requester)
+
+        // Initial check for indicator visibility after user and profile are loaded
+        // This is important if a request was pending before page load
+        updateClearRequestIndicatorVisibility(activeClearRequestDocId && !clearResponseModal.classList.contains('open'));
+
     } else {
         currentUser = null;
         userProfile = null;
@@ -771,13 +820,14 @@ function updateProfileDisplay(profile) {
  */
 function updateSendMessageModalHeader(messageType) {
     let titleText = "Send Message";
-    let iconSvg = '';
+    let iconEmoji = '';
     let iconColorClass = '';
     let modalBgClass = '';
 
     // Get the modal content element
     const currentSendMessageModalContent = document.getElementById('send-message-modal-content');
-    if (!currentSendMessageModalContent) return; // Exit if element not found
+    const currentSendMessageModalTitle = sendMessageModal.querySelector('h3'); // Get the h3 element for title
+    if (!currentSendMessageModalContent || !currentSendMessageModalTitle) return;
 
     // Remove all previous background classes first
     currentSendMessageModalContent.classList.remove('modal-bg-grievance', 'modal-bg-compliment', 'modal-bg-good-memory', 'modal-bg-how-i-feel');
@@ -785,29 +835,42 @@ function updateSendMessageModalHeader(messageType) {
     switch (messageType) {
         case 'grievance':
             titleText = "Send a Grievance";
-            iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293A1 1 0 007.293 8.707L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />`; // X icon
+            iconEmoji = '😡';
             iconColorClass = 'text-red-500';
             modalBgClass = 'modal-bg-grievance';
             break;
         case 'compliment':
             titleText = "Send a Compliment";
-            iconSvg = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />`; // Checkmark icon
-            iconColorClass = 'text-orange-500';
+            iconEmoji = '❤️';
+            iconColorClass = 'text-orange-500'; // Using orange as red might conflict with grievance
             modalBgClass = 'modal-bg-compliment';
             break;
         case 'good-memory':
             titleText = "Share a Good Memory";
-            iconSvg = `<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h3V2a2 2 0 00-2-2H6a2 2 0 00-2 2v1H2a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2h-2V2a2 2 0 00-2-2H9a2 2 0 00-2 2v1H4a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2V5a2 2 0 00-2-2H4zm-1 5a1 1 0 100 2h10a1 1 0 100-2H3z" clip-rule="evenodd" />`; // Calendar/Memory icon
+            iconEmoji = '📸';
             iconColorClass = 'text-blue-500';
             modalBgClass = 'modal-bg-good-memory';
             break;
         case 'how-i-feel':
             titleText = "How I Feel";
-            iconSvg = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-4-3a1 1 0 000 2h.01a1 1 0 000-2H7zm4-2a1 1 0 10-2 0 1 1 0 002 0zm2 2a1 1 0 000 2h.01a1 1 0 000-2H13z" clip-rule="evenodd" />`; // Emoji icon
+            iconEmoji = '�';
             iconColorClass = 'text-yellow-500';
             modalBgClass = 'modal-bg-how-i-feel';
             break;
     }
-    sendMessageModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 ${iconColorClass}" viewBox="0 0 20 20" fill="currentColor">${iconSvg}</svg>${titleText}`;
+    // Update the innerHTML of the h3 with emoji and text
+    currentSendMessageModalTitle.innerHTML = `<span class="${iconColorClass} mr-2">${iconEmoji}</span> ${titleText}`;
     currentSendMessageModalContent.classList.add(modalBgClass);
 }
+
+// Add event listener to the new clear request pending indicator
+document.addEventListener('DOMContentLoaded', () => {
+    // Ensure the indicator element is available when the DOM is ready
+    if (clearRequestPendingIndicator) {
+        clearRequestPendingIndicator.addEventListener('click', () => {
+            // Re-open the clear response modal when the indicator is clicked
+            window.openModal('clear-response-modal');
+        });
+    }
+});
+�
