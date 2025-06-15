@@ -854,7 +854,7 @@ function updateSendMessageModalHeader(messageType) {
     switch (messageType) {
         case 'grievance':
             titleText = "Send a Grievance";
-            iconEmoji = '😡';
+            iconEmoji = '�';
             iconColorClass = 'text-red-500';
             modalBgClass = 'modal-bg-grievance';
             break;
@@ -888,3 +888,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+�
