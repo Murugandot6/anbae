@@ -1,124 +1,222 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- The 'dark' class will be added here by JS -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - LoveResolve</title>
+    <title>Anbae - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap');
-        body { font-family: 'Manrope', sans-serif; }
-        /* Simple transition for dark mode */
-        body, .dark body { transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; }
-        /* Custom styles for dark mode form elements */
-        .dark input, .dark select, .dark textarea { background-color: #374151; border-color: #4b5563; color: #e5e7eb; }
-        .dark input::placeholder, .dark textarea::placeholder { color: #9ca3af; }
+        /* Import Inter font for a consistent look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce7f3; /* Light pink background to match image aesthetic */
+            color: #202124;
+        }
+        /* Custom input field styling to match the image */
+        .custom-input {
+            border-color: #fbcfe8; /* Light pink border */
+            border-width: 1px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .custom-input:focus {
+            outline: none;
+            border-color: #ec4899; /* Stronger pink on focus */
+            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.3); /* Pink ring effect */
+        }
+        /* Custom button styling for the pink primary button */
+        .pink-button {
+            background-color: #ec4899; /* Pink color */
+            color: white;
+            font-weight: 600; /* Semibold */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .pink-button:hover {
+            background-color: #db2777; /* Darker pink on hover */
+            transform: translateY(-1px); /* Slight lift effect */
+        }
+        .pink-button:active {
+                background-color: #be185d; /* Even darker on active */
+                transform: translateY(0);
+        }
+        /* Message box styling (for alerts) */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            text-align: center;
+        }
+        .message-box button {
+            margin-top: 15px;
+            background-color: #ec4899;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <main class="flex flex-col items-center w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
+
+        <!-- Top Heart Icon -->
+        <div class="mb-6 bg-pink-100 p-4 rounded-full flex items-center justify-center" style="width: 80px; height: 80px; box-shadow: 0 0 0 5px #fce7f3;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-pink-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+            </svg>
+        </div>
+
+        <!-- Join Anbae Title -->
+        <h2 class="text-3xl font-semibold mb-8 text-gray-800 flex items-center gap-2">
+            ❤️ Join Anbae
+        </h2>
+
+        <form id="register-form" class="w-full space-y-5">
+            <div>
+                <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                    <!-- Email Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.5a2.5 2.5 0 01-5 0V12" />
+                    </svg>
+                    Email
+                </label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    class="custom-input w-full px-4 py-2 border rounded-lg shadow-sm sm:text-sm"
+                    placeholder="your.email@example.com"
+                >
+            </div>
+            <div>
+                <label for="password" class="block text-left text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                    <!-- Password Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Password
+                </label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    class="custom-input w-full px-4 py-2 border rounded-lg shadow-sm sm:text-sm"
+                    placeholder="Your password"
+                >
+            </div>
+            <div>
+                <label for="nickname" class="block text-left text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                    <!-- Nickname Icon (person) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Nickname
+                </label>
+                <input
+                    type="text"
+                    id="nickname"
+                    name="nickname"
+                    required
+                    class="custom-input w-full px-4 py-2 border rounded-lg shadow-sm sm:text-sm"
+                    placeholder="Your Nickname"
+                >
+            </div>
+            <div>
+                <label for="partner-email" class="block text-left text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                    <!-- Partner's Email Icon (heart with email) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 3l-6 6m-6 6l-6 6m12-6l6 6M6 12h12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+                    </svg>
+                    Partner's Email
+                </label>
+                <input
+                    type="email"
+                    id="partner-email"
+                    name="partner-email"
+                    class="custom-input w-full px-4 py-2 border rounded-lg shadow-sm sm:text-sm"
+                    placeholder="partner@example.com"
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="pink-button w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm"
+            >
+                <!-- Sparkle Icon for Create Account -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M11 2a1 1 0 00-2 0v2a1 1 0 002 0V2zM15.293 4.293a1 1 0 00-1.414-1.414l-1.414 1.414a1 1 0 001.414 1.414l1.414-1.414zM18 11a1 1 0 000-2h-2a1 1 0 000 2h2zM4.707 4.293a1 1 0 00-1.414 1.414l1.414 1.414a1 1 0 001.414-1.414L4.707 4.293zM5 11a1 1 0 00-2 0v2a1 1 0 002 0v-2zm12.293 6.293a1 1 0 001.414-1.414l-1.414-1.414a1 1 0 00-1.414 1.414l1.414 1.414zM11 18a1 1 0 00-2 0v2a1 1 0 002 0v-2zM4.707 15.707a1 1 0 001.414 1.414l1.414-1.414a1 1 0 00-1.414-1.414l-1.414 1.414zM8 8a1 1 0 00-2 0v2a1 1 0 002 0V8zM14 8a1 1 0 00-2 0v2a1 1 0 002 0V8zM8 14a1 1 0 00-2 0v2a1 1 0 002 0v-2zM14 14a1 1 0 00-2 0v2a1 1 0 002 0v-2z" />
+                </svg>
+                Create Account
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-600">
+            Already have an account?
+            <a href="login.html" class="font-medium text-pink-600 hover:text-pink-500 transition-colors">Login here</a>
+        </div>
+
+        <a href="index.html" class="mt-8 text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+        </a>
+    </main>
+
+    <!-- Custom message box for alerts -->
+    <div id="messageBox" class="message-box">
+        <p id="messageText"></p>
+        <button id="messageBoxClose">OK</button>
+    </div>
+
     <script>
-        // Set initial theme to avoid flash of wrong theme
-        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        if (savedTheme === 'dark') {
-            document.documentElement.classList.add('dark');
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const nickname = document.getElementById('nickname').value;
+            const partnerEmail = document.getElementById('partner-email').value;
+
+            // Simple validation (can be expanded)
+            if (!email || !password || !nickname) {
+                showMessage("Please fill in all required fields (Email, Password, Nickname).");
+                return;
+            }
+
+            // Simulate registration success
+            console.log("Registering user:", { email, nickname, partnerEmail });
+            showMessage("Account created successfully! Redirecting to dashboard...", () => {
+                window.location.href = 'dashboard.html'; // Redirect to dashboard
+            });
+        });
+
+        // Function to show custom message box
+        function showMessage(message, callback) {
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageBoxClose = document.getElementById('messageBoxClose');
+
+            messageText.textContent = message;
+            messageBox.style.display = 'block';
+
+            messageBoxClose.onclick = () => {
+                messageBox.style.display = 'none';
+                if (callback) {
+                    callback();
+                }
+            };
         }
     </script>
-</head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-
-    <!-- Main Dashboard Layout -->
-    <div class="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8">
-            <h1 id="welcome-message" class="text-2xl sm:text-3xl font-bold text-pink-500">Welcome!</h1>
-            <div class="flex items-center gap-x-3">
-                <button id="theme-toggle-button" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                    <!-- The icon inside here will be changed by JS -->
-                    <i id="theme-icon" data-lucide="moon" class="h-6 w-6"></i>
-                </button>
-                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors">
-                    Logout
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content Area -->
-        <main class="flex-grow">
-            <div class="text-center">
-                <h2 class="text-xl font-semibold mb-4">What's on your mind?</h2>
-                <button onclick="showModal('sendMessage')" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2 mx-auto">
-                    <i data-lucide="message-square-plus"></i>
-                    <span>Send a Message</span>
-                </button>
-                <!-- Area for messages to be displayed would go here -->
-            </div>
-        </main>
-    </div>
-
-    <!-- MODAL for Sending a Message -->
-    <div id="send-message-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-        <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">Compose Your Message</h3>
-            <form id="send-message-form" class="space-y-4">
-                
-                <div>
-                    <label for="messageType" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message Type</label>
-                    <select id="messageType" name="messageType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md">
-                        <option value="compliment">Compliment</option>
-                        <option value="memory">Good Memory</option>
-                        <option value="feeling">How I Feel</option>
-                        <option value="grievance">Grievance / Issue</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                    <input type="text" id="title" name="title" required placeholder="A short, clear title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500">
-                </div>
-
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea id="description" name="description" rows="4" required placeholder="Write your message here..." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500"></textarea>
-                </div>
-
-                <div id="priority-section" class="hidden"> <!-- This is hidden by default -->
-                    <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority (for Grievances)</label>
-                    <select id="priority" name="priority" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md">
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-                 <div>
-                    <label for="mood" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your current mood about this</label>
-                     <select id="mood" name="mood" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md">
-                        <option value="happy">😊 Happy</option>
-                        <option value="loved">🥰 Loved</option>
-                        <option value="grateful">🙏 Grateful</option>
-                        <option value="excited">🤗 Excited</option>
-                        <option value="hopeful">🤞 Hopeful</option>
-                        <option value="peaceful">😌 Peaceful</option>
-                        <option value="nostalgic">🌅 Nostalgic</option>
-                        <option value="confused">😕 Confused</option>
-                        <option value="sad">😢 Sad</option>
-                        <option value="disappointed">😞 Disappointed</option>
-                        <option value="frustrated">😤 Frustrated</option>
-                        <option value="angry">😠 Angry</option>
-                    </select>
-                </div>
-
-
-                <div class="pt-4 flex items-center justify-end gap-x-3">
-                    <button type="button" onclick="hideModal('sendMessage')" class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg">
-                        Cancel
-                    </button>
-                    <button id="send-message-button" type="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                        Send Message
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <script type="module" src="app.js"></script>
 </body>
 </html>
