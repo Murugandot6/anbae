@@ -43,6 +43,7 @@ const editProfileModal = document.getElementById('edit-profile-modal');
 const editProfileForm = document.getElementById('edit-profile-form');
 const editNicknameInput = document.getElementById('edit-nickname');
 const editPartnerEmailInput = document.getElementById('edit-partner-email');
+const editPartnerNicknameInput = document.getElementById('edit-partner-nickname'); // NEW: Partner Nickname Input
 
 // Modals - Send Message
 const sendMessageModal = document.getElementById('send-message-modal');
@@ -153,8 +154,8 @@ function switchModalTab(tabName) {
  */
 function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
     const date = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString() : 'N/A';
-    const senderName = message.senderNickname || message.senderEmail;
-    const receiverName = message.receiverNickname || message.receiverEmail;
+    const senderDisplayName = message.senderNickname || message.senderEmail; // Use nickname if available
+    const receiverDisplayName = message.receiverNickname || message.receiverEmail; // Use nickname if available
     const highlightClass = isLatestHighlight ? 'msg-latest-highlight' : '';
 
     return `
@@ -167,7 +168,7 @@ function renderMessageHtml(message, typeClass, isLatestHighlight = false) {
                 </p>
                 <p class="text-gray-800">${message.content}</p>
                 <p class="text-xs text-gray-500 mt-1">
-                    ${message.direction === 'sent' ? `To: ${receiverName}` : `From: ${senderName}`} on ${date}
+                    ${message.direction === 'sent' ? `To: ${receiverDisplayName}` : `From: ${senderDisplayName}`} on ${date}
                 </p>
             </div>
         </div>
@@ -191,7 +192,8 @@ async function getUserProfile(user) {
         const newProfile = {
             email: user.email,
             nickname: user.email.split('@')[0],
-            partnerEmail: ''
+            partnerEmail: '',
+            partnerNickname: '' // NEW: Initialize partnerNickname
         };
         await setDoc(userDocRef, newProfile);
         return newProfile;
@@ -205,7 +207,15 @@ async function getUserProfile(user) {
  */
 async function saveUserProfile(userId, profileData) {
     const userDocRef = doc(db, "users", userId);
-    await setDoc(userDocRef, profileData, { merge: true });
+    try {
+        await setDoc(userDocRef, profileData, { merge: true });
+    } catch (error) {
+        console.error("Error saving user profile:", error);
+        showMessage("Failed to save profile changes. Please check your Firestore security rules and internet connection.");
+        // Crucial: Remind user to check Firestore Security Rules
+        console.warn("Firestore Security Rule Hint: Ensure your 'users' collection rules allow authenticated users to 'write' to their own document (e.g., 'allow write: if request.auth != null && request.auth.uid == userId;').");
+        throw error; // Re-throw to propagate the error
+    }
 }
 
 /**
@@ -214,7 +224,7 @@ async function saveUserProfile(userId, profileData) {
 async function sendMessage(senderId, senderProfile, receiverEmail, content, type, priority, mood) {
     try {
         let receiverUid = null;
-        let receiverNickname = receiverEmail;
+        let receiverNickname = receiverEmail; // Default to email if no profile found
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("email", "==", receiverEmail));
         const querySnapshot = await getDocs(q);
@@ -235,7 +245,7 @@ async function sendMessage(senderId, senderProfile, receiverEmail, content, type
             senderNickname: senderProfile.nickname,
             receiverEmail: receiverEmail,
             receiverUid: receiverUid,
-            receiverNickname: receiverNickname,
+            receiverNickname: receiverNickname, // NEW: Include receiver's nickname
             content: content,
             type: type,
             priority: priority,
@@ -519,7 +529,7 @@ function setupOutgoingClearRequestListener() {
                     statusModalTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2A9 9 0 111 10a9 9 0 0118 0z" />
                     </svg> Request Declined`;
-                    statusModalMessage.textContent = `Your partner, ${request.partnerEmail}, has declined your request to clear all messages.`;
+                    statusModalMessage.textContent = `Your partner, ${request.partnerNickname || request.partnerEmail}, has declined your request to clear all messages.`; // Use partnerNickname
                     statusModalReason.textContent = request.declineReason ? `Reason: "${request.declineReason}"` : 'No reason provided.';
                     window.openModal('clear-status-modal');
                     // Delete the request from Firestore after showing status
@@ -555,6 +565,7 @@ editProfileButton.addEventListener('click', () => {
     if (userProfile) {
         editNicknameInput.value = userProfile.nickname || '';
         editPartnerEmailInput.value = userProfile.partnerEmail || '';
+        editPartnerNicknameInput.value = userProfile.partnerNickname || ''; // NEW: Populate partner nickname
     }
     window.openModal('edit-profile-modal');
 });
@@ -568,6 +579,7 @@ editProfileForm.addEventListener('submit', async (event) => {
 
     const newNickname = editNicknameInput.value.trim();
     const newPartnerEmail = editPartnerEmailInput.value.trim();
+    const newPartnerNickname = editPartnerNicknameInput.value.trim(); // NEW: Get partner nickname
 
     if (!newNickname) {
         showMessage("Nickname cannot be empty.");
@@ -577,7 +589,9 @@ editProfileForm.addEventListener('submit', async (event) => {
     try {
         const updatedProfile = {
             nickname: newNickname,
-            partnerEmail: newPartnerEmail
+            // partnerEmail is optional now, so we save it as is
+            partnerEmail: newPartnerEmail,
+            partnerNickname: newPartnerNickname // NEW: Save partner nickname
         };
         await saveUserProfile(currentUser.uid, updatedProfile);
         userProfile = { ...userProfile, ...updatedProfile };
@@ -586,7 +600,8 @@ editProfileForm.addEventListener('submit', async (event) => {
         window.closeModal('edit-profile-modal');
     } catch (error) {
         console.error("Error updating profile:", error);
-        showMessage("Failed to update profile: " + error.message);
+        // The specific error message about permissions is handled inside saveUserProfile
+        // No need to show a generic message here again, as saveUserProfile already does.
     }
 });
 
@@ -619,6 +634,8 @@ sendMessageForm.addEventListener('submit', async (event) => {
         showMessage("Message cannot be empty.");
         return;
     }
+    // Partner email is optional for profile, but required for sending messages.
+    // If not set, show a message.
     if (!userProfile.partnerEmail) {
          showMessage("Please set your partner's email in 'Edit Profile' before sending messages.");
          return;
@@ -751,7 +768,8 @@ onAuthStateChanged(auth, async (user) => {
 function updateProfileDisplay(profile) {
     userNicknameSpan.textContent = profile.nickname || profile.email;
     profileYouName.textContent = profile.nickname || profile.email;
-    profilePartnerName.textContent = profile.partnerEmail || 'Not set';
+    // Display partner's nickname if available, otherwise email, otherwise 'Not set'
+    profilePartnerName.textContent = profile.partnerNickname || profile.partnerEmail || 'Not set';
 }
 
 /**
