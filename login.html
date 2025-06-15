@@ -39,6 +39,28 @@
             background-color: #be185d; /* Even darker on active */
             transform: translateY(0);
         }
+        /* Message box styling (for alerts) */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            text-align: center;
+        }
+        .message-box button {
+            margin-top: 15px;
+            background-color: #ec4899;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -55,9 +77,8 @@
         <h2 class="text-3xl font-semibold mb-8 text-gray-800 flex items-center gap-2">
             👋 Welcome Back!
         </h2>
-        <!-- The line "Login to your Anbae account" has been removed -->
-
-        <form class="w-full space-y-5">
+        
+        <form id="login-form" class="w-full space-y-5">
             <div>
                 <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                     <!-- Email Icon -->
@@ -121,5 +142,79 @@
             Back to Home
         </a>
     </main>
+
+    <!-- Custom message box for alerts -->
+    <div id="messageBox" class="message-box">
+        <p id="messageText"></p>
+        <button id="messageBoxClose">OK</button>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA8QfLoifA2-DjldYaMBeIge1D6TbRpBWw",
+            authDomain: "summa-57ad5.firebaseapp.com",
+            projectId: "summa-57ad5",
+            storageBucket: "summa-57ad5.firebasestorage.app",
+            messagingSenderId: "472212537134",
+            appId: "1:472212537134:web:fc930ea95fa9b7ffc4c4bf"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showMessage("Please enter both email and password.");
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("User logged in:", userCredential.user);
+                showMessage("Login successful! Redirecting to dashboard...", () => {
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard on success
+                });
+            } catch (error) {
+                console.error("Error logging in:", error);
+                let errorMessage = "Login failed. Please check your credentials.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Invalid email or password.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address format.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = "Too many login attempts. Please try again later.";
+                }
+                showMessage(errorMessage);
+            }
+        });
+
+        // Function to show custom message box
+        function showMessage(message, callback) {
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageBoxClose = document.getElementById('messageBoxClose');
+
+            messageText.textContent = message;
+            messageBox.style.display = 'block';
+
+            messageBoxClose.onclick = () => {
+                messageBox.style.display = 'none';
+                if (callback) {
+                    callback();
+                }
+            };
+        }
+    </script>
 </body>
 </html>
