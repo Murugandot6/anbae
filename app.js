@@ -1,49 +1,59 @@
 // app.js - The Single JavaScript File for Your Entire Website
 
-// --- 1. FIREBASE CONFIGURATION (GLOBAL) ---
-// This section is available to all parts of the script.
+// --- 1. FIREBASE SDK IMPORTS (MODERN v9 SYNTAX) ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// --- 2. FIREBASE CONFIGURATION ---
+// PASTE YOUR UNIQUE FIREBASE CONFIGURATION OBJECT HERE
 const firebaseConfig = {
   apiKey: "AIzaSyA8QfLoifA2-DjldYaMBeIge1D6TbRpBWw",
   authDomain: "summa-57ad5.firebaseapp.com",
   projectId: "summa-57ad5",
-  storageBucket: "summa-57ad5.firebasestorage.app",
+  storageBucket: "summa-57ad5.appspot.com",
   messagingSenderId: "472212537134",
   appId: "1:472212537134:web:fc930ea95fa9b7ffc4c4bf"
 };
 
-
-
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-
-// --- 2. MAIN LOGIC (RUNS AFTER THE HTML PAGE LOADS) ---
+// --- 3. MAIN LOGIC (RUNS AFTER HTML LOADS) ---
 document.addEventListener('DOMContentLoaded', () => {
-
-    // This script checks which page is loaded and runs only the relevant code.
     const pagePath = window.location.pathname.split("/").pop();
-    console.log("Current Page:", pagePath);
+    console.log("Current Page:", pagePath || "index.html");
 
     // --- LOGIC FOR: index.html (Homepage) ---
     if (pagePath === 'index.html' || pagePath === '') {
-        // Smart redirect: If a user is already logged in, they shouldn't see the homepage.
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                window.location.replace('dashboard.html');
-            }
+        // Redirect logged-in users to the dashboard
+        onAuthStateChanged(auth, user => {
+            if (user) window.location.replace('dashboard.html');
         });
-        // Attach event listeners to the navigation buttons.
+
+        // Navigation buttons
         document.getElementById('login-button')?.addEventListener('click', () => { window.location.href = 'login.html'; });
         document.getElementById('register-button')?.addEventListener('click', () => { window.location.href = 'register.html'; });
+
+        // Typing animation for the homepage search bar
+        const typingTextElement = document.getElementById('typing-text');
+        if (typingTextElement) {
+            const sentences = ["Express how you feel...", "Share a beautiful memory...", "Let's resolve this together...", "Send a compliment..."];
+            let sentenceIndex = 0, charIndex = 0, isDeleting = false;
+            const type = () => {
+                const currentSentence = sentences[sentenceIndex];
+                if (isDeleting) { typingTextElement.textContent = currentSentence.substring(0, charIndex-- - 1); } 
+                else { typingTextElement.textContent = currentSentence.substring(0, charIndex++ + 1); }
+                let typeSpeed = 150;
+                if (isDeleting) typeSpeed /= 2;
+                if (!isDeleting && charIndex === currentSentence.length) { typeSpeed = 2000; isDeleting = true; } 
+                else if (isDeleting && charIndex === 0) { isDeleting = false; sentenceIndex = (sentenceIndex + 1) % sentences.length; typeSpeed = 500; }
+                setTimeout(type, typeSpeed);
+            };
+            type();
+        }
     }
 
     // --- LOGIC FOR: register.html ---
@@ -55,19 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
             submitButton.disabled = true;
             submitButton.querySelector('span').textContent = 'Creating Account...';
 
-            const email = registerForm.email.value;
-            const password = registerForm.password.value;
-            const nickname = registerForm.nickname.value;
-            const partnerEmail = registerForm['partner-email'].value;
+            const email = registerForm.email.value, password = registerForm.password.value, nickname = registerForm.nickname.value, partnerEmail = registerForm['partner-email'].value;
 
             try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    email: email.toLowerCase(),
-                    nickname: nickname,
-                    partnerEmail: partnerEmail.toLowerCase(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, "users", userCredential.user.uid), { email: email.toLowerCase(), nickname, partnerEmail: partnerEmail.toLowerCase(), createdAt: serverTimestamp() });
                 window.location.replace('dashboard.html');
             } catch (error) {
                 alert('Registration Error: ' + error.message);
@@ -79,18 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LOGIC FOR: login.html ---
     if (pagePath === 'login.html') {
-        const loginForm = document.getElementById('login-form'); // Ensure your login form has this ID
+        const loginForm = document.getElementById('login-form');
         loginForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = loginForm.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'Signing In...';
-
-            const email = loginForm.email.value;
-            const password = loginForm.password.value;
-
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                await signInWithEmailAndPassword(auth, loginForm.email.value, loginForm.password.value);
                 window.location.replace('dashboard.html');
             } catch (error) {
                 alert('Login Error: ' + error.message);
@@ -102,26 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LOGIC FOR: dashboard.html ---
     if (pagePath === 'dashboard.html') {
-        // Auth Guard: Protect this page
-        auth.onAuthStateChanged(async (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const welcomeMessage = document.getElementById('welcome-message'); // Give your "Welcome" heading this ID
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists && welcomeMessage) {
+                const welcomeMessage = document.getElementById('welcome-message');
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && welcomeMessage) {
                     welcomeMessage.textContent = `Welcome, ${userDoc.data().nickname}!`;
                 }
             } else {
-                // If no user, kick them out to the login page
                 window.location.replace('login.html');
             }
         });
 
-        // Logout
-        document.getElementById('logout-button')?.addEventListener('click', () => {
-            auth.signOut().then(() => window.location.href = 'login.html');
-        });
-
-        // Theme Toggle
+        document.getElementById('logout-button')?.addEventListener('click', () => signOut(auth).then(() => window.location.href = 'login.html'));
+        
         const themeIcon = document.getElementById('theme-icon');
         const applyTheme = (theme) => {
             document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -137,20 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         applyTheme(savedTheme);
 
-        // Make Modal functions globally available for `onclick` attributes
-        const modals = {
-            clearAll: document.getElementById('clear-all-modal'),
-            sendMessage: document.getElementById('send-message-modal'),
-            messageHistory: document.getElementById('message-history-modal'),
-            editProfile: document.getElementById('edit-profile-modal'),
-        };
-        window.showModal = (modalName) => modals[modalName]?.classList.remove('hidden');
-        window.hideModal = (modalName) => modals[modalName]?.classList.add('hidden');
+        const modals = { clearAll: 'clear-all-modal', sendMessage: 'send-message-modal', messageHistory: 'message-history-modal', editProfile: 'edit-profile-modal' };
+        window.showModal = (name) => document.getElementById(modals[name])?.classList.remove('hidden');
+        window.hideModal = (name) => document.getElementById(modals[name])?.classList.add('hidden');
         
-        // --- (Add any other dashboard-specific logic here) ---
+        // You would add more dashboard-specific logic here, like fetching messages.
     }
     
-    // --- Initialize Lucide Icons (runs on all pages) ---
-    // This makes sure icons render correctly everywhere.
+    // --- Initialize Lucide Icons on all pages ---
     lucide.createIcons();
 });
