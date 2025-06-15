@@ -40,7 +40,8 @@
             
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Welcome Back!</h2>
 
-            <form class="space-y-6">
+            <!-- THIS IS THE FIX: Added id="login-form" to connect with app.js -->
+            <form id="login-form" class="space-y-6">
                 <!-- Email Input -->
                 <div>
                     <label for="email" class="text-sm font-semibold text-gray-600">Email</label>
@@ -91,7 +92,7 @@
             <!-- Back to Home Link -->
             <div class="text-center mt-6">
                 <a href="index.html" class="text-sm text-gray-500 hover:text-gray-700 hover:underline">
-                    &larr; Back to Home
+                    ← Back to Home
                 </a>
             </div>
         </div>
