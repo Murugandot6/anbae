@@ -44,7 +44,7 @@ const Messages = () => {
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, email') // Now selecting 'id' to match Profile interface
+      .select('id, username, email') // Now selecting 'id'
       .eq('id', profileId)
       .single();
     if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
