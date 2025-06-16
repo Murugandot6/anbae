@@ -119,7 +119,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: '*', // Listen for INSERT and UPDATE
           schema: 'public',
           table: 'clear_requests',
           filter: `receiver_id=eq.${currentUserId}` // Listen for requests sent to me
@@ -243,7 +243,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   };
 
   return (
-    <div>
+    <div className="clear-messages-dialog-container"> {/* Wrapped content in a single div */}
       {/* Button to trigger sending a clear request */}
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
@@ -253,7 +253,9 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Send Clear All Messages Request?</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Info className="w-6 h-6 text-blue-500" /> Send Clear All Messages Request?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This will send a request to {partnerNickname || 'your partner'} to clear all messages. They will need to approve it.
             </AlertDialogDescription>
