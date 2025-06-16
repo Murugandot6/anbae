@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { ArrowLeft, Mail, Send, MessageSquare, Tag, Zap, Smile, User } from 'lucide-react'; // Added User here
+import { ArrowLeft, Mail, Send, MessageSquare, Tag, Zap, Smile, User } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -38,13 +38,13 @@ const Messages = () => {
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
 
   // Helper to fetch a single profile if not already in map
-  const fetchProfile = async (profileId: string) => {
+  const fetchProfile = useCallback(async (profileId: string) => {
     if (profilesMap.has(profileId)) {
       return profilesMap.get(profileId);
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, email')
+      .select('id, username, email') // Now selecting 'id'
       .eq('id', profileId)
       .single();
     if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
@@ -56,7 +56,7 @@ const Messages = () => {
       return data;
     }
     return null;
-  };
+  }, [profilesMap]); // Add profilesMap to useCallback dependencies
 
   useEffect(() => {
     const fetchAllMessagesAndProfiles = async () => {
@@ -104,7 +104,7 @@ const Messages = () => {
         if (profilesError) {
           console.error('Error fetching profiles:', profilesError.message);
           toast.error('Failed to load associated profiles.');
-          return; // Do not set messagesLoading to false here, let finally handle it
+          return;
         }
 
         const initialProfilesMap = new Map<string, Profile>();
@@ -130,18 +130,15 @@ const Messages = () => {
         console.error('Unexpected error fetching messages:', error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
-        setMessagesLoading(false); // Always set to false after fetch attempt
+        setMessagesLoading(false);
       }
     };
 
-    // Only fetch if session is not loading and user is available
     if (!sessionLoading && user) {
       fetchAllMessagesAndProfiles();
     } else if (!sessionLoading && !user) {
-      // If session is done loading and no user, navigate to login
       navigate('/login');
     }
-
 
     // Set up real-time subscription
     const channel = supabase
@@ -149,17 +146,16 @@ const Messages = () => {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for INSERT and UPDATE
+          event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `sender_id=eq.${user?.id}.or.receiver_id=eq.${user?.id}` // Only messages relevant to current user
+          filter: `sender_id=eq.${user?.id}.or.receiver_id=eq.${user?.id}`
         },
         async (payload) => {
           console.log('Realtime message payload:', payload);
           const newMessage = payload.new as Message;
 
           if (payload.eventType === 'INSERT') {
-            // Fetch sender/receiver profiles for the new message if not already in map
             const senderProfile = await fetchProfile(newMessage.sender_id);
             const receiverProfile = await fetchProfile(newMessage.receiver_id);
 
@@ -176,7 +172,6 @@ const Messages = () => {
               setSentMessages(prev => [messageWithProfiles, ...prev]);
             }
           } else if (payload.eventType === 'UPDATE') {
-            // Update existing message in state
             setReceivedMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
@@ -191,12 +186,10 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate]); // Removed profilesMap from dependencies
-  // The `profilesMap` is managed by `fetchProfile` which is called within the effect,
-  // so it doesn't need to be a dependency itself to avoid re-running the entire effect.
+  }, [user, sessionLoading, navigate, fetchProfile]);
 
 
-  if (sessionLoading || messagesLoading) { // Check both session and messages loading
+  if (sessionLoading || messagesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
         <p className="text-xl">Loading messages...</p>
@@ -205,7 +198,6 @@ const Messages = () => {
   }
 
   if (!user) {
-    // This case is handled by the navigate('/login') in useEffect, but kept for clarity
     return null;
   }
 
