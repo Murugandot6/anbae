@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Mic, Image } from "lucide-react";
-import '@/styles/rainy.css'; // Import the new rainy CSS
 
 const Index = () => {
   const typingPhrases = [
@@ -53,7 +52,7 @@ const Index = () => {
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-foreground p-4 rainy-background">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4">
       <div className="text-center mb-8 animate-fade-in">
         <h1 className="text-5xl md:text-7xl font-extrabold mb-4 leading-none">
           <span className="text-blue-600">a</span>
