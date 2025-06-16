@@ -13,31 +13,35 @@ import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
-import { ThemeProvider } from "./components/ThemeProvider"; // Import ThemeProvider
+import { ThemeProvider } from "./components/ThemeProvider";
+import Navbar from "./components/Navbar"; // Import Navbar
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme"> {/* Add ThemeProvider */}
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <TooltipProvider>
         <Toaster />
-        <Sonner /> {/* Sonner should be inside ThemeProvider to pick up theme */}
+        <Sonner />
         <BrowserRouter basename="/anbae">
-          <SessionContextProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/send-message" element={<SendMessage />} />
-              <Route path="/edit-profile" element={<EditProfile />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/messages/:id" element={<ViewMessage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </SessionContextProvider>
+          <Navbar /> {/* Render Navbar here */}
+          <div className="pt-[64px]"> {/* Add padding to push content below the fixed navbar */}
+            <SessionContextProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/send-message" element={<SendMessage />} />
+                <Route path="/edit-profile" element={<EditProfile />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/messages/:id" element={<ViewMessage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </SessionContextProvider>
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
