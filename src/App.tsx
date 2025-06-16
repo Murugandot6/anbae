@@ -15,37 +15,57 @@ import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Navbar from "./components/Navbar"; // Import Navbar
+import React, { useEffect } from "react"; // Import React and useEffect
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename="/anbae">
-          <Navbar /> {/* Render Navbar here */}
-          <div className="pt-[64px]"> {/* Add padding to push content below the fixed navbar */}
-            <SessionContextProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/send-message" element={<SendMessage />} />
-                <Route path="/edit-profile" element={<EditProfile />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/messages/:id" element={<ViewMessage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </SessionContextProvider>
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          console.log("HTML class changed:", document.documentElement.classList.value);
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    // Initial log
+    console.log("Initial HTML class:", document.documentElement.classList.value);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename="/anbae">
+            <Navbar /> {/* Render Navbar here */}
+            <div className="pt-[64px]"> {/* Add padding to push content below the fixed navbar */}
+              <SessionContextProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/send-message" element={<SendMessage />} />
+                  <Route path="/edit-profile" element={<EditProfile />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/messages/:id" element={<ViewMessage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </SessionContextProvider>
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
