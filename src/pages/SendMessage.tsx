@@ -133,7 +133,7 @@ const SendMessage = () => {
 
   if (!partnerId) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20">
         <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Partner Not Found</h2>
         <p className="text-muted-foreground mb-2">
