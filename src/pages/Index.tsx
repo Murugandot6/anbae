@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ const Index = () => {
           <Search className="absolute left-3 text-gray-400 dark:text-gray-500 w-5 h-5" />
           <Input
             type="text"
-            placeholder={placeholderText} // Removed inline JSX comment
+            placeholder={placeholderText}
             className="w-full pl-10 pr-20 py-3 text-lg rounded-full shadow-md border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
           />
           <div className="absolute right-3 flex space-x-2">
@@ -90,8 +90,6 @@ const Index = () => {
           </Button>
         </Link>
       </div>
-
-      {/* The language list div has been removed */}
     </div>
   );
 };
