@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle"; // Import ThemeToggle
 
 const Navbar = () => {
   return (
@@ -21,10 +22,11 @@ const Navbar = () => {
             Contact
           </Link>
         </div>
-        <div className="hidden md:block">
-          <Button className="bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
+        <div className="flex items-center space-x-4"> {/* Added a flex container for button and toggle */}
+          <Button className="bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 hidden md:block">
             Get Started
           </Button>
+          <ThemeToggle /> {/* Add the ThemeToggle here */}
         </div>
       </div>
     </nav>
