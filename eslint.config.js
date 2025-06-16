@@ -1,29 +1,59 @@
-import js from "@eslint/js";
 import globals from "globals";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import tseslint from "typescript-eslint";
+import pluginJs from "@eslint/js";
+import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
+import { fixupConfigAsPlugin } from "@eslint/compat";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReactRefresh from "eslint-plugin-react-refresh";
+import tsEslint from "typescript-eslint";
 
-export default tseslint.config(
-  { ignores: ["dist"] },
+export default [
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      parser: tsEslint.parser,
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        ecmaVersion: "latest",
+        sourceType: "module",
+        project: "./tsconfig.json", // Important for type-aware linting
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
     plugins: {
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
+      react: fixupConfigAsPlugin(pluginReactConfig),
+      "react-hooks": pluginReactHooks,
+      "react-refresh": pluginReactRefresh,
+      "@typescript-eslint": tsEslint.plugin,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      ...pluginJs.configs.recommended.rules,
+      ...pluginReactConfig.rules,
+      ...pluginReactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Disable the base JS no-unused-vars rule as we'll use the TypeScript one
+      "no-unused-vars": "off",
+      // Configure the TypeScript no-unused-vars rule to ignore variables starting with '_'
+      "@typescript-eslint/no-unused-vars": [
+        "warn", // Change to 'warn' so it doesn't break the build
+        {
+          argsIgnorePattern: "^_", // Ignore unused arguments starting with _
+          varsIgnorePattern: "^_", // Ignore unused variables starting with _
+          caughtErrorsIgnorePattern: "^_", // Ignore unused caught errors starting with _
+        },
+      ],
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
     },
   },
-);
+];
