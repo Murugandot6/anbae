@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
@@ -6,14 +6,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import ClearMessagesDialog from '@/components/ClearMessagesDialog'; // Import the new component
+import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 
 interface Profile {
   id: string;
   username: string | null;
   email: string | null;
-  partner_email?: string | null; // Add partner_email to profile interface
-  partner_nickname?: string | null; // Add partner_nickname to profile interface
+  partner_email?: string | null;
+  partner_nickname?: string | null;
 }
 
 interface Message {
@@ -37,7 +37,7 @@ const Dashboard = () => {
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
-  const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0); // New state for refreshing messages
+  const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -151,7 +151,7 @@ const Dashboard = () => {
         if (profilesError) {
           console.error('Error fetching profiles:', profilesError.message);
           toast.error('Failed to load associated profiles.');
-          return; // Do not set messagesLoading to false here, let finally handle it
+          return;
         }
 
         const profilesMap = new Map<string, Profile>();
@@ -176,17 +176,16 @@ const Dashboard = () => {
         console.error('Unexpected error fetching messages:', error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
-        setMessagesLoading(false); // Always set to false after fetch attempt
+        setMessagesLoading(false);
       }
     };
 
-    // Only fetch if session is not loading and user is available
     if (!sessionLoading && user) {
       fetchMessagesAndProfiles();
     }
-  }, [user, sessionLoading, refreshMessagesTrigger]); // Add refreshMessagesTrigger to dependencies
+  }, [user, sessionLoading, refreshMessagesTrigger]);
 
-  if (sessionLoading || fetchingProfiles || messagesLoading) { // Check all loading states
+  if (sessionLoading || fetchingProfiles || messagesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
         <p className="text-xl">Loading user session and profiles...</p>
@@ -218,7 +217,7 @@ const Dashboard = () => {
                 partnerId={partnerProfile?.id || null}
                 partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
                 currentUserId={user.id}
-                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)} // Pass the callback
+                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
               />
             )}
           </div>
@@ -240,7 +239,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="text-muted-foreground text-base">
               <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
-              <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p> {/* Display partner_nickname */}
+              <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
             </CardContent>
           </Card>
         </div>
@@ -251,9 +250,8 @@ const Dashboard = () => {
               <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
             </Button>
           </Link>
-          {/* Modified button to use programmatic navigation */}
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 py-6 text-lg"
             onClick={handleViewMessages}
           >
@@ -271,8 +269,8 @@ const Dashboard = () => {
               {sentMessages.length > 0 ? (
                 <ul className="space-y-2">
                   {sentMessages.map((message, index) => (
-                    <li 
-                      key={message.id} 
+                    <li
+                      key={message.id}
                       className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
                         index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
                       }`}
@@ -299,8 +297,8 @@ const Dashboard = () => {
               {receivedMessages.length > 0 ? (
                 <ul className="space-y-2">
                   {receivedMessages.map((message, index) => (
-                    <li 
-                      key={message.id} 
+                    <li
+                      key={message.id}
                       className={`border-b border-gray-20:0 dark:border-gray-700 pb-2 last:border-b-0 ${
                         index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
                       }`}

@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ const Navbar = () => {
             Get Started
           </Button>
         </div>
-        {/* Mobile menu icon can be added here if needed */}
       </div>
     </nav>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -34,13 +34,19 @@ const EditProfile = () => {
   // Custom validation for partner_email
   useEffect(() => {
     if (user?.email) {
-      form.setError('partner_email', {
-        type: 'manual',
-        message: "Your partner's email cannot be the same as your own email.",
-      }, { shouldFocus: true });
-      form.clearErrors('partner_email'); // Clear error if it's not the same
+      // This effect is for real-time validation feedback, not for initial form state.
+      // The actual validation for submission happens in onSubmit.
+      const partnerEmailValue = form.watch('partner_email');
+      if (partnerEmailValue && user.email === partnerEmailValue) {
+        form.setError('partner_email', {
+          type: 'manual',
+          message: "Your partner's email cannot be the same as your own email.",
+        }, { shouldFocus: true });
+      } else {
+        form.clearErrors('partner_email');
+      }
     }
-  }, [user?.email, form.watch('partner_email')]); // Re-run when user email or partner_email changes
+  }, [user?.email, form.watch('partner_email'), form]); // Added form to dependencies
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -119,7 +125,8 @@ const EditProfile = () => {
         console.error('Profile DB operation error:', dbError.message);
       } else {
         // Also update user_metadata for immediate reflection in session context
-        const { data: updateAuthData, error: updateAuthError } = await supabase.auth.updateUser({
+        // Removed 'data: updateAuthData' as it was unused
+        const { error: updateAuthError } = await supabase.auth.updateUser({
           data: {
             nickname: values.username || null,
             partner_email: values.partner_email || null,
