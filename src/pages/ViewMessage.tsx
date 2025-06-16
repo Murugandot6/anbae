@@ -177,7 +177,7 @@ const ViewMessage = () => {
 
   if (!message) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Message Not Found</h2>
         <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
         <Link to="/messages">
