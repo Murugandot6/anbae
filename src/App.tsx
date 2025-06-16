@@ -14,38 +14,20 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
-import Navbar from "./components/Navbar"; // Import Navbar
-import React, { useEffect } from "react"; // Import React and useEffect
+import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          console.log("HTML class changed:", document.documentElement.classList.value);
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-
-    // Initial log
-    console.log("Initial HTML class:", document.documentElement.classList.value);
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class" enableSystem>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter basename="/anbae">
-            <Navbar /> {/* Render Navbar here */}
-            <div className="pt-[64px]"> {/* Add padding to push content below the fixed navbar */}
+            <Navbar />
+            <div className="pt-[64px]">
               <SessionContextProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
