@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -44,7 +44,7 @@ const Messages = () => {
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, email')
+      .select('username, email')
       .eq('id', profileId)
       .single();
     if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
