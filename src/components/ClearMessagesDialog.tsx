@@ -243,7 +243,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   };
 
   return (
-    <div className="clear-messages-dialog-container"> {/* Wrapped content in a single div */}
+    <div className="clear-messages-dialog-container">
       {/* Button to trigger sending a clear request */}
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
@@ -258,6 +258,9 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
             </AlertDialogTitle>
             <AlertDialogDescription>
               This will send a request to {partnerNickname || 'your partner'} to clear all messages. They will need to approve it.
+              {pendingIncomingRequest?.sender_message && (
+                <p className="mt-2 italic">"Sender's message: {pendingIncomingRequest.sender_message}"</p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid gap-4 py-4">
