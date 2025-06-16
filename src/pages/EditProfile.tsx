@@ -3,7 +3,93 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { Link, useNavigate } => 'Your partner\'s email cannot be the same as your own email.',
+import { Link, useNavigate } from 'react-router-dom'; // Corrected this line
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Heart, User, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
+
+const formSchema = z.object({
+  username: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
+  partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
+  partner_nickname: z.string().optional().or(z.literal('')), // New field for partner's nickname alias
+});
+
+const EditProfile = () => {
+  const navigate = useNavigate();
+  const { user, loading: sessionLoading } = useSession();
+  const [profileExists, setProfileExists] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      partner_email: '',
+      partner_nickname: '', // Initialize new field
+    },
+  });
+
+  // Custom validation for partner_email
+  useEffect(() => {
+    if (user?.email) {
+      // This effect is for real-time validation feedback, not for initial form state.
+      // The actual validation for submission happens in onSubmit.
+      const partnerEmailValue = form.watch('partner_email');
+      if (partnerEmailValue && user.email === partnerEmailValue) {
+        form.setError('partner_email', {
+          type: 'manual',
+          message: "Your partner's email cannot be the same as your own email.",
+        }, { shouldFocus: true });
+      } else {
+        form.clearErrors('partner_email');
+      }
+    }
+  }, [user?.email, form.watch('partner_email'), form]); // Added form to dependencies
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (sessionLoading || !user) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username, partner_email, partner_nickname') // Select partner_nickname
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error.message);
+        toast.error('Failed to load profile data.');
+        setProfileExists(false);
+      } else if (data) {
+        form.reset({
+          username: data.username || '',
+          partner_email: data.partner_email || '',
+          partner_nickname: data.partner_nickname || '', // Set value for new field
+        });
+        setProfileExists(true);
+      } else {
+        setProfileExists(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, sessionLoading, form]);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error('You must be logged in to edit your profile.');
+      return;
+    }
+
+    // Perform the custom validation before submitting
+    if (user.email && values.partner_email && user.email === values.partner_email) {
+      form.setError('partner_email', {
+        type: 'manual',
+        message: "Your partner's email cannot be the same as your own email.",
       });
       return;
     }
