@@ -25,7 +25,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter basename="/anbae">
+          <BrowserRouter basename="/"> {/* Changed basename to root for custom domain deployment */}
             {/* <Navbar /> Removed Navbar component */}
             <div className="pt-0"> {/* Adjusted padding since Navbar is removed */}
               <SessionContextProvider>
