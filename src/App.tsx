@@ -14,7 +14,7 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar"; // Removed Navbar import
 
 const queryClient = new QueryClient();
 
@@ -26,8 +26,8 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter basename="/anbae">
-            <Navbar />
-            <div className="pt-[64px]">
+            {/* <Navbar /> Removed Navbar component */}
+            <div className="pt-0"> {/* Adjusted padding since Navbar is removed */}
               <SessionContextProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
