@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Lightbulb } from "lucide-react"; // Changed from Moon/Sun to Lightbulb
+import { Moon, Sun } from "lucide-react"; // Changed from Lightbulb to Moon/Sun
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,11 @@ export function ThemeToggle() {
 
   return (
     <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-      <Lightbulb
-        className={`h-[1.2rem] w-[1.2rem] transition-colors ${
-          theme === "dark" ? "text-gray-400" : "text-yellow-500 fill-yellow-500"
-        }`}
-      />
+      {theme === "dark" ? (
+        <Moon className="h-[1.2rem] w-[1.2rem] text-gray-400 transition-colors" />
+      ) : (
+        <Sun className="h-[1.2rem] w-[1.2rem] text-yellow-500 fill-yellow-500 transition-colors" />
+      )}
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
