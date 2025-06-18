@@ -19,13 +19,16 @@ import { ThemeProvider } from "./components/ThemeProvider";
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Log the base URL being used by Vite for debugging
+  console.log("Vite BASE_URL:", import.meta.env.BASE_URL);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class" enableSystem>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter basename="/anbae/"> {/* Updated basename to /anbae/ */}
+          <BrowserRouter basename={import.meta.env.BASE_URL}> {/* Updated basename to use import.meta.env.BASE_URL */}
             {/* <Navbar /> Removed Navbar component */}
             <div className="pt-0"> {/* Adjusted padding since Navbar is removed */}
               <SessionContextProvider>
