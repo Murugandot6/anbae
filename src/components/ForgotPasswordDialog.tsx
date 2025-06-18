@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Mail, LockReset } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react'; // Changed LockReset to Lock
 import { toast } from 'sonner';
 
 interface ForgotPasswordDialogProps {
@@ -62,7 +62,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onO
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <LockReset className="w-6 h-6 text-blue-500" /> Forgot Your Password?
+            <Lock className="w-6 h-6 text-blue-500" /> Forgot Your Password?
           </AlertDialogTitle>
           <AlertDialogDescription>
             Enter your email address below and we'll send you a link to reset your password.
