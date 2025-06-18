@@ -24,7 +24,6 @@ const Login = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      password: '',
     },
   });
 
