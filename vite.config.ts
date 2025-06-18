@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: "/anbae/", // Changed the base path to match the /anbae/ subpath
+  base: "/", // Changed the base path to '/' for custom domain deployment
   server: {
     host: "::",
     port: 8080,
