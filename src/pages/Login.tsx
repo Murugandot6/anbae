@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Heart, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import ForgotPasswordDialog from '@/components/ForgotPasswordDialog'; // Import the new component
+import { useState } from 'react'; // Import useState
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -16,6 +18,8 @@ const formSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false); // State for dialog visibility
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -86,6 +90,15 @@ const Login = () => {
             </Button>
           </form>
         </Form>
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => setIsForgotPasswordOpen(true)}
+            className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500 transition-colors"
+          >
+            Forgot password?
+          </button>
+        </div>
         <div className="mt-6 text-center">
           <Link to="/register" className="text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors">
             Don't have an account? Register here
@@ -97,6 +110,7 @@ const Login = () => {
           </Link>
         </div>
       </div>
+      <ForgotPasswordDialog isOpen={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen} />
     </div>
   );
 };
