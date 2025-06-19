@@ -222,7 +222,7 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
             <Link to="/edit-profile" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <Settings className="w-5 h-5 mr-2" /> Edit Profile
+                <Settings className="w-5 h-5" /> 
               </Button>
             </Link>
             <Button onClick={handleLogout} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
