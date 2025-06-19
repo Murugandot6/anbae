@@ -12,8 +12,6 @@ import SendMessage from "./pages/SendMessage";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
-// import LoginPageTest from "./pages/LoginPageTest"; // Removed import
-import TestLogin from "./components/TestLogin";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 
@@ -40,8 +38,6 @@ const App = () => {
                 <Route path="/edit-profile" element={<EditProfile />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/messages/:id" element={<ViewMessage />} />
-                {/* <Route path="/login-test" element={<LoginPageTest />} /> Removed route */}
-                <Route path="/test-login" element={<TestLogin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
