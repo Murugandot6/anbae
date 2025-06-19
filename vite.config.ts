@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: "/anbae/", // Set base path to repository name for GitHub Pages deployment
+  base: "/", // Changed base path to root for custom domain deployment
   server: {
     host: "::",
     port: 8080,
