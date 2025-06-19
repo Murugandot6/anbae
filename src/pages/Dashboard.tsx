@@ -40,12 +40,18 @@ const Dashboard = () => {
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Logout error:', error.message);
-      toast.error('Failed to log out.');
-    } else {
-      navigate('/login');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Supabase Logout error:', error.message, error);
+        toast.error('Failed to log out: ' + error.message);
+      } else {
+        toast.success('Logged out successfully!');
+        navigate('/login');
+      }
+    } catch (error: any) {
+      console.error('Unexpected logout error:', error.message, error);
+      toast.error('An unexpected error occurred during logout.');
     }
   };
 
@@ -61,40 +67,46 @@ const Dashboard = () => {
         return;
       }
 
-      // Fetch current user's profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username, email, partner_email, partner_nickname')
-        .eq('id', user.id)
-        .single();
+      try {
+        // Fetch current user's profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, username, email, partner_email, partner_nickname')
+          .eq('id', user.id)
+          .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error fetching current user profile:', profileError.message);
-        toast.error('Failed to load your profile.');
-      } else if (profileData) {
-        setCurrentUserProfile(profileData);
-        // Now fetch partner's profile using partner_email from current user's profile
-        if (profileData.partner_email) {
-          const { data: partnerData, error: partnerError } = await supabase
-            .from('profiles')
-            .select('id, username, email')
-            .eq('email', profileData.partner_email)
-            .single();
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error('Supabase Error fetching current user profile:', profileError.message, profileError);
+          toast.error('Failed to load your profile: ' + profileError.message);
+        } else if (profileData) {
+          setCurrentUserProfile(profileData);
+          // Now fetch partner's profile using partner_email from current user's profile
+          if (profileData.partner_email) {
+            const { data: partnerData, error: partnerError } = await supabase
+              .from('profiles')
+              .select('id, username, email')
+              .eq('email', profileData.partner_email)
+              .single();
 
-          if (partnerError && partnerError.code !== 'PGRST116') {
-            console.error('Error fetching partner profile:', partnerError.message);
-            toast.error('Failed to load partner profile.');
-          } else if (partnerData) {
-            setPartnerProfile(partnerData);
+            if (partnerError && partnerError.code !== 'PGRST116') {
+              console.error('Supabase Error fetching partner profile:', partnerError.message, partnerError);
+              toast.error('Failed to load partner profile: ' + partnerError.message);
+            } else if (partnerData) {
+              setPartnerProfile(partnerData);
+            } else {
+              console.log('Partner profile not found for email:', profileData.partner_email);
+              setPartnerProfile(null); // Explicitly set to null if not found
+            }
           } else {
-            console.log('Partner profile not found for email:', profileData.partner_email);
-            setPartnerProfile(null); // Explicitly set to null if not found
+            setPartnerProfile(null); // No partner email set
           }
-        } else {
-          setPartnerProfile(null); // No partner email set
         }
+      } catch (error: any) {
+        console.error('Unexpected error fetching user/partner profiles:', error.message, error);
+        toast.error('An unexpected error occurred while loading profiles.');
+      } finally {
+        setFetchingProfiles(false);
       }
-      setFetchingProfiles(false);
     };
 
     if (!sessionLoading && user) {
@@ -121,8 +133,8 @@ const Dashboard = () => {
           .limit(3);
 
         if (sentError) {
-          console.error('Error fetching sent messages:', sentError.message);
-          toast.error('Failed to load sent messages.');
+          console.error('Supabase Error fetching sent messages:', sentError.message, sentError);
+          toast.error('Failed to load sent messages: ' + sentError.message);
         }
 
         // Fetch latest 3 received messages
@@ -134,8 +146,8 @@ const Dashboard = () => {
           .limit(3);
 
         if (receivedError) {
-          console.error('Error fetching received messages:', receivedError.message);
-          toast.error('Failed to load received messages.');
+          console.error('Supabase Error fetching received messages:', receivedError.message, receivedError);
+          toast.error('Failed to load received messages: ' + receivedError.message);
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -149,8 +161,8 @@ const Dashboard = () => {
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
-          console.error('Error fetching profiles:', profilesError.message);
-          toast.error('Failed to load associated profiles.');
+          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
+          toast.error('Failed to load associated profiles: ' + profilesError.message);
           return;
         }
 
@@ -172,8 +184,8 @@ const Dashboard = () => {
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
 
-      } catch (error) {
-        console.error('Unexpected error fetching messages:', error);
+      } catch (error: any) {
+        console.error('Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);

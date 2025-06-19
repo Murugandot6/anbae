@@ -75,25 +75,30 @@ const EditProfile = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username, partner_email, partner_nickname')
-        .eq('id', user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('username, partner_email, partner_nickname')
+          .eq('id', user.id)
+          .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error.message);
-        toast.error('Failed to load profile data.');
-        setProfileExists(false);
-      } else if (data) {
-        profileForm.reset({
-          username: data.username || '',
-          partner_email: data.partner_email || '',
-          partner_nickname: data.partner_nickname || '',
-        });
-        setProfileExists(true);
-      } else {
-        setProfileExists(false);
+        if (error && error.code !== 'PGRST116') {
+          console.error('Supabase Error fetching profile:', error.message, error);
+          toast.error('Failed to load profile data: ' + error.message);
+          setProfileExists(false);
+        } else if (data) {
+          profileForm.reset({
+            username: data.username || '',
+            partner_email: data.partner_email || '',
+            partner_nickname: data.partner_nickname || '',
+          });
+          setProfileExists(true);
+        } else {
+          setProfileExists(false);
+        }
+      } catch (error: any) {
+        console.error('Unexpected error fetching profile:', error.message, error);
+        toast.error('An unexpected error occurred while loading profile.');
       }
     };
 
@@ -142,7 +147,7 @@ const EditProfile = () => {
 
       if (dbError) {
         toast.error(dbError.message);
-        console.error('Profile DB operation error:', dbError.message);
+        console.error('Supabase Profile DB operation error:', dbError.message, dbError);
       } else {
         const { error: updateAuthError } = await supabase.auth.updateUser({
           data: {
@@ -153,15 +158,15 @@ const EditProfile = () => {
         });
 
         if (updateAuthError) {
-          console.error('Auth user metadata update error:', updateAuthError.message);
+          console.error('Supabase Auth user metadata update error:', updateAuthError.message, updateAuthError);
           toast.error('Profile updated, but failed to update session data. Please re-login.');
         } else {
           toast.success('Profile updated successfully!');
           navigate('/dashboard');
         }
       }
-    } catch (error) {
-      console.error('Unexpected profile update error:', error);
+    } catch (error: any) {
+      console.error('Unexpected profile update error:', error.message, error);
       toast.error('An unexpected error occurred during profile update.');
     }
   };
@@ -179,7 +184,7 @@ const EditProfile = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Password change error:', error.message);
+        console.error('Supabase Password change error:', error.message, error);
       } else {
         toast.success('Password updated successfully!');
         passwordForm.reset(); // Clear the password form
@@ -187,8 +192,8 @@ const EditProfile = () => {
         // await supabase.auth.signOut();
         // navigate('/login');
       }
-    } catch (error) {
-      console.error('Unexpected password change error:', error);
+    } catch (error: any) {
+      console.error('Unexpected password change error:', error.message, error);
       toast.error('An unexpected error occurred during password change.');
     }
   };

@@ -68,8 +68,8 @@ const ViewMessage = () => {
           .single();
 
         if (error) {
-          console.error('Error fetching message:', error.message);
-          toast.error('Failed to load message.');
+          console.error('Supabase Error fetching message:', error.message, error);
+          toast.error('Failed to load message: ' + error.message);
           setMessage(null);
         } else if (data) {
           // Fetch sender and receiver profiles
@@ -83,8 +83,8 @@ const ViewMessage = () => {
             .in('id', Array.from(relatedUserIds));
 
           if (profilesError) {
-            console.error('Error fetching profiles for message:', profilesError.message);
-            toast.error('Failed to load associated profiles for message.');
+            console.error('Supabase Error fetching profiles for message:', profilesError.message, profilesError);
+            toast.error('Failed to load associated profiles for message: ' + profilesError.message);
           }
 
           const profilesMap = new Map<string, Profile>();
@@ -105,15 +105,15 @@ const ViewMessage = () => {
               .update({ is_read: true })
               .eq('id', id);
             if (updateError) {
-              console.error('Error marking message as read:', updateError.message);
+              console.error('Supabase Error marking message as read:', updateError.message, updateError);
             }
           }
         } else {
           setMessage(null);
           toast.error('Message not found.');
         }
-      } catch (error) {
-        console.error('Unexpected error fetching message:', error);
+      } catch (error: any) {
+        console.error('Unexpected error fetching message:', error.message, error);
         toast.error('An unexpected error occurred while loading the message.');
       } finally {
         setLoadingMessage(false);
@@ -150,14 +150,14 @@ const ViewMessage = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Error sending reply:', error.message);
+        console.error('Supabase Error sending reply:', error.message, error);
       } else {
         toast.success('Reply sent successfully!');
         replyForm.reset(); // Clear the reply form
         navigate('/messages'); // Navigate back to messages list
       }
-    } catch (error) {
-      console.error('Unexpected error sending reply:', error);
+    } catch (error: any) {
+      console.error('Unexpected error sending reply:', error.message, error);
       toast.error('An unexpected error occurred while sending the reply.');
     }
   };
@@ -187,7 +187,7 @@ const ViewMessage = () => {
         </Link>
       </div>
     );
-  }
+    }
 
   const isSentMessage = message.sender_id === user.id;
   const displaySender = isSentMessage ? 'You' : message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender';

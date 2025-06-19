@@ -42,20 +42,25 @@ const Messages = () => {
     if (profilesMap.has(profileId)) {
       return profilesMap.get(profileId);
     }
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, username, email') // Now selecting 'id' to match Profile interface
-      .eq('id', profileId)
-      .single();
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error('Error fetching sender profile:', error.message);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, email') // Now selecting 'id' to match Profile interface
+        .eq('id', profileId)
+        .single();
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error('Supabase Error fetching sender profile:', error.message, error);
+        return null;
+      }
+      if (data) {
+        setProfilesMap(prev => new Map(prev).set(profileId, data));
+        return data;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Unexpected error fetching profile:', error.message, error);
       return null;
     }
-    if (data) {
-      setProfilesMap(prev => new Map(prev).set(profileId, data));
-      return data;
-    }
-    return null;
   };
 
   useEffect(() => {
@@ -75,8 +80,8 @@ const Messages = () => {
           .order('created_at', { ascending: false });
 
         if (sentError) {
-          console.error('Error fetching sent messages:', sentError.message);
-          toast.error('Failed to load sent messages.');
+          console.error('Supabase Error fetching sent messages:', sentError.message, sentError);
+          toast.error('Failed to load sent messages: ' + sentError.message);
         }
 
         // Fetch all received messages
@@ -87,8 +92,8 @@ const Messages = () => {
           .order('created_at', { ascending: false });
 
         if (receivedError) {
-          console.error('Error fetching received messages:', receivedError.message);
-          toast.error('Failed to load received messages.');
+          console.error('Supabase Error fetching received messages:', receivedError.message, receivedError);
+          toast.error('Failed to load received messages: ' + receivedError.message);
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -102,8 +107,8 @@ const Messages = () => {
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
-          console.error('Error fetching profiles:', profilesError.message);
-          toast.error('Failed to load associated profiles.');
+          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
+          toast.error('Failed to load associated profiles: ' + profilesError.message);
           return;
         }
 
@@ -126,8 +131,8 @@ const Messages = () => {
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
 
-      } catch (error) {
-        console.error('Unexpected error fetching messages:', error);
+      } catch (error: any) {
+        console.error('Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);
@@ -185,7 +190,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate]);
+  }, [user, sessionLoading, navigate, fetchProfile]);
 
   if (sessionLoading || messagesLoading) {
     return (

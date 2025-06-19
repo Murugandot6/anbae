@@ -55,27 +55,31 @@ const SendMessage = () => {
       console.log('Attempting to fetch partner with email from user metadata:', currentUsersPartnerEmail);
 
       if (currentUsersPartnerEmail) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, username, email')
-          .eq('email', currentUsersPartnerEmail);
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, username, email')
+            .eq('email', currentUsersPartnerEmail);
 
-        if (error) {
-          console.error('Error fetching partner profile from Supabase:', error.message);
-          console.log('Supabase query error details:', error);
-          toast.error('An error occurred while fetching partner profile.');
-          setPartnerId(null);
-          setPartnerNickname(null);
-        } else if (data && data.length > 0) {
-          const partnerData = data[0];
-          console.log('Partner profile found:', partnerData);
-          setPartnerId(partnerData.id);
-          setPartnerNickname(partnerData.username);
-        } else {
-          console.log('No partner profile data returned for email:', currentUsersPartnerEmail);
-          toast.error('Partner profile not found for the specified email. Please ensure your partner has registered.');
-          setPartnerId(null);
-          setPartnerNickname(null);
+          if (error) {
+            console.error('Supabase Error fetching partner profile:', error.message, error);
+            toast.error('An error occurred while fetching partner profile: ' + error.message);
+            setPartnerId(null);
+            setPartnerNickname(null);
+          } else if (data && data.length > 0) {
+            const partnerData = data[0];
+            console.log('Partner profile found:', partnerData);
+            setPartnerId(partnerData.id);
+            setPartnerNickname(partnerData.username);
+          } else {
+            console.log('No partner profile data returned for email:', currentUsersPartnerEmail);
+            toast.error('Partner profile not found for the specified email. Please ensure your partner has registered.');
+            setPartnerId(null);
+            setPartnerNickname(null);
+          }
+        } catch (error: any) {
+          console.error('Unexpected error fetching partner details:', error.message, error);
+          toast.error('An unexpected error occurred while fetching partner details.');
         }
       } else {
         console.log('Current user does not have a partner email set in metadata. Displaying message to update profile.');
@@ -105,13 +109,13 @@ const SendMessage = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Send message error:', error.message);
+        console.error('Supabase Send message error:', error.message, error);
       } else {
         toast.success('Grievance sent successfully!');
         navigate('/dashboard');
       }
-    } catch (error) {
-      console.error('Unexpected send message error:', error);
+    } catch (error: any) {
+      console.error('Unexpected send message error:', error.message, error);
       toast.error('An unexpected error occurred while sending the grievance.');
     }
   };
