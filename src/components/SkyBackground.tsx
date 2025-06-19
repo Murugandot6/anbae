@@ -5,7 +5,7 @@ const SkyBackground = () => {
   return (
     <div className="sky-background">
       <div className="moon"></div>
-      {/* Removed stars element */}
+      <div className="stars"></div> {/* Re-added element for stars */}
     </div>
   );
 };
