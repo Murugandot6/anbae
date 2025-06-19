@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: "/your-repo-name/", // IMPORTANT: Replace 'your-repo-name' with your actual GitHub repository name (e.g., '/anbae/')
+  base: "/anbae/", // Set base path to your GitHub repository name
   server: {
     host: "::",
     port: 8080,
@@ -16,6 +16,7 @@ export default defineConfig(() => ({
     },
   },
   build: {
+    outDir: 'docs', // Output build files to the 'docs' directory
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html') // Explicitly define index.html as the main input
