@@ -84,7 +84,7 @@ const Register = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} type="email" />
+                    <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,7 +97,7 @@ const Register = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your password" {...field} type="password" />
+                    <Input placeholder="Your password" {...field} type="password" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -110,7 +110,7 @@ const Register = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><User className="w-4 h-4" /> Nickname</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your Nickname" {...field} />
+                    <Input placeholder="Your Nickname" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,7 +123,7 @@ const Register = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="partner@example.com" {...field} type="email" />
+                    <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

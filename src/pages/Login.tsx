@@ -25,6 +25,7 @@ const Login = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
+      password: '', // Ensure password also has a default empty string
     },
   });
 
@@ -69,7 +70,7 @@ const Login = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="your.email@example.com" {...field} type="email" />
+                    <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -82,7 +83,7 @@ const Login = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your password" {...field} type="password" />
+                    <Input placeholder="Your password" {...field} type="password" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

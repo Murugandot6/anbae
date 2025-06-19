@@ -82,9 +82,9 @@ const EditProfile = () => {
           .eq('id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Supabase Error fetching profile:', error.message, error);
-          toast.error('Failed to load profile data: ' + error.message);
+        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error('Supabase Error fetching current user profile:', error.message, error);
+          toast.error('Failed to load your profile: ' + error.message);
           setProfileExists(false);
         } else if (data) {
           profileForm.reset({
@@ -228,7 +228,7 @@ const EditProfile = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><User className="w-4 h-4" /> Your Nickname</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your Nickname" {...field} />
+                    <Input placeholder="Your Nickname" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,7 +241,7 @@ const EditProfile = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="partner@example.com" {...field} type="email" />
+                    <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -254,7 +254,7 @@ const EditProfile = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><User className="w-4 h-4" /> Partner's Alias (for your view)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Sweetheart, My Love" {...field} />
+                    <Input placeholder="e.g., Sweetheart, My Love" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -281,7 +281,7 @@ const EditProfile = () => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> New Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter new password" {...field} type="password" />
+                    <Input placeholder="Enter new password" {...field} type="password" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -292,9 +292,9 @@ const EditProfile = () => {
               name="confirmNewPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> Confirm New Password</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> Confirm New Password</Label>
                   <FormControl>
-                    <Input placeholder="Confirm new password" {...field} type="password" />
+                    <Input placeholder="Confirm new password" {...field} type="password" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
