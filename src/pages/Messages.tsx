@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft } from 'lucide-react';
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
 
 interface Profile {
   id: string;
@@ -25,6 +25,7 @@ interface Message {
   message_type: string;
   priority: string;
   mood: string;
+  read_at: string | null; // Added read_at
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
 }
@@ -176,6 +177,7 @@ const Messages = () => {
               setSentMessages(prev => [messageWithProfiles, ...prev]);
             }
           } else if (payload.eventType === 'UPDATE') {
+            // Update existing messages with new data, especially read_at
             setReceivedMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
@@ -271,6 +273,11 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
                           <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
                             <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
+                            {message.read_at && (
+                              <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                <CheckCheck className="w-4 h-4" /> Read
+                              </span>
+                            )}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
                             <Mail className="w-4 h-4" /> To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
