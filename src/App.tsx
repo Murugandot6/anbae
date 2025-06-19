@@ -12,6 +12,7 @@ import SendMessage from "./pages/SendMessage";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
+import LoginPageTest from "./pages/LoginPageTest"; // Import the new test login page
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 
@@ -38,6 +39,7 @@ const App = () => {
                 <Route path="/edit-profile" element={<EditProfile />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/messages/:id" element={<ViewMessage />} />
+                <Route path="/login-test" element={<LoginPageTest />} /> {/* New route for testing */}
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
