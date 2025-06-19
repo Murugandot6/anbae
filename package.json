@@ -75,9 +75,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && cp CNAME dist/",
+    "build": "tsc && vite build && cp CNAME docs/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   }
 }
