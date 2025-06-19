@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
 import { Separator } from '@/components/ui/separator';
 
 interface Profile {
@@ -30,6 +30,7 @@ interface Message {
   message_type: string;
   priority: string;
   mood: string;
+  read_at: string | null; // Added read_at
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
 }
@@ -92,20 +93,24 @@ const ViewMessage = () => {
             profilesMap.set(profile.id, profile);
           });
 
-          setMessage({
+          const fetchedMessage: Message = {
             ...data,
             senderProfile: profilesMap.get(data.sender_id) || null,
             receiverProfile: profilesMap.get(data.receiver_id) || null,
-          });
+          };
+          setMessage(fetchedMessage);
 
-          // Mark message as read if current user is the receiver and it's unread
-          if (data.receiver_id === user.id && !data.is_read) {
+          // Mark message as read if current user is the receiver and it's unread (or read_at is null)
+          if (fetchedMessage.receiver_id === user.id && !fetchedMessage.read_at) {
             const { error: updateError } = await supabase
               .from('messages')
-              .update({ is_read: true })
+              .update({ is_read: true, read_at: new Date().toISOString() }) // Update both is_read and read_at
               .eq('id', id);
             if (updateError) {
               console.error('Supabase Error marking message as read:', updateError.message, updateError);
+            } else {
+              // Update local state to reflect the change immediately
+              setMessage(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
             }
           }
         } else {
@@ -235,6 +240,11 @@ const ViewMessage = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Sent on: {new Date(message.created_at).toLocaleString()}
             </p>
+            {message.read_at && isSentMessage && ( // Only show read_at if it's a sent message and has been read
+              <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                <CheckCheck className="w-4 h-4 text-blue-500" /> Read on: {new Date(message.read_at).toLocaleString()}
+              </p>
+            )}
             <Separator className="my-4" />
             <div>
               <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">Content:</h3>
