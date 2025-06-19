@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Heart, User, Users, Lock } from 'lucide-react';
+import { Heart, User, Users, Lock, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -206,14 +206,13 @@ const EditProfile = () => {
     );
   }
 
-  // TEMPORARY: Comment out redirection for preview purposes
-  // if (!user) {
-  //   navigate('/login');
-  //   return null;
-  // }
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 pt-20">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
         <div className="text-center mb-6">
           <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
@@ -307,12 +306,11 @@ const EditProfile = () => {
           </form>
         </Form>
 
-        {/* Removed Back to Dashboard link */}
-        {/* <div className="mt-6 text-center">
+        <div className="mt-6 text-center">
           <Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
             ← Back to Dashboard
           </Link>
-        </div> */}
+        </div>
       </div>
     </div>
   );

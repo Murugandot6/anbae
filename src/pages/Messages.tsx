@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User } from 'lucide-react';
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -142,8 +142,7 @@ const Messages = () => {
     if (!sessionLoading && user) {
       fetchAllMessagesAndProfiles();
     } else if (!sessionLoading && !user) {
-      // TEMPORARY: Comment out redirection for preview purposes
-      // navigate('/login');
+      navigate('/login');
     }
 
     const channel = supabase
@@ -201,22 +200,20 @@ const Messages = () => {
     );
   }
 
-  // TEMPORARY: Comment out redirection for preview purposes
-  // if (!user) {
-  //   return null;
-  // }
+  if (!user) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
-          {/* Removed Back to Dashboard button */}
-          {/* <Link to="/dashboard">
+          <Link to="/dashboard">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Dashboard
             </Button>
-          </Link> */}
+          </Link>
         </div>
 
         <Tabs defaultValue="inbox" className="w-full">

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -54,6 +54,11 @@ const Dashboard = () => {
       console.error('Unexpected logout error:', error.message, error);
       toast.error('An unexpected error occurred during logout.');
     }
+  };
+
+  const handleViewMessages = () => {
+    console.log('View Inbox & Outbox button clicked!');
+    navigate('/messages');
   };
 
   useEffect(() => {
@@ -201,20 +206,19 @@ const Dashboard = () => {
     );
   }
 
-  // TEMPORARY: Comment out redirection for preview purposes
-  // if (!user) {
-  //   navigate('/login');
-  //   return null;
-  // }
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 for bottom nav */}
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user?.user_metadata.nickname || user?.email || 'Guest'}!</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
             <Link to="/edit-profile" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -241,8 +245,8 @@ const Dashboard = () => {
               <CardTitle className="text-gray-900 dark:text-white text-xl">Your Profile</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-base">
-              <p><strong>Nickname:</strong> {user?.user_metadata.nickname || 'Not set'}</p>
-              <p><strong>Email:</strong> {user?.email}</p>
+              <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
+              <p><strong>Email:</strong> {user.email}</p>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -250,14 +254,13 @@ const Dashboard = () => {
               <CardTitle className="text-gray-900 dark:text-white text-xl">Partner Profile</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-base">
-              <p><strong>Partner Email:</strong> {user?.user_metadata.partner_email || 'Not set'}</p>
-              <p><strong>Partner Alias:</strong> {user?.user_metadata.partner_nickname || 'Not set'}</p>
+              <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
+              <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Removed Send New Message and View Inbox & Outbox buttons as they are now in the bottom navigation */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Link to="/send-message" className="w-full">
             <Button size="lg" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 py-6 text-lg">
               <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
@@ -270,7 +273,7 @@ const Dashboard = () => {
           >
             <Inbox className="w-6 h-6 mr-3" /> View Inbox & Outbox
           </Button>
-        </div> */}
+        </div>
 
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
