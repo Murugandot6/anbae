@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
+import SkyBackground from '@/components/SkyBackground'; // New import
 
 interface Profile {
   id: string;
@@ -212,127 +213,131 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <Link to="/edit-profile" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <Settings className="w-5 h-5" /> 
+    <div className="relative min-h-screen w-full overflow-hidden"> {/* Main container for background and content */}
+      <SkyBackground /> {/* The animated background */}
+
+      <div className="relative z-10 min-h-screen flex flex-col items-center p-4 pt-20 bg-white/80 dark:bg-gray-800/80 text-foreground"> {/* Content wrapper */}
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+              <Link to="/edit-profile" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Settings className="w-5 h-5" /> 
+                </Button>
+              </Link>
+              <Button onClick={handleLogout} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
+                <LogOut className="w-5 h-5 mr-2" /> Logout
+              </Button>
+              {user && (
+                <ClearMessagesDialog
+                  partnerId={partnerProfile?.id || null}
+                  partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                  currentUserId={user.id}
+                  onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white text-xl">Your Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-base">
+                <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
+                <p><strong>Email:</strong> {user.email}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white text-xl">Partner Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-base">
+                <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
+                <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Link to="/send-message" className="w-full">
+              <Button size="lg" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 py-6 text-lg">
+                <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
               </Button>
             </Link>
-            <Button onClick={handleLogout} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
-              <LogOut className="w-5 h-5 mr-2" /> Logout
+            <Button
+              size="lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 py-6 text-lg"
+              onClick={handleViewMessages}
+            >
+              <Inbox className="w-6 h-6 mr-3" /> View Inbox & Outbox
             </Button>
-            {user && (
-              <ClearMessagesDialog
-                partnerId={partnerProfile?.id || null}
-                partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-                currentUserId={user.id}
-                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-              />
-            )}
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white text-xl">Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-base">
-              <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white text-xl">Partner Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-base">
-              <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
-              <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link to="/send-message" className="w-full">
-            <Button size="lg" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 py-6 text-lg">
-              <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
-            </Button>
-          </Link>
-          <Button
-            size="lg"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 py-6 text-lg"
-            onClick={handleViewMessages}
-          >
-            <Inbox className="w-6 h-6 mr-3" /> View Inbox & Outbox
-          </Button>
-        </div>
-
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-base">
-              {sentMessages.length > 0 ? (
-                <ul className="space-y-2">
-                  {sentMessages.map((message, index) => (
-                    <li
-                      key={message.id}
-                      className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
-                        index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
-                      }`}
-                    >
-                      <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                        <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No messages sent yet.</p>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-base">
-              {receivedMessages.length > 0 ? (
-                <ul className="space-y-2">
-                  {receivedMessages.map((message, index) => (
-                    <li
-                      key={message.id}
-                      className={`border-b border-gray-20:0 dark:border-gray-700 pb-2 last:border-b-0 ${
-                        index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
-                      }`}
-                    >
-                      <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                        <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No messages received yet.</p>
-              )}
-            </CardContent>
-          </Card>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-base">
+                {sentMessages.length > 0 ? (
+                  <ul className="space-y-2">
+                    {sentMessages.map((message, index) => (
+                      <li
+                        key={message.id}
+                        className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
+                          index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
+                        }`}
+                      >
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
+                          <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No messages sent yet.</p>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground text-base">
+                {receivedMessages.length > 0 ? (
+                  <ul className="space-y-2">
+                    {receivedMessages.map((message, index) => (
+                      <li
+                        key={message.id}
+                        className={`border-b border-gray-20:0 dark:border-gray-700 pb-2 last:border-b-0 ${
+                          index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
+                        }`}
+                      >
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
+                          <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No messages received yet.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

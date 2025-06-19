@@ -1,0 +1,35 @@
+.sky-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1; /* Ensure it's behind other content */
+  overflow: hidden; /* Hide moon when outside bounds */
+  animation: skyChange 60s linear infinite; /* 60-second cycle for sky color transition */
+}
+
+.moon {
+  position: absolute;
+  width: 80px; /* Size of the moon */
+  height: 80px;
+  background-color: #f0f0f0; /* Moon color */
+  border-radius: 50%;
+  box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.5);
+  animation: moonRiseSet 60s linear infinite; /* Sync with skyChange */
+}
+
+@keyframes skyChange {
+  0% { background: linear-gradient(to bottom, #0a0a2a, #2a0a4a); } /* Deep Night */
+  25% { background: linear-gradient(to bottom, #4a0a4a, #8a2a8a); } /* Dawn/Early Morning (purple hues) */
+  50% { background: linear-gradient(to bottom, #87CEEB, #ADD8E6); } /* Mid-Day (light blue) */
+  75% { background: linear-gradient(to bottom, #ADD8E6, #87CEEB); } /* Still Day */
+  100% { background: linear-gradient(to bottom, #0a0a2a, #2a0a4a); } /* Back to Deep Night */
+}
+
+@keyframes moonRiseSet {
+  0% { left: -10%; top: 70%; opacity: 1; } /* Start off-screen left, visible */
+  40% { left: 50%; top: 10%; opacity: 1; } /* Peak at center, visible */
+  50% { left: 110%; top: 70%; opacity: 0; } /* End off-screen right, fade out */
+  100% { left: 110%; top: 70%; opacity: 0; } /* Stay hidden off-screen for the rest of the cycle */
+}
