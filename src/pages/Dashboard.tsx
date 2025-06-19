@@ -7,6 +7,7 @@ import { LogOut, Settings, MessageSquare, Inbox } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
+import { ThemeToggle } from "@/components/ThemeToggle"; // Import ThemeToggle
 
 interface Profile {
   id: string;
@@ -212,6 +213,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
+      <div className="absolute top-4 right-4 z-10"> {/* Position ThemeToggle */}
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>

@@ -10,6 +10,7 @@ import { Heart, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import ForgotPasswordDialog from '@/components/ForgotPasswordDialog'; // Import the new component
 import { useState } from 'react'; // Import useState
+import { ThemeToggle } from "@/components/ThemeToggle"; // Import ThemeToggle
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -49,7 +50,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 relative">
+      <div className="absolute top-4 right-4 z-10"> {/* Position ThemeToggle */}
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
         <div className="text-center mb-6">
           <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
