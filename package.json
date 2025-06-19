@@ -1,4 +1,8 @@
 {
+  "name": "anbae",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "./",
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
