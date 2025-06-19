@@ -19,12 +19,52 @@
   animation: moonRiseSet 60s linear infinite; /* Sync with skyChange */
 }
 
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  animation: twinkle 60s linear infinite; /* Sync with skyChange */
+}
+
+/* Using multiple box-shadows to create stars */
+.stars::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow:
+    /* Small stars */
+    20px 150px #FFF, 50px 200px #FFF, 80px 100px #FFF, 120px 250px #FFF, 150px 50px #FFF,
+    180px 300px #FFF, 210px 120px #FFF, 240px 280px #FFF, 270px 70px #FFF, 300px 220px #FFF,
+    330px 180px #FFF, 360px 20px #FFF, 390px 270px #FFF, 420px 90px #FFF, 450px 240px #FFF,
+    480px 160px #FFF, 510px 30px #FFF, 540px 290px #FFF, 570px 110px #FFF, 600px 260px #FFF,
+    630px 40px #FFF, 660px 210px #FFF, 690px 130px #FFF, 720px 280px #FFF, 750px 60px #FFF,
+    780px 230px #FFF, 810px 190px #FFF, 840px 10px #FFF, 870px 250px #FFF, 900px 80px #FFF,
+    930px 200px #FFF, 960px 140px #FFF, 990px 290px #FFF, 1020px 50px #FFF, 1050px 220px #FFF,
+    1080px 170px #FFF, 1110px 30px #FFF, 1140px 280px #FFF, 1170px 100px #FFF, 1200px 260px #FFF,
+    1230px 40px #FFF, 1260px 210px #FFF, 1290px 130px #FFF, 1320px 280px #FFF, 1350px 60px #FFF,
+    1380px 230px #FFF, 1410px 190px #FFF, 1440px 10px #FFF, 1470px 250px #FFF, 1500px 80px #FFF,
+    /* Medium stars */
+    100px 500px #FFF, 250px 650px #FFF, 400px 550px #FFF, 550px 700px #FFF, 700px 600px #FFF,
+    850px 750px #FFF, 1000px 520px #FFF, 1150px 680px #FFF, 1300px 580px #FFF, 1450px 730px #FFF,
+    /* Large stars */
+    50px 800px #FFF, 300px 950px #FFF, 600px 850px #FFF, 900px 900px #FFF, 1200px 820px #FFF;
+}
+
 @keyframes skyChange {
-  0% { background: linear-gradient(to bottom, #0a0a2a, #2a0a4a); } /* Deep Night */
+  0% { background: linear-gradient(to bottom, #00001a, #1a0033); } /* Very Deep Night */
+  20% { background: linear-gradient(to bottom, #00001a, #1a0033); } /* Still Deep Night */
   25% { background: linear-gradient(to bottom, #4a0a4a, #8a2a8a); } /* Dawn/Early Morning (purple hues) */
-  50% { background: linear-gradient(to bottom, #87CEEB, #ADD8E6); } /* Mid-Day (light blue) */
+  45% { background: linear-gradient(to bottom, #87CEEB, #ADD8E6); } /* Mid-Day (light blue) */
   75% { background: linear-gradient(to bottom, #ADD8E6, #87CEEB); } /* Still Day */
-  100% { background: linear-gradient(to bottom, #0a0a2a, #2a0a4a); } /* Back to Deep Night */
+  80% { background: linear-gradient(to bottom, #4a0a4a, #8a2a8a); } /* Dusk */
+  100% { background: linear-gradient(to bottom, #00001a, #1a0033); } /* Back to Very Deep Night */
 }
 
 @keyframes moonRiseSet {
@@ -32,4 +72,13 @@
   40% { left: 50%; top: 10%; opacity: 1; } /* Peak at center, visible */
   50% { left: 110%; top: 70%; opacity: 0; } /* End off-screen right, fade out */
   100% { left: 110%; top: 70%; opacity: 0; } /* Stay hidden off-screen for the rest of the cycle */
+}
+
+@keyframes twinkle {
+  0% { opacity: 1; } /* Stars visible at night */
+  20% { opacity: 1; }
+  25% { opacity: 0; } /* Stars fade out during dawn */
+  75% { opacity: 0; } /* Stars hidden during day */
+  80% { opacity: 1; } /* Stars fade in during dusk */
+  100% { opacity: 1; }
 }
