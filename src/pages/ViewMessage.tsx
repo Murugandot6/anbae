@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Reply, User, Mail, MessageSquare, Tag, Zap, Smile } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile } from 'lucide-react'; // Removed ArrowLeft
 import { Separator } from '@/components/ui/separator';
 
 interface Profile {
@@ -177,14 +177,15 @@ const ViewMessage = () => {
 
   if (!message) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Message Not Found</h2>
         <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
-        <Link to="/messages">
+        {/* Removed Back to Messages button */}
+        {/* <Link to="/messages">
           <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
             <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
           </Button>
-        </Link>
+        </Link> */}
       </div>
     );
     }
@@ -194,15 +195,16 @@ const ViewMessage = () => {
   const displayReceiver = isSentMessage ? message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner' : 'You';
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}
       <div className="w-full max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Message Details</h1>
-          <Link to="/messages">
+          {/* Removed Back to Messages button */}
+          {/* <Link to="/messages">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
             </Button>
-          </Link>
+          </Link> */}
         </div>
 
         <Card className="bg-white dark:bg-gray-800 shadow-lg mb-8">
