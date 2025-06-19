@@ -88,7 +88,10 @@
   0% { opacity: 0; } /* Stars hidden during day */
   15% { opacity: 0; } /* Stars hidden during day */
   20% { opacity: 1; } /* Stars fade in during dusk */
-  40% { opacity: 1; } /* Stars visible at night */
+  25% { opacity: 0.8; } /* Start sparkling */
+  30% { opacity: 1; }
+  35% { opacity: 0.7; }
+  40% { opacity: 1; } /* End sparkling, fully visible */
   45% { opacity: 0; } /* Stars fade out during dawn */
   100% { opacity: 0; } /* Stars hidden during day */
 }
