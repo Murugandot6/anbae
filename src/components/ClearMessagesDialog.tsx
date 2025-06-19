@@ -16,7 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MessageSquareX, CheckCircle, XCircle, Info } from 'lucide-react';
+import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react'; // Changed MessageSquareX to HeartCrack
 
 interface ClearRequest {
   id: string;
@@ -247,7 +247,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
-            <MessageSquareX className="w-5 h-5 mr-2" /> Clear All Messages
+            <HeartCrack className="w-5 h-5 mr-2" /> Clear All Messages
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
