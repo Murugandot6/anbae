@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User } from 'lucide-react'; // Removed ArrowLeft
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -142,7 +142,8 @@ const Messages = () => {
     if (!sessionLoading && user) {
       fetchAllMessagesAndProfiles();
     } else if (!sessionLoading && !user) {
-      navigate('/login');
+      // TEMPORARY: Comment out redirection for preview purposes
+      // navigate('/login');
     }
 
     const channel = supabase
@@ -200,9 +201,10 @@ const Messages = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  // TEMPORARY: Comment out redirection for preview purposes
+  // if (!user) {
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}

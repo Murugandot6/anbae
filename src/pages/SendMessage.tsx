@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Send, MessageSquare, Users } from 'lucide-react'; // Removed ArrowLeft
+import { Heart, Send, MessageSquare, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 
@@ -128,12 +128,13 @@ const SendMessage = () => {
     );
   }
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  // TEMPORARY: Comment out redirection for preview purposes
+  // if (!user) {
+  //   navigate('/login');
+  //   return null;
+  // }
 
-  const currentPartnerEmail = user.user_metadata.partner_email || 'Not set';
+  const currentPartnerEmail = user?.user_metadata.partner_email || 'Not set';
 
   if (!partnerId) {
     return (

@@ -206,10 +206,11 @@ const EditProfile = () => {
     );
   }
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  // TEMPORARY: Comment out redirection for preview purposes
+  // if (!user) {
+  //   navigate('/login');
+  //   return null;
+  // }
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 pt-20 pb-20 md:pb-4"> {/* Added pb-20 */}

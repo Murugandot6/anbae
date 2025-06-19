@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile } from 'lucide-react'; // Removed ArrowLeft
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 interface Profile {
@@ -170,10 +170,11 @@ const ViewMessage = () => {
     );
   }
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  // TEMPORARY: Comment out redirection for preview purposes
+  // if (!user) {
+  //   navigate('/login');
+  //   return null;
+  // }
 
   if (!message) {
     return (
@@ -190,7 +191,7 @@ const ViewMessage = () => {
     );
     }
 
-  const isSentMessage = message.sender_id === user.id;
+  const isSentMessage = message.sender_id === user?.id;
   const displaySender = isSentMessage ? 'You' : message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender';
   const displayReceiver = isSentMessage ? message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner' : 'You';
 
