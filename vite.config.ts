@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: "/anbae/", // Set base path to your GitHub repository name
+  base: "/", // Set base path to root for gh-pages branch deployment
   server: {
     host: "::",
     port: 8080,
@@ -16,7 +16,7 @@ export default defineConfig(() => ({
     },
   },
   build: {
-    outDir: 'docs', // Output build files to the 'docs' directory
+    outDir: 'dist', // Output build files to the 'dist' directory (default)
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html') // Explicitly define index.html as the main input
