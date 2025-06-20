@@ -53,7 +53,7 @@ const Index = () => {
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:from-gray-900 dark:to-purple-950 text-foreground p-4 relative"> {/* Changed background to bg-white for light mode */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:to-purple-950 text-foreground p-4 relative"> {/* Adjusted background for light and dark mode */}
       <div className="absolute top-4 right-4 z-10"> {/* Position ThemeToggle */}
         <ThemeToggle />
       </div>
