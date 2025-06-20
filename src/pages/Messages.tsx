@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,29 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
-
-interface Profile {
-  id: string;
-  username: string | null;
-  email: string | null;
-}
-
-interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  subject: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-  message_type: string;
-  priority: string;
-  mood: string;
-  read_at: string | null; // Added read_at
-  senderProfile?: Profile | null;
-  receiverProfile?: Profile | null;
-}
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
+import { Profile, Message } from '@/types/supabase'; // Import shared types
+import { fetchProfileById, fetchProfilesByIds } from '@/lib/supabaseHelpers'; // Import shared helper
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -39,44 +19,30 @@ const Messages = () => {
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
 
   // Helper to fetch a single profile if not already in map
-  const fetchProfile = async (profileId: string) => {
+  const getOrFetchProfile = useCallback(async (profileId: string) => {
     if (profilesMap.has(profileId)) {
       return profilesMap.get(profileId);
     }
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, email') // Now selecting 'id' to match Profile interface
-        .eq('id', profileId)
-        .single();
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error('Supabase Error fetching sender profile:', error.message, error);
-        return null;
-      }
-      if (data) {
-        setProfilesMap(prev => new Map(prev).set(profileId, data));
-        return data;
-      }
-      return null;
-    } catch (error: any) {
-      console.error('Unexpected error fetching profile:', error.message, error);
-      return null;
+    const profile = await fetchProfileById(profileId);
+    if (profile) {
+      setProfilesMap(prev => new Map(prev).set(profileId, profile));
     }
-  };
+    return profile;
+  }, [profilesMap]);
 
   useEffect(() => {
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
-        setMessagesLoading(false); // Set loading to false if no user
+        setMessagesLoading(false);
         return;
       }
 
-      setMessagesLoading(true); // Set loading to true at the start of fetch
+      setMessagesLoading(true);
       try {
         // Fetch all sent messages
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages, no direct join here
+          .select('*')
           .eq('sender_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -88,7 +54,7 @@ const Messages = () => {
         // Fetch all received messages
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages, no direct join here
+          .select('*')
           .eq('receiver_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -102,31 +68,17 @@ const Messages = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id);
 
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, username, email')
-          .in('id', Array.from(allRelatedUserIds));
-
-        if (profilesError) {
-          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
-          toast.error('Failed to load associated profiles: ' + profilesError.message);
-          return;
-        }
-
-        const initialProfilesMap = new Map<string, Profile>();
-        profilesData?.forEach(profile => {
-          initialProfilesMap.set(profile.id, profile);
-        });
-        setProfilesMap(initialProfilesMap);
+        const fetchedProfilesMap = await fetchProfilesByIds(Array.from(allRelatedUserIds));
+        setProfilesMap(fetchedProfilesMap);
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
-          receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
+          receiverProfile: fetchedProfilesMap.get(msg.receiver_id) || null,
         })) || [];
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
-          senderProfile: initialProfilesMap.get(msg.sender_id) || null,
+          senderProfile: fetchedProfilesMap.get(msg.sender_id) || null,
         })) || [];
 
         setSentMessages(combinedSentMessages);
@@ -161,8 +113,8 @@ const Messages = () => {
           const newMessage = payload.new as Message;
 
           if (payload.eventType === 'INSERT') {
-            const senderProfile = await fetchProfile(newMessage.sender_id);
-            const receiverProfile = await fetchProfile(newMessage.receiver_id);
+            const senderProfile = await getOrFetchProfile(newMessage.sender_id);
+            const receiverProfile = await getOrFetchProfile(newMessage.receiver_id);
 
             const messageWithProfiles = {
               ...newMessage,
@@ -177,13 +129,17 @@ const Messages = () => {
               setSentMessages(prev => [messageWithProfiles, ...prev]);
             }
           } else if (payload.eventType === 'UPDATE') {
-            // Update existing messages with new data, especially read_at
             setReceivedMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
             setSentMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
+          } else if (payload.eventType === 'DELETE') {
+            // Handle message deletion
+            setReceivedMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
+            setSentMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
+            toast.info('A message was cleared.');
           }
         }
       )
@@ -192,7 +148,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, fetchProfile]);
+  }, [user, sessionLoading, navigate, getOrFetchProfile]);
 
   if (sessionLoading || messagesLoading) {
     return (
