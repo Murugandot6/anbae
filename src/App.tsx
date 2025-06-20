@@ -22,13 +22,8 @@ const App = () => {
   // Log the base URL being used by Vite for debugging
   console.log("Vite BASE_URL:", import.meta.env.BASE_URL);
 
-  // State to trigger a refresh of the messages list
-  const [messagesRefreshKey, setMessagesRefreshKey] = React.useState(0);
-
-  // Function to increment the refresh key, triggering a re-fetch in Messages.tsx
-  const handleMessagesRefresh = () => {
-    setMessagesRefreshKey(prev => prev + 1);
-  };
+  // Removed messagesRefreshKey state and handleMessagesRefresh function
+  // as real-time updates will handle message list freshness.
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -45,9 +40,10 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/send-message" element={<SendMessage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
-                {/* Pass messagesRefreshKey as a key prop to force re-mount and re-fetch */}
-                <Route path="/messages" element={<Messages key={messagesRefreshKey} />} />
-                <Route path="/messages/:id" element={<ViewMessage onMessageRead={handleMessagesRefresh} />} />
+                {/* Removed key prop from Messages route */}
+                <Route path="/messages" element={<Messages />} />
+                {/* Removed onMessageRead prop from ViewMessage */}
+                <Route path="/messages/:id" element={<ViewMessage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

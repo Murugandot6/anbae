@@ -30,7 +30,6 @@ interface Message {
   receiverProfile?: Profile | null;
 }
 
-// Removed MessagesProps interface as messagesRefreshKey is no longer a prop
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
@@ -38,7 +37,6 @@ const Messages = () => {
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
-  // Removed local refreshTrigger as it's now handled by parent component
 
   // Helper to fetch a single profile if not already in map
   const fetchProfile = async (profileId: string) => {
@@ -48,10 +46,10 @@ const Messages = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, email') // Now selecting 'id' to match Profile interface
+        .select('id, username, email')
         .eq('id', profileId)
         .single();
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      if (error && error.code !== 'PGRST116') {
         console.error('Supabase Error fetching sender profile:', error.message, error);
         return null;
       }
@@ -66,22 +64,20 @@ const Messages = () => {
     }
   };
 
-  // Removed handleRefreshMessages as it's now handled by parent component
-
   useEffect(() => {
-    console.log('Messages component useEffect triggered. Fetching data...'); // Added for debugging
+    console.log('Messages component useEffect triggered. Fetching data...');
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
-        setMessagesLoading(false); // Set loading to false if no user
+        setMessagesLoading(false);
         return;
       }
 
-      setMessagesLoading(true); // Set loading to true at the start of fetch
+      setMessagesLoading(true);
       try {
         // Fetch all sent messages
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages, no direct join here
+          .select('*')
           .eq('sender_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -93,7 +89,7 @@ const Messages = () => {
         // Fetch all received messages
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages, no direct join here
+          .select('*')
           .eq('receiver_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -153,8 +149,7 @@ const Messages = () => {
       navigate('/login');
     }
 
-    // Temporarily commenting out realtime subscription to diagnose glitch
-    /*
+    // Re-enabling realtime subscription
     const channel = supabase
       .channel('messages_channel')
       .on(
@@ -201,7 +196,6 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-    */
   }, [user, sessionLoading, navigate, fetchProfile]);
 
   if (sessionLoading || messagesLoading) {
