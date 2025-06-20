@@ -37,6 +37,7 @@ const Messages = () => {
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // New state for refreshing
 
   // Helper to fetch a single profile if not already in map
   const fetchProfile = async (profileId: string) => {
@@ -62,6 +63,10 @@ const Messages = () => {
       console.error('Unexpected error fetching profile:', error.message, error);
       return null;
     }
+  };
+
+  const handleRefreshMessages = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -192,7 +197,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, fetchProfile]);
+  }, [user, sessionLoading, navigate, fetchProfile, refreshTrigger]); // Add refreshTrigger to dependencies
 
   if (sessionLoading || messagesLoading) {
     return (
