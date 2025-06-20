@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
+  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')), // Added partner_nickname
 }).refine((data) => {
   // Get current user's email from session context
   const sessionContext = (window as any).dyadSessionContext; // Accessing global context for validation
@@ -35,6 +36,7 @@ const EditProfile = () => {
     defaultValues: {
       nickname: '',
       partner_email: '',
+      partner_nickname: '', // Set default value for partner_nickname
     },
   });
 
@@ -48,6 +50,7 @@ const EditProfile = () => {
       form.reset({
         nickname: user.user_metadata.nickname || '',
         partner_email: user.user_metadata.partner_email || '',
+        partner_nickname: user.user_metadata.partner_nickname || '', // Populate from user_metadata
       });
       setLoading(false);
     } else if (!sessionLoading && !user) {
@@ -68,6 +71,7 @@ const EditProfile = () => {
         data: {
           nickname: values.nickname,
           partner_email: values.partner_email,
+          partner_nickname: values.partner_nickname, // Update partner_nickname in user_metadata
         },
       });
 
@@ -81,6 +85,7 @@ const EditProfile = () => {
         .update({
           username: values.nickname, // Map nickname to username in profiles table
           partner_email: values.partner_email,
+          partner_nickname: values.partner_nickname, // Update partner_nickname in profiles table
         })
         .eq('id', user.id);
 
@@ -141,9 +146,22 @@ const EditProfile = () => {
               name="partner_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><Mail className="w-4 h-4" /> Partner's Email</FormLabel>
                   <FormControl>
                     <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="partner_nickname"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Nickname</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
