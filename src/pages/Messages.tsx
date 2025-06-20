@@ -21,11 +21,16 @@ const Messages = () => {
   // Helper to fetch a single profile if not already in map
   const getOrFetchProfile = async (profileId: string) => {
     if (profilesMap.has(profileId)) {
+      console.log('Messages: Profile found in map for ID:', profileId);
       return profilesMap.get(profileId);
     }
+    console.log('Messages: Fetching profile by ID:', profileId);
     const profile = await fetchProfileById(profileId);
     if (profile) {
       setProfilesMap(prev => new Map(prev).set(profileId, profile));
+      console.log('Messages: Profile fetched and added to map:', profile);
+    } else {
+      console.log('Messages: Profile not found for ID:', profileId);
     }
     return profile;
   };
@@ -34,33 +39,39 @@ const Messages = () => {
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
         setMessagesLoading(false); // Set loading to false if no user
+        console.log('Messages: No user session, skipping message fetch.');
         return;
       }
 
       setMessagesLoading(true); // Set loading to true at the start of fetch
+      console.log('Messages: Fetching all messages for user ID:', user.id);
       try {
         // Fetch all sent messages
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages
           .eq('sender_id', user.id)
           .order('created_at', { ascending: false });
 
         if (sentError) {
-          console.error('Supabase Error fetching sent messages:', sentError.message, sentError);
+          console.error('Messages: Supabase Error fetching sent messages:', sentError.message, sentError);
           toast.error('Failed to load sent messages: ' + sentError.message);
+        } else {
+          console.log('Messages: Sent messages data:', sentData);
         }
 
         // Fetch all received messages
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages
           .eq('receiver_id', user.id)
           .order('created_at', { ascending: false });
 
         if (receivedError) {
-          console.error('Supabase Error fetching received messages:', receivedError.message, receivedError);
+          console.error('Messages: Supabase Error fetching received messages:', receivedError.message, receivedError);
           toast.error('Failed to load received messages: ' + receivedError.message);
+        } else {
+          console.log('Messages: Received messages data:', receivedData);
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -68,6 +79,7 @@ const Messages = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
 
+        console.log('Messages: Fetching profiles for related user IDs:', Array.from(allRelatedUserIds));
         const fetchedProfiles: Profile[] = [];
         for (const id of Array.from(allRelatedUserIds)) {
           const profile = await fetchProfileById(id);
@@ -81,31 +93,36 @@ const Messages = () => {
           initialProfilesMap.set(profile.id, profile);
         });
         setProfilesMap(initialProfilesMap);
+        console.log('Messages: Initial profiles map created:', initialProfilesMap);
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
           receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
         })) || [];
+        console.log('Messages: Combined sent messages:', combinedSentMessages);
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
           senderProfile: initialProfilesMap.get(msg.sender_id) || null,
         })) || [];
+        console.log('Messages: Combined received messages:', combinedReceivedMessages);
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
 
       } catch (error: any) {
-        console.error('Unexpected error fetching messages:', error.message, error);
+        console.error('Messages: Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);
+        console.log('Messages: Message fetching completed.');
       }
     };
 
     if (!sessionLoading && user) {
       fetchAllMessagesAndProfiles();
     } else if (!sessionLoading && !user) {
+      console.log('Messages: User not authenticated, navigating to login.');
       navigate('/login');
     }
 
@@ -120,7 +137,7 @@ const Messages = () => {
           filter: `sender_id=eq.${user?.id}.or.receiver_id=eq.${user?.id}`
         },
         async (payload) => {
-          console.log('Realtime message payload:', payload);
+          console.log('Messages: Realtime message payload:', payload);
           const newMessage = payload.new as Message;
 
           if (payload.eventType === 'INSERT') {
@@ -153,9 +170,10 @@ const Messages = () => {
       .subscribe();
 
     return () => {
+      console.log('Messages: Unsubscribing from messages_channel.');
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate]);
+  }, [user, sessionLoading, navigate, profilesMap]); // Added profilesMap to dependency array to ensure getOrFetchProfile works correctly
 
   if (sessionLoading || messagesLoading) {
     return (
