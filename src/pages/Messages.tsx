@@ -57,7 +57,7 @@ const Messages = () => {
           console.error('Messages: Supabase Error fetching sent messages:', sentError.message, sentError);
           toast.error('Failed to load sent messages: ' + sentError.message);
         } else {
-          console.log('Messages: Sent messages data:', sentData);
+          console.log('Messages: Raw sent messages data from initial fetch:', sentData);
         }
 
         // Fetch all received messages
@@ -71,7 +71,7 @@ const Messages = () => {
           console.error('Messages: Supabase Error fetching received messages:', receivedError.message, receivedError);
           toast.error('Failed to load received messages: ' + receivedError.message);
         } else {
-          console.log('Messages: Received messages data:', receivedData);
+          console.log('Messages: Raw received messages data from initial fetch:', receivedData);
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -99,13 +99,13 @@ const Messages = () => {
           ...msg,
           receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
         })) || [];
-        console.log('Messages: Combined sent messages:', combinedSentMessages);
+        console.log('Messages: Combined sent messages after initial fetch:', combinedSentMessages);
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
           senderProfile: initialProfilesMap.get(msg.sender_id) || null,
         })) || [];
-        console.log('Messages: Combined received messages:', combinedReceivedMessages);
+        console.log('Messages: Combined received messages after initial fetch:', combinedReceivedMessages);
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
@@ -151,13 +151,23 @@ const Messages = () => {
             };
 
             if (newMessage.receiver_id === user?.id) {
-              setReceivedMessages(prev => [messageWithProfiles, ...prev]);
+              console.log('Realtime: Adding new RECEIVED message to state:', messageWithProfiles);
+              setReceivedMessages(prev => {
+                const newState = [messageWithProfiles, ...prev];
+                console.log('Realtime: New receivedMessages state:', newState);
+                return newState;
+              });
               toast.info(`New message from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
             } else if (newMessage.sender_id === user?.id) {
-              setSentMessages(prev => [messageWithProfiles, ...prev]);
+              console.log('Realtime: Adding new SENT message to state:', messageWithProfiles);
+              setSentMessages(prev => {
+                const newState = [messageWithProfiles, ...prev];
+                console.log('Realtime: New sentMessages state:', newState);
+                return newState;
+              });
             }
           } else if (payload.eventType === 'UPDATE') {
-            // Update existing messages with new data, especially read_at
+            console.log('Realtime: Updating message in state:', newMessage);
             setReceivedMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
@@ -173,7 +183,7 @@ const Messages = () => {
       console.log('Messages: Unsubscribing from messages_channel.');
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate]); // Removed profilesMap from dependencies
+  }, [user, sessionLoading, navigate]);
 
   if (sessionLoading || messagesLoading) {
     return (
