@@ -14,12 +14,21 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
+import React from "react"; // Import React for useState
 
 const queryClient = new QueryClient();
 
 const App = () => {
   // Log the base URL being used by Vite for debugging
   console.log("Vite BASE_URL:", import.meta.env.BASE_URL);
+
+  // State to trigger a refresh of the messages list
+  const [messagesRefreshKey, setMessagesRefreshKey] = React.useState(0);
+
+  // Function to increment the refresh key, triggering a re-fetch in Messages.tsx
+  const handleMessagesRefresh = () => {
+    setMessagesRefreshKey(prev => prev + 1);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -36,8 +45,9 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/send-message" element={<SendMessage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/messages/:id" element={<ViewMessage />} />
+                {/* Pass messagesRefreshKey to Messages and onMessageRead to ViewMessage */}
+                <Route path="/messages" element={<Messages messagesRefreshKey={messagesRefreshKey} />} />
+                <Route path="/messages/:id" element={<ViewMessage onMessageRead={handleMessagesRefresh} />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
