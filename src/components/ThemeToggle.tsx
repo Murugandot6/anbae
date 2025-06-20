@@ -7,11 +7,18 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { setTheme, theme, mounted } = useTheme(); // Destructure mounted
+  const { setTheme, theme, mounted } = useTheme();
 
-  // Only render the toggle once the component has mounted to prevent hydration errors
+  console.log('ThemeToggle mounted:', mounted); // Add this log
+  console.log('ThemeToggle theme:', theme);   // Add this log
+
   if (!mounted) {
-    return null; // Or a placeholder button if desired
+    // Return a visible placeholder during hydration
+    return (
+      <Button variant="ghost" size="icon" disabled aria-label="Loading theme">
+        <Sun className="h-[1.2rem] w-[1.2rem] text-gray-400 animate-pulse" /> {/* Placeholder icon */}
+      </Button>
+    );
   }
 
   const toggleTheme = () => {
