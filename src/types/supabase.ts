@@ -21,8 +21,10 @@ export interface Message {
   priority: string;
   mood: string;
   read_at: string | null;
+  parent_message_id: string | null; // New: Link to parent message for threading
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
+  replies?: Message[]; // New: For nested replies in UI
 }
 
 export interface ClearRequest {

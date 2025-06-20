@@ -10,30 +10,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-
-interface Profile {
-  id: string;
-  username: string | null;
-  email: string | null;
-}
-
-interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  subject: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-  message_type: string;
-  priority: string;
-  mood: string;
-  read_at: string | null; // Added read_at
-  senderProfile?: Profile | null;
-  receiverProfile?: Profile | null;
-}
+import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -53,80 +32,141 @@ const ViewMessage = () => {
     },
   });
 
-  useEffect(() => {
-    const fetchMessage = async () => {
-      if (sessionLoading || !user || !id) {
+  const fetchMessageAndReplies = async () => {
+    if (sessionLoading || !user || !id) {
+      setLoadingMessage(false);
+      return;
+    }
+
+    setLoadingMessage(true);
+    try {
+      // Fetch the main message
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Supabase Error fetching message:', error.message, error);
+        toast.error('Failed to load message: ' + error.message);
+        setMessage(null);
+        setLoadingMessage(false);
+        return;
+      }
+      if (!data) {
+        setMessage(null);
+        toast.error('Message not found.');
         setLoadingMessage(false);
         return;
       }
 
-      setLoadingMessage(true);
-      try {
-        const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('id', id)
-          .single();
+      // Fetch replies to this message
+      const { data: repliesData, error: repliesError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('parent_message_id', id)
+        .order('created_at', { ascending: true });
 
-        if (error) {
-          console.error('Supabase Error fetching message:', error.message, error);
-          toast.error('Failed to load message: ' + error.message);
-          setMessage(null);
-        } else if (data) {
-          // Fetch sender and receiver profiles
-          const relatedUserIds = new Set<string>();
-          relatedUserIds.add(data.sender_id);
-          relatedUserIds.add(data.receiver_id);
-
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, username, email')
-            .in('id', Array.from(relatedUserIds));
-
-          if (profilesError) {
-            console.error('Supabase Error fetching profiles for message:', profilesError.message, profilesError);
-            toast.error('Failed to load associated profiles for message: ' + profilesError.message);
-          }
-
-          const profilesMap = new Map<string, Profile>();
-          profilesData?.forEach(profile => {
-            profilesMap.set(profile.id, profile);
-          });
-
-          const fetchedMessage: Message = {
-            ...data,
-            senderProfile: profilesMap.get(data.sender_id) || null,
-            receiverProfile: profilesMap.get(data.receiver_id) || null,
-          };
-          setMessage(fetchedMessage);
-
-          // Mark message as read if current user is the receiver and it's unread (or read_at is null)
-          if (fetchedMessage.receiver_id === user.id && !fetchedMessage.read_at) {
-            const { error: updateError } = await supabase
-              .from('messages')
-              .update({ is_read: true, read_at: new Date().toISOString() }) // Update both is_read and read_at
-              .eq('id', id);
-            if (updateError) {
-              console.error('Supabase Error marking message as read:', updateError.message, updateError);
-            } else {
-              // Update local state to reflect the change immediately
-              setMessage(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
-            }
-          }
-        } else {
-          setMessage(null);
-          toast.error('Message not found.');
-        }
-      } catch (error: any) {
-        console.error('Unexpected error fetching message:', error.message, error);
-        toast.error('An unexpected error occurred while loading the message.');
-      } finally {
-        setLoadingMessage(false);
+      if (repliesError) {
+        console.error('Supabase Error fetching replies:', repliesError.message, repliesError);
+        toast.error('Failed to load replies: ' + repliesError.message);
       }
-    };
 
-    fetchMessage();
-  }, [id, user, sessionLoading]);
+      // Collect all unique user IDs from the main message and its replies
+      const allRelatedUserIds = new Set<string>();
+      allRelatedUserIds.add(data.sender_id);
+      allRelatedUserIds.add(data.receiver_id);
+      repliesData?.forEach(reply => {
+        allRelatedUserIds.add(reply.sender_id);
+        allRelatedUserIds.add(reply.receiver_id);
+      });
+
+      // Fetch profiles for all related users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, email')
+        .in('id', Array.from(allRelatedUserIds));
+
+      if (profilesError) {
+        console.error('Supabase Error fetching profiles for message and replies:', profilesError.message, profilesError);
+        toast.error('Failed to load associated profiles: ' + profilesError.message);
+      }
+
+      const profilesMap = new Map<string, Profile>();
+      profilesData?.forEach(profile => {
+        profilesMap.set(profile.id, profile);
+      });
+
+      // Map profiles to replies
+      const processedReplies: Message[] = repliesData?.map(reply => ({
+        ...reply,
+        senderProfile: profilesMap.get(reply.sender_id) || null,
+        receiverProfile: profilesMap.get(reply.receiver_id) || null,
+      })) || [];
+
+      const fetchedMessage: Message = {
+        ...data,
+        senderProfile: profilesMap.get(data.sender_id) || null,
+        receiverProfile: profilesMap.get(data.receiver_id) || null,
+        replies: processedReplies, // Attach replies to the main message
+      };
+      setMessage(fetchedMessage);
+
+      // Mark message as read if current user is the receiver and it's unread (or read_at is null)
+      if (fetchedMessage.receiver_id === user.id && !fetchedMessage.read_at) {
+        const { error: updateError } = await supabase
+          .from('messages')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('id', id);
+        if (updateError) {
+          console.error('Supabase Error marking message as read:', updateError.message, updateError);
+        } else {
+          setMessage(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
+        }
+      }
+    } catch (error: any) {
+      console.error('Unexpected error fetching message and replies:', error.message, error);
+      toast.error('An unexpected error occurred while loading the message.');
+    } finally {
+      setLoadingMessage(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessageAndReplies();
+
+    // Realtime subscription for new replies to this message
+    const channel = supabase
+      .channel(`message_replies_${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `parent_message_id=eq.${id}`
+        },
+        async (payload) => {
+          console.log('Realtime: New reply received:', payload.new);
+          const newReply = payload.new as Message;
+          const senderProfile = await supabase.from('profiles').select('username, email').eq('id', newReply.sender_id).single().then(res => res.data);
+          const receiverProfile = await supabase.from('profiles').select('username, email').eq('id', newReply.receiver_id).single().then(res => res.data);
+
+          setMessage(prev => {
+            if (!prev) return null;
+            const updatedReplies = [...(prev.replies || []), { ...newReply, senderProfile, receiverProfile }];
+            return { ...prev, replies: updatedReplies };
+          });
+          toast.info(`New reply received from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, user, sessionLoading]); // Re-run effect if message ID, user, or session loading changes
 
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
@@ -134,7 +174,6 @@ const ViewMessage = () => {
       return;
     }
 
-    // Determine the recipient of the reply
     const replyReceiverId = message.sender_id === user.id ? message.receiver_id : message.sender_id;
 
     if (!replyReceiverId) {
@@ -146,11 +185,12 @@ const ViewMessage = () => {
       const { error } = await supabase.from('messages').insert({
         sender_id: user.id,
         receiver_id: replyReceiverId,
-        subject: `Re: ${message.subject}`, // Prefix subject with "Re:"
+        subject: `Re: ${message.subject}`,
         content: values.replyContent,
-        message_type: 'Reply', // New message type for replies
-        priority: 'Medium', // Default priority for replies
-        mood: 'Neutral', // Default mood for replies
+        message_type: 'Reply',
+        priority: 'Medium',
+        mood: 'Neutral',
+        parent_message_id: message.id, // Set the parent_message_id
       });
 
       if (error) {
@@ -158,8 +198,11 @@ const ViewMessage = () => {
         console.error('Supabase Error sending reply:', error.message, error);
       } else {
         toast.success('Reply sent successfully!');
-        replyForm.reset(); // Clear the reply form
-        navigate('/messages'); // Navigate back to messages list
+        replyForm.reset();
+        // Re-fetch messages to include the new reply, or rely on real-time
+        // For immediate feedback, we can rely on the real-time subscription
+        // which is already set up to add new replies to the state.
+        // No need to navigate away, stay on the same message view.
       }
     } catch (error: any) {
       console.error('Unexpected error sending reply:', error.message, error);
@@ -198,6 +241,30 @@ const ViewMessage = () => {
   const displaySender = isSentMessage ? 'You' : message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender';
   const displayReceiver = isSentMessage ? message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner' : 'You';
 
+  const renderMessageContent = (msg: Message, isReply = false) => {
+    const senderName = msg.sender_id === user.id ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
+    const receiverName = msg.receiver_id === user.id ? 'You' : msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner';
+    const sentTime = new Date(msg.created_at).toLocaleString();
+
+    return (
+      <div key={msg.id} className={`p-4 rounded-lg ${isReply ? 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 mt-4' : 'bg-white dark:bg-gray-800 shadow-lg'}`}>
+        <h3 className={`font-semibold text-lg ${isReply ? 'text-gray-800 dark:text-gray-100' : 'text-gray-900 dark:text-white'} flex items-center gap-2`}>
+          <MessageSquare className="w-5 h-5" /> {msg.subject}
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          From: {senderName} | To: {receiverName} | Sent: {sentTime}
+        </p>
+        {msg.read_at && msg.sender_id === user.id && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+            <CheckCheck className="w-3 h-3 text-blue-500" /> Read on: {new Date(msg.read_at).toLocaleString()}
+          </p>
+        )}
+        <Separator className="my-3" />
+        <p className="whitespace-pre-wrap text-base text-gray-700 dark:text-gray-200">{msg.content}</p>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
       <div className="w-full max-w-3xl mx-auto">
@@ -210,52 +277,22 @@ const ViewMessage = () => {
           </Link>
         </div>
 
-        <Card className="bg-white dark:bg-gray-800 shadow-lg mb-8">
-          <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
-              <MessageSquare className="w-6 h-6" /> {message.subject}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground text-base space-y-4">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <p><strong>From:</strong> {displaySender}</p>
+        {/* Main Message */}
+        {message && renderMessageContent(message)}
+
+        {/* Replies Section */}
+        {message && message.replies && message.replies.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Replies</h2>
+            <div className="space-y-4">
+              {message.replies.map(reply => renderMessageContent(reply, true))}
             </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              <p><strong>To:</strong> {displayReceiver}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              <p><strong>Type:</strong> {message.message_type}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4" />
-              <p><strong>Priority:</strong> {message.priority}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Smile className="w-4 h-4" />
-              <p><strong>Mood:</strong> {message.mood}</p>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Sent on: {new Date(message.created_at).toLocaleString()}
-            </p>
-            {message.read_at && isSentMessage && ( // Only show read_at if it's a sent message and has been read
-              <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                <CheckCheck className="w-4 h-4 text-blue-500" /> Read on: {new Date(message.read_at).toLocaleString()}
-              </p>
-            )}
-            <Separator className="my-4" />
-            <div>
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">Content:</h3>
-              <p className="whitespace-pre-wrap">{message.content}</p>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
 
         {/* Reply Section */}
-        {!isSentMessage && ( // Only show reply form if the message was received by the current user
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+        {message && ( // Always show reply form on a message view
+          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
                 <Reply className="w-6 h-6" /> Reply to {displaySender}
