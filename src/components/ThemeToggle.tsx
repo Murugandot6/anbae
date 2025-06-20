@@ -7,18 +7,19 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { setTheme, theme, mounted } = useTheme();
+  const { setTheme, theme } = useTheme();
+  const [isClientMounted, setIsClientMounted] = React.useState(false);
 
-  console.log('ThemeToggle mounted:', mounted); // Keep these logs for debugging
-  console.log('ThemeToggle theme:', theme);   // Keep these logs for debugging
+  React.useEffect(() => {
+    setIsClientMounted(true);
+  }, []);
 
-  if (!mounted) {
-    // Return a very obvious placeholder to ensure something is visible
-    return (
-      <div className="w-10 h-10 bg-red-500 flex items-center justify-center text-white text-xs rounded-full">
-        Loading
-      </div>
-    );
+  // console.log('ThemeToggle mounted (from next-themes):', mounted); // Keep these logs for debugging
+  // console.log('ThemeToggle theme:', theme);   // Keep these logs for debugging
+
+  if (!isClientMounted) {
+    // Render nothing or a minimal placeholder until client-side mounted
+    return null; 
   }
 
   const toggleTheme = () => {
