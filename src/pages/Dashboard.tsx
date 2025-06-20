@@ -134,12 +134,13 @@ const Dashboard = () => {
 
       setMessagesLoading(true); // Set loading to true at the start of fetch
       try {
-        // Fetch latest 3 sent messages
+        // Fetch latest 3 sent messages (only top-level messages)
         console.log('Dashboard: Fetching sent messages for user ID:', user.id);
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
           .select('*') // Select all columns from messages
           .eq('sender_id', user.id)
+          .is('parent_message_id', null) // Filter out replies
           .order('created_at', { ascending: false })
           .limit(3);
 
@@ -150,12 +151,13 @@ const Dashboard = () => {
           console.log('Dashboard: Sent messages data:', sentData);
         }
 
-        // Fetch latest 3 received messages
+        // Fetch latest 3 received messages (only top-level messages)
         console.log('Dashboard: Fetching received messages for user ID:', user.id);
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
           .select('*') // Select all columns from messages
           .eq('receiver_id', user.id)
+          .is('parent_message_id', null) // Filter out replies
           .order('created_at', { ascending: false })
           .limit(3);
 
