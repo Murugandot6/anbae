@@ -69,6 +69,7 @@ const Messages = () => {
   // Removed handleRefreshMessages as it's now handled by parent component
 
   useEffect(() => {
+    console.log('Messages component useEffect triggered. Fetching data...'); // Added for debugging
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
         setMessagesLoading(false); // Set loading to false if no user
