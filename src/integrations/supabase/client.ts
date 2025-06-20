@@ -1,19 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// These variables will be loaded from your .env file
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Debugging: Check if env vars are loading
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key (first 6 chars):', supabaseAnonKey?.slice(0, 6) + '...');
-
-
-// Ensure environment variables are loaded
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase environment variables are not set. Please check your .env file.');
-  // You might want to throw an error or handle this more gracefully in a production app
-}
+// Hardcoded Supabase URL and Anon Key
+const supabaseUrl = "https://eqjoilqkloizmvbwpoqq.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3aHBhYm50YmdhdnpieG15Z2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0Mjc1ODgsImV4cCI6MjA2NjAwMzU4OH0.r80qGpG_aKGeMI6HHXxOlwm2XfXKcG6jgXsGkqGsvfA";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
