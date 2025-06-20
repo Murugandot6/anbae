@@ -6,9 +6,29 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
-import { Message, Profile } from '@/types/supabase'; // Import shared types
-import { fetchProfile, fetchProfilesByIds } from '@/lib/supabaseHelpers'; // Import shared helper
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
+
+interface Profile {
+  id: string;
+  username: string | null;
+  email: string | null;
+}
+
+interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  subject: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  message_type: string;
+  priority: string;
+  mood: string;
+  read_at: string | null; // Added read_at
+  senderProfile?: Profile | null;
+  receiverProfile?: Profile | null;
+}
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -18,20 +38,45 @@ const Messages = () => {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
 
+  // Helper to fetch a single profile if not already in map
+  const fetchProfile = async (profileId: string) => {
+    if (profilesMap.has(profileId)) {
+      return profilesMap.get(profileId);
+    }
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, email') // Now selecting 'id' to match Profile interface
+        .eq('id', profileId)
+        .single();
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error('Supabase Error fetching sender profile:', error.message, error);
+        return null;
+      }
+      if (data) {
+        setProfilesMap(prev => new Map(prev).set(profileId, data));
+        return data;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Unexpected error fetching profile:', error.message, error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    console.log('Messages component useEffect triggered. Fetching data...');
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
-        setMessagesLoading(false);
+        setMessagesLoading(false); // Set loading to false if no user
         return;
       }
 
-      setMessagesLoading(true);
+      setMessagesLoading(true); // Set loading to true at the start of fetch
       try {
         // Fetch all sent messages
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages, no direct join here
           .eq('sender_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -43,7 +88,7 @@ const Messages = () => {
         // Fetch all received messages
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages, no direct join here
           .eq('receiver_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -57,23 +102,35 @@ const Messages = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id);
 
-        const fetchedProfilesMap = await fetchProfilesByIds(Array.from(allRelatedUserIds));
-        setProfilesMap(fetchedProfilesMap);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username, email')
+          .in('id', Array.from(allRelatedUserIds));
+
+        if (profilesError) {
+          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
+          toast.error('Failed to load associated profiles: ' + profilesError.message);
+          return;
+        }
+
+        const initialProfilesMap = new Map<string, Profile>();
+        profilesData?.forEach(profile => {
+          initialProfilesMap.set(profile.id, profile);
+        });
+        setProfilesMap(initialProfilesMap);
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
-          receiverProfile: fetchedProfilesMap.get(msg.receiver_id) || null,
+          receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
         })) || [];
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
-          senderProfile: fetchedProfilesMap.get(msg.sender_id) || null,
+          senderProfile: initialProfilesMap.get(msg.sender_id) || null,
         })) || [];
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
-        console.log('Fetched Sent Messages:', combinedSentMessages);
-        console.log('Fetched Received Messages:', combinedReceivedMessages);
 
       } catch (error: any) {
         console.error('Unexpected error fetching messages:', error.message, error);
@@ -89,7 +146,6 @@ const Messages = () => {
       navigate('/login');
     }
 
-    // Realtime subscription for new requests and updates
     const channel = supabase
       .channel('messages_channel')
       .on(
@@ -136,7 +192,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate]);
+  }, [user, sessionLoading, navigate, fetchProfile]);
 
   if (sessionLoading || messagesLoading) {
     return (

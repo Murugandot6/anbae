@@ -14,16 +14,12 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
-import React from "react"; // Import React for useState
 
 const queryClient = new QueryClient();
 
 const App = () => {
   // Log the base URL being used by Vite for debugging
   console.log("Vite BASE_URL:", import.meta.env.BASE_URL);
-
-  // Removed messagesRefreshKey state and handleMessagesRefresh function
-  // as real-time updates will handle message list freshness.
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -40,9 +36,7 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/send-message" element={<SendMessage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
-                {/* Removed key prop from Messages route */}
                 <Route path="/messages" element={<Messages />} />
-                {/* Removed onMessageRead prop from ViewMessage */}
                 <Route path="/messages/:id" element={<ViewMessage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
