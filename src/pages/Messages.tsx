@@ -136,6 +136,8 @@ const Messages = () => {
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
+        console.log('Fetched Sent Messages:', combinedSentMessages);
+        console.log('Fetched Received Messages:', combinedReceivedMessages);
 
       } catch (error: any) {
         console.error('Unexpected error fetching messages:', error.message, error);
@@ -151,6 +153,8 @@ const Messages = () => {
       navigate('/login');
     }
 
+    // Temporarily commenting out realtime subscription to diagnose glitch
+    /*
     const channel = supabase
       .channel('messages_channel')
       .on(
@@ -197,7 +201,8 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, fetchProfile]); // Removed messagesRefreshKey from dependencies
+    */
+  }, [user, sessionLoading, navigate, fetchProfile]);
 
   if (sessionLoading || messagesLoading) {
     return (
