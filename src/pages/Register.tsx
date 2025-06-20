@@ -58,15 +58,19 @@ const Register = () => {
       if (error) {
         toast.error(error.message);
         console.error('Registration error:', error.message);
-      } else if (data.user) {
-        // New user created and needs confirmation
-        toast.success('Registration successful! Please check your email to confirm your account.');
-        navigate('/login');
-      } else if (!data.user && !error) {
-        // This case typically means the email already exists or a confirmation email was sent to an existing user
-        // Supabase does this to prevent email enumeration.
-        toast.info('If an account with this email exists, a confirmation link has been sent to your email address.');
-        navigate('/login');
+      } else if (data.session) {
+        // This case means the user was immediately signed in (e.g., if email confirmation is off)
+        toast.success('Registration successful and logged in!');
+        navigate('/dashboard');
+      } else if (data.user && !data.session) {
+        // This case means a user was created/found, but needs email confirmation
+        // or it's an existing user for whom a confirmation email was re-sent.
+        toast.info('Registration successful! Please check your email to confirm your account. If an account with this email already exists, a confirmation link has been sent.');
+        navigate('/login'); // Redirect to login as they need to confirm email
+      } else {
+        // Fallback for any other unexpected scenario
+        toast.error('An unexpected issue occurred during registration. Please try again.');
+        console.error('Unexpected registration state:', { data, error });
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
