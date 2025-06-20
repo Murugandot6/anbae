@@ -1,13 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun } from "lucide-react"; // Changed from Lightbulb to Moon/Sun
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, mounted } = useTheme(); // Destructure mounted
+
+  // Only render the toggle once the component has mounted to prevent hydration errors
+  if (!mounted) {
+    return null; // Or a placeholder button if desired
+  }
 
   const toggleTheme = () => {
     if (theme === "dark") {
