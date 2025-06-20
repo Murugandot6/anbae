@@ -38,7 +38,7 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, email, partner_email, partner_nickname, created_at') // Explicitly select columns
-    .eq('email', email)
+    .ilike('email', email) // Changed from .eq to .ilike for case-insensitive comparison
     .single();
 
   if (error) {
