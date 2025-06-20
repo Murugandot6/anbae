@@ -6,29 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react'; // Added CheckCheck icon
-
-interface Profile {
-  id: string;
-  username: string | null;
-  email: string | null;
-}
-
-interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  subject: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-  message_type: string;
-  priority: string;
-  mood: string;
-  read_at: string | null; // Added read_at
-  senderProfile?: Profile | null;
-  receiverProfile?: Profile | null;
-}
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
+import { Message, Profile } from '@/types/supabase'; // Import shared types
+import { fetchProfile, fetchProfilesByIds } from '@/lib/supabaseHelpers'; // Import shared helper
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -37,32 +17,6 @@ const Messages = () => {
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
-
-  // Helper to fetch a single profile if not already in map
-  const fetchProfile = async (profileId: string) => {
-    if (profilesMap.has(profileId)) {
-      return profilesMap.get(profileId);
-    }
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, email')
-        .eq('id', profileId)
-        .single();
-      if (error && error.code !== 'PGRST116') {
-        console.error('Supabase Error fetching sender profile:', error.message, error);
-        return null;
-      }
-      if (data) {
-        setProfilesMap(prev => new Map(prev).set(profileId, data));
-        return data;
-      }
-      return null;
-    } catch (error: any) {
-      console.error('Unexpected error fetching profile:', error.message, error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     console.log('Messages component useEffect triggered. Fetching data...');
@@ -103,31 +57,17 @@ const Messages = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id);
 
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, username, email')
-          .in('id', Array.from(allRelatedUserIds));
-
-        if (profilesError) {
-          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
-          toast.error('Failed to load associated profiles: ' + profilesError.message);
-          return;
-        }
-
-        const initialProfilesMap = new Map<string, Profile>();
-        profilesData?.forEach(profile => {
-          initialProfilesMap.set(profile.id, profile);
-        });
-        setProfilesMap(initialProfilesMap);
+        const fetchedProfilesMap = await fetchProfilesByIds(Array.from(allRelatedUserIds));
+        setProfilesMap(fetchedProfilesMap);
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
-          receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
+          receiverProfile: fetchedProfilesMap.get(msg.receiver_id) || null,
         })) || [];
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
-          senderProfile: initialProfilesMap.get(msg.sender_id) || null,
+          senderProfile: fetchedProfilesMap.get(msg.sender_id) || null,
         })) || [];
 
         setSentMessages(combinedSentMessages);
@@ -149,7 +89,7 @@ const Messages = () => {
       navigate('/login');
     }
 
-    // Re-enabling realtime subscription
+    // Realtime subscription for new requests and updates
     const channel = supabase
       .channel('messages_channel')
       .on(
@@ -196,7 +136,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, fetchProfile]);
+  }, [user, sessionLoading, navigate]);
 
   if (sessionLoading || messagesLoading) {
     return (
