@@ -9,15 +9,15 @@ import { Button } from "@/components/ui/button";
 export function ThemeToggle() {
   const { setTheme, theme, mounted } = useTheme();
 
-  console.log('ThemeToggle mounted:', mounted); // Add this log
-  console.log('ThemeToggle theme:', theme);   // Add this log
+  console.log('ThemeToggle mounted:', mounted); // Keep these logs for debugging
+  console.log('ThemeToggle theme:', theme);   // Keep these logs for debugging
 
   if (!mounted) {
-    // Return a visible placeholder during hydration
+    // Return a very obvious placeholder to ensure something is visible
     return (
-      <Button variant="ghost" size="icon" disabled aria-label="Loading theme">
-        <Sun className="h-[1.2rem] w-[1.2rem] text-gray-400 animate-pulse" /> {/* Placeholder icon */}
-      </Button>
+      <div className="w-10 h-10 bg-red-500 flex items-center justify-center text-white text-xs rounded-full">
+        Loading
+      </div>
     );
   }
 
