@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
+import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -83,20 +84,13 @@ const ViewMessage = () => {
       });
 
       // Fetch profiles for all related users
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, email')
-        .in('id', Array.from(allRelatedUserIds));
-
-      if (profilesError) {
-        console.error('Supabase Error fetching profiles for message and replies:', profilesError.message, profilesError);
-        toast.error('Failed to load associated profiles: ' + profilesError.message);
-      }
-
       const profilesMap = new Map<string, Profile>();
-      profilesData?.forEach(profile => {
-        profilesMap.set(profile.id, profile);
-      });
+      for (const userId of Array.from(allRelatedUserIds)) {
+        const profile = await fetchProfileById(userId);
+        if (profile) {
+          profilesMap.set(userId, profile);
+        }
+      }
 
       // Map profiles to replies
       const processedReplies: Message[] = repliesData?.map(reply => ({
@@ -150,8 +144,9 @@ const ViewMessage = () => {
         async (payload) => {
           console.log('Realtime: New reply received:', payload.new);
           const newReply = payload.new as Message;
-          const senderProfile = await supabase.from('profiles').select('username, email').eq('id', newReply.sender_id).single().then(res => res.data);
-          const receiverProfile = await supabase.from('profiles').select('username, email').eq('id', newReply.receiver_id).single().then(res => res.data);
+          // Use fetchProfileById to ensure correct type for profiles
+          const senderProfile = await fetchProfileById(newReply.sender_id);
+          const receiverProfile = await fetchProfileById(newReply.receiver_id);
 
           setMessage(prev => {
             if (!prev) return null;
