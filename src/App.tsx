@@ -14,6 +14,7 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
+import ProtectedRoute from "./components/ProtectedRoute"; // Import the new ProtectedRoute
 
 const queryClient = new QueryClient();
 
@@ -33,11 +34,16 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/send-message" element={<SendMessage />} />
-                <Route path="/edit-profile" element={<EditProfile />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/messages/:id" element={<ViewMessage />} />
+
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/send-message" element={<SendMessage />} />
+                  <Route path="/edit-profile" element={<EditProfile />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/messages/:id" element={<ViewMessage />} />
+                </Route>
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
