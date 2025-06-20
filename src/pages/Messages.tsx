@@ -30,18 +30,15 @@ interface Message {
   receiverProfile?: Profile | null;
 }
 
-interface MessagesProps {
-  messagesRefreshKey: number; // New prop to trigger refresh
-}
-
-const Messages: React.FC<MessagesProps> = ({ messagesRefreshKey }) => {
+// Removed MessagesProps interface as messagesRefreshKey is no longer a prop
+const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
   const [sentMessages, setSentMessages] = useState<Message[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
-  // Removed local refreshTrigger as it's now passed via props
+  // Removed local refreshTrigger as it's now handled by parent component
 
   // Helper to fetch a single profile if not already in map
   const fetchProfile = async (profileId: string) => {
@@ -199,7 +196,7 @@ const Messages: React.FC<MessagesProps> = ({ messagesRefreshKey }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, fetchProfile, messagesRefreshKey]); // Add messagesRefreshKey to dependencies
+  }, [user, sessionLoading, navigate, fetchProfile]); // Removed messagesRefreshKey from dependencies
 
   if (sessionLoading || messagesLoading) {
     return (

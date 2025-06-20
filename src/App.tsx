@@ -45,8 +45,8 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/send-message" element={<SendMessage />} />
                 <Route path="/edit-profile" element={<EditProfile />} />
-                {/* Pass messagesRefreshKey to Messages and onMessageRead to ViewMessage */}
-                <Route path="/messages" element={<Messages messagesRefreshKey={messagesRefreshKey} />} />
+                {/* Pass messagesRefreshKey as a key prop to force re-mount and re-fetch */}
+                <Route path="/messages" element={<Messages key={messagesRefreshKey} />} />
                 <Route path="/messages/:id" element={<ViewMessage onMessageRead={handleMessagesRefresh} />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
