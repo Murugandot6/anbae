@@ -173,7 +173,7 @@ const Messages = () => {
       console.log('Messages: Unsubscribing from messages_channel.');
       supabase.removeChannel(channel);
     };
-  }, [user, sessionLoading, navigate, profilesMap]); // Added profilesMap to dependency array to ensure getOrFetchProfile works correctly
+  }, [user, sessionLoading, navigate]); // Removed profilesMap from dependencies
 
   if (sessionLoading || messagesLoading) {
     return (
