@@ -8,9 +8,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import SkyBackground from '@/components/SkyBackground';
-import { Profile, Message } from '@/types/supabase'; // Import shared types
-import { fetchProfilesByIds } from '@/lib/supabaseHelpers'; // Import shared helper
+import SkyBackground from '@/components/SkyBackground'; // New import
+
+interface Profile {
+  id: string;
+  username: string | null;
+  email: string | null;
+  partner_email?: string | null;
+  partner_nickname?: string | null;
+}
+
+interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  subject: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  senderProfile?: Profile | null;
+  receiverProfile?: Profile | null;
+}
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -27,23 +45,15 @@ const Dashboard = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        // Check if the error is specifically 'Auth session missing!'
-        if (error.message === 'Auth session missing!') {
-          toast.info('You were already logged out or your session expired.');
-          console.log('Logout attempt: Session already missing, navigating to login.');
-        } else {
-          toast.error('Failed to log out: ' + error.message);
-          console.error('Supabase Logout error:', error.message, error);
-        }
+        console.error('Supabase Logout error:', error.message, error);
+        toast.error('Failed to log out: ' + error.message);
       } else {
         toast.success('Logged out successfully!');
-        console.log('Logout successful.');
+        navigate('/login');
       }
-      navigate('/login'); // Always navigate to login after a logout attempt
     } catch (error: any) {
       console.error('Unexpected logout error:', error.message, error);
       toast.error('An unexpected error occurred during logout.');
-      navigate('/login'); // Ensure navigation even on unexpected errors
     }
   };
 
@@ -71,7 +81,7 @@ const Dashboard = () => {
           console.error('Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
-          setCurrentUserProfile(profileData as Profile); // Cast to Profile type
+          setCurrentUserProfile(profileData);
           // Now fetch partner's profile using partner_email from current user's profile
           if (profileData.partner_email) {
             const { data: partnerData, error: partnerError } = await supabase
@@ -84,7 +94,7 @@ const Dashboard = () => {
               console.error('Supabase Error fetching partner profile:', partnerError.message, partnerError);
               toast.error('Failed to load partner profile: ' + partnerError.message);
             } else if (partnerData) {
-              setPartnerProfile(partnerData as Profile); // Cast to Profile type
+              setPartnerProfile(partnerData);
             } else {
               console.log('Partner profile not found for email:', profileData.partner_email);
               setPartnerProfile(null); // Explicitly set to null if not found
@@ -119,7 +129,7 @@ const Dashboard = () => {
         // Fetch latest 3 sent messages
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages
           .eq('sender_id', user.id)
           .order('created_at', { ascending: false })
           .limit(3);
@@ -132,7 +142,7 @@ const Dashboard = () => {
         // Fetch latest 3 received messages
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns from messages
           .eq('receiver_id', user.id)
           .order('created_at', { ascending: false })
           .limit(3);
@@ -147,7 +157,21 @@ const Dashboard = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
 
-        const profilesMap = await fetchProfilesByIds(Array.from(allRelatedUserIds));
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username, email')
+          .in('id', Array.from(allRelatedUserIds));
+
+        if (profilesError) {
+          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
+          toast.error('Failed to load associated profiles: ' + profilesError.message);
+          return;
+        }
+
+        const profilesMap = new Map<string, Profile>();
+        profilesData?.forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
@@ -159,8 +183,8 @@ const Dashboard = () => {
           senderProfile: profilesMap.get(msg.sender_id) || null,
         })) || [];
 
-        setSentMessages(combinedSentMessages as Message[]); // Cast to Message[]
-        setReceivedMessages(combinedReceivedMessages as Message[]); // Cast to Message[]
+        setSentMessages(combinedSentMessages);
+        setReceivedMessages(combinedReceivedMessages);
 
       } catch (error: any) {
         console.error('Unexpected error fetching messages:', error.message, error);
@@ -295,7 +319,7 @@ const Dashboard = () => {
                     {receivedMessages.map((message, index) => (
                       <li
                         key={message.id}
-                        className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
+                        className={`border-b border-gray-20:0 dark:border-gray-700 pb-2 last:border-b-0 ${
                           index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
                         }`}
                       >
