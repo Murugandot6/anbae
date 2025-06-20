@@ -69,6 +69,7 @@ const Dashboard = () => {
         return;
       }
 
+      console.log('Dashboard: Fetching current user profile for user ID:', user.id);
       try {
         // Fetch current user's profile
         const { data: profileData, error: profileError } = await supabase
@@ -78,12 +79,14 @@ const Dashboard = () => {
           .single();
 
         if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found
-          console.error('Supabase Error fetching current user profile:', profileError.message, profileError);
+          console.error('Dashboard: Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
+          console.log('Dashboard: Current user profile fetched:', profileData);
           setCurrentUserProfile(profileData);
           // Now fetch partner's profile using partner_email from current user's profile
           if (profileData.partner_email) {
+            console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email);
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
               .select('id, username, email')
@@ -91,20 +94,25 @@ const Dashboard = () => {
               .single();
 
             if (partnerError && partnerError.code !== 'PGRST116') {
-              console.error('Supabase Error fetching partner profile:', partnerError.message, partnerError);
+              console.error('Dashboard: Supabase Error fetching partner profile:', partnerError.message, partnerError);
               toast.error('Failed to load partner profile: ' + partnerError.message);
             } else if (partnerData) {
+              console.log('Dashboard: Partner profile fetched:', partnerData);
               setPartnerProfile(partnerData);
             } else {
-              console.log('Partner profile not found for email:', profileData.partner_email);
+              console.log('Dashboard: Partner profile not found for email:', profileData.partner_email);
               setPartnerProfile(null); // Explicitly set to null if not found
             }
           } else {
+            console.log('Dashboard: Current user does not have a partner email set.');
             setPartnerProfile(null); // No partner email set
           }
+        } else {
+          console.log('Dashboard: Current user profile not found for ID:', user.id);
+          setCurrentUserProfile(null);
         }
       } catch (error: any) {
-        console.error('Unexpected error fetching user/partner profiles:', error.message, error);
+        console.error('Dashboard: Unexpected error fetching user/partner profiles:', error.message, error);
         toast.error('An unexpected error occurred while loading profiles.');
       } finally {
         setFetchingProfiles(false);
@@ -127,6 +135,7 @@ const Dashboard = () => {
       setMessagesLoading(true); // Set loading to true at the start of fetch
       try {
         // Fetch latest 3 sent messages
+        console.log('Dashboard: Fetching sent messages for user ID:', user.id);
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
           .select('*') // Select all columns from messages
@@ -135,11 +144,14 @@ const Dashboard = () => {
           .limit(3);
 
         if (sentError) {
-          console.error('Supabase Error fetching sent messages:', sentError.message, sentError);
+          console.error('Dashboard: Supabase Error fetching sent messages:', sentError.message, sentError);
           toast.error('Failed to load sent messages: ' + sentError.message);
+        } else {
+          console.log('Dashboard: Sent messages data:', sentData);
         }
 
         // Fetch latest 3 received messages
+        console.log('Dashboard: Fetching received messages for user ID:', user.id);
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
           .select('*') // Select all columns from messages
@@ -148,8 +160,10 @@ const Dashboard = () => {
           .limit(3);
 
         if (receivedError) {
-          console.error('Supabase Error fetching received messages:', receivedError.message, receivedError);
+          console.error('Dashboard: Supabase Error fetching received messages:', receivedError.message, receivedError);
           toast.error('Failed to load received messages: ' + receivedError.message);
+        } else {
+          console.log('Dashboard: Received messages data:', receivedData);
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -157,15 +171,18 @@ const Dashboard = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
 
+        console.log('Dashboard: Fetching profiles for related user IDs:', Array.from(allRelatedUserIds));
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, username, email')
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
-          console.error('Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
+          console.error('Dashboard: Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
           toast.error('Failed to load associated profiles: ' + profilesError.message);
           return;
+        } else {
+          console.log('Dashboard: Profiles data for messages:', profilesData);
         }
 
         const profilesMap = new Map<string, Profile>();
@@ -187,7 +204,7 @@ const Dashboard = () => {
         setReceivedMessages(combinedReceivedMessages);
 
       } catch (error: any) {
-        console.error('Unexpected error fetching messages:', error.message, error);
+        console.error('Dashboard: Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);
