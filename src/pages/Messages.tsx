@@ -46,11 +46,12 @@ const Messages = () => {
       setMessagesLoading(true); // Set loading to true at the start of fetch
       console.log('Messages: Fetching all messages for user ID:', user.id);
       try {
-        // Fetch all sent messages
+        // Fetch all sent messages that are NOT replies (parent_message_id is null)
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages
+          .select('*')
           .eq('sender_id', user.id)
+          .is('parent_message_id', null) // Only top-level messages
           .order('created_at', { ascending: false });
 
         if (sentError) {
@@ -60,11 +61,12 @@ const Messages = () => {
           console.log('Messages: Raw sent messages data from initial fetch:', sentData);
         }
 
-        // Fetch all received messages
+        // Fetch all received messages that are NOT replies (parent_message_id is null)
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages
+          .select('*')
           .eq('receiver_id', user.id)
+          .is('parent_message_id', null) // Only top-level messages
           .order('created_at', { ascending: false });
 
         if (receivedError) {
@@ -139,6 +141,12 @@ const Messages = () => {
         async (payload) => {
           console.log('Messages: Realtime message payload:', payload);
           const newMessage = payload.new as Message;
+
+          // Only process top-level messages for the main list
+          if (newMessage.parent_message_id !== null) {
+            console.log('Realtime: Skipping reply message for main list:', newMessage);
+            return; // Do not add replies to the main inbox/outbox lists
+          }
 
           if (payload.eventType === 'INSERT') {
             const senderProfile = await getOrFetchProfile(newMessage.sender_id);
