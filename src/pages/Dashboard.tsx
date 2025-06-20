@@ -43,6 +43,17 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
+      // First, check if a session actually exists
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+      if (!currentSession) {
+        // If no session, user is already logged out or session expired
+        toast.info('You are already logged out or your session has expired.');
+        navigate('/login');
+        return;
+      }
+
+      // If a session exists, proceed with signing out
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Supabase Logout error:', error.message, error);
