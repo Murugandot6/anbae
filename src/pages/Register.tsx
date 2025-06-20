@@ -51,6 +51,12 @@ const Register = () => {
         },
       });
 
+      // --- START DEBUG LOGS ---
+      console.log('Registration attempt result:');
+      console.log('Data:', data);
+      console.log('Error:', error);
+      // --- END DEBUG LOGS ---
+
       if (error) {
         toast.error(error.message);
         console.error('Registration error:', error.message);
