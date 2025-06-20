@@ -8,16 +8,22 @@ import { Profile } from '@/types/supabase';
  * @returns The profile data or null if not found/error.
  */
 export const fetchProfileById = async (profileId: string): Promise<Profile | null> => {
+  console.log(`SupabaseHelpers: Attempting to fetch profile by ID: ${profileId}`);
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, email')
     .eq('id', profileId)
     .single();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-    console.error('Supabase Error fetching profile by ID:', error.message, error);
+  if (error) {
+    if (error.code === 'PGRST116') { // PGRST116 means no rows found
+      console.warn(`SupabaseHelpers: Profile not found for ID: ${profileId}`);
+    } else {
+      console.error('SupabaseHelpers: Supabase Error fetching profile by ID:', error.message, error);
+    }
     return null;
   }
+  console.log(`SupabaseHelpers: Profile fetched by ID ${profileId}:`, data);
   return data || null;
 };
 
@@ -27,15 +33,21 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
  * @returns The profile data or null if not found/error.
  */
 export const fetchProfileByEmail = async (email: string): Promise<Profile | null> => {
+  console.log(`SupabaseHelpers: Attempting to fetch profile by email: ${email}`);
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, email')
     .eq('email', email)
     .single();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-    console.error('Supabase Error fetching profile by email:', error.message, error);
+  if (error) {
+    if (error.code === 'PGRST116') { // PGRST116 means no rows found
+      console.warn(`SupabaseHelpers: Profile not found for email: ${email}`);
+    } else {
+      console.error('SupabaseHelpers: Supabase Error fetching profile by email:', error.message, error);
+    }
     return null;
   }
+  console.log(`SupabaseHelpers: Profile fetched by email ${email}:`, data);
   return data || null;
 };
