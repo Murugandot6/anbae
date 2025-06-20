@@ -51,17 +51,21 @@ const Register = () => {
         },
       });
 
-      // --- START DEBUG LOGS ---
       console.log('Registration attempt result:');
       console.log('Data:', data);
       console.log('Error:', error);
-      // --- END DEBUG LOGS ---
 
       if (error) {
         toast.error(error.message);
         console.error('Registration error:', error.message);
       } else if (data.user) {
+        // New user created and needs confirmation
         toast.success('Registration successful! Please check your email to confirm your account.');
+        navigate('/login');
+      } else if (!data.user && !error) {
+        // This case typically means the email already exists or a confirmation email was sent to an existing user
+        // Supabase does this to prevent email enumeration.
+        toast.info('If an account with this email exists, a confirmation link has been sent to your email address.');
         navigate('/login');
       }
     } catch (error) {
