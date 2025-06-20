@@ -43,28 +43,25 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // First, check if a session actually exists
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-      if (!currentSession) {
-        // If no session, user is already logged out or session expired
-        toast.info('You are already logged out or your session has expired.');
-        navigate('/login');
-        return;
-      }
-
-      // If a session exists, proceed with signing out
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Supabase Logout error:', error.message, error);
-        toast.error('Failed to log out: ' + error.message);
+        // Check if the error is specifically 'Auth session missing!'
+        if (error.message === 'Auth session missing!') {
+          toast.info('You were already logged out or your session expired.');
+          console.log('Logout attempt: Session already missing, navigating to login.');
+        } else {
+          toast.error('Failed to log out: ' + error.message);
+          console.error('Supabase Logout error:', error.message, error);
+        }
       } else {
         toast.success('Logged out successfully!');
-        navigate('/login');
+        console.log('Logout successful.');
       }
+      navigate('/login'); // Always navigate to login after a logout attempt
     } catch (error: any) {
       console.error('Unexpected logout error:', error.message, error);
       toast.error('An unexpected error occurred during logout.');
+      navigate('/login'); // Ensure navigation even on unexpected errors
     }
   };
 
