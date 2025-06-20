@@ -39,11 +39,8 @@ const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
 });
 
-interface ViewMessageProps {
-  onMessageRead?: () => void; // New prop for callback
-}
-
-const ViewMessage: React.FC<ViewMessageProps> = ({ onMessageRead }) => {
+// Removed onMessageRead prop
+const ViewMessage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: sessionLoading } = useSession();
@@ -115,7 +112,7 @@ const ViewMessage: React.FC<ViewMessageProps> = ({ onMessageRead }) => {
             } else {
               // Update local state to reflect the change immediately
               setMessage(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
-              onMessageRead?.(); // Call the callback to notify parent
+              // Removed onMessageRead?.();
             }
           }
         } else {
@@ -131,7 +128,7 @@ const ViewMessage: React.FC<ViewMessageProps> = ({ onMessageRead }) => {
     };
 
     fetchMessage();
-  }, [id, user, sessionLoading, onMessageRead]); // Add onMessageRead to dependencies
+  }, [id, user, sessionLoading]); // Removed onMessageRead from dependencies
 
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
