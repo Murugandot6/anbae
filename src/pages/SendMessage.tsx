@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Heart, Send, MessageSquare, Users, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
+import { Profile } from '@/types/supabase'; // Import shared Profile type
+import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import shared helper
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -56,18 +58,8 @@ const SendMessage = () => {
 
       if (currentUsersPartnerEmail) {
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id, username, email')
-            .eq('email', currentUsersPartnerEmail);
-
-          if (error) {
-            console.error('Supabase Error fetching partner profile:', error.message, error);
-            toast.error('An error occurred while fetching partner profile: ' + error.message);
-            setPartnerId(null);
-            setPartnerNickname(null);
-          } else if (data && data.length > 0) {
-            const partnerData = data[0];
+          const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail); // Use the helper
+          if (partnerData) {
             console.log('Partner profile found:', partnerData);
             setPartnerId(partnerData.id);
             setPartnerNickname(partnerData.username);
