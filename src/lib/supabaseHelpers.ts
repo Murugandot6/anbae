@@ -11,7 +11,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
   console.log(`SupabaseHelpers: Attempting to fetch profile by ID: ${profileId}`);
   const { data, error } = await supabase
     .from('profiles')
-    .select('*') // Changed to select all columns
+    .select('id, username, email, partner_email, partner_nickname, created_at') // Explicitly select columns
     .eq('id', profileId)
     .single();
 
@@ -20,6 +20,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
       console.warn(`SupabaseHelpers: Profile not found for ID: ${profileId}`);
     } else {
       console.error('SupabaseHelpers: Supabase Error fetching profile by ID:', error.message, error);
+      console.error('SupabaseHelpers: Full error object:', error); // Log full error object
     }
     return null;
   }
@@ -36,7 +37,7 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
   console.log(`SupabaseHelpers: Attempting to fetch profile by email: ${email}`);
   const { data, error } = await supabase
     .from('profiles')
-    .select('*') // Changed to select all columns
+    .select('id, username, email, partner_email, partner_nickname, created_at') // Explicitly select columns
     .eq('email', email)
     .single();
 
@@ -45,6 +46,7 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
       console.warn(`SupabaseHelpers: Profile not found for email: ${email}`);
     } else {
       console.error('SupabaseHelpers: Supabase Error fetching profile by email:', error.message, error);
+      console.error('SupabaseHelpers: Full error object:', error); // Log full error object
     }
     return null;
   }

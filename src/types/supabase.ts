@@ -2,10 +2,11 @@
 
 export interface Profile {
   id: string;
-  username: string | null;
+  username: string | null; // Explicitly defined
   email: string | null;
   partner_email?: string | null;
   partner_nickname?: string | null;
+  created_at?: string; // Added created_at as it's in the table
 }
 
 export interface Message {
