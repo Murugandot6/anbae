@@ -264,18 +264,14 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
-                    <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-                    <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
-                    <p><strong>Email:</strong> {user.email}</p>
-                  </div>
-                </div>
-                {/* Removed Link to /edit-profile */}
+              <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
+                <Avatar className="w-24 h-24 border-2 border-blue-500 dark:border-purple-400">
+                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                  {user.user_metadata.nickname || user.email}
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -284,22 +280,20 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex items-center justify-between gap-4">
+              <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
                 {partnerProfile ? (
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-16 h-16 border-2 border-pink-500 dark:border-indigo-400">
+                  <>
+                    <Avatar className="w-24 h-24 border-2 border-pink-500 dark:border-indigo-400">
                       <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
                       <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p><strong>Partner Nickname:</strong> {partnerProfile.username || 'Not set'}</p>
-                      <p><strong>Partner Email:</strong> {partnerProfile.email || 'Not set'}</p>
-                    </div>
-                  </div>
+                    <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                      {partnerProfile.username || partnerProfile.email}
+                    </p>
+                  </>
                 ) : (
                   <p>No partner profile linked or found.</p>
                 )}
-                {/* Removed Link to /edit-profile */}
               </CardContent>
             </Card>
           </div>
