@@ -10,6 +10,7 @@ import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
 import BackgroundImageWrapper from '@/components/BackgroundImageWrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { formatMessageDate } from '@/lib/utils'; // Import the new utility function
 
 interface Profile {
   id: string;
@@ -314,16 +315,23 @@ const Dashboard = () => {
                           index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
                         }`}
                       >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
-                            <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
-                            </p>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
+                              <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                                {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {message.message_type}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                            {formatMessageDate(message.created_at)}
                           </div>
                         </Link>
                       </li>
@@ -348,16 +356,23 @@ const Dashboard = () => {
                           index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
                         }`}
                       >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
-                            <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
-                            </p>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
+                              <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                                {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {message.message_type}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                            {formatMessageDate(message.created_at)}
                           </div>
                         </Link>
                       </li>
