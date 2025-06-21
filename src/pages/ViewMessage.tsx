@@ -17,7 +17,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper';
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Added this import
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Badge } from '@/components/ui/badge';
 
