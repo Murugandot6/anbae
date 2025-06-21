@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import the new wrapper
 
 interface Profile {
   id: string;
@@ -226,7 +227,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground relative">
+    <BackgroundImageWrapper className="pt-20"> {/* Wrap content with the new component, keep pt-20 for spacing */}
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
@@ -331,7 +332,7 @@ const Dashboard = () => {
                     {receivedMessages.map((message, index) => (
                       <li
                         key={message.id}
-                        className={`border-b border-gray-20:0 dark:border-gray-700 pb-2 last:border-b-0 ${
+                        className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
                           index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
                         }`}
                       >
@@ -351,7 +352,7 @@ const Dashboard = () => {
             </Card>
           </div>
         </div>
-    </div>
+    </BackgroundImageWrapper>
   );
 };
 
