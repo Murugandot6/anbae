@@ -27,23 +27,7 @@ const replyFormSchema = z.object({
 // Moved renderMessageContent outside the component
 const renderMessageContent = (msg: Message, currentUser: Session['user'] | null, isReply = false) => {
   const isSentByCurrentUser = msg.sender_id === currentUser?.id;
-  const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
-  const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
   const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
-
-  // Debugging logs
-  console.log(`Debugging Message Render: Message ID: ${msg.id}`);
-  console.log(`  msg.sender_id: ${msg.sender_id}`);
-  console.log(`  currentUser?.id: ${currentUser?.id}`);
-  console.log(`  Comparison (msg.sender_id === currentUser?.id): ${isSentByCurrentUser}`);
-  console.log(`  Avatar URL: ${isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url}`);
-  console.log(`  Avatar Fallback: ${isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase()}`);
-  console.log(`  Message Content: "${msg.content.substring(0, 50)}..."`); // Truncate long content
-
-
-  // Determine which avatar to show
-  const avatarUrl = isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url;
-  const avatarFallbackText = isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase();
 
   return (
     <div
@@ -53,10 +37,7 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
         isSentByCurrentUser ? "justify-end flex-row-reverse" : "justify-start flex-row" // Reverse order for sent messages
       )}
     >
-      <Avatar className="w-10 h-10 flex-shrink-0">
-        <AvatarImage src={avatarUrl || ''} alt={`${senderName}'s Avatar`} />
-        <AvatarFallback>{avatarFallbackText}</AvatarFallback>
-      </Avatar>
+      {/* Avatars removed as per request */}
       <div
         className={cn(
           "max-w-[70%] p-4 rounded-xl shadow-md",
@@ -66,16 +47,16 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
           isReply ? "mt-2" : "" // Add margin top for replies
         )}
       >
-        <p className={cn("text-sm mt-1 text-left", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
-          From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
-        </p>
-        {msg.read_at && isSentByCurrentUser && (
-          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300 text-left">
-            <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
-          </p>
-        )}
-        <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
+        {/* "From: X | To: Y | Sent: Z" line removed as per request */}
         <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100")}>{msg.content}</p>
+        <div className={cn("text-xs mt-2", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200 text-right" : "text-gray-600 dark:text-gray-300 text-left")}>
+          {formattedDateTime}
+          {msg.read_at && isSentByCurrentUser && (
+            <span className="ml-2 flex items-center justify-end gap-1">
+              <CheckCheck className="w-3 h-3" /> Read
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
