@@ -11,6 +11,7 @@ import { Profile, Message } from '@/types/supabase'; // Import shared types
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { formatMessageDate } from '@/lib/utils'; // Import formatMessageDate
+import { Badge } from '@/components/ui/badge'; // Import Badge component
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -51,7 +52,7 @@ const Messages = () => {
         // Fetch all sent messages that are NOT replies (parent_message_id is null)
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns, including 'status'
           .eq('sender_id', user.id)
           .is('parent_message_id', null) // Only top-level messages
           .order('created_at', { ascending: false });
@@ -66,7 +67,7 @@ const Messages = () => {
         // Fetch all received messages that are NOT replies (parent_message_id is null)
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*')
+          .select('*') // Select all columns, including 'status'
           .eq('receiver_id', user.id)
           .is('parent_message_id', null) // Only top-level messages
           .order('created_at', { ascending: false });
@@ -251,6 +252,9 @@ const Messages = () => {
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                                 {message.is_read ? null : <span className="text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
+                                {message.status === 'closed' && (
+                                  <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
+                                )}
                                 {formatMessageDate(message.created_at)}
                               </span>
                             </p>
@@ -297,6 +301,9 @@ const Messages = () => {
                                   <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
                                     <CheckCheck className="w-4 h-4" /> Read
                                   </span>
+                                )}
+                                {message.status === 'closed' && (
+                                  <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
                                 )}
                                 {formatMessageDate(message.created_at)}
                               </span>
