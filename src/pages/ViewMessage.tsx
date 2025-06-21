@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import *s z from 'zod';
+import * as z from 'zod';
 import { toast } from 'sonner';
 import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -411,7 +411,7 @@ const ViewMessage = () => {
                     />
                     {canCloseMessage && (
                       <Button
-                        type="button" // Changed to type="button" to prevent form submission
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0 w-8 h-8 text-red-500 dark:text-red-400"
@@ -430,7 +430,6 @@ const ViewMessage = () => {
             </CardContent>
           </Card>
         )}
-        {/* Removed the fixed bottom close button */}
       </div>
     </AppBackground>
   );
