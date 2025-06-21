@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import VideoBackground from '@/components/VideoBackground'; // Changed import from SkyBackground to VideoBackground
+// Removed: import VideoBackground from '@/components/VideoBackground';
 
 interface Profile {
   id: string;
@@ -232,11 +232,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden"> {/* Main container for background and content */}
-      <VideoBackground /> {/* The animated background */}
-
-      <div className="relative z-10 min-h-screen flex flex-col items-center p-4 pt-20 bg-white/80 dark:bg-gray-800/80 text-foreground"> {/* Content wrapper */}
-        <div className="absolute top-4 right-4 z-10">
+    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground"> {/* Reverted background */}
+      <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
         <div className="w-full max-w-4xl mx-auto">
