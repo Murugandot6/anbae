@@ -237,18 +237,16 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   return (
     <div className="clear-messages-dialog-container">
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
-        <AlertDialogTrigger asChild>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="destructive" size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 inline-flex items-center justify-center rounded-full">
-                <HeartCrack className="w-5 h-5" /> {/* Only the icon */}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Clear All Messages
-            </TooltipContent>
-          </Tooltip>
-        </AlertDialogTrigger>
+        <Tooltip>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 inline-flex items-center justify-center rounded-full">
+              <HeartCrack className="w-5 h-5" /> {/* Only the icon */}
+            </Button>
+          </AlertDialogTrigger>
+          <TooltipContent>
+            Clear All Messages
+          </TooltipContent>
+        </Tooltip>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
