@@ -12,6 +12,7 @@ import AppBackground from '@/components/AppBackground';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase'; // Import Profile and Message from types
+import CircularProgressAvatar from '@/components/CircularProgressAvatar'; // Import the new component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -198,9 +199,7 @@ const Dashboard = () => {
     return null;
   }
 
-  const partnerBorderColorClass = partnerProfile?.lifetime_score === 100
-    ? 'border-green-500 dark:border-green-400'
-    : 'border-red-500 dark:border-red-400';
+  // Removed partnerBorderColorClass as it's now handled by CircularProgressAvatar
 
   return (
     <AppBackground className="pt-20">
@@ -268,10 +267,13 @@ const Dashboard = () => {
               <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
                 {partnerProfile ? (
                   <>
-                    <Avatar className={`w-24 h-24 border-2 ${partnerBorderColorClass}`}>
-                      <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
-                      <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <CircularProgressAvatar
+                      score={partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 100}
+                      avatarUrl={partnerProfile.avatar_url}
+                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                      altText="Partner Avatar"
+                      className="mb-2"
+                    />
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
                     </p>
