@@ -54,17 +54,16 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
           isReply ? "mt-2" : "" // Add margin top for replies
         )}
       >
-        {/* Removed conditional text alignment from here. It will now default to text-left. */}
-        <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
+        <p className={cn("text-sm mt-1 text-left", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
           From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
         </p>
         {msg.read_at && isSentByCurrentUser && (
-          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300"> {/* Removed justify-end here */}
+          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300 text-left">
             <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
           </p>
         )}
         <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
-        <p className="whitespace-pre-wrap text-base">{msg.content}</p> {/* This will now default to left-aligned */}
+        <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100")}>{msg.content}</p>
       </div>
     </div>
   );
