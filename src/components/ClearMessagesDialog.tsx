@@ -16,8 +16,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
+import { Trash2, CheckCircle, XCircle, Info } from 'lucide-react'; // Changed HeartCrack to Trash2
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ClearRequest {
   id: string;
@@ -241,7 +241,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="destructive" size="icon" className="w-full sm:min-w-max flex-shrink-0 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 inline-flex items-center">
-                <HeartCrack className="w-5 h-5" />
+                <Trash2 className="w-5 h-5" /> {/* Changed HeartCrack to Trash2 */}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
