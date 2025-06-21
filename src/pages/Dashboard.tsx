@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Pencil } from 'lucide-react'; // Import Pencil icon
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -264,15 +264,22 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex items-center gap-4">
-                <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
-                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
-                  <p><strong>Email:</strong> {user.email}</p>
+              <CardContent className="text-muted-foreground text-base flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+                    <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                    <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
+                    <p><strong>Email:</strong> {user.email}</p>
+                  </div>
                 </div>
+                <Link to="/edit-profile">
+                  <Button variant="ghost" size="icon" className="text-gray-500 hover:text-blue-600 dark:hover:text-purple-400">
+                    <Pencil className="w-5 h-5" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -281,9 +288,9 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex items-center gap-4">
+              <CardContent className="text-muted-foreground text-base flex items-center justify-between gap-4">
                 {partnerProfile ? (
-                  <>
+                  <div className="flex items-center gap-4">
                     <Avatar className="w-16 h-16 border-2 border-pink-500 dark:border-indigo-400">
                       <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
                       <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
@@ -292,10 +299,15 @@ const Dashboard = () => {
                       <p><strong>Partner Nickname:</strong> {partnerProfile.username || 'Not set'}</p>
                       <p><strong>Partner Email:</strong> {partnerProfile.email || 'Not set'}</p>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <p>No partner profile linked or found.</p>
                 )}
+                <Link to="/edit-profile">
+                  <Button variant="ghost" size="icon" className="text-gray-500 hover:text-blue-600 dark:hover:text-purple-400">
+                    <Pencil className="w-5 h-5" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
