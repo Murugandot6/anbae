@@ -74,7 +74,7 @@ const Register = () => {
         </div>
         <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30"> {/* Semi-transparent content card with glassmorphism */}
           <div className="text-center mb-6">
-            <Heart className="w-12 h-12 text-blue-500 dark:text-indigo-400 mx-auto mb-4" />
+            <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
             <p className="text-muted-foreground">Create your personalized space.</p>
           </div>
@@ -132,13 +132,13 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
+              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
                 <Heart className="w-4 h-4 mr-2" /> Create Account
               </Button>
             </form>
           </Form>
           <div className="mt-6 text-center">
-            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-700 dark:text-indigo-400 dark:hover:text-indigo-500 transition-colors">
+            <Link to="/login" className="text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors">
               Already have an account? Login here
             </Link>
           </div>

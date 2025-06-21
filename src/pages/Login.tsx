@@ -60,7 +60,7 @@ const Login = () => {
         </div>
         <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30"> {/* Semi-transparent content card with glassmorphism */}
           <div className="text-center mb-6">
-            <Heart className="w-12 h-12 text-blue-500 dark:text-indigo-400 mx-auto mb-4" />
+            <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back!</h2>
             <p className="text-muted-foreground">Sign in to continue your journey.</p>
           </div>
@@ -92,7 +92,7 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
+              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
                 Sign In
               </Button>
             </form>
@@ -101,13 +101,13 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setIsForgotPasswordOpen(true)}
-              className="text-sm text-blue-600 hover:text-blue-700 dark:text-indigo-400 dark:hover:text-indigo-500 transition-colors"
+              className="text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors"
             >
               Forgot password?
             </button>
           </div>
           <div className="mt-6 text-center">
-            <Link to="/register" className="text-sm text-blue-600 hover:text-blue-700 dark:text-indigo-400 dark:hover:text-indigo-500 transition-colors">
+            <Link to="/register" className="text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors">
               Don't have an account? Register here
             </Link>
           </div>
