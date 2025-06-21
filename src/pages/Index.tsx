@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Mic, Image } from "lucide-react";
-import { ThemeToggle } => "@/components/ThemeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const typingPhrases = [
