@@ -62,7 +62,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onO
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <Lock className="w-6 h-6 text-blue-500" /> Forgot Your Password?
+            <Lock className="w-6 h-6 text-blue-500 dark:text-indigo-400" /> Forgot Your Password?
           </AlertDialogTitle>
           <AlertDialogDescription>
             Enter your email address below and we'll send you a link to reset your password.
@@ -85,7 +85,7 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onO
             />
             <AlertDialogFooter className="!flex-row !justify-end gap-2">
               <AlertDialogCancel onClick={() => onOpenChange(false)}>Cancel</AlertDialogCancel>
-              <Button type="submit">Send Reset Link</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">Send Reset Link</Button>
             </AlertDialogFooter>
           </form>
         </Form>
