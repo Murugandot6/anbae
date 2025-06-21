@@ -226,7 +226,7 @@ const EditProfile = () => {
               <div className="flex items-center gap-4 mb-4">
                 {selectedAvatar && (
                   <div className="text-center">
-                    <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400 mx-auto">
+                    <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400 mx-auto rounded-full"> {/* Added rounded-full here */}
                       <AvatarImage src={selectedAvatar} alt="Your Avatar" />
                       <AvatarFallback>AV</AvatarFallback>
                     </Avatar>
