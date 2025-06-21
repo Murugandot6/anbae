@@ -7,7 +7,6 @@ export interface Profile {
   partner_email?: string | null;
   partner_nickname?: string | null;
   created_at?: string; // Added created_at as it's in the table
-  avatar_url?: string | null; // New: Avatar URL for the profile
 }
 
 export interface Message {
