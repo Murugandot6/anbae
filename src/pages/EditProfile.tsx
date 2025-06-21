@@ -71,7 +71,7 @@ const EditProfile = () => {
           avatar_url: currentAvatar,
         });
 
-        // Fetch partner profile
+        // Fetch partner profile (still needed for partner_nickname field validation/display)
         const currentUsersPartnerEmail = user.user_metadata.partner_email;
         if (currentUsersPartnerEmail) {
           try {
@@ -222,7 +222,7 @@ const EditProfile = () => {
             />
             {/* Avatar Selection Field */}
             <FormItem>
-              <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Select Avatar</FormLabel>
+              <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Select Your Avatar</FormLabel>
               <div className="flex items-center gap-4 mb-4">
                 {selectedAvatar && (
                   <div className="text-center">
@@ -230,16 +230,7 @@ const EditProfile = () => {
                       <AvatarImage src={selectedAvatar} alt="Your Avatar" />
                       <AvatarFallback>AV</AvatarFallback>
                     </Avatar>
-                    <p className="text-sm text-muted-foreground mt-1">Your Avatar</p>
-                  </div>
-                )}
-                {partnerProfile && (
-                  <div className="text-center">
-                    <Avatar className="w-20 h-20 border-2 border-pink-500 dark:border-indigo-400 mx-auto">
-                      <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
-                      <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <p className="text-sm text-muted-foreground mt-1">Partner's Avatar</p>
+                    <p className="text-sm text-muted-foreground mt-1">Your Current Avatar</p>
                   </div>
                 )}
               </div>
