@@ -17,6 +17,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfile
 import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and the new utility function
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { Session } from '@supabase/supabase-js'; // Import Session type for user object
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import BackgroundImageWrapper
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -31,10 +32,12 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
 
   // Debugging logs
   console.log(`Debugging Message Render: Message ID: ${msg.id}`);
-  console.log(`  Sender ID: ${msg.sender_id}`);
-  console.log(`  Current User ID: ${currentUser?.id}`);
-  console.log(`  Is Sent By Current User: ${isSentByCurrentUser}`);
-  console.log(`  Message Content: "${msg.content}"`);
+  console.log(`  msg.sender_id: ${msg.sender_id}`);
+  console.log(`  currentUser?.id: ${currentUser?.id}`);
+  console.log(`  Comparison (msg.sender_id === currentUser?.id): ${isSentByCurrentUser}`);
+  console.log(`  Avatar URL: ${isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url}`);
+  console.log(`  Avatar Fallback: ${isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase()}`);
+  console.log(`  Message Content: "${msg.content.substring(0, 50)}..."`); // Truncate long content
 
 
   // Determine which avatar to show
@@ -322,7 +325,7 @@ const ViewMessage = () => {
   const conversationPartnerName = conversationPartnerProfile?.username || conversationPartnerProfile?.email || 'Your Partner';
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
+    <BackgroundImageWrapper className="pt-20"> {/* Use BackgroundImageWrapper here */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]"> {/* Adjusted height to account for pt-20 (80px) */}
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
@@ -404,7 +407,7 @@ const ViewMessage = () => {
           </Card>
         )}
       </div>
-    </div>
+    </BackgroundImageWrapper>
   );
 };
 
