@@ -226,45 +226,44 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground relative"> {/* Added relative positioning */}
+    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground relative">
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
 
-        {/* New container for vertical action icons */}
-        <div className="absolute top-20 left-4 flex flex-col space-y-4 z-20">
-          <Link to="/send-message">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-              <MessageSquare className="w-5 h-5" />
-            </Button>
-          </Link>
-          <Link to="/messages">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-              <Inbox className="w-5 h-5" />
-            </Button>
-          </Link>
-          <Link to="/edit-profile">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-              <Settings className="w-5 h-5" />
-            </Button>
-          </Link>
-          <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
-            <LogOut className="w-5 h-5" />
-          </Button>
-          {user && (
-            <ClearMessagesDialog
-              partnerId={partnerProfile?.id || null}
-              partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-              currentUserId={user.id}
-              onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-            />
-          )}
-        </div>
-
         <div className="w-full max-w-4xl mx-auto">
+          {/* Horizontal container for action icons */}
+          <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
+            <Link to="/send-message">
+              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <MessageSquare className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/messages">
+              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Inbox className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/edit-profile">
+              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
+              <LogOut className="w-5 h-5" />
+            </Button>
+            {user && (
+              <ClearMessagesDialog
+                partnerId={partnerProfile?.id || null}
+                partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                currentUserId={user.id}
+                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+              />
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
-            {/* The old button group div was removed from here */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
