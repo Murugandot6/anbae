@@ -5,7 +5,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } => '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -327,7 +327,7 @@ const ViewMessage = () => {
               <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
               <AvatarFallback>{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div>
+            <div className="text-right"> {/* Added text-right here */}
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
                 {conversationPartnerName}
               </h1>
