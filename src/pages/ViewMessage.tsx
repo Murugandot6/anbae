@@ -272,9 +272,7 @@ const ViewMessage = () => {
             isReply ? "mt-2" : "" // Add margin top for replies
           )}
         >
-          <h3 className="font-semibold text-lg flex items-center gap-2">
-            {msg.subject} {/* Removed 'Subject:' prefix */}
-          </h3>
+          {/* Removed h3 for subject/message_type from here */}
           <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
             From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
           </p>
@@ -290,11 +288,17 @@ const ViewMessage = () => {
     );
   };
 
+  const conversationPartnerName = message.sender_id === user.id
+    ? message.receiverProfile?.username || message.receiverProfile?.email || 'Your Partner'
+    : message.senderProfile?.username || message.senderProfile?.email || 'Your Partner';
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
       <div className="w-full max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Message Details</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            Conversation with {conversationPartnerName} about {message.message_type}
+          </h1>
           <Link to="/messages">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
@@ -320,7 +324,7 @@ const ViewMessage = () => {
           <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8 w-full">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
-                <Reply className="w-6 h-6" /> Reply to {message.sender_id === user.id ? message.receiverProfile?.username || message.receiverProfile?.email || 'Your Partner' : message.senderProfile?.username || message.senderProfile?.email || 'Your Partner'}
+                <Reply className="w-6 h-6" /> Reply to {conversationPartnerName}
               </CardTitle>
             </CardHeader>
             <CardContent>
