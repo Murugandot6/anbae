@@ -264,15 +264,27 @@ const ViewMessage = () => {
         setMessage(prev => {
           if (!prev) return null;
 
+          const isCurrentUserSenderOfReply = data.sender_id === user.id; // Use data.sender_id for the new reply
+          
           const newReply: Message = {
             ...data,
-            senderProfile: prev.receiverProfile,
-            receiverProfile: prev.senderProfile,
+            senderProfile: isCurrentUserSenderOfReply
+              ? {
+                  id: user.id,
+                  username: user.user_metadata.nickname ?? null, // Fix: Use nullish coalescing
+                  email: user.email ?? null, // Fix: Use nullish coalescing
+                  avatar_url: user.user_metadata.avatar_url ?? null, // Fix: Use nullish coalescing
+                }
+              : prev.senderProfile, // If not current user, it's the original sender
+            receiverProfile: isCurrentUserSenderOfReply
+              ? prev.receiverProfile // If current user is sender, receiver is original receiver
+              : {
+                  id: user.id,
+                  username: user.user_metadata.nickname ?? null, // Fix: Use nullish coalescing
+                  email: user.email ?? null, // Fix: Use nullish coalescing
+                  avatar_url: user.user_metadata.avatar_url ?? null, // Fix: Use nullish coalescing
+                },
           };
-
-          const isCurrentUserSenderOfReply = newReply.sender_id === user.id;
-          newReply.senderProfile = isCurrentUserSenderOfReply ? { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url } : message.senderProfile;
-          newReply.receiverProfile = isCurrentUserSenderOfReply ? message.senderProfile : { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url };
 
           const updatedReplies = [...(prev.replies || []), newReply];
           return { ...prev, replies: updatedReplies };
