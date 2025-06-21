@@ -27,7 +27,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ selectedAvatar, onSelec
           onClick={() => onSelect(path)}
         >
           <Avatar className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20">
-            <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} />
+            <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
             <AvatarFallback className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
               AV
             </AvatarFallback>
