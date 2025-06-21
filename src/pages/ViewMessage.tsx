@@ -256,14 +256,22 @@ const ViewMessage = () => {
     const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
     const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
 
+    // Determine which avatar to show
+    const avatarUrl = isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url;
+    const avatarFallbackText = isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase();
+
     return (
       <div
         key={msg.id}
         className={cn(
-          "flex w-full",
-          isSentByCurrentUser ? "justify-end" : "justify-start"
+          "flex w-full items-end gap-2", // Align items to the bottom for consistent avatar alignment
+          isSentByCurrentUser ? "justify-end flex-row-reverse" : "justify-start flex-row" // Reverse order for sent messages
         )}
       >
+        <Avatar className="w-10 h-10 flex-shrink-0">
+          <AvatarImage src={avatarUrl || ''} alt={`${senderName}'s Avatar`} />
+          <AvatarFallback>{avatarFallbackText}</AvatarFallback>
+        </Avatar>
         <div
           className={cn(
             "max-w-[70%] p-4 rounded-xl shadow-md",
@@ -273,7 +281,6 @@ const ViewMessage = () => {
             isReply ? "mt-2" : "" // Add margin top for replies
           )}
         >
-          {/* Removed h3 for subject/message_type from here */}
           <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
             From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
           </p>
@@ -326,7 +333,7 @@ const ViewMessage = () => {
         {/* Replies Section */}
         {message && message.replies && message.replies.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Replies</h2>
+            {/* Removed the "Replies" heading */}
             <div className="space-y-4">
               {message.replies.map(reply => renderMessageContent(reply, user, true))}
             </div>
@@ -361,8 +368,8 @@ const ViewMessage = () => {
                     <Reply className="w-4 h-4 mr-2" /> Send Reply
                   </Button>
                 </form>
-              </Form>
-            </CardContent>
+              </CardContent>
+            </Card>
           </Card>
         )}
       </div>
