@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users } from 'lucide-react';
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,14 +11,16 @@ import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ThemeToggle } from "@/components/ThemeToggle";
+import AvatarSelector from '@/components/AvatarSelector'; // Import AvatarSelector
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
-  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')), // Added partner_nickname
+  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
+  avatar_url: z.string().url({ message: 'Please select an avatar.' }).optional().or(z.literal('')), // New: avatar_url field
 }).refine((data) => {
-  // Get current user's email from session context
-  const sessionContext = (window as any).dyadSessionContext; // Accessing global context for validation
+  const sessionContext = (window as any).dyadSessionContext;
   const currentUserEmail = sessionContext?.user?.email;
   return data.partner_email === '' || data.partner_email !== currentUserEmail;
 }, {
@@ -30,33 +32,42 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const { user, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null); // State for selected avatar
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nickname: '',
       partner_email: '',
-      partner_nickname: '', // Set default value for partner_nickname
+      partner_nickname: '',
+      avatar_url: '', // Initialize avatar_url
     },
   });
 
-  // Expose user and session to a global object for Zod refinement to access
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
 
   useEffect(() => {
     if (!sessionLoading && user) {
+      const currentAvatar = user.user_metadata.avatar_url || '';
+      setSelectedAvatar(currentAvatar); // Set initial selected avatar
       form.reset({
         nickname: user.user_metadata.nickname || '',
         partner_email: user.user_metadata.partner_email || '',
-        partner_nickname: user.user_metadata.partner_nickname || '', // Populate from user_metadata
+        partner_nickname: user.user_metadata.partner_nickname || '',
+        avatar_url: currentAvatar, // Populate form with current avatar
       });
       setLoading(false);
     } else if (!sessionLoading && !user) {
       navigate('/login');
     }
   }, [user, sessionLoading, navigate, form]);
+
+  const handleAvatarSelect = (url: string) => {
+    setSelectedAvatar(url);
+    form.setValue('avatar_url', url, { shouldValidate: true }); // Update form value
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
@@ -71,7 +82,8 @@ const EditProfile = () => {
         data: {
           nickname: values.nickname,
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname, // Update partner_nickname in user_metadata
+          partner_nickname: values.partner_nickname,
+          avatar_url: values.avatar_url, // Update avatar_url in user_metadata
         },
       });
 
@@ -83,9 +95,10 @@ const EditProfile = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          username: values.nickname, // Map nickname to username in profiles table
+          username: values.nickname,
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname, // Update partner_nickname in profiles table
+          partner_nickname: values.partner_nickname,
+          avatar_url: values.avatar_url, // Update avatar_url in profiles table
         })
         .eq('id', user.id);
 
@@ -112,7 +125,7 @@ const EditProfile = () => {
   }
 
   if (!user) {
-    return null; // Should be redirected by useEffect
+    return null;
   }
 
   return (
@@ -167,6 +180,26 @@ const EditProfile = () => {
                 </FormItem>
               )}
             />
+            {/* Avatar Selection Field */}
+            <FormItem>
+              <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Select Avatar</FormLabel>
+              <div className="flex items-center gap-4 mb-4">
+                {selectedAvatar && (
+                  <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400">
+                    <AvatarImage src={selectedAvatar} alt="Selected Avatar" />
+                    <AvatarFallback>AV</AvatarFallback>
+                  </Avatar>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {selectedAvatar ? 'Current Avatar' : 'No avatar selected'}
+                </p>
+              </div>
+              <FormControl>
+                <AvatarSelector selectedAvatar={selectedAvatar} onSelect={handleAvatarSelect} />
+              </FormControl>
+              <FormMessage>{form.formState.errors.avatar_url?.message}</FormMessage>
+            </FormItem>
+
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
               Save Changes
             </Button>
