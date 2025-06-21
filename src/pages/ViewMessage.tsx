@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react'; // Added Send here
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
@@ -216,6 +216,11 @@ const ViewMessage = () => {
       return;
     }
 
+    if (message.status === 'closed') { // Added check for message status
+      toast.error('Cannot reply to a closed message.');
+      return;
+    }
+
     const replyReceiverId = message.sender_id === user.id ? message.receiver_id : message.sender_id;
 
     if (!replyReceiverId) {
@@ -325,6 +330,7 @@ const ViewMessage = () => {
 
   const isMessageSentByCurrentUser = message.sender_id === user.id;
   const canCloseMessage = isMessageSentByCurrentUser && message.status === 'open';
+  const canReply = message.status === 'open'; // New condition for reply form visibility
 
   return (
     <BackgroundImageWrapper className="pt-20">
@@ -365,7 +371,7 @@ const ViewMessage = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {message && (
+        {message && canReply && ( {/* Added canReply condition here */}
           <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
             <CardContent className="p-0">
               <Form {...replyForm}>
