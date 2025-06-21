@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Pencil } from 'lucide-react'; // Import Pencil icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react'; // Removed Pencil icon
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -275,11 +275,7 @@ const Dashboard = () => {
                     <p><strong>Email:</strong> {user.email}</p>
                   </div>
                 </div>
-                <Link to="/edit-profile">
-                  <Button variant="ghost" size="icon" className="text-gray-500 hover:text-blue-600 dark:hover:text-purple-400">
-                    <Pencil className="w-5 h-5" />
-                  </Button>
-                </Link>
+                {/* Removed Link to /edit-profile */}
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -303,11 +299,7 @@ const Dashboard = () => {
                 ) : (
                   <p>No partner profile linked or found.</p>
                 )}
-                <Link to="/edit-profile">
-                  <Button variant="ghost" size="icon" className="text-gray-500 hover:text-blue-600 dark:hover:text-purple-400">
-                    <Pencil className="w-5 h-5" />
-                  </Button>
-                </Link>
+                {/* Removed Link to /edit-profile */}
               </CardContent>
             </Card>
           </div>

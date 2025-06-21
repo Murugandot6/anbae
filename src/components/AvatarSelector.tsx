@@ -26,7 +26,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ selectedAvatar, onSelec
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 p-4 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div className="grid grid-cols-2 gap-3 p-4 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 justify-items-center">
       {avatarPaths.map((path, index) => {
         const bgColor = backgroundColors[index % backgroundColors.length]; // Cycle through colors
         return (
