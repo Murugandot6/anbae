@@ -16,10 +16,58 @@ import { Profile, Message } from '@/types/supabase'; // Import Message type from
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
 import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and the new utility function
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { Session } from '@supabase/supabase-js'; // Import Session type for user object
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
 });
+
+// Moved renderMessageContent outside the component
+const renderMessageContent = (msg: Message, currentUser: Session['user'] | null, isReply = false) => {
+  const isSentByCurrentUser = msg.sender_id === currentUser?.id;
+  const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
+  const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
+  const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
+
+  // Determine which avatar to show
+  const avatarUrl = isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url;
+  const avatarFallbackText = isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase();
+
+  return (
+    <div
+      key={msg.id}
+      className={cn(
+        "flex w-full items-end gap-2", // Align items to the bottom for consistent avatar alignment
+        isSentByCurrentUser ? "justify-end flex-row-reverse" : "justify-start flex-row" // Reverse order for sent messages
+      )}
+    >
+      <Avatar className="w-10 h-10 flex-shrink-0">
+        <AvatarImage src={avatarUrl || ''} alt={`${senderName}'s Avatar`} />
+        <AvatarFallback>{avatarFallbackText}</AvatarFallback>
+      </Avatar>
+      <div
+        className={cn(
+          "max-w-[70%] p-4 rounded-xl shadow-md",
+          isSentByCurrentUser
+            ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none"
+            : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
+          isReply ? "mt-2" : "" // Add margin top for replies
+        )}
+      >
+        <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
+          From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
+        </p>
+        {msg.read_at && isSentByCurrentUser && (
+          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300">
+            <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
+          </p>
+        )}
+        <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
+        <p className="whitespace-pre-wrap text-base">{msg.content}</p>
+      </div>
+    </div>
+  );
+};
 
 const ViewMessage = () => {
   const { id } = useParams<{ id: string }>();
@@ -248,53 +296,7 @@ const ViewMessage = () => {
         </Link>
       </div>
     );
-    }
-
-  const renderMessageContent = (msg: Message, currentUser: typeof user, isReply = false) => {
-    const isSentByCurrentUser = msg.sender_id === currentUser?.id;
-    const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
-    const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
-    const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
-
-    // Determine which avatar to show
-    const avatarUrl = isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url;
-    const avatarFallbackText = isSentByCurrentUser ? currentUser?.user_metadata.nickname?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() : msg.senderProfile?.username?.charAt(0).toUpperCase() || msg.senderProfile?.email?.charAt(0).toUpperCase();
-
-    return (
-      <div
-        key={msg.id}
-        className={cn(
-          "flex w-full items-end gap-2", // Align items to the bottom for consistent avatar alignment
-          isSentByCurrentUser ? "justify-end flex-row-reverse" : "justify-start flex-row" // Reverse order for sent messages
-        )}
-      >
-        <Avatar className="w-10 h-10 flex-shrink-0">
-          <AvatarImage src={avatarUrl || ''} alt={`${senderName}'s Avatar`} />
-          <AvatarFallback>{avatarFallbackText}</AvatarFallback>
-        </Avatar>
-        <div
-          className={cn(
-            "max-w-[70%] p-4 rounded-xl shadow-md",
-            isSentByCurrentUser
-              ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none"
-              : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
-            isReply ? "mt-2" : "" // Add margin top for replies
-          )}
-        >
-          <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
-            From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
-          </p>
-          {msg.read_at && isSentByCurrentUser && (
-            <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300">
-              <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
-            </p>
-          )}
-          <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
-          <p className="whitespace-pre-wrap text-base">{msg.content}</p>
-        </div>
-      </div>
-    );
-  };
+  }
 
   const conversationPartnerProfile = message.sender_id === user.id
     ? message.receiverProfile
@@ -333,7 +335,6 @@ const ViewMessage = () => {
         {/* Replies Section */}
         {message && message.replies && message.replies.length > 0 && (
           <div className="mt-8">
-            {/* Removed the "Replies" heading */}
             <div className="space-y-4">
               {message.replies.map(reply => renderMessageContent(reply, user, true))}
             </div>
@@ -368,8 +369,8 @@ const ViewMessage = () => {
                     <Reply className="w-4 h-4 mr-2" /> Send Reply
                   </Button>
                 </form>
-              </CardContent>
-            </Card>
+              </Form>
+            </CardContent>
           </Card>
         )}
       </div>
