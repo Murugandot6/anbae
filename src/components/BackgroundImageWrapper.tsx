@@ -9,6 +9,7 @@ interface BackgroundImageWrapperProps {
 
 const BackgroundImageWrapper: React.FC<BackgroundImageWrapperProps> = ({ children, className }) => {
   const { theme } = useTheme();
+  console.log('BackgroundImageWrapper: Component rendered with theme:', theme); // Added console log
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">

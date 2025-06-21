@@ -10,22 +10,21 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle } from 'lucide-react'; // Added Paperclip, XCircle
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
-import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
-import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and the new utility function
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { Session } from '@supabase/supabase-js'; // Import Session type for user object
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import BackgroundImageWrapper
-import EmojiPickerPopover from '@/components/EmojiPickerPopover'; // Import the new EmojiPickerPopover
-import { Badge } from '@/components/ui/badge'; // Import Badge component
+import { Profile, Message } from '@/types/supabase';
+import { fetchProfileById } from '@/lib/supabaseHelpers';
+import { cn, formatDateTimeForMessageView } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Session } from '@supabase/supabase-js';
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Ensure this import is correct
+import EmojiPickerPopover from '@/components/EmojiPickerPopover';
+import { Badge } from '@/components/ui/badge';
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
 });
 
-// Moved renderMessageContent outside the component
 const renderMessageContent = (msg: Message, currentUser: Session['user'] | null, isReply = false) => {
   const isSentByCurrentUser = msg.sender_id === currentUser?.id;
   const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
@@ -34,8 +33,8 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
     <div
       key={msg.id}
       className={cn(
-        "flex w-full", // This outer div now takes full width
-        isSentByCurrentUser ? "justify-end" : "justify-start" // Justify content within the full width
+        "flex w-full",
+        isSentByCurrentUser ? "justify-end" : "justify-start"
       )}
     >
       <div
@@ -44,7 +43,7 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
           isSentByCurrentUser
             ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none"
             : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
-          isReply ? "mt-2" : "" // Add margin top for replies
+          isReply ? "mt-2" : ""
         )}
       >
         <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100")}>{msg.content}</p>
@@ -67,7 +66,7 @@ const ViewMessage = () => {
   const { user, loading: sessionLoading } = useSession();
   const [message, setMessage] = useState<Message | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(true);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false); // State for emoji picker
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const replyForm = useForm<z.infer<typeof replyFormSchema>>({
     resolver: zodResolver(replyFormSchema),
@@ -76,7 +75,7 @@ const ViewMessage = () => {
     },
   });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchMessageAndReplies = async () => {
     if (sessionLoading || !user || !id) {
@@ -86,7 +85,6 @@ const ViewMessage = () => {
 
     setLoadingMessage(true);
     try {
-      // Fetch the main message
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -107,7 +105,6 @@ const ViewMessage = () => {
         return;
       }
 
-      // Fetch replies to this message
       const { data: repliesData, error: repliesError } = await supabase
         .from('messages')
         .select('*')
@@ -119,7 +116,6 @@ const ViewMessage = () => {
         toast.error('Failed to load replies: ' + repliesError.message);
       }
 
-      // Collect all unique user IDs from the main message and its replies
       const allRelatedUserIds = new Set<string>();
       allRelatedUserIds.add(data.sender_id);
       allRelatedUserIds.add(data.receiver_id);
@@ -128,7 +124,6 @@ const ViewMessage = () => {
         allRelatedUserIds.add(reply.receiver_id);
       });
 
-      // Fetch profiles for all related users
       const profilesMap = new Map<string, Profile>();
       for (const userId of Array.from(allRelatedUserIds)) {
         const profile = await fetchProfileById(userId);
@@ -137,7 +132,6 @@ const ViewMessage = () => {
         }
       }
 
-      // Map profiles to replies
       const processedReplies: Message[] = repliesData?.map(reply => ({
         ...reply,
         senderProfile: profilesMap.get(reply.sender_id) || null,
@@ -148,11 +142,10 @@ const ViewMessage = () => {
         ...data,
         senderProfile: profilesMap.get(data.sender_id) || null,
         receiverProfile: profilesMap.get(data.receiver_id) || null,
-        replies: processedReplies, // Attach replies to the main message
+        replies: processedReplies,
       };
       setMessage(fetchedMessage);
 
-      // Mark message as read if current user is the receiver and it's unread (or read_at is null)
       if (fetchedMessage.receiver_id === user.id && !fetchedMessage.read_at) {
         const { error: updateError } = await supabase
           .from('messages')
@@ -175,7 +168,6 @@ const ViewMessage = () => {
   useEffect(() => {
     fetchMessageAndReplies();
 
-    // Realtime subscription for new replies to this message
     const channel = supabase
       .channel(`message_replies_${id}`)
       .on(
@@ -189,7 +181,6 @@ const ViewMessage = () => {
         async (payload) => {
           console.log('Realtime: New reply received:', payload.new);
           const newReply = payload.new as Message;
-          // Use fetchProfileById to ensure correct type for profiles
           const senderProfile = await fetchProfileById(newReply.sender_id);
           const receiverProfile = await fetchProfileById(newReply.receiver_id);
 
@@ -206,14 +197,13 @@ const ViewMessage = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, user, sessionLoading]); // Re-run effect if message ID, user, or session loading changes
+  }, [id, user, sessionLoading]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [message]); // Trigger scroll when message (and thus replies) updates
+  }, [message]);
 
   const handleEmojiSelect = (emoji: string) => {
     const currentContent = replyForm.getValues('replyContent');
@@ -242,8 +232,8 @@ const ViewMessage = () => {
         message_type: 'Reply',
         priority: 'Medium',
         mood: 'Neutral',
-        parent_message_id: message.id, // Set the parent_message_id
-      }).select().single(); // Select the inserted data to get its ID and created_at
+        parent_message_id: message.id,
+      }).select().single();
 
       if (error) {
         toast.error(error.message);
@@ -252,21 +242,18 @@ const ViewMessage = () => {
         toast.success('Reply sent successfully!');
         replyForm.reset();
 
-        // Manually add the new reply to the state for instant display
         setMessage(prev => {
           if (!prev) return null;
 
           const newReply: Message = {
-            ...data, // Use the data returned from the insert operation
-            senderProfile: prev.receiverProfile, // If current user is sender, their profile is receiverProfile of main message
-            receiverProfile: prev.senderProfile, // If current user is sender, partner's profile is senderProfile of main message
+            ...data,
+            senderProfile: prev.receiverProfile,
+            receiverProfile: prev.senderProfile,
           };
 
-          // Determine sender/receiver profiles for the new reply based on who sent it
           const isCurrentUserSenderOfReply = newReply.sender_id === user.id;
           newReply.senderProfile = isCurrentUserSenderOfReply ? { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url } : message.senderProfile;
           newReply.receiverProfile = isCurrentUserSenderOfReply ? message.senderProfile : { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url };
-
 
           const updatedReplies = [...(prev.replies || []), newReply];
           return { ...prev, replies: updatedReplies };
@@ -340,8 +327,8 @@ const ViewMessage = () => {
   const canCloseMessage = isMessageSentByCurrentUser && message.status === 'open';
 
   return (
-    <BackgroundImageWrapper className="pt-20"> {/* Use BackgroundImageWrapper here */}
-      <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]"> {/* Adjusted height to account for pt-20 (80px) */}
+    <BackgroundImageWrapper className="pt-20">
+      <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
             <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
@@ -353,7 +340,7 @@ const ViewMessage = () => {
               <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
               <AvatarFallback>{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="text-right"> {/* Added text-right here */}
+            <div className="text-right">
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
                 {conversationPartnerName}
               </h1>
@@ -367,34 +354,29 @@ const ViewMessage = () => {
           </div>
         </div>
 
-        {/* Scrollable Message Area */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-[120px]"> {/* Added flex flex-col gap-y-4 */}
-          {/* Main Message */}
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-[120px]">
           {message && renderMessageContent(message, user)}
 
-          {/* Replies Section */}
           {message && message.replies && message.replies.length > 0 && (
             <div className="space-y-4">
               {message.replies.map(reply => renderMessageContent(reply, user, true))}
             </div>
           )}
-          <div ref={messagesEndRef} /> {/* Scroll target */}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Reply Section - Fixed at bottom */}
         {message && (
           <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
-            {/* Removed CardHeader and CardTitle */}
             <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
-                  <div className="flex items-center gap-2 border rounded-full px-3 py-1 bg-white dark:bg-gray-800 shadow-sm"> {/* Updated padding, background, and rounded-full */}
+                  <div className="flex items-center gap-2 border rounded-full px-3 py-1 bg-white dark:bg-gray-800 shadow-sm">
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
                       onOpenChange={setIsEmojiPickerOpen}
                       onEmojiSelect={handleEmojiSelect}
                     >
-                      <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker"> {/* Set fixed size and blue color */}
+                      <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker">
                         <Smile className="w-5 h-5" />
                       </Button>
                     </EmojiPickerPopover>
@@ -405,10 +387,10 @@ const ViewMessage = () => {
                         <FormItem className="flex-1 mb-0">
                           <FormControl>
                             <Textarea
-                              placeholder="Type a message..." {/* Updated placeholder */}
+                              placeholder="Type a message..."
                               {...field}
                               rows={1}
-                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0 h-8" {/* Set fixed height */}
+                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0 h-8"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
@@ -421,10 +403,10 @@ const ViewMessage = () => {
                         </FormItem>
                       )}
                     />
-                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-gray-500 dark:text-gray-400" aria-label="Attach file"> {/* Added attachment button */}
+                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-gray-500 dark:text-gray-400" aria-label="Attach file">
                       <Paperclip className="w-5 h-5" />
                     </Button>
-                    <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400"> {/* Changed to ghost button and blue color */}
+                    <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400">
                       <Send className="w-5 h-5" />
                     </Button>
                   </div>
@@ -434,7 +416,7 @@ const ViewMessage = () => {
           </Card>
         )}
         {canCloseMessage && (
-          <div className="fixed bottom-[100px] right-4 z-50"> {/* Position above the message bar */}
+          <div className="fixed bottom-[100px] right-4 z-50">
             <Button
               onClick={handleCloseMessage}
               variant="outline"
