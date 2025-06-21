@@ -178,7 +178,7 @@ const ViewMessage = () => {
     }
 
     try {
-      const { error } = await supabase.from('messages').insert({
+      const { data, error } = await supabase.from('messages').insert({
         sender_id: user.id,
         receiver_id: replyReceiverId,
         subject: `Re: ${message.subject}`,
@@ -187,18 +187,34 @@ const ViewMessage = () => {
         priority: 'Medium',
         mood: 'Neutral',
         parent_message_id: message.id, // Set the parent_message_id
-      });
+      }).select().single(); // Select the inserted data to get its ID and created_at
 
       if (error) {
         toast.error(error.message);
         console.error('Supabase Error sending reply:', error.message, error);
-      } else {
+      } else if (data) {
         toast.success('Reply sent successfully!');
         replyForm.reset();
-        // Re-fetch messages to include the new reply, or rely on real-time
-        // For immediate feedback, we can rely on the real-time subscription
-        // which is already set up to add new replies to the state.
-        // No need to navigate away, stay on the same message view.
+
+        // Manually add the new reply to the state for instant display
+        setMessage(prev => {
+          if (!prev) return null;
+
+          const newReply: Message = {
+            ...data, // Use the data returned from the insert operation
+            senderProfile: prev.receiverProfile, // If current user is sender, their profile is receiverProfile of main message
+            receiverProfile: prev.senderProfile, // If current user is sender, partner's profile is senderProfile of main message
+          };
+
+          // Determine sender/receiver profiles for the new reply based on who sent it
+          const isCurrentUserSenderOfReply = newReply.sender_id === user.id;
+          newReply.senderProfile = isCurrentUserSenderOfReply ? { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url } : message.senderProfile;
+          newReply.receiverProfile = isCurrentUserSenderOfReply ? message.senderProfile : { id: user.id, username: user.user_metadata.nickname, email: user.email, avatar_url: user.user_metadata.avatar_url };
+
+
+          const updatedReplies = [...(prev.replies || []), newReply];
+          return { ...prev, replies: updatedReplies };
+        });
       }
     } catch (error: any) {
       console.error('Unexpected error sending reply:', error.message, error);
