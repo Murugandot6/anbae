@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
+import { ArrowLeft, User, Mail, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,25 +11,14 @@ import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { cn } from '@/lib/utils'; // Import cn for conditional styling
-
-// Define a list of default avatars
-const defaultAvatars = [
-  '/avatars/avatar1.png',
-  '/avatars/avatar2.png',
-  '/avatars/avatar3.png',
-  '/avatars/avatar4.png',
-  '/avatars/avatar5.png',
-  '/avatars/avatar6.png',
-];
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
-  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
-  avatar_url: z.string().url({ message: 'Please select a valid avatar.' }).optional().or(z.literal('')), // New: avatar_url field
+  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')), // Added partner_nickname
 }).refine((data) => {
-  const sessionContext = (window as any).dyadSessionContext;
+  // Get current user's email from session context
+  const sessionContext = (window as any).dyadSessionContext; // Accessing global context for validation
   const currentUserEmail = sessionContext?.user?.email;
   return data.partner_email === '' || data.partner_email !== currentUserEmail;
 }, {
@@ -47,11 +36,11 @@ const EditProfile = () => {
     defaultValues: {
       nickname: '',
       partner_email: '',
-      partner_nickname: '',
-      avatar_url: '', // Initialize avatar_url
+      partner_nickname: '', // Set default value for partner_nickname
     },
   });
 
+  // Expose user and session to a global object for Zod refinement to access
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
@@ -61,8 +50,7 @@ const EditProfile = () => {
       form.reset({
         nickname: user.user_metadata.nickname || '',
         partner_email: user.user_metadata.partner_email || '',
-        partner_nickname: user.user_metadata.partner_nickname || '',
-        avatar_url: user.user_metadata.avatar_url || '', // Populate avatar_url from user_metadata
+        partner_nickname: user.user_metadata.partner_nickname || '', // Populate from user_metadata
       });
       setLoading(false);
     } else if (!sessionLoading && !user) {
@@ -83,8 +71,7 @@ const EditProfile = () => {
         data: {
           nickname: values.nickname,
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url, // Update avatar_url in user_metadata
+          partner_nickname: values.partner_nickname, // Update partner_nickname in user_metadata
         },
       });
 
@@ -96,10 +83,9 @@ const EditProfile = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          username: values.nickname,
+          username: values.nickname, // Map nickname to username in profiles table
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url, // Update avatar_url in profiles table
+          partner_nickname: values.partner_nickname, // Update partner_nickname in profiles table
         })
         .eq('id', user.id);
 
@@ -126,7 +112,7 @@ const EditProfile = () => {
   }
 
   if (!user) {
-    return null;
+    return null; // Should be redirected by useEffect
   }
 
   return (
@@ -176,40 +162,6 @@ const EditProfile = () => {
                   <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Nickname</FormLabel>
                   <FormControl>
                     <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Avatar Selection Field */}
-            <FormField
-              control={form.control}
-              name="avatar_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Choose Avatar</FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-3 gap-4">
-                      {defaultAvatars.map((avatarUrl) => (
-                        <div
-                          key={avatarUrl}
-                          className={cn(
-                            "relative w-20 h-20 rounded-full overflow-hidden cursor-pointer border-2 transition-all duration-200",
-                            field.value === avatarUrl
-                              ? "border-blue-500 ring-2 ring-blue-500 scale-105"
-                              : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500"
-                          )}
-                          onClick={() => field.onChange(avatarUrl)}
-                        >
-                          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                          {field.value === avatarUrl && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-blue-500/50 text-white text-xl font-bold">
-                              ✓
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
