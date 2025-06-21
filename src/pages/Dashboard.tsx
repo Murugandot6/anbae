@@ -288,7 +288,6 @@ const Dashboard = () => {
               <CardContent className="text-muted-foreground text-base">
                 <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
                 <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
-              </p>
               </CardContent>
             </Card>
           </div>
