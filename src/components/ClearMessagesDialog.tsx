@@ -16,7 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react'; // Changed MessageSquareX to HeartCrack
+import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react';
 
 interface ClearRequest {
   id: string;
@@ -35,7 +35,7 @@ interface ClearMessagesDialogProps {
   partnerId: string | null;
   partnerNickname: string | null;
   currentUserId: string | null;
-  onMessagesCleared?: () => void; // New prop for callback
+  onMessagesCleared?: () => void;
 }
 
 const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, partnerNickname, currentUserId, onMessagesCleared }) => {
@@ -46,9 +46,8 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   const [senderMessage, setSenderMessage] = useState('');
   const [receiverResponseMessage, setReceiverResponseMessage] = useState('');
   const [pendingIncomingRequest, setPendingIncomingRequest] = useState<ClearRequest | null>(null);
-  const [pendingOutgoingRequest, setPendingOutgoingRequest] = useState<ClearRequest | null>(null); // For sender feedback
+  const [pendingOutgoingRequest, setPendingOutgoingRequest] = useState<ClearRequest | null>(null);
 
-  // Function to fetch sender profile
   const fetchSenderProfile = useCallback(async (senderId: string) => {
     const { data, error } = await supabase
       .from('profiles')
@@ -62,15 +61,13 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
     return data;
   }, []);
 
-  // Fetch pending requests on component mount and subscribe to real-time updates
   useEffect(() => {
     const fetchAndSubscribeRequests = async () => {
       if (!currentUserId) return;
 
-      // Fetch incoming pending requests
       const { data: incomingRequests, error: incomingError } = await supabase
         .from('clear_requests')
-        .select('*') // Select all columns from messages, no direct join here
+        .select('*')
         .eq('receiver_id', currentUserId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
@@ -82,15 +79,14 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         const newRequest = incomingRequests[0] as ClearRequest;
         const senderProfile = await fetchSenderProfile(newRequest.sender_id);
         setPendingIncomingRequest({ ...newRequest, senderProfile });
-        setIsPartnerResponseOpen(true); // Open dialog if there's a pending request
+        setIsPartnerResponseOpen(true);
       }
 
-      // Fetch outgoing pending requests (for sender feedback)
       const { data: outgoingRequests, error: outgoingError } = await supabase
         .from('clear_requests')
         .select('*')
         .eq('sender_id', currentUserId)
-        .in('status', ['accepted', 'denied']) // Check for responses
+        .in('status', ['accepted', 'denied'])
         .order('updated_at', { ascending: false })
         .limit(1);
 
@@ -102,7 +98,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         if (latestOutgoing.status === 'accepted') {
           setIsSenderReconfirmOpen(true);
         } else if (latestOutgoing.status === 'denied') {
-            // Only show toast if the dialog is not already open for this request
             if (!isSenderReconfirmOpen) {
                 toast.info(`Your partner denied the clear request: "${latestOutgoing.receiver_response_message || 'No message provided.'}"`);
             }
@@ -112,16 +107,15 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
     fetchAndSubscribeRequests();
 
-    // Realtime subscription for new requests and updates
     const channel = supabase
       .channel('clear_requests_channel')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for INSERT and UPDATE
+          event: '*',
           schema: 'public',
           table: 'clear_requests',
-          filter: `receiver_id=eq.${currentUserId}` // Listen for requests sent to me
+          filter: `receiver_id=eq.${currentUserId}`
         },
         async (payload) => {
           console.log('Realtime payload (incoming):', payload);
@@ -132,7 +126,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
             setIsPartnerResponseOpen(true);
             toast.info(`New clear message request from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
           } else if (payload.eventType === 'UPDATE' && payload.new.status !== 'pending' && payload.new.sender_id === currentUserId) {
-            // This part is for sender to receive updates on their sent requests
             setPendingOutgoingRequest(payload.new as ClearRequest);
             if (payload.new.status === 'accepted') {
               setIsSenderReconfirmOpen(true);
@@ -153,7 +146,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   const handleSendRequest = async () => {
     if (!user || !partnerId) {
       toast.error('User or partner not identified.');
-      console.log('Partner ID received by dialog:', partnerId); // Log partnerId here
+      console.log('Partner ID received by dialog:', partnerId);
       return;
     }
 
@@ -172,7 +165,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         toast.success('Clear message request sent to your partner!');
         setSenderMessage('');
         setIsSendRequestOpen(false);
-        setPendingOutgoingRequest(data); // Store the sent request for feedback
+        setPendingOutgoingRequest(data);
       }
     } catch (error) {
       console.error('Unexpected error sending clear request:', error);
@@ -196,7 +189,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         toast.success(`Request ${status} successfully!`);
         setReceiverResponseMessage('');
         setIsPartnerResponseOpen(false);
-        setPendingIncomingRequest(null); // Clear the incoming request
+        setPendingIncomingRequest(null);
       }
     } catch (error) {
       console.error('Unexpected error responding to clear request:', error);
@@ -215,9 +208,8 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       userId: user.id,
       partnerId: pendingOutgoingRequest.receiver_id,
     };
-    console.log('Invoking clear-messages Edge Function with payload:', payload); // Log payload
+    console.log('Invoking clear-messages Edge Function with payload:', payload);
 
-    // Call Edge Function to clear messages
     try {
       const { data, error } = await supabase.functions.invoke('clear-messages', {
         body: JSON.stringify(payload),
@@ -229,8 +221,8 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       } else if (data && data.success) {
         toast.success('All messages cleared successfully!');
         setIsSenderReconfirmOpen(false);
-        setPendingOutgoingRequest(null); // Clear the outgoing request
-        onMessagesCleared?.(); // Call the callback to trigger parent refresh
+        setPendingOutgoingRequest(null);
+        onMessagesCleared?.();
       } else {
         toast.error(data?.message || 'Failed to clear messages.');
         console.error('Clear messages function response:', data);
@@ -243,7 +235,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
   return (
     <div className="clear-messages-dialog-container">
-      {/* Button to trigger sending a clear request */}
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
@@ -280,7 +271,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Dialog for partner to respond to incoming request */}
       {pendingIncomingRequest && (
         <AlertDialog open={isPartnerResponseOpen} onOpenChange={setIsPartnerResponseOpen}>
           <AlertDialogContent>
@@ -318,7 +308,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         </AlertDialog>
       )}
 
-      {/* Dialog for sender to reconfirm after partner accepts */}
       {pendingOutgoingRequest && pendingOutgoingRequest.status === 'accepted' && (
         <AlertDialog open={isSenderReconfirmOpen} onOpenChange={setIsSenderReconfirmOpen}>
           <AlertDialogContent>
