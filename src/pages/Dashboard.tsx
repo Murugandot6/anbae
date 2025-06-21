@@ -241,16 +241,16 @@ const Dashboard = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <Link to="/edit-profile" className="w-full sm:w-auto">
-                <Button variant="outline" size="icon" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Button variant="outline" size="icon" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                   <Settings className="w-5 h-5" /> 
                 </Button>
               </Link>
               <Link to="/messages" className="w-full sm:w-auto"> {/* New Inbox icon button */}
-                <Button variant="outline" size="icon" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Button variant="outline" size="icon" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                   <Inbox className="w-5 h-5" />
                 </Button>
               </Link>
-              <Button onClick={handleLogout} size="icon" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
+              <Button onClick={handleLogout} size="icon" className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
                 <LogOut className="w-5 h-5" /> {/* Removed mr-2 as there's no text */}
               </Button>
               {user && (
