@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip } from 'lucide-react'; // Added Paperclip
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle } from 'lucide-react'; // Added Paperclip, XCircle
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; //
 import { Session } from '@supabase/supabase-js'; // Import Session type for user object
 import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import BackgroundImageWrapper
 import EmojiPickerPopover from '@/components/EmojiPickerPopover'; // Import the new EmojiPickerPopover
+import { Badge } from '@/components/ui/badge'; // Import Badge component
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -277,6 +278,31 @@ const ViewMessage = () => {
     }
   };
 
+  const handleCloseMessage = async () => {
+    if (!user || !message || message.sender_id !== user.id || message.status === 'closed') {
+      toast.error('Cannot close message: Not your message, or already closed.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ status: 'closed' })
+        .eq('id', message.id);
+
+      if (error) {
+        toast.error(error.message);
+        console.error('Supabase Error closing message:', error.message, error);
+      } else {
+        toast.success('Message closed successfully!');
+        setMessage(prev => prev ? { ...prev, status: 'closed' } : null);
+      }
+    } catch (error: any) {
+      console.error('Unexpected error closing message:', error.message, error);
+      toast.error('An unexpected error occurred while closing the message.');
+    }
+  };
+
   if (sessionLoading || loadingMessage) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
@@ -310,6 +336,9 @@ const ViewMessage = () => {
 
   const conversationPartnerName = conversationPartnerProfile?.username || conversationPartnerProfile?.email || 'Your Partner';
 
+  const isMessageSentByCurrentUser = message.sender_id === user.id;
+  const canCloseMessage = isMessageSentByCurrentUser && message.status === 'open';
+
   return (
     <BackgroundImageWrapper className="pt-20"> {/* Use BackgroundImageWrapper here */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]"> {/* Adjusted height to account for pt-20 (80px) */}
@@ -328,8 +357,11 @@ const ViewMessage = () => {
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
                 {conversationPartnerName}
               </h1>
-              <p className="text-xl text-muted-foreground mt-1">
+              <p className="text-xl text-muted-foreground mt-1 flex items-center justify-end gap-2">
                 {message.message_type}
+                {message.status === 'closed' && (
+                  <Badge variant="secondary" className="ml-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
+                )}
               </p>
             </div>
           </div>
@@ -400,6 +432,18 @@ const ViewMessage = () => {
               </Form>
             </CardContent>
           </Card>
+        )}
+        {canCloseMessage && (
+          <div className="fixed bottom-[100px] right-4 z-50"> {/* Position above the message bar */}
+            <Button
+              onClick={handleCloseMessage}
+              variant="outline"
+              className="bg-red-500 hover:bg-red-600 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full p-2 shadow-lg"
+              size="icon"
+            >
+              <XCircle className="w-6 h-6" />
+            </Button>
+          </div>
         )}
       </div>
     </BackgroundImageWrapper>

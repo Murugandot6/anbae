@@ -26,6 +26,7 @@ export interface Message {
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
   replies?: Message[]; // New: For nested replies in UI
+  status: 'open' | 'closed'; // New: Status of the message
 }
 
 export interface ClearRequest {
