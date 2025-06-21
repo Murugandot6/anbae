@@ -306,10 +306,10 @@ const ViewMessage = () => {
             </Avatar>
             <div> {/* New div to hold the two lines of text */}
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-                Conversation with {conversationPartnerName}
+                {conversationPartnerName}
               </h1>
               <p className="text-xl text-muted-foreground mt-1">
-                About: {message.message_type}
+                {message.message_type}
               </p>
             </div>
           </div>
