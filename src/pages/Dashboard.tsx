@@ -3,12 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react'; // Import Heart icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-// Removed: import VideoBackground from '@/components/VideoBackground';
 
 interface Profile {
   id: string;
@@ -55,11 +54,6 @@ const Dashboard = () => {
       console.error('Unexpected logout error:', error.message, error);
       toast.error('An unexpected error occurred during logout.');
     }
-  };
-
-  const handleViewMessages = () => {
-    console.log('View Inbox & Outbox button clicked!');
-    navigate('/messages');
   };
 
   useEffect(() => {
@@ -232,7 +226,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground"> {/* Reverted background */}
+    <div className="min-h-screen flex flex-col items-center p-4 pt-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
@@ -240,18 +234,23 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-              <Link to="/edit-profile" className="w-full sm:w-auto">
+              <Link to="/send-message" className="w-full sm:w-auto">
                 <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                  <Settings className="w-5 h-5" /> 
+                  <MessageSquare className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link to="/messages" className="w-full sm:w-auto"> {/* New Inbox icon button */}
+              <Link to="/messages" className="w-full sm:w-auto">
                 <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                   <Inbox className="w-5 h-5" />
                 </Button>
               </Link>
+              <Link to="/edit-profile" className="w-full sm:w-auto">
+                <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </Link>
               <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
-                <LogOut className="w-5 h-5" /> {/* Removed mr-2 as there's no text */}
+                <LogOut className="w-5 h-5" />
               </Button>
               {user && (
                 <ClearMessagesDialog
@@ -287,15 +286,6 @@ const Dashboard = () => {
                 <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Link to="/send-message" className="w-full">
-              <Button size="lg" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 py-6 text-lg">
-                <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
-              </Button>
-            </Link>
-            {/* Removed the old "View Inbox & Outbox" button */}
           </div>
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
