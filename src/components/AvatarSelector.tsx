@@ -12,11 +12,12 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ selectedAvatar, onSelec
   const avatarPaths: string[] = [];
   const prefixes = ['romeo', 'juliet']; // Define the prefixes for your avatar types
 
-  prefixes.forEach(prefix => {
-    for (let i = 1; i <= numAvatars; i++) {
-      avatarPaths.push(`/avatars/${i}${prefix}.jpg`); // Corrected path generation and extension
-    }
-  });
+  // Changed the loop order to interleave romeo and juliet avatars
+  for (let i = 1; i <= numAvatars; i++) {
+    prefixes.forEach(prefix => {
+      avatarPaths.push(`/avatars/${i}${prefix}.jpg`);
+    });
+  }
 
   // Define a set of vibrant background colors to cycle through
   const backgroundColors = [
