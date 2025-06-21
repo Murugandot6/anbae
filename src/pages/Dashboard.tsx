@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react'; // Import Heart icon
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -262,7 +262,9 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl">Your Profile</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
+                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground text-base">
                 <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
@@ -271,7 +273,9 @@ const Dashboard = () => {
             </Card>
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl">Partner Profile</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
+                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground text-base">
                 <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
