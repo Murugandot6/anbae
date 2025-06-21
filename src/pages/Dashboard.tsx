@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper';
+import AppBackground from '@/components/AppBackground'; // Updated import
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { formatMessageDate } from '@/lib/utils'; // Import the new utility function
 
@@ -219,7 +219,7 @@ const Dashboard = () => {
   }
 
   return (
-    <BackgroundImageWrapper className="pt-20">
+    <AppBackground className="pt-20"> {/* Updated component name */}
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
@@ -385,7 +385,7 @@ const Dashboard = () => {
             </Card>
           </div>
         </div>
-    </BackgroundImageWrapper>
+    </AppBackground>
   );
 };
 
