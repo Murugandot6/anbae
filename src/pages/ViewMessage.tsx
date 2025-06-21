@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus } from 'lucide-react'; // Added Plus icon
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
@@ -355,40 +355,41 @@ const ViewMessage = () => {
         {/* Reply Section - Fixed at bottom */}
         {message && (
           <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
-            <CardHeader className="p-0 pb-4">
-              <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
-                <Reply className="w-6 h-6" /> Reply to {conversationPartnerName}
-              </CardTitle>
-            </CardHeader>
+            {/* Removed CardHeader and CardTitle */}
             <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
-                  <FormField
-                    control={replyForm.control}
-                    name="replyContent"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="sr-only">Your Reply</FormLabel> {/* Screen reader only label */}
-                        <FormControl>
-                          <Textarea
-                            placeholder="Type your reply here..."
-                            {...field}
-                            rows={3} // Adjusted rows for a more compact input
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault(); // Prevent new line
-                                replyForm.handleSubmit(handleReply)(); // Trigger form submission
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
-                    <Reply className="w-4 h-4 mr-2" /> Send Reply
-                  </Button>
+                  <div className="flex items-center gap-2 border rounded-lg p-2 bg-gray-100 dark:bg-gray-700">
+                    <Button variant="ghost" size="icon" className="flex-shrink-0">
+                      <Plus className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                    </Button>
+                    <FormField
+                      control={replyForm.control}
+                      name="replyContent"
+                      render={({ field }) => (
+                        <FormItem className="flex-1 mb-0"> {/* flex-1 to make it grow, mb-0 to remove default margin */}
+                          <FormControl>
+                            <Textarea
+                              placeholder="Type something..."
+                              {...field}
+                              rows={1} // Start with 1 row
+                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0" // Remove default textarea styling
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  replyForm.handleSubmit(handleReply)();
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage /> {/* Keep FormMessage for validation errors */}
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
+                      Send
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>
