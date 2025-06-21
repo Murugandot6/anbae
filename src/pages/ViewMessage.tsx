@@ -33,11 +33,10 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
     <div
       key={msg.id}
       className={cn(
-        "flex w-full items-end gap-2", // Align items to the bottom for consistent avatar alignment
-        isSentByCurrentUser ? "justify-end flex-row-reverse" : "justify-start flex-row" // Reverse order for sent messages
+        "flex w-full", // This outer div now takes full width
+        isSentByCurrentUser ? "justify-end" : "justify-start" // Justify content within the full width
       )}
     >
-      {/* Avatars removed as per request */}
       <div
         className={cn(
           "max-w-[70%] p-4 rounded-xl shadow-md",
@@ -47,7 +46,6 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
           isReply ? "mt-2" : "" // Add margin top for replies
         )}
       >
-        {/* "From: X | To: Y | Sent: Z" line removed as per request */}
         <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100")}>{msg.content}</p>
         <div className={cn("text-xs mt-2", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200 text-right" : "text-gray-600 dark:text-gray-300 text-left")}>
           {formattedDateTime}
@@ -338,7 +336,7 @@ const ViewMessage = () => {
         </div>
 
         {/* Scrollable Message Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-[120px]"> {/* Added padding-bottom to prevent overlap with fixed input */}
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-[120px]"> {/* Added flex flex-col gap-y-4 */}
           {/* Main Message */}
           {message && renderMessageContent(message, user)}
 
