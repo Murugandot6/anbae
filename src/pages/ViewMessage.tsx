@@ -356,7 +356,7 @@ const ViewMessage = () => {
             <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
-                  <div className="flex items-center gap-2 border rounded-lg p-1 bg-gray-100 dark:bg-gray-700"> {/* Changed p-2 to p-1 */}
+                  <div className="flex items-center gap-1 border rounded-lg p-1 bg-gray-100 dark:bg-gray-700"> {/* Changed gap-2 to gap-1 */}
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
                       onOpenChange={setIsEmojiPickerOpen}
