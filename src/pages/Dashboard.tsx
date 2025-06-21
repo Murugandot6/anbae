@@ -232,7 +232,7 @@ const Dashboard = () => {
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto animate-fade-in"> {/* Added animate-fade-in here */}
           {/* Horizontal container for action icons */}
           <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
             <Link to="/send-message">
