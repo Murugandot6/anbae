@@ -3,35 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react'; // Removed Pencil icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AppBackground from '@/components/AppBackground'; // Updated import
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { formatMessageDate } from '@/lib/utils'; // Import the new utility function
-
-interface Profile {
-  id: string;
-  username: string | null;
-  email: string | null;
-  partner_email?: string | null;
-  partner_nickname?: string | null;
-  avatar_url?: string | null; // Include avatar_url
-}
-
-interface Message {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  subject: string;
-  content: string;
-  created_at: string;
-  is_read: boolean;
-  senderProfile?: Profile | null;
-  receiverProfile?: Profile | null;
-}
+import AppBackground from '@/components/AppBackground';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatMessageDate } from '@/lib/utils';
+import { Profile, Message } from '@/types/supabase'; // Import Profile and Message from types
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -72,7 +52,7 @@ const Dashboard = () => {
         // Fetch current user's profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, email, partner_email, partner_nickname, avatar_url') // Include avatar_url
+          .select('id, username, email, partner_email, partner_nickname, avatar_url, lifetime_score') // Include lifetime_score
           .eq('id', user.id)
           .single();
 
@@ -87,7 +67,7 @@ const Dashboard = () => {
             console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email);
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
-              .select('id, username, email, avatar_url') // Include avatar_url for partner
+              .select('id, username, email, avatar_url, lifetime_score') // Include lifetime_score for partner
               .eq('email', profileData.partner_email)
               .single();
 
@@ -165,7 +145,7 @@ const Dashboard = () => {
 
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, username, email, avatar_url') // Include avatar_url here
+          .select('id, username, email, avatar_url, lifetime_score') // Include lifetime_score here
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
@@ -218,8 +198,12 @@ const Dashboard = () => {
     return null;
   }
 
+  const partnerBorderColorClass = partnerProfile?.lifetime_score === 100
+    ? 'border-green-500 dark:border-green-400'
+    : 'border-red-500 dark:border-red-400';
+
   return (
-    <AppBackground className="pt-20"> {/* Updated component name */}
+    <AppBackground className="pt-20">
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
@@ -284,12 +268,15 @@ const Dashboard = () => {
               <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
                 {partnerProfile ? (
                   <>
-                    <Avatar className="w-24 h-24 border-2 border-pink-500 dark:border-indigo-400">
+                    <Avatar className={`w-24 h-24 border-2 ${partnerBorderColorClass}`}>
                       <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
                       <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
                     </p>
                   </>
                 ) : (

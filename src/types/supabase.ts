@@ -8,6 +8,7 @@ export interface Profile {
   partner_nickname?: string | null;
   created_at?: string; // Added created_at as it's in the table
   avatar_url?: string | null; // New: URL to the user's selected avatar
+  lifetime_score?: number | null; // New: Lifetime score for the user
 }
 
 export interface Message {
