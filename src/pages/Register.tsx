@@ -76,7 +76,7 @@ const Register = () => {
           <div className="text-center mb-6">
             <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
-            <p className="text-muted-foreground">Create your personalized space.</p>
+            <p className="text-gray-700 dark:text-gray-300">Create your personalized space.</p>
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -143,7 +143,7 @@ const Register = () => {
             </Link>
           </div>
           <div className="mt-4 text-center">
-            <Link to="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+            <Link to="/" className="text-sm text-gray-800 hover:text-gray-900 dark:text-gray-200 dark:hover:text-gray-100 transition-colors">
               ← Back to Home
             </Link>
           </div>
