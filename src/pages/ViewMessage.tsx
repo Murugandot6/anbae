@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
@@ -82,6 +82,8 @@ const ViewMessage = () => {
       replyContent: '',
     },
   });
+
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
 
   const fetchMessageAndReplies = async () => {
     if (sessionLoading || !user || !id) {
@@ -213,6 +215,13 @@ const ViewMessage = () => {
     };
   }, [id, user, sessionLoading]); // Re-run effect if message ID, user, or session loading changes
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [message]); // Trigger scroll when message (and thus replies) updates
+
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
       toast.error('Cannot send reply: User or message not identified.');
@@ -306,8 +315,8 @@ const ViewMessage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
-      <div className="w-full max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]"> {/* Adjusted height to account for pt-20 (80px) */}
+        <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
@@ -329,21 +338,23 @@ const ViewMessage = () => {
           </div>
         </div>
 
-        {/* Main Message */}
-        {message && renderMessageContent(message, user)}
+        {/* Scrollable Message Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4"> {/* flex-1 makes it take available height */}
+          {/* Main Message */}
+          {message && renderMessageContent(message, user)}
 
-        {/* Replies Section */}
-        {message && message.replies && message.replies.length > 0 && (
-          <div className="mt-8">
+          {/* Replies Section */}
+          {message && message.replies && message.replies.length > 0 && (
             <div className="space-y-4">
               {message.replies.map(reply => renderMessageContent(reply, user, true))}
             </div>
-          </div>
-        )}
+          )}
+          <div ref={messagesEndRef} /> {/* Scroll target */}
+        </div>
 
         {/* Reply Section */}
-        {message && ( // Always show reply form on a message view
-          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8 w-full">
+        {message && (
+          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8 w-full flex-shrink-0">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
                 <Reply className="w-6 h-6" /> Reply to {conversationPartnerName}
@@ -369,8 +380,7 @@ const ViewMessage = () => {
                     <Reply className="w-4 h-4 mr-2" /> Send Reply
                   </Button>
                 </form>
-              </Form>
-            </CardContent>
+              </CardContent>
           </Card>
         )}
       </div>
