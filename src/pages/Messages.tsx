@@ -21,6 +21,9 @@ const Messages = () => {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
 
+  console.log('Messages Component: Rendered. sessionLoading:', sessionLoading, 'messagesLoading:', messagesLoading);
+  console.log('Messages Component: Current user:', user?.id);
+
   // Helper to fetch a single profile if not already in map
   const getOrFetchProfile = async (profileId: string) => {
     if (profilesMap.has(profileId)) {
@@ -120,7 +123,7 @@ const Messages = () => {
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);
-        console.log('Messages: Message fetching completed.');
+        console.log('Messages: Message fetching completed. messagesLoading set to false.');
       }
     };
 
@@ -196,7 +199,10 @@ const Messages = () => {
     };
   }, [user, sessionLoading, navigate]);
 
+  console.log('Messages Component: State before rendering JSX - sentMessages:', sentMessages.length, 'receivedMessages:', receivedMessages.length);
+
   if (sessionLoading || messagesLoading) {
+    console.log('Messages Component: Displaying loading state.');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
         <p className="text-xl">Loading messages...</p>
@@ -205,6 +211,8 @@ const Messages = () => {
   }
 
   if (!user) {
+    console.log('Messages Component: User not found, navigating to login.');
+    navigate('/login');
     return null;
   }
 
