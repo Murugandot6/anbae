@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
 import { Profile, Message } from '@/types/supabase'; // Import shared types
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -236,18 +237,24 @@ const Messages = () => {
                   <ul className="space-y-4">
                     {receivedMessages.map((message) => (
                       <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                          <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                            <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
-                            {message.is_read ? null : <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-                            <User className="w-4 h-4" /> From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                            <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
-                            <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
-                            <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
+                            <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                              <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
+                              {message.is_read ? null : <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
+                              <User className="w-4 h-4" /> From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
+                              <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
+                              <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                            </div>
                           </div>
                         </Link>
                       </li>
@@ -269,22 +276,28 @@ const Messages = () => {
                   <ul className="space-y-4">
                     {sentMessages.map((message) => (
                       <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                          <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                            <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
-                            {message.read_at && (
-                              <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                                <CheckCheck className="w-4 h-4" /> Read
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-                            <Mail className="w-4 h-4" /> To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                            <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
-                            <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
-                            <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
+                            <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                              <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
+                              {message.read_at && (
+                                <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                  <CheckCheck className="w-4 h-4" /> Read
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
+                              <Mail className="w-4 h-4" /> To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
+                              <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
+                              <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                            </div>
                           </div>
                         </Link>
                       </li>
