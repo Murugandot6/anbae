@@ -380,7 +380,8 @@ const ViewMessage = () => {
                     <Reply className="w-4 h-4 mr-2" /> Send Reply
                   </Button>
                 </form>
-              </CardContent>
+              </Form>
+            </CardContent>
           </Card>
         )}
       </div>
