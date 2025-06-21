@@ -237,7 +237,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
     <div className="clear-messages-dialog-container">
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
+          <Button variant="destructive" className="w-full sm:min-w-max flex-shrink-0 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
             <HeartCrack className="w-5 h-5 mr-2" /> Clear All Messages
           </Button>
         </AlertDialogTrigger>
