@@ -169,27 +169,41 @@ const ViewMessage = () => {
     fetchMessageAndReplies();
 
     const channel = supabase
-      .channel(`message_replies_${id}`)
+      .channel(`message_view_${id}`) // Unique channel name for this view
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'messages',
-          filter: `parent_message_id=eq.${id}`
+          filter: `id=eq.${id}.or.parent_message_id=eq.${id}` // Filter for the main message OR its replies
         },
         async (payload) => {
-          console.log('Realtime: New reply received:', payload.new);
-          const newReply = payload.new as Message;
-          const senderProfile = await fetchProfileById(newReply.sender_id);
-          const receiverProfile = await fetchProfileById(newReply.receiver_id);
+          console.log('Realtime: Payload received in ViewMessage:', payload);
+          if (payload.eventType === 'UPDATE' && payload.old.id === id) {
+            // This is an update to the main message
+            const updatedMessage = payload.new as Message;
+            console.log('Realtime: Main message updated:', updatedMessage);
+            setMessage(prev => {
+              if (!prev) return null;
+              return { ...prev, ...updatedMessage }; // Update the main message's properties
+            });
+            if (updatedMessage.status === 'closed') {
+                toast.info('This conversation has been closed by the sender.');
+            }
+          } else if (payload.eventType === 'INSERT' && payload.new.parent_message_id === id) {
+            // This is a new reply
+            const newReply = payload.new as Message;
+            const senderProfile = await fetchProfileById(newReply.sender_id);
+            const receiverProfile = await fetchProfileById(newReply.receiver_id);
 
-          setMessage(prev => {
-            if (!prev) return null;
-            const updatedReplies = [...(prev.replies || []), { ...newReply, senderProfile, receiverProfile }];
-            return { ...prev, replies: updatedReplies };
-          });
-          toast.info(`New reply received from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
+            setMessage(prev => {
+              if (!prev) return null;
+              const updatedReplies = [...(prev.replies || []), { ...newReply, senderProfile, receiverProfile }];
+              return { ...prev, replies: updatedReplies };
+            });
+            toast.info(`New reply received from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
+          }
         }
       )
       .subscribe();
