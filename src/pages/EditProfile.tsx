@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,14 +11,16 @@ import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AvatarSelector from '@/components/AvatarSelector'; // Import AvatarSelector
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import AvatarSelector from '@/components/AvatarSelector';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import helper to fetch partner profile
+import { Profile } from '@/types/supabase'; // Import Profile type
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
   partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
-  avatar_url: z.string().url({ message: 'Please select an avatar.' }).optional().or(z.literal('')), // New: avatar_url field
+  avatar_url: z.string().optional().or(z.literal('')), // Changed from .url() to plain string
 }).refine((data) => {
   const sessionContext = (window as any).dyadSessionContext;
   const currentUserEmail = sessionContext?.user?.email;
@@ -32,7 +34,8 @@ const EditProfile = () => {
   const navigate = useNavigate();
   const { user, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null); // State for selected avatar
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null); // State for partner profile
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,47 +43,76 @@ const EditProfile = () => {
       nickname: '',
       partner_email: '',
       partner_nickname: '',
-      avatar_url: '', // Initialize avatar_url
+      avatar_url: '',
     },
   });
+
+  // Log form errors for debugging
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.error('EditProfile: Form validation errors:', form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
 
   useEffect(() => {
-    if (!sessionLoading && user) {
-      const currentAvatar = user.user_metadata.avatar_url || '';
-      console.log('EditProfile: Initial user_metadata.avatar_url:', currentAvatar); // Log 1
-      setSelectedAvatar(currentAvatar); // Set initial selected avatar
-      form.reset({
-        nickname: user.user_metadata.nickname || '',
-        partner_email: user.user_metadata.partner_email || '',
-        partner_nickname: user.user_metadata.partner_nickname || '',
-        avatar_url: currentAvatar, // Populate form with current avatar
-      });
-      setLoading(false);
-    } else if (!sessionLoading && !user) {
-      navigate('/login');
-    }
+    const loadProfileData = async () => {
+      if (!sessionLoading && user) {
+        const currentAvatar = user.user_metadata.avatar_url || '';
+        console.log('EditProfile: Initial user_metadata.avatar_url:', currentAvatar);
+        setSelectedAvatar(currentAvatar);
+        form.reset({
+          nickname: user.user_metadata.nickname || '',
+          partner_email: user.user_metadata.partner_email || '',
+          partner_nickname: user.user_metadata.partner_nickname || '',
+          avatar_url: currentAvatar,
+        });
+
+        // Fetch partner profile
+        const currentUsersPartnerEmail = user.user_metadata.partner_email;
+        if (currentUsersPartnerEmail) {
+          try {
+            const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail);
+            if (partnerData) {
+              setPartnerProfile(partnerData);
+            } else {
+              console.log('EditProfile: Partner profile not found for email:', currentUsersPartnerEmail);
+              setPartnerProfile(null);
+            }
+          } catch (error) {
+            console.error('EditProfile: Error fetching partner profile:', error);
+            setPartnerProfile(null);
+          }
+        } else {
+          setPartnerProfile(null);
+        }
+        setLoading(false);
+      } else if (!sessionLoading && !user) {
+        navigate('/login');
+      }
+    };
+    loadProfileData();
   }, [user, sessionLoading, navigate, form]);
 
   const handleAvatarSelect = (url: string) => {
-    console.log('EditProfile: Avatar selected, setting form value to:', url); // Log 2
+    console.log('EditProfile: Avatar selected, setting form value to:', url);
     setSelectedAvatar(url);
-    form.setValue('avatar_url', url, { shouldValidate: true }); // Update form value
+    form.setValue('avatar_url', url, { shouldValidate: true });
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('EditProfile: onSubmit function triggered!'); // NEW LOG HERE
+    console.log('EditProfile: onSubmit function triggered!');
     if (!user) {
       toast.error('User not authenticated.');
       return;
     }
 
     setLoading(true);
-    console.log('EditProfile: Submitting form with values:', values); // Log 3
-    console.log('EditProfile: Avatar URL being sent:', values.avatar_url); // Log 4
+    console.log('EditProfile: Submitting form with values:', values);
+    console.log('EditProfile: Avatar URL being sent:', values.avatar_url);
 
     try {
       // 1. Update user_metadata in auth.users
@@ -89,14 +121,14 @@ const EditProfile = () => {
           nickname: values.nickname,
           partner_email: values.partner_email,
           partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url, // Update avatar_url in user_metadata
+          avatar_url: values.avatar_url,
         },
       });
 
       if (authError) {
         throw authError;
       }
-      console.log('EditProfile: Supabase auth.updateUser response:', authUpdateData); // Log 5
+      console.log('EditProfile: Supabase auth.updateUser response:', authUpdateData);
 
       // 2. Update public.profiles table
       const { error: profileError } = await supabase
@@ -105,19 +137,19 @@ const EditProfile = () => {
           username: values.nickname,
           partner_email: values.partner_email,
           partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url, // Update avatar_url in profiles table
+          avatar_url: values.avatar_url,
         })
         .eq('id', user.id);
 
       if (profileError) {
         throw profileError;
       }
-      console.log('EditProfile: Supabase profiles update successful.'); // Log 6
+      console.log('EditProfile: Supabase profiles update successful.');
 
       toast.success('Profile updated successfully!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('EditProfile: Profile update error:', error.message, error); // Log 7
+      console.error('EditProfile: Profile update error:', error.message, error);
       toast.error('Failed to update profile: ' + error.message);
     } finally {
       setLoading(false);
@@ -193,14 +225,23 @@ const EditProfile = () => {
               <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Select Avatar</FormLabel>
               <div className="flex items-center gap-4 mb-4">
                 {selectedAvatar && (
-                  <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400">
-                    <AvatarImage src={selectedAvatar} alt="Selected Avatar" />
-                    <AvatarFallback>AV</AvatarFallback>
-                  </Avatar>
+                  <div className="text-center">
+                    <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400 mx-auto">
+                      <AvatarImage src={selectedAvatar} alt="Your Avatar" />
+                      <AvatarFallback>AV</AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm text-muted-foreground mt-1">Your Avatar</p>
+                  </div>
                 )}
-                <p className="text-sm text-muted-foreground">
-                  {selectedAvatar ? 'Current Avatar' : 'No avatar selected'}
-                </p>
+                {partnerProfile && (
+                  <div className="text-center">
+                    <Avatar className="w-20 h-20 border-2 border-pink-500 dark:border-indigo-400 mx-auto">
+                      <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
+                      <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm text-muted-foreground mt-1">Partner's Avatar</p>
+                  </div>
+                )}
               </div>
               <FormControl>
                 <AvatarSelector selectedAvatar={selectedAvatar} onSelect={handleAvatarSelect} />
