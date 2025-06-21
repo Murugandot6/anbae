@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import *s z from 'zod';
 import { toast } from 'sonner';
 import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -17,7 +17,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import AppBackground from '@/components/AppBackground'; // Updated import
+import AppBackground from '@/components/AppBackground';
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Badge } from '@/components/ui/badge';
 
@@ -216,7 +216,7 @@ const ViewMessage = () => {
       return;
     }
 
-    if (message.status === 'closed') { // Added check for message status
+    if (message.status === 'closed') {
       toast.error('Cannot reply to a closed message.');
       return;
     }
@@ -330,10 +330,10 @@ const ViewMessage = () => {
 
   const isMessageSentByCurrentUser = message.sender_id === user.id;
   const canCloseMessage = isMessageSentByCurrentUser && message.status === 'open';
-  const canReply = message.status === 'open'; // New condition for reply form visibility
+  const canReply = message.status === 'open';
 
   return (
-    <AppBackground className="pt-20"> {/* Re-added AppBackground */}
+    <AppBackground className="pt-20">
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
@@ -409,9 +409,18 @@ const ViewMessage = () => {
                         </FormItem>
                       )}
                     />
-                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-gray-500 dark:text-gray-400" aria-label="Attach file">
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
+                    {canCloseMessage && (
+                      <Button
+                        type="button" // Changed to type="button" to prevent form submission
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 w-8 h-8 text-red-500 dark:text-red-400"
+                        onClick={handleCloseMessage}
+                        aria-label="Close message"
+                      >
+                        <XCircle className="w-5 h-5" />
+                      </Button>
+                    )}
                     <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400">
                       <Send className="w-5 h-5" />
                     </Button>
@@ -421,18 +430,7 @@ const ViewMessage = () => {
             </CardContent>
           </Card>
         )}
-        {canCloseMessage && (
-          <div className="fixed bottom-[100px] right-4 z-50">
-            <Button
-              onClick={handleCloseMessage}
-              variant="outline"
-              className="bg-red-500 hover:bg-red-600 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full p-2 shadow-lg"
-              size="icon"
-            >
-              <XCircle className="w-6 h-6" />
-            </Button>
-          </div>
-        )}
+        {/* Removed the fixed bottom close button */}
       </div>
     </AppBackground>
   );
