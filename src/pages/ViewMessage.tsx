@@ -5,7 +5,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } => '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -339,7 +339,7 @@ const ViewMessage = () => {
         </div>
 
         {/* Scrollable Message Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4"> {/* flex-1 makes it take available height */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-[120px]"> {/* Added padding-bottom to prevent overlap with fixed input */}
           {/* Main Message */}
           {message && renderMessageContent(message, user)}
 
@@ -352,15 +352,15 @@ const ViewMessage = () => {
           <div ref={messagesEndRef} /> {/* Scroll target */}
         </div>
 
-        {/* Reply Section */}
+        {/* Reply Section - Fixed at bottom */}
         {message && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8 w-full flex-shrink-0">
-            <CardHeader>
+          <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
+            <CardHeader className="p-0 pb-4">
               <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
                 <Reply className="w-6 h-6" /> Reply to {conversationPartnerName}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
                   <FormField
@@ -368,9 +368,19 @@ const ViewMessage = () => {
                     name="replyContent"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Reply</FormLabel>
+                        <FormLabel className="sr-only">Your Reply</FormLabel> {/* Screen reader only label */}
                         <FormControl>
-                          <Textarea placeholder="Type your reply here..." {...field} rows={4} />
+                          <Textarea
+                            placeholder="Type your reply here..."
+                            {...field}
+                            rows={3} // Adjusted rows for a more compact input
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault(); // Prevent new line
+                                replyForm.handleSubmit(handleReply)(); // Trigger form submission
+                              }
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
