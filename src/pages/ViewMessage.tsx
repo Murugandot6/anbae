@@ -329,8 +329,8 @@ const ViewMessage = () => {
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]"> {/* Adjusted height to account for pt-20 (80px) */}
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
-            <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
+            <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+              <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div className="flex items-center gap-4">
