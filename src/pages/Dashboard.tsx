@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } => 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Button } from '@/components/ui/button';
@@ -241,8 +241,13 @@ const Dashboard = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <Link to="/edit-profile" className="w-full sm:w-auto">
-                <Button variant="outline" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Button variant="outline" size="icon" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
                   <Settings className="w-5 h-5" /> 
+                </Button>
+              </Link>
+              <Link to="/messages" className="w-full sm:w-auto"> {/* New Inbox icon button */}
+                <Button variant="outline" size="icon" className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Inbox className="w-5 h-5" />
                 </Button>
               </Link>
               <Button onClick={handleLogout} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
@@ -290,13 +295,7 @@ const Dashboard = () => {
                 <MessageSquare className="w-6 h-6 mr-3" /> Send New Message
               </Button>
             </Link>
-            <Button
-              size="lg"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 py-6 text-lg"
-              onClick={handleViewMessages}
-            >
-              <Inbox className="w-6 h-6 mr-3" /> View Inbox & Outbox
-            </Button>
+            {/* Removed the old "View Inbox & Outbox" button */}
           </div>
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
