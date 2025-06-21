@@ -356,7 +356,7 @@ const ViewMessage = () => {
             <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
-                  <div className="flex items-center gap-2 border rounded-lg p-2 bg-gray-100 dark:bg-gray-700">
+                  <div className="flex items-center gap-2 border rounded-lg p-1 bg-gray-100 dark:bg-gray-700"> {/* Changed p-2 to p-1 */}
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
                       onOpenChange={setIsEmojiPickerOpen}
@@ -376,7 +376,7 @@ const ViewMessage = () => {
                               placeholder="Type something..."
                               {...field}
                               rows={1} // Start with 1 row
-                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0" // Remove default textarea styling
+                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0" // Added py-0
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
