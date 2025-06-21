@@ -237,7 +237,7 @@ const Messages = () => {
                   <ul className="space-y-4">
                     {receivedMessages.map((message) => (
                       <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-center gap-3"> {/* Added justify-center */}
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
@@ -276,7 +276,7 @@ const Messages = () => {
                   <ul className="space-y-4">
                     {sentMessages.map((message) => (
                       <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-center gap-3"> {/* Added justify-center */}
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
