@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Mic, Image } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } => "@/components/ThemeToggle";
 
 const Index = () => {
   const typingPhrases = [
@@ -53,7 +53,7 @@ const Index = () => {
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:from-gray-900 dark:to-purple-950 dark:bg-gradient-to-br text-foreground p-4 relative">
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle />
       </div>
