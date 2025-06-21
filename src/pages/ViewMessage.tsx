@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip } from 'lucide-react'; // Added Paperclip
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
@@ -356,27 +356,27 @@ const ViewMessage = () => {
             <CardContent className="p-0">
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
-                  <div className="flex items-center gap-1 border rounded-lg p-1 bg-gray-100 dark:bg-gray-700"> {/* Changed gap-2 to gap-1 */}
+                  <div className="flex items-center gap-2 border rounded-full px-3 py-1 bg-white dark:bg-gray-800 shadow-sm"> {/* Updated padding, background, and rounded-full */}
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
                       onOpenChange={setIsEmojiPickerOpen}
                       onEmojiSelect={handleEmojiSelect}
                     >
-                      <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label="Open emoji picker">
-                        <Smile className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                      <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker"> {/* Set fixed size and blue color */}
+                        <Smile className="w-5 h-5" />
                       </Button>
                     </EmojiPickerPopover>
                     <FormField
                       control={replyForm.control}
                       name="replyContent"
                       render={({ field }) => (
-                        <FormItem className="flex-1 mb-0"> {/* flex-1 to make it grow, mb-0 to remove default margin */}
+                        <FormItem className="flex-1 mb-0">
                           <FormControl>
                             <Textarea
-                              placeholder="Type something..."
+                              placeholder="Type a message..." {/* Updated placeholder */}
                               {...field}
-                              rows={1} // Start with 1 row
-                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0" // Added py-0
+                              rows={1}
+                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0 h-8" {/* Set fixed height */}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
@@ -385,12 +385,15 @@ const ViewMessage = () => {
                               }}
                             />
                           </FormControl>
-                          <FormMessage /> {/* Keep FormMessage for validation errors */}
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
-                      Send
+                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-gray-500 dark:text-gray-400" aria-label="Attach file"> {/* Added attachment button */}
+                      <Paperclip className="w-5 h-5" />
+                    </Button>
+                    <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400"> {/* Changed to ghost button and blue color */}
+                      <Send className="w-5 h-5" />
                     </Button>
                   </div>
                 </form>
