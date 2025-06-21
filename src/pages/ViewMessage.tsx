@@ -10,14 +10,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react'; // Added Send here
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Ensure this import is correct
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper';
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Badge } from '@/components/ui/badge';
 
