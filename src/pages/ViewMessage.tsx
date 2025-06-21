@@ -14,6 +14,7 @@ import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckChec
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
+import { cn } from '@/lib/utils'; // Import cn for conditional class merging
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -232,30 +233,43 @@ const ViewMessage = () => {
     );
     }
 
-  const isSentMessage = message.sender_id === user.id;
-  const displaySender = isSentMessage ? 'You' : message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender';
-  const displayReceiver = isSentMessage ? message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner' : 'You';
-
-  const renderMessageContent = (msg: Message, isReply = false) => {
-    const senderName = msg.sender_id === user.id ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
-    const receiverName = msg.receiver_id === user.id ? 'You' : msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner';
+  const renderMessageContent = (msg: Message, currentUser: typeof user, isReply = false) => {
+    const isSentByCurrentUser = msg.sender_id === currentUser?.id;
+    const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
+    const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
     const sentTime = new Date(msg.created_at).toLocaleString();
 
     return (
-      <div key={msg.id} className={`p-4 rounded-lg ${isReply ? 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 mt-4' : 'bg-white dark:bg-gray-800 shadow-lg'}`}>
-        <h3 className={`font-semibold text-lg ${isReply ? 'text-gray-800 dark:text-gray-100' : 'text-gray-900 dark:text-white'} flex items-center gap-2`}>
-          <MessageSquare className="w-5 h-5" /> {msg.subject}
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          From: {senderName} | To: {receiverName} | Sent: {sentTime}
-        </p>
-        {msg.read_at && msg.sender_id === user.id && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-            <CheckCheck className="w-3 h-3 text-blue-500" /> Read on: {new Date(msg.read_at).toLocaleString()}
-          </p>
+      <div
+        key={msg.id}
+        className={cn(
+          "flex w-full",
+          isSentByCurrentUser ? "justify-end" : "justify-start"
         )}
-        <Separator className="my-3" />
-        <p className="whitespace-pre-wrap text-base text-gray-700 dark:text-gray-200">{msg.content}</p>
+      >
+        <div
+          className={cn(
+            "max-w-[70%] p-4 rounded-xl shadow-md",
+            isSentByCurrentUser
+              ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none"
+              : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
+            isReply ? "mt-2" : "" // Add margin top for replies
+          )}
+        >
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" /> {msg.subject}
+          </h3>
+          <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
+            From: {senderName} | To: {receiverName} | Sent: {sentTime}
+          </p>
+          {msg.read_at && isSentByCurrentUser && (
+            <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300">
+              <CheckCheck className="w-3 h-3" /> Read on: {new Date(msg.read_at).toLocaleString()}
+            </p>
+          )}
+          <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
+          <p className="whitespace-pre-wrap text-base">{msg.content}</p>
+        </div>
       </div>
     );
   };
@@ -273,24 +287,24 @@ const ViewMessage = () => {
         </div>
 
         {/* Main Message */}
-        {message && renderMessageContent(message)}
+        {message && renderMessageContent(message, user)}
 
         {/* Replies Section */}
         {message && message.replies && message.replies.length > 0 && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Replies</h2>
             <div className="space-y-4">
-              {message.replies.map(reply => renderMessageContent(reply, true))}
+              {message.replies.map(reply => renderMessageContent(reply, user, true))}
             </div>
           </div>
         )}
 
         {/* Reply Section */}
         {message && ( // Always show reply form on a message view
-          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8">
+          <Card className="bg-white dark:bg-gray-800 shadow-lg mt-8 w-full">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white text-2xl flex items-center gap-2">
-                <Reply className="w-6 h-6" /> Reply to {displaySender}
+                <Reply className="w-6 h-6" /> Reply to {message.sender_id === user.id ? message.receiverProfile?.username || message.receiverProfile?.email || 'Your Partner' : message.senderProfile?.username || message.senderProfile?.email || 'Your Partner'}
               </CardTitle>
             </CardHeader>
             <CardContent>
