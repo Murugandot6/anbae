@@ -14,7 +14,7 @@ import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckChec
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
-import { cn } from '@/lib/utils'; // Import cn for conditional class merging
+import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and the new utility function
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -237,7 +237,7 @@ const ViewMessage = () => {
     const isSentByCurrentUser = msg.sender_id === currentUser?.id;
     const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
     const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
-    const sentTime = new Date(msg.created_at).toLocaleString();
+    const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
 
     return (
       <div
@@ -257,14 +257,14 @@ const ViewMessage = () => {
           )}
         >
           <h3 className="font-semibold text-lg flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" /> {msg.subject}
+            {msg.subject} {/* Removed 'Subject:' prefix */}
           </h3>
           <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}>
-            From: {senderName} | To: {receiverName} | Sent: {sentTime}
+            From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
           </p>
           {msg.read_at && isSentByCurrentUser && (
             <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300">
-              <CheckCheck className="w-3 h-3" /> Read on: {new Date(msg.read_at).toLocaleString()}
+              <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
             </p>
           )}
           <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
