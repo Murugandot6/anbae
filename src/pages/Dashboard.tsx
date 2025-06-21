@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import the new wrapper
+import BackgroundImageWrapper from '@/components/BackgroundImageWrapper';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 interface Profile {
   id: string;
@@ -16,6 +17,7 @@ interface Profile {
   email: string | null;
   partner_email?: string | null;
   partner_nickname?: string | null;
+  avatar_url?: string | null; // Include avatar_url
 }
 
 interface Message {
@@ -69,11 +71,11 @@ const Dashboard = () => {
         // Fetch current user's profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, email, partner_email, partner_nickname')
+          .select('id, username, email, partner_email, partner_nickname, avatar_url') // Include avatar_url
           .eq('id', user.id)
           .single();
 
-        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found
+        if (profileError && profileError.code !== 'PGRST116') {
           console.error('Dashboard: Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
@@ -84,7 +86,7 @@ const Dashboard = () => {
             console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email);
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
-              .select('id, username, email')
+              .select('id, username, email, avatar_url') // Include avatar_url for partner
               .eq('email', profileData.partner_email)
               .single();
 
@@ -96,11 +98,11 @@ const Dashboard = () => {
               setPartnerProfile(partnerData);
             } else {
               console.log('Dashboard: Partner profile not found for email:', profileData.partner_email);
-              setPartnerProfile(null); // Explicitly set to null if not found
+              setPartnerProfile(null);
             }
           } else {
             console.log('Dashboard: Current user does not have a partner email set.');
-            setPartnerProfile(null); // No partner email set
+            setPartnerProfile(null);
           }
         } else {
           console.log('Dashboard: Current user profile not found for ID:', user.id);
@@ -123,63 +125,52 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchMessagesAndProfiles = async () => {
       if (!user) {
-        setMessagesLoading(false); // Set loading to false if no user
+        setMessagesLoading(false);
         return;
       }
 
-      setMessagesLoading(true); // Set loading to true at the start of fetch
+      setMessagesLoading(true);
       try {
-        // Fetch latest 3 sent messages (only top-level messages)
-        console.log('Dashboard: Fetching sent messages for user ID:', user.id);
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages
+          .select('*')
           .eq('sender_id', user.id)
-          .is('parent_message_id', null) // Filter out replies
+          .is('parent_message_id', null)
           .order('created_at', { ascending: false })
           .limit(3);
 
         if (sentError) {
           console.error('Dashboard: Supabase Error fetching sent messages:', sentError.message, sentError);
           toast.error('Failed to load sent messages: ' + sentError.message);
-        } else {
-          console.log('Dashboard: Sent messages data:', sentData);
         }
 
-        // Fetch latest 3 received messages (only top-level messages)
-        console.log('Dashboard: Fetching received messages for user ID:', user.id);
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*') // Select all columns from messages
+          .select('*')
           .eq('receiver_id', user.id)
-          .is('parent_message_id', null) // Filter out replies
+          .is('parent_message_id', null)
           .order('created_at', { ascending: false })
           .limit(3);
 
         if (receivedError) {
           console.error('Dashboard: Supabase Error fetching received messages:', receivedError.message, receivedError);
           toast.error('Failed to load received messages: ' + receivedError.message);
-        } else {
-          console.log('Dashboard: Received messages data:', receivedData);
         }
 
         const allRelatedUserIds = new Set<string>();
         sentData?.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
-        allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
+        allRelatedUserIds.add(user.id);
 
-        console.log('Dashboard: Fetching profiles for related user IDs:', Array.from(allRelatedUserIds));
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, username, email')
+          .select('id, username, email, avatar_url') // Include avatar_url here
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
           console.error('Dashboard: Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
           toast.error('Failed to load associated profiles: ' + profilesError.message);
           return;
-        } else {
-          console.log('Dashboard: Profiles data for messages:', profilesData);
         }
 
         const profilesMap = new Map<string, Profile>();
@@ -227,13 +218,12 @@ const Dashboard = () => {
   }
 
   return (
-    <BackgroundImageWrapper className="pt-20"> {/* Wrap content with the new component, keep pt-20 for spacing */}
+    <BackgroundImageWrapper className="pt-20">
       <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-4xl mx-auto animate-fade-in"> {/* Added animate-fade-in here */}
-          {/* Horizontal container for action icons */}
+        <div className="w-full max-w-4xl mx-auto animate-fade-in">
           <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
             <Link to="/send-message">
               <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
@@ -274,9 +264,15 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base">
-                <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
-                <p><strong>Email:</strong> {user.email}</p>
+              <CardContent className="text-muted-foreground text-base flex items-center gap-4">
+                <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p><strong>Nickname:</strong> {user.user_metadata.nickname || 'Not set'}</p>
+                  <p><strong>Email:</strong> {user.email}</p>
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-gray-800 shadow-lg">
@@ -285,9 +281,21 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-muted-foreground text-base">
-                <p><strong>Partner Email:</strong> {user.user_metadata.partner_email || 'Not set'}</p>
-                <p><strong>Partner Alias:</strong> {user.user_metadata.partner_nickname || 'Not set'}</p>
+              <CardContent className="text-muted-foreground text-base flex items-center gap-4">
+                {partnerProfile ? (
+                  <>
+                    <Avatar className="w-16 h-16 border-2 border-pink-500 dark:border-indigo-400">
+                      <AvatarImage src={partnerProfile.avatar_url || ''} alt="Partner Avatar" />
+                      <AvatarFallback>{partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p><strong>Partner Nickname:</strong> {partnerProfile.username || 'Not set'}</p>
+                      <p><strong>Partner Email:</strong> {partnerProfile.email || 'Not set'}</p>
+                    </div>
+                  </>
+                ) : (
+                  <p>No partner profile linked or found.</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -308,11 +316,17 @@ const Dashboard = () => {
                           index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
                         }`}
                       >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                          <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
-                          </p>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
+                            <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
+                            </p>
+                          </div>
                         </Link>
                       </li>
                     ))}
@@ -336,11 +350,17 @@ const Dashboard = () => {
                           index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
                         }`}
                       >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
-                          <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
-                          </p>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
+                            <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-lg">Subject: {message.subject}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
+                            </p>
+                          </div>
                         </Link>
                       </li>
                     ))}
