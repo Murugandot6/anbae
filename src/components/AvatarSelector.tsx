@@ -27,13 +27,11 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ selectedAvatar, onSelec
             key={path}
             className={cn(
               "relative cursor-pointer rounded-full overflow-hidden transition-all duration-200",
-              // Removed hover:scale-105 and selectedAvatar === path ? "scale-110" : ""
-              // Applying ring directly based on selection/hover without scale for debugging
               selectedAvatar === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400"
             )}
             onClick={() => onSelect(path)}
           >
-            <Avatar className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20">
+            <Avatar className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 aspect-square rounded-full overflow-hidden"> {/* Added aspect-square and explicit rounded-full/overflow-hidden */}
               <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
               <AvatarFallback className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
                 AV
