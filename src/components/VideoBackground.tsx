@@ -12,7 +12,7 @@ const VideoBackground: React.FC = () => {
       >
         {/* Replace 'your-video.mp4' with the actual path to your video file. */}
         {/* You can also add multiple <source> tags for different video formats (e.g., .webm, .ogg) for broader browser compatibility. */}
-        <source src="/videos/your-background-video.mp4" type="video/mp4" />
+        <source src="/videos/my-background-video.mp4" type="video/mp4" /> {/* Updated path example */}
         Your browser does not support the video tag.
       </video>
       {/* Optional: Add an overlay for better text readability */}
