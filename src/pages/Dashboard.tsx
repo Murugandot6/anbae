@@ -250,8 +250,8 @@ const Dashboard = () => {
                   <Inbox className="w-5 h-5" />
                 </Button>
               </Link>
-              <Button onClick={handleLogout} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
-                <LogOut className="w-5 h-5 mr-2" /> Logout
+              <Button onClick={handleLogout} size="icon" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
+                <LogOut className="w-5 h-5" /> {/* Removed mr-2 as there's no text */}
               </Button>
               {user && (
                 <ClearMessagesDialog
