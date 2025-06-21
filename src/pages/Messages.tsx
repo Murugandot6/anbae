@@ -10,6 +10,7 @@ import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck
 import { Profile, Message } from '@/types/supabase'; // Import shared types
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { formatMessageDate } from '@/lib/utils'; // Import formatMessageDate
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -242,14 +243,18 @@ const Messages = () => {
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                              <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
-                              {message.is_read ? null : <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5" />
+                                Conversation with {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} about {message.message_type}
+                              </span>
+                              <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                {message.is_read ? null : <span className="text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
+                                {formatMessageDate(message.created_at)}
+                              </span>
                             </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-                              <User className="w-4 h-4" /> From: {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} | Received: {new Date(message.created_at).toLocaleString()}
-                            </p>
+                            {/* Removed the redundant "From: X | Received: Y" line */}
                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                               <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
@@ -281,18 +286,22 @@ const Messages = () => {
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                              <MessageSquare className="w-5 h-5" /> Subject: {message.subject}
-                              {message.read_at && (
-                                <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                                  <CheckCheck className="w-4 h-4" /> Read
-                                </span>
-                              )}
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5" />
+                                Conversation with {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} about {message.message_type}
+                              </span>
+                              <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                {message.read_at && (
+                                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                    <CheckCheck className="w-4 h-4" /> Read
+                                  </span>
+                                )}
+                                {formatMessageDate(message.created_at)}
+                              </span>
                             </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
-                              <Mail className="w-4 h-4" /> To: {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} | Sent: {new Date(message.created_at).toLocaleString()}
-                            </p>
+                            {/* Removed the redundant "To: X | Sent: Y" line */}
                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                               <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
