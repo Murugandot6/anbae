@@ -27,8 +27,9 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ selectedAvatar, onSelec
             key={path}
             className={cn(
               "relative cursor-pointer rounded-full overflow-hidden transition-all duration-200",
-              "hover:scale-105 hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400",
-              selectedAvatar === path ? "ring-4 ring-blue-600 dark:ring-purple-500 scale-110" : ""
+              // Removed hover:scale-105 and selectedAvatar === path ? "scale-110" : ""
+              // Applying ring directly based on selection/hover without scale for debugging
+              selectedAvatar === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400"
             )}
             onClick={() => onSelect(path)}
           >
