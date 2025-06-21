@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus } from 'lucide-react'; // Added Plus icon
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
@@ -28,6 +28,14 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
   const senderName = isSentByCurrentUser ? 'You' : msg.senderProfile?.username || msg.senderProfile?.email || 'Unknown Sender';
   const receiverName = isSentByCurrentUser ? msg.receiverProfile?.username || msg.receiverProfile?.email || 'Unknown Partner' : 'You';
   const formattedDateTime = formatDateTimeForMessageView(msg.created_at);
+
+  // Debugging logs
+  console.log(`Debugging Message Render: Message ID: ${msg.id}`);
+  console.log(`  Sender ID: ${msg.sender_id}`);
+  console.log(`  Current User ID: ${currentUser?.id}`);
+  console.log(`  Is Sent By Current User: ${isSentByCurrentUser}`);
+  console.log(`  Message Content: "${msg.content}"`);
+
 
   // Determine which avatar to show
   const avatarUrl = isSentByCurrentUser ? currentUser?.user_metadata.avatar_url : msg.senderProfile?.avatar_url;
