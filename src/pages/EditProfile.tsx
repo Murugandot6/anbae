@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users } from 'lucide-react';
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react'; // Added ImageIcon
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,14 +11,30 @@ import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import { cn } from '@/lib/utils'; // Import cn for conditional classNames
+
+// Define default avatar options
+const AVATAR_OPTIONS = [
+  '/avatars/avatar1.png',
+  '/avatars/avatar2.png',
+  '/avatars/avatar3.png',
+  '/avatars/avatar4.png',
+  '/avatars/avatar5.png',
+  '/avatars/avatar6.png',
+  '/avatars/avatar7.png',
+  '/avatars/avatar8.png',
+  '/avatars/avatar9.png',
+  '/avatars/avatar10.png',
+];
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
-  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')), // Added partner_nickname
+  partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
+  avatar_url: z.string().url({ message: 'Please select a valid avatar.' }).optional().or(z.literal('')), // Added avatar_url
 }).refine((data) => {
-  // Get current user's email from session context
-  const sessionContext = (window as any).dyadSessionContext; // Accessing global context for validation
+  const sessionContext = (window as any).dyadSessionContext;
   const currentUserEmail = sessionContext?.user?.email;
   return data.partner_email === '' || data.partner_email !== currentUserEmail;
 }, {
@@ -36,11 +52,11 @@ const EditProfile = () => {
     defaultValues: {
       nickname: '',
       partner_email: '',
-      partner_nickname: '', // Set default value for partner_nickname
+      partner_nickname: '',
+      avatar_url: '', // Set default value for avatar_url
     },
   });
 
-  // Expose user and session to a global object for Zod refinement to access
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
@@ -50,7 +66,8 @@ const EditProfile = () => {
       form.reset({
         nickname: user.user_metadata.nickname || '',
         partner_email: user.user_metadata.partner_email || '',
-        partner_nickname: user.user_metadata.partner_nickname || '', // Populate from user_metadata
+        partner_nickname: user.user_metadata.partner_nickname || '',
+        avatar_url: user.user_metadata.avatar_url || '', // Populate from user_metadata
       });
       setLoading(false);
     } else if (!sessionLoading && !user) {
@@ -71,7 +88,8 @@ const EditProfile = () => {
         data: {
           nickname: values.nickname,
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname, // Update partner_nickname in user_metadata
+          partner_nickname: values.partner_nickname,
+          avatar_url: values.avatar_url, // Update avatar_url in user_metadata
         },
       });
 
@@ -83,9 +101,10 @@ const EditProfile = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          username: values.nickname, // Map nickname to username in profiles table
+          username: values.nickname,
           partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname, // Update partner_nickname in profiles table
+          partner_nickname: values.partner_nickname,
+          avatar_url: values.avatar_url, // Update avatar_url in profiles table
         })
         .eq('id', user.id);
 
@@ -112,8 +131,10 @@ const EditProfile = () => {
   }
 
   if (!user) {
-    return null; // Should be redirected by useEffect
+    return null;
   }
+
+  const currentAvatarUrl = form.watch('avatar_url');
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 relative">
@@ -162,6 +183,33 @@ const EditProfile = () => {
                   <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Nickname</FormLabel>
                   <FormControl>
                     <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="avatar_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Choose Avatar</FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-5 gap-2">
+                      {AVATAR_OPTIONS.map((url, index) => (
+                        <Avatar
+                          key={index}
+                          className={cn(
+                            "w-12 h-12 cursor-pointer border-2 transition-all duration-200",
+                            currentAvatarUrl === url ? "border-blue-500 ring-2 ring-blue-500 scale-110" : "border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+                          )}
+                          onClick={() => field.onChange(url)}
+                        >
+                          <AvatarImage src={url} alt={`Avatar ${index + 1}`} />
+                          <AvatarFallback>{url.slice(url.lastIndexOf('/') + 1, url.lastIndexOf('.'))}</AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
