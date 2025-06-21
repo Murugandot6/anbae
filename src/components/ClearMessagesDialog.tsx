@@ -16,7 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react'; // Reverted to HeartCrack
+import { HeartCrack, CheckCircle, XCircle, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ClearRequest {
@@ -241,7 +241,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="destructive" className="w-full sm:min-w-max flex-shrink-0 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 inline-flex items-center">
-                <HeartCrack className="w-5 h-5 mr-2" /> Clear All Messages {/* Reverted to HeartCrack and added text */}
+                <HeartCrack className="w-5 h-5 mr-2" /> Clear All Messages
               </Button>
             </TooltipTrigger>
             <TooltipContent>
