@@ -199,8 +199,6 @@ const Dashboard = () => {
     return null;
   }
 
-  // Removed partnerBorderColorClass as it's now handled by CircularProgressAvatar
-
   return (
     <AppBackground className="pt-20">
       <div className="absolute top-4 right-4 z-10">
@@ -249,12 +247,18 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
-                <Avatar className="w-24 h-24 border-2 border-blue-500 dark:border-purple-400">
-                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <CircularProgressAvatar
+                  score={currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 100}
+                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                  altText="Your Avatar"
+                  className="mb-2"
+                />
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </CardContent>
             </Card>
