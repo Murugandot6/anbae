@@ -72,7 +72,7 @@ const Register = () => {
         <div className="absolute top-4 right-4 z-10"> {/* Position ThemeToggle */}
           <ThemeToggle />
         </div>
-        <div className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 p-8 rounded-lg shadow-lg backdrop-blur-sm"> {/* Semi-transparent content card */}
+        <div className="w-full max-w-md bg-white/80 dark:bg-gray-800/80 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30"> {/* Semi-transparent content card with glassmorphism */}
           <div className="text-center mb-6">
             <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
