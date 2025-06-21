@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase'; // Import Message type from supabase.ts
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import fetchProfileById
 import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and the new utility function
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -288,17 +289,25 @@ const ViewMessage = () => {
     );
   };
 
-  const conversationPartnerName = message.sender_id === user.id
-    ? message.receiverProfile?.username || message.receiverProfile?.email || 'Your Partner'
-    : message.senderProfile?.username || message.senderProfile?.email || 'Your Partner';
+  const conversationPartnerProfile = message.sender_id === user.id
+    ? message.receiverProfile
+    : message.senderProfile;
+
+  const conversationPartnerName = conversationPartnerProfile?.username || conversationPartnerProfile?.email || 'Your Partner';
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
       <div className="w-full max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Conversation with {conversationPartnerName} about {message.message_type}
-          </h1>
+        <div className="flex items-center justify-between mb-8"> {/* Changed to flex items-center */}
+          <div className="flex items-center gap-4"> {/* New div for avatar and title */}
+            <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+              <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
+              <AvatarFallback>{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              Conversation with {conversationPartnerName} about {message.message_type}
+            </h1>
+          </div>
           <Link to="/messages">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
