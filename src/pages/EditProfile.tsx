@@ -51,6 +51,7 @@ const EditProfile = () => {
   useEffect(() => {
     if (!sessionLoading && user) {
       const currentAvatar = user.user_metadata.avatar_url || '';
+      console.log('EditProfile: Initial user_metadata.avatar_url:', currentAvatar); // Log 1
       setSelectedAvatar(currentAvatar); // Set initial selected avatar
       form.reset({
         nickname: user.user_metadata.nickname || '',
@@ -65,6 +66,7 @@ const EditProfile = () => {
   }, [user, sessionLoading, navigate, form]);
 
   const handleAvatarSelect = (url: string) => {
+    console.log('EditProfile: Avatar selected, setting form value to:', url); // Log 2
     setSelectedAvatar(url);
     form.setValue('avatar_url', url, { shouldValidate: true }); // Update form value
   };
@@ -76,6 +78,9 @@ const EditProfile = () => {
     }
 
     setLoading(true);
+    console.log('EditProfile: Submitting form with values:', values); // Log 3
+    console.log('EditProfile: Avatar URL being sent:', values.avatar_url); // Log 4
+
     try {
       // 1. Update user_metadata in auth.users
       const { data: authUpdateData, error: authError } = await supabase.auth.updateUser({
@@ -90,6 +95,7 @@ const EditProfile = () => {
       if (authError) {
         throw authError;
       }
+      console.log('EditProfile: Supabase auth.updateUser response:', authUpdateData); // Log 5
 
       // 2. Update public.profiles table
       const { error: profileError } = await supabase
@@ -105,11 +111,12 @@ const EditProfile = () => {
       if (profileError) {
         throw profileError;
       }
+      console.log('EditProfile: Supabase profiles update successful.'); // Log 6
 
       toast.success('Profile updated successfully!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Profile update error:', error.message, error);
+      console.error('EditProfile: Profile update error:', error.message, error); // Log 7
       toast.error('Failed to update profile: ' + error.message);
     } finally {
       setLoading(false);
