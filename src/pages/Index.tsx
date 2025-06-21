@@ -82,7 +82,7 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8 animate-fade-in delay-400">
+      <div className="flex gap-4 mb-8 animate-fade-in delay-400">
         <Link to="/login">
           <Button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white px-4 py-2 rounded-md shadow-sm">
             Login
