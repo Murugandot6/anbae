@@ -18,6 +18,7 @@ import { cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import cn and
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { Session } from '@supabase/supabase-js'; // Import Session type for user object
 import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Import BackgroundImageWrapper
+import EmojiPickerPopover from '@/components/EmojiPickerPopover'; // Import the new EmojiPickerPopover
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -86,6 +87,7 @@ const ViewMessage = () => {
   const { user, loading: sessionLoading } = useSession();
   const [message, setMessage] = useState<Message | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(true);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false); // State for emoji picker
 
   const replyForm = useForm<z.infer<typeof replyFormSchema>>({
     resolver: zodResolver(replyFormSchema),
@@ -233,6 +235,11 @@ const ViewMessage = () => {
     }
   }, [message]); // Trigger scroll when message (and thus replies) updates
 
+  const handleEmojiSelect = (emoji: string) => {
+    const currentContent = replyForm.getValues('replyContent');
+    replyForm.setValue('replyContent', currentContent + emoji, { shouldValidate: true });
+  };
+
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
       toast.error('Cannot send reply: User or message not identified.');
@@ -371,9 +378,15 @@ const ViewMessage = () => {
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
                   <div className="flex items-center gap-2 border rounded-lg p-2 bg-gray-100 dark:bg-gray-700">
-                    <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label="Open emoji picker">
-                      <Smile className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    </Button>
+                    <EmojiPickerPopover
+                      isOpen={isEmojiPickerOpen}
+                      onOpenChange={setIsEmojiPickerOpen}
+                      onEmojiSelect={handleEmojiSelect}
+                    >
+                      <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label="Open emoji picker">
+                        <Smile className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                      </Button>
+                    </EmojiPickerPopover>
                     <FormField
                       control={replyForm.control}
                       name="replyContent"
