@@ -72,6 +72,7 @@ const EditProfile = () => {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('EditProfile: onSubmit function triggered!'); // NEW LOG HERE
     if (!user) {
       toast.error('User not authenticated.');
       return;
