@@ -11,7 +11,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
   console.log(`SupabaseHelpers: Attempting to fetch profile by ID: ${profileId}`);
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, email, partner_email, partner_nickname, created_at, avatar_url') // Explicitly select columns including avatar_url
+    .select('id, username, email, partner_email, partner_nickname, created_at') // Explicitly select columns
     .eq('id', profileId)
     .single();
 
@@ -37,7 +37,7 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
   console.log(`SupabaseHelpers: Attempting to fetch profile by email: ${email}`);
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, email, partner_email, partner_nickname, created_at, avatar_url') // Explicitly select columns including avatar_url
+    .select('id, username, email, partner_email, partner_nickname, created_at') // Explicitly select columns
     .ilike('email', email) // Changed from .eq to .ilike for case-insensitive comparison
     .single();
 
