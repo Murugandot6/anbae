@@ -49,21 +49,21 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
         className={cn(
           "max-w-[70%] p-4 rounded-xl shadow-md",
           isSentByCurrentUser
-            ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none text-right" // Added text-right here
+            ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none" // Removed text-right here
             : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
           isReply ? "mt-2" : "" // Add margin top for replies
         )}
       >
-        <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300", isSentByCurrentUser ? "text-right" : "text-left")}> {/* Also apply text-right/left to metadata */}
+        <p className={cn("text-sm mt-1", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200" : "text-gray-600 dark:text-gray-300")}> {/* Removed text-right/left here, it will default to left */}
           From: {senderName} | To: {receiverName} | Sent: {formattedDateTime}
         </p>
         {msg.read_at && isSentByCurrentUser && (
-          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300 justify-end"> {/* Ensure read status is right-aligned */}
+          <p className="text-xs flex items-center gap-1 mt-1 text-blue-200 dark:text-blue-300"> {/* Removed justify-end here, it will default to left */}
             <CheckCheck className="w-3 h-3" /> Read on: {formatDateTimeForMessageView(msg.read_at)}
           </p>
         )}
         <Separator className={cn("my-3", isSentByCurrentUser ? "bg-blue-500 dark:bg-blue-700" : "bg-gray-300 dark:bg-gray-600")} />
-        <p className="whitespace-pre-wrap text-base">{msg.content}</p> {/* This will inherit text-right from parent */}
+        <p className="whitespace-pre-wrap text-base">{msg.content}</p> {/* This will now default to left-aligned */}
       </div>
     </div>
   );
@@ -369,8 +369,7 @@ const ViewMessage = () => {
                     <Reply className="w-4 h-4 mr-2" /> Send Reply
                   </Button>
                 </form>
-              </Form>
-            </CardContent>
+              </CardContent>
           </Card>
         )}
       </div>
