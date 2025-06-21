@@ -17,7 +17,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import BackgroundImageWrapper from '@/components/BackgroundImageWrapper'; // Re-added import
+import AppBackground from '@/components/AppBackground'; // Updated import
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Badge } from '@/components/ui/badge';
 
@@ -333,7 +333,7 @@ const ViewMessage = () => {
   const canReply = message.status === 'open'; // New condition for reply form visibility
 
   return (
-    <BackgroundImageWrapper className="pt-20"> {/* Re-added BackgroundImageWrapper */}
+    <AppBackground className="pt-20"> {/* Re-added AppBackground */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
@@ -371,7 +371,7 @@ const ViewMessage = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {message && canReply && ( {/* Added canReply condition here */}
+        {message && canReply && (
           <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
             <CardContent className="p-0">
               <Form {...replyForm}>
@@ -434,7 +434,7 @@ const ViewMessage = () => {
           </div>
         )}
       </div>
-    </BackgroundImageWrapper>
+    </AppBackground>
   );
 };
 
