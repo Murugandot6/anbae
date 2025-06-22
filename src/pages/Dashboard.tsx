@@ -288,7 +288,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
-                <div className="relative mb-4"> {/* Added relative positioning and mb-4 */}
+                <div className="relative mb-4">
                   <CircularProgressAvatar
                     score={currentUserProfile?.lifetime_score ?? 100}
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
@@ -312,18 +312,26 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
-                  <div className="relative mb-4"> {/* Added relative positioning and mb-4 */}
-                    <CircularProgressAvatar
-                      score={partnerProfile.lifetime_score ?? 100}
-                      avatarUrl={partnerProfile.avatar_url}
-                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
-                      altText="Partner Avatar"
-                      size="lg"
-                    />
-                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
-                      u
+                  <>
+                    <div className="relative mb-4">
+                      <CircularProgressAvatar
+                        score={partnerProfile.lifetime_score ?? 100}
+                        avatarUrl={partnerProfile.avatar_url}
+                        fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                        altText="Partner Avatar"
+                        size="lg"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                        u
+                      </div>
                     </div>
-                  </div>
+                    <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                      {partnerProfile.username || partnerProfile.email}
+                    </p>
+                    <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
+                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
+                    </p>
+                  </>
                 ) : (
                   <p className="text-muted-foreground text-base">No partner profile linked or found.</p>
                 )}
