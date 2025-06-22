@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { Profile } from '@/types/supabase'; // Import shared Profile type
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import shared helper
-import AppBackground from '@/components/AppBackground'; // Import AppBackground
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
 import { cn } from '@/lib/utils'; // Import cn utility for conditional classes
 
 const formSchema = z.object({
@@ -177,7 +177,7 @@ const SendMessage = () => {
   };
 
   return (
-    <AppBackground>
+    <BackgroundWrapper>
       <div className={cn(
         "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-sm transition-colors duration-300",
         getCardClassesForMessageType(selectedMessageType)
@@ -286,7 +286,7 @@ const SendMessage = () => {
           </Link>
         </div>
       </div>
-    </AppBackground>
+    </BackgroundWrapper>
   );
 };
 
