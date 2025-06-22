@@ -6,11 +6,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
 import OnboardingSlide from '@/components/OnboardingSlide';
 
-// Import Lottie JSON data with ?url suffix
-import travelLottie from '/lottie/travel.json?url';
-import relaxLottie from '/lottie/relax.json?url';
-import paymentLottie from '/lottie/payment.json?url';
-
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
@@ -21,25 +16,6 @@ const OnboardingWelcome: React.FC = () => {
   console.log("OnboardingWelcome: Component rendering.");
 
   const slidesData = [
-    {
-      title: "We will take care",
-      description: "of tickets, transfers and a cool place to stay",
-      lottieUrl: travelLottie,
-      bgColorClass: "bg-yellow-400",
-    },
-    {
-      title: "Relax & enjoy",
-      description: "Sunbathe, swim, eat and drink deliciously",
-      lottieUrl: relaxLottie,
-      bgColorClass: "bg-blue-300",
-    },
-    {
-      title: "Flexible payment",
-      description: "credit card and transfer, cryptocurrency",
-      lottieUrl: paymentLottie,
-      bgColorClass: "bg-pink-300",
-    },
-    // New slides with descriptive content
     {
       title: "Your Personalized Hub",
       description: "Here you'll find your Lifetime Score, a gentle whisper of your communication health. See your and your partner's profiles, a glance at the souls intertwined, and a timeline of recent messages, the thoughts you've recently shared.",
@@ -116,7 +92,7 @@ const OnboardingWelcome: React.FC = () => {
       </div>
 
       <div className="embla flex-1 overflow-hidden">
-        <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}> {/* Added temporary background */}
+        <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}>
           <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div className="embla__slide flex-[0_0_100%] min-w-0 h-full" key={index}>
