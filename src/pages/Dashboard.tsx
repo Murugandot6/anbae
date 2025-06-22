@@ -276,8 +276,8 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            {/* New grid container for profiles and heart */}
-            <div className="grid grid-cols-2 gap-8 mb-8 items-center justify-items-center">
+            {/* Flex container for profiles and heart - will arrange in a row on larger screens */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
                   <CircularProgressAvatar
@@ -299,6 +299,11 @@ const Dashboard = () => {
                 <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
+              </div>
+
+              {/* Heart icon in between */}
+              <div className="flex-shrink-0">
+                <Heart className="w-12 h-12 text-pink-500 dark:text-purple-400" /> {/* Reduced size */}
               </div>
 
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
@@ -328,11 +333,6 @@ const Dashboard = () => {
                 ) : (
                   <p className="text-muted-foreground text-base">No partner profile linked or found.</p>
                 )}
-              </div>
-
-              {/* Heart icon - now spans both columns and is centered below */}
-              <div className="col-span-2 flex justify-center mt-4">
-                <Heart className="w-16 h-16 text-pink-500 dark:text-purple-400" />
               </div>
             </div>
 
