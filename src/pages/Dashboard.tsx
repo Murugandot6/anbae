@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } '@/contexts/SessionContext';
+import { useSession } from '@/contexts/SessionContext'; // Added 'from' keyword
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -284,7 +284,7 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8"> {/* Changed to grid for consistent 2-column layout */}
+            <div className="grid grid-cols-2 gap-8 mb-8"> {/* Changed to grid-cols-2 to force 2 columns */}
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
@@ -305,7 +305,7 @@ const Dashboard = () => {
                 </p>
               </div>
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-purple-400 mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
