@@ -5,7 +5,7 @@ import { formatMessageDate, cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, CheckCheck } from 'lucide-react';
-import { User } from '@supabase/supabase-js';
+import { Button } from '@/components/ui/button'; // Ensure Button is imported if used in the empty state
 
 interface MessageTimelineProps {
   sentMessages: Message[];
@@ -61,45 +61,16 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
             <div
               key={message.id}
               className={cn(
-                "flex items-center w-full",
+                "flex items-center w-full gap-4", // Added gap for spacing
                 isSentByCurrentUser ? "flex-row-reverse" : "flex-row"
               )}
             >
-              {/* Message Card */}
-              <div
-                className={cn(
-                  "w-full md:w-[calc(50%-2rem)] p-4 rounded-xl shadow-lg backdrop-blur-sm border",
-                  isSentByCurrentUser
-                    ? "ml-auto mr-8 bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30"
-                    : "mr-auto ml-8 bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30"
-                )}
-              >
-                <Link to={`/messages/${message.id}`} className="block">
-                  <Card className="bg-transparent border-none shadow-none">
-                    <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        {message.subject}
-                      </CardTitle>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                        {formatMessageDate(message.created_at)}
-                      </span>
-                    </CardHeader>
-                    <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
-                      {message.content}
-                    </CardContent>
-                    <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      <span>
-                        {isSentByCurrentUser ? `To: ${displayName}` : `From: ${displayName}`}
-                      </span>
-                      {message.read_at && isSentByCurrentUser && (
-                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                          <CheckCheck className="w-3 h-3" /> Read
-                        </span>
-                      )}
-                    </div>
-                  </Card>
-                </Link>
+              {/* Date */}
+              <div className={cn(
+                "flex-shrink-0 text-sm text-gray-500 dark:text-gray-400 w-24 text-right", // Fixed width for date
+                isSentByCurrentUser ? "text-left" : "text-right" // Align date opposite to message
+              )}>
+                {formatMessageDate(message.created_at)}
               </div>
 
               {/* Timeline Dot and Avatar */}
@@ -109,6 +80,39 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                   <AvatarImage src={avatarUrl} alt={displayName} />
                   <AvatarFallback>{avatarFallback}</AvatarFallback>
                 </Avatar>
+              </div>
+
+              {/* Message Card */}
+              <div
+                className={cn(
+                  "flex-1 p-4 rounded-xl shadow-lg backdrop-blur-sm border", // Use flex-1 to take remaining space
+                  isSentByCurrentUser
+                    ? "bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30"
+                    : "bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30"
+                )}
+              >
+                <Link to={`/messages/${message.id}`} className="block">
+                  <Card className="bg-transparent border-none shadow-none">
+                    <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        {message.subject}
+                      </CardTitle>
+                      {/* Removed date from here */}
+                    </CardHeader>
+                    <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
+                      {message.content}
+                    </CardContent>
+                    <div className="flex justify-end items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      {/* Removed sender/receiver name here */}
+                      {message.read_at && isSentByCurrentUser && (
+                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                          <CheckCheck className="w-3 h-3" /> Read
+                        </span>
+                      )}
+                    </div>
+                  </Card>
+                </Link>
               </div>
             </div>
           );
