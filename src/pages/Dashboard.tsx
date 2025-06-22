@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext'; // Corrected import path
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,6 +80,7 @@ const Dashboard = () => {
             } else if (partnerData) {
               console.log('Dashboard: Partner profile fetched:', partnerData);
               setPartnerProfile(partnerData);
+              console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score); // Log partner score
             } else {
               console.log('Dashboard: Partner profile not found for email:', profileData.partner_email);
               setPartnerProfile(null);
@@ -287,16 +288,15 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
-                <div className="relative">
+                <div className="relative mb-4"> {/* Added relative positioning and mb-4 */}
                   <CircularProgressAvatar
                     score={currentUserProfile?.lifetime_score ?? 100}
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
                     fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
                     altText="Your Avatar"
-                    className="mb-2"
                     size="lg"
                   />
-                  <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-5 h-5 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
                     i
                   </div>
                 </div>
@@ -312,16 +312,15 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
-                  <div className="relative">
+                  <div className="relative mb-4"> {/* Added relative positioning and mb-4 */}
                     <CircularProgressAvatar
                       score={partnerProfile.lifetime_score ?? 100}
                       avatarUrl={partnerProfile.avatar_url}
                       fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
                       altText="Partner Avatar"
-                      className="mb-2"
                       size="lg"
                     />
-                    <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-5 h-5 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
+                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
                       u
                     </div>
                   </div>
