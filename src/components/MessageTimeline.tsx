@@ -43,6 +43,21 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
     );
   }
 
+  const getMessageTypeEmoji = (messageType: string) => {
+    switch (messageType) {
+      case 'Grievance':
+        return '💔';
+      case 'Compliment':
+        return '💖';
+      case 'Good Memory':
+        return '✨';
+      case 'How I Feel':
+        return '🤔';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="relative py-8">
       {/* Vertical timeline line */}
@@ -87,14 +102,20 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                 <Link to={`/messages/${message.id}`} className="block">
                   <Card className="bg-transparent border-none shadow-none">
                     <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {message.subject}
+                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        {getMessageTypeEmoji(message.message_type)} {message.subject}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
                       {message.content}
                     </CardContent>
-                    {/* Removed read status as per design */}
+                    <div className="flex justify-end items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      {message.read_at && isSentByCurrentUser && (
+                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                          <CheckCheck className="w-3 h-3" /> Read
+                        </span>
+                      )}
+                    </div>
                   </Card>
                 </Link>
               </div>
