@@ -49,17 +49,15 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
       break;
   }
 
-  console.log('CircularProgressAvatar: Score:', score, 'Avatar URL:', avatarUrl, 'Size:', size); // Debug log
-
   return (
-    <div className={cn("relative flex items-center justify-center border-2 border-yellow-500", className)}> {/* Added temporary yellow border */}
+    <div className={cn("relative flex items-center justify-center", className)}>
       <svg
-        className={cn(svgSizeClasses, "transform -rotate-90 bg-blue-100")} // Added temporary light blue background to SVG
+        className={cn(svgSizeClasses, "transform -rotate-90")} // Adjust size to match avatar, rotate to start from top
         viewBox="0 0 100 100" // Standard viewBox for a 100x100 SVG
       >
         {/* Background (remaining) circle - always a full circle, colored red */}
         <circle
-          className={cn("stroke-current", remainingColorClasses)}
+          className={remainingColorClasses}
           strokeWidth="8"
           fill="transparent"
           r={radius}
@@ -70,7 +68,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         />
         {/* Progress circle - green, covers the red based on score */}
         <circle
-          className={cn("stroke-current transition-all duration-500 ease-in-out", progressColorClasses)}
+          className={cn("transition-all duration-500 ease-in-out", progressColorClasses)}
           strokeWidth="8"
           strokeDasharray={circumference}
           strokeDashoffset={progressOffset}
