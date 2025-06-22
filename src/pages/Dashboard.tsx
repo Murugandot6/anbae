@@ -277,7 +277,7 @@ const Dashboard = () => {
             </div>
 
             {/* Flex container for profiles and heart - now always a row */}
-            <div className="flex items-center justify-center gap-4 mb-8 flex-wrap"> {/* Added flex-wrap for smaller screens if needed */}
+            <div className="flex items-center justify-center gap-4 mb-8"> {/* Removed flex-wrap */}
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
                   <CircularProgressAvatar
@@ -303,7 +303,7 @@ const Dashboard = () => {
 
               {/* Heart icon in between */}
               <div className="flex-shrink-0">
-                <Heart className="w-12 h-12 text-pink-500 dark:text-purple-400" />
+                <Heart className="w-8 h-8 text-pink-500 dark:text-purple-400" /> {/* Reduced size to w-8 h-8 */}
               </div>
 
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
