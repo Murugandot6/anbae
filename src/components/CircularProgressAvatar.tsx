@@ -24,7 +24,8 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   const progressOffset = circumference - (score / 100) * circumference;
 
   // Determine colors based on score
-  const progressColor = score === 100 ? 'stroke-green-500 dark:stroke-green-400' : 'stroke-blue-500 dark:stroke-blue-400';
+  // Changed progressColor to always be green, as requested
+  const progressColor = 'stroke-green-500 dark:stroke-green-400';
   const remainingColor = 'stroke-red-500 dark:stroke-red-400';
 
   let svgSizeClasses = 'w-24 h-24';
@@ -64,7 +65,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
           cx="50"
           cy="50"
         />
-        {/* Progress circle (green/blue part) */}
+        {/* Progress circle (green part) */}
         <circle
           className={cn("stroke-current transition-all duration-500 ease-in-out", progressColor)}
           strokeWidth="8"
