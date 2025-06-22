@@ -22,5 +22,8 @@ export default defineConfig(() => ({
         main: path.resolve(__dirname, 'index.html') // Explicitly define index.html as the main input
       }
     }
-  }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
 }));
