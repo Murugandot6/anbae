@@ -133,7 +133,7 @@ const Dashboard = () => {
         }
 
         const sent = allTopLevelMessages?.filter(msg => msg.sender_id === user.id) || [];
-        const received = allTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || [];
+        const received = allTopTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || [];
 
         const allRelatedUserIds = new Set<string>();
         sent.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
@@ -218,17 +218,15 @@ const Dashboard = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-2">
-                    {user && (
-                      <ClearMessagesDialog
-                        partnerId={partnerProfile?.id || null}
-                        partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-                        currentUserId={user.id}
-                        onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-                      />
-                    )}
-                  </div>
+                <div className="flex items-center gap-2 mb-4"> {/* Changed from justify-between to gap-2 */}
+                  {user && (
+                    <ClearMessagesDialog
+                      partnerId={partnerProfile?.id || null}
+                      partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                      currentUserId={user.id}
+                      onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+                    />
+                  )}
                   <ThemeToggle />
                 </div>
                 <div className="flex items-center gap-3 mb-6">
