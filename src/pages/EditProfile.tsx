@@ -15,6 +15,7 @@ import AvatarSelector from '@/components/AvatarSelector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import helper to fetch partner profile
 import { Profile } from '@/types/supabase'; // Import Profile type
+import AppBackground from '@/components/AppBackground'; // Import AppBackground
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
@@ -169,11 +170,8 @@ const EditProfile = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 relative">
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    <AppBackground>
+      <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
         <div className="text-center mb-6">
           <User className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Edit Your Profile</h2>
@@ -251,7 +249,7 @@ const EditProfile = () => {
           </Link>
         </div>
       </div>
-    </div>
+    </AppBackground>
   );
 };
 
