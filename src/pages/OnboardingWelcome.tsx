@@ -116,7 +116,7 @@ const OnboardingWelcome: React.FC = () => {
       </div>
 
       <div className="embla flex-1 overflow-hidden">
-        <div className="embla__viewport h-full" ref={emblaRef}>
+        <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}> {/* Added temporary background */}
           <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div className="embla__slide flex-[0_0_100%] min-w-0 h-full" key={index}>
