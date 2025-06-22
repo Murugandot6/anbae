@@ -2,10 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Message, Profile } from '@/types/supabase';
 import { formatMessageDate, cn } from '@/lib/utils';
-// Removed Avatar imports as they are no longer used in this component
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, CheckCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Ensure Button is imported if used in the empty state
+import { Button } from '@/components/ui/button';
 
 interface MessageTimelineProps {
   sentMessages: Message[];
@@ -61,16 +60,18 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                 isSentByCurrentUser ? "flex-row-reverse" : "flex-row"
               )}
             >
-              {/* Date */}
+              {/* Date Pill */}
               <div className={cn(
-                "flex-shrink-0 text-sm text-gray-500 dark:text-gray-400 w-24",
-                isSentByCurrentUser ? "text-left" : "text-right"
+                "flex-shrink-0 w-32 text-center", // Fixed width for the date pill container
+                isSentByCurrentUser ? "text-left" : "text-right" // Align text within the container
               )}>
-                {formatMessageDate(message.created_at)}
+                <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                  {formatMessageDate(message.created_at)}
+                </span>
               </div>
 
               {/* Timeline Dot */}
-              <div className="relative z-10 flex-shrink-0 w-4 h-4"> {/* Adjusted size to just fit the dot */}
+              <div className="relative z-10 flex-shrink-0 w-4 h-4">
                 <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
               </div>
 
@@ -86,21 +87,14 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                 <Link to={`/messages/${message.id}`} className="block">
                   <Card className="bg-transparent border-none shadow-none">
                     <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
+                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
                         {message.subject}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
                       {message.content}
                     </CardContent>
-                    <div className="flex justify-end items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      {message.read_at && isSentByCurrentUser && (
-                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                          <CheckCheck className="w-3 h-3" /> Read
-                        </span>
-                      )}
-                    </div>
+                    {/* Removed read status as per design */}
                   </Card>
                 </Link>
               </div>
