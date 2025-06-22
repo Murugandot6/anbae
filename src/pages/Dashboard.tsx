@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
 import MessageTimeline from '@/components/MessageTimeline'; // Import the new component
+import { Badge } from '@/components/ui/badge'; // Import Badge component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -285,6 +286,11 @@ const Dashboard = () => {
                     altText="Your Avatar"
                     size="lg"
                   />
+                  {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
+                    <Badge className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                      {currentUserProfile.lifetime_score}
+                    </Badge>
+                  )}
                 </div>
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
@@ -304,6 +310,11 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
+                      {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null && (
+                        <Badge className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                          {partnerProfile.lifetime_score}
+                        </Badge>
+                      )}
                     </div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
