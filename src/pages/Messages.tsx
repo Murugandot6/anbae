@@ -10,7 +10,7 @@ import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck
 import { Profile, Message } from '@/types/supabase'; // Import shared types
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { formatMessageDate, cn } from '@/lib/utils'; // Import formatMessageDate and cn
+import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import formatMessageDate, cn, and formatDateTimeForMessageView
 import { Badge } from '@/components/ui/badge'; // Import Badge component
 import AppBackground from '@/components/AppBackground'; // Import AppBackground
 
@@ -285,9 +285,8 @@ const Messages = () => {
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
                               {message.content}
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
-                              <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {formatDateTimeForMessageView(message.created_at)}
                             </div>
                           </div>
                         </Link>
@@ -336,9 +335,8 @@ const Messages = () => {
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
                               {message.content}
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
-                              <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {formatDateTimeForMessageView(message.created_at)}
                             </div>
                           </div>
                         </Link>
