@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
-import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react'; // Added Menu icon
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -11,8 +10,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import AppBackground from '@/components/AppBackground';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
-import { Profile, Message } from '@/types/supabase'; // Import Profile and Message from types
-import CircularProgressAvatar from '@/components/CircularProgressAvatar'; // Import the new component
+import { Profile, Message } from '@/types/supabase';
+import CircularProgressAvatar from '@/components/CircularProgressAvatar';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
+import { Button } from '@/components/ui/button'; // Ensure Button is imported
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -24,6 +26,7 @@ const Dashboard = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
+  const isMobile = useIsMobile(); // Use the hook
 
   const handleLogout = async () => {
     try {
@@ -50,10 +53,9 @@ const Dashboard = () => {
 
       console.log('Dashboard: Fetching current user profile for user ID:', user.id);
       try {
-        // Fetch current user's profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, email, partner_email, partner_nickname, avatar_url, lifetime_score') // Include lifetime_score
+          .select('id, username, email, partner_email, partner_nickname, avatar_url, lifetime_score')
           .eq('id', user.id)
           .single();
 
@@ -63,12 +65,11 @@ const Dashboard = () => {
         } else if (profileData) {
           console.log('Dashboard: Current user profile fetched:', profileData);
           setCurrentUserProfile(profileData);
-          // Now fetch partner's profile using partner_email from current user's profile
           if (profileData.partner_email) {
             console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email);
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
-              .select('id, username, email, avatar_url, lifetime_score') // Include lifetime_score for partner
+              .select('id, username, email, avatar_url, lifetime_score')
               .eq('email', profileData.partner_email)
               .single();
 
@@ -146,7 +147,7 @@ const Dashboard = () => {
 
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, username, email, avatar_url, lifetime_score') // Include lifetime_score here
+          .select('id, username, email, avatar_url, lifetime_score')
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
@@ -205,33 +206,94 @@ const Dashboard = () => {
           <ThemeToggle />
         </div>
 
+        {isMobile && (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="absolute top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+                </div>
+              </div>
+              <nav className="flex flex-col gap-2 mb-auto">
+                <Link to="/dashboard">
+                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <Heart className="w-5 h-5 mr-2" /> Dashboard
+                  </Button>
+                </Link>
+                <Link to="/send-message">
+                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <MessageSquare className="w-5 h-5 mr-2" /> Send Message
+                  </Button>
+                </Link>
+                <Link to="/messages">
+                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <Inbox className="w-5 h-5 mr-2" /> Messages
+                  </Button>
+                </Link>
+                <Link to="/edit-profile">
+                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <Settings className="w-5 h-5 mr-2" /> Edit Profile
+                  </Button>
+                </Link>
+              </nav>
+              <div className="mt-auto flex flex-col gap-2">
+                {user && (
+                  <ClearMessagesDialog
+                    partnerId={partnerProfile?.id || null}
+                    partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                    currentUserId={user.id}
+                    onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+                  />
+                )}
+                <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
+                  <LogOut className="w-5 h-5 mr-2" /> Logout
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
+
         <div className="w-full max-w-4xl mx-auto animate-fade-in">
           <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
-            <Link to="/send-message">
-              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <MessageSquare className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/messages">
-              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Inbox className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/edit-profile">
-              <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
-              <LogOut className="w-5 h-5" />
-            </Button>
-            {user && (
-              <ClearMessagesDialog
-                partnerId={partnerProfile?.id || null}
-                partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-                currentUserId={user.id}
-                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-              />
+            {!isMobile && ( // Only show these buttons on non-mobile
+              <>
+                <Link to="/send-message">
+                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                    <MessageSquare className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link to="/messages">
+                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                    <Inbox className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link to="/edit-profile">
+                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
+                  <LogOut className="w-5 h-5" />
+                </Button>
+                {user && (
+                  <ClearMessagesDialog
+                    partnerId={partnerProfile?.id || null}
+                    partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                    currentUserId={user.id}
+                    onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -240,7 +302,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
@@ -262,7 +324,7 @@ const Dashboard = () => {
                 </p>
               </CardContent>
             </Card>
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
@@ -294,7 +356,7 @@ const Dashboard = () => {
 
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
               </CardHeader>
@@ -335,7 +397,7 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
               </CardHeader>
