@@ -19,35 +19,35 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
   if (!user) return null; // Should not happen if ProtectedRoute works, but for safety
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-sidebar dark:bg-sidebar-background border-r border-sidebar-border dark:border-sidebar-border p-4 shadow-lg min-h-screen">
+    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg min-h-screen">
       <div className="flex items-center gap-3 mb-6 mt-4">
         <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
           <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
           <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-semibold text-lg text-sidebar-foreground">{user.user_metadata.nickname || user.email}</p>
-          <p className="text-sm text-sidebar-foreground/80">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+          <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
         </div>
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         <Link to="/dashboard">
-          <Button variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Heart className="w-5 h-5 mr-2" /> Dashboard
           </Button>
         </Link>
         <Link to="/send-message">
-          <Button variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <MessageSquare className="w-5 h-5 mr-2" /> Send Message
           </Button>
         </Link>
         <Link to="/messages">
-          <Button variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Inbox className="w-5 h-5 mr-2" /> Messages
           </Button>
         </Link>
         <Link to="/edit-profile">
-          <Button variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Settings className="w-5 h-5 mr-2" /> Edit Profile
           </Button>
         </Link>
