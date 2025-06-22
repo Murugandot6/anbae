@@ -24,8 +24,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   // The progressOffset is still calculated based on score, but we'll make both parts green
   const progressOffset = circumference - (score / 100) * circumference;
 
-  // Determine colors based on score
-  // Changed both progressColor and remainingColor to always be green
+  // Define green color classes for the stroke
   const greenColorClasses = 'stroke-green-500 dark:stroke-green-400';
 
   let svgSizeClasses = 'w-24 h-24';
@@ -58,7 +57,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
       >
         {/* Background circle (now always green) */}
         <circle
-          className={cn("stroke-current text-gray-200 dark:text-gray-700", greenColorClasses)}
+          className={cn("stroke-current", greenColorClasses)} // Removed text-gray-200 to ensure it's always green
           strokeWidth="8"
           fill="transparent"
           r={radius}
