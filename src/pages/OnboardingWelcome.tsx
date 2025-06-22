@@ -22,20 +22,51 @@ const OnboardingWelcome: React.FC = () => {
     {
       title: "We will take care",
       description: "of tickets, transfers and a cool place to stay",
-      lottieData: travelLottie,
+      lottieUrl: travelLottie,
       bgColorClass: "bg-yellow-400",
     },
     {
       title: "Relax & enjoy",
       description: "Sunbathe, swim, eat and drink deliciously",
-      lottieData: relaxLottie,
+      lottieUrl: relaxLottie,
       bgColorClass: "bg-blue-300",
     },
     {
       title: "Flexible payment",
       description: "credit card and transfer, cryptocurrency",
-      lottieData: paymentLottie,
+      lottieUrl: paymentLottie,
       bgColorClass: "bg-pink-300",
+    },
+    // New slides with descriptive content
+    {
+      title: "Your Personalized Hub",
+      description: "Here you'll find your Lifetime Score, a gentle whisper of your communication health. See your and your partner's profiles, a glance at the souls intertwined, and a timeline of recent messages, the thoughts you've recently shared.",
+      bgColorClass: "bg-purple-300",
+    },
+    {
+      title: "Speak from the Heart",
+      description: "This is where your feelings take flight. Send Grievances to address conflicts openly, or shower your partner with Compliments to show appreciation. Relive cherished Good Memories, or simply express How I Feel in the moment.",
+      bgColorClass: "bg-red-300",
+    },
+    {
+      title: "Your Conversation Hub",
+      description: "You'll find a flowing river of all your communications, keeping track of every conversation. You can easily reply to messages and mark them as read, ensuring you stay connected.",
+      bgColorClass: "bg-blue-300",
+    },
+    {
+      title: "Craft Your Presence",
+      description: "This section allows you to personalize your experience. Update your nickname, link to your partner's account by their email, give your partner a special nickname, and choose a unique avatar to represent you.",
+      bgColorClass: "bg-green-300",
+    },
+    {
+      title: "A Fresh Start",
+      description: "Need a clean slate? This feature lets you send a request to your partner to clear your entire message history. This provides a fresh start, but remember, it requires mutual agreement.",
+      bgColorClass: "bg-orange-300",
+    },
+    {
+      title: "Your View, Your Way",
+      description: "With this toggle, you can switch between light and dark modes to suit your preference, making your app experience comfortable for your eyes, day or night.",
+      bgColorClass: "bg-gray-300",
     },
   ];
 
