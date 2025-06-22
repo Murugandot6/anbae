@@ -265,7 +265,7 @@ const Messages = () => {
                 className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                 onClick={() => {
                   console.log('Navigating to dashboard from Messages page.');
-                  navigate('/dashboard');
+                  navigate('/dashboard', { replace: true }); // Added replace: true
                 }}
               >
                 <ArrowLeft className="w-5 h-5" />
