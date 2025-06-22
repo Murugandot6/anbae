@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext';
+import { useSession } '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -247,19 +247,9 @@ const Messages = () => {
     }
   };
 
+  // This function now returns the same classes as getMessageTypeClasses for the background
   const getMessageTypeEmojiBackgroundClasses = (messageType: string) => {
-    switch (messageType) {
-      case 'Grievance':
-        return 'bg-red-500 text-white';
-      case 'Compliment':
-        return 'bg-green-500 text-white';
-      case 'Good Memory':
-        return 'bg-yellow-500 text-white';
-      case 'How I Feel':
-        return 'bg-blue-500 text-white';
-      default:
-        return 'bg-gray-500 text-white';
-    }
+    return getMessageTypeClasses(messageType);
   };
 
   return (
