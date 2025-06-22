@@ -16,6 +16,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
+import MessageTimeline from '@/components/MessageTimeline'; // Import the new component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -116,36 +117,28 @@ const Dashboard = () => {
 
       setMessagesLoading(true);
       try {
-        const { data: sentData, error: sentError } = await supabase
+        // Fetch all top-level messages (not replies) for the current user, both sent and received
+        const { data: allTopLevelMessages, error: messagesError } = await supabase
           .from('messages')
           .select('*')
-          .eq('sender_id', user.id)
+          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
           .is('parent_message_id', null)
-          .order('created_at', { ascending: false })
-          .limit(3);
+          .order('created_at', { ascending: false });
 
-        if (sentError) {
-          console.error('Dashboard: Supabase Error fetching sent messages:', sentError.message, sentError);
-          toast.error('Failed to load sent messages: ' + sentError.message);
+        if (messagesError) {
+          console.error('Dashboard: Supabase Error fetching all top-level messages:', messagesError.message, messagesError);
+          toast.error('Failed to load messages: ' + messagesError.message);
+          setMessagesLoading(false);
+          return;
         }
 
-        const { data: receivedData, error: receivedError } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('receiver_id', user.id)
-          .is('parent_message_id', null)
-          .order('created_at', { ascending: false })
-          .limit(3);
-
-        if (receivedError) {
-          console.error('Dashboard: Supabase Error fetching received messages:', receivedError.message, receivedError);
-          toast.error('Failed to load received messages: ' + receivedError.message);
-        }
+        const sent = allTopLevelMessages?.filter(msg => msg.sender_id === user.id) || [];
+        const received = allTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || [];
 
         const allRelatedUserIds = new Set<string>();
-        sentData?.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
-        receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
-        allRelatedUserIds.add(user.id);
+        sent.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
+        received.forEach(msg => allRelatedUserIds.add(msg.sender_id));
+        allRelatedUserIds.add(user.id); // Include current user's ID
 
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
@@ -155,6 +148,7 @@ const Dashboard = () => {
         if (profilesError) {
           console.error('Dashboard: Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
           toast.error('Failed to load associated profiles: ' + profilesError.message);
+          setMessagesLoading(false);
           return;
         }
 
@@ -163,15 +157,15 @@ const Dashboard = () => {
           profilesMap.set(profile.id, profile);
         });
 
-        const combinedSentMessages = sentData?.map(msg => ({
+        const combinedSentMessages = sent.map(msg => ({
           ...msg,
           receiverProfile: profilesMap.get(msg.receiver_id) || null,
-        })) || [];
+        }));
 
-        const combinedReceivedMessages = receivedData?.map(msg => ({
+        const combinedReceivedMessages = received.map(msg => ({
           ...msg,
           senderProfile: profilesMap.get(msg.sender_id) || null,
-        })) || [];
+        }));
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
@@ -296,7 +290,6 @@ const Dashboard = () => {
                     altText="Your Avatar"
                     size="lg"
                   />
-                  {/* Removed the 'i' badge */}
                 </div>
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
@@ -319,7 +312,6 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
-                      {/* Removed the 'u' badge */}
                     </div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
@@ -335,90 +327,15 @@ const Dashboard = () => {
             </div>
 
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-                <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground text-base">
-                  {sentMessages.length > 0 ? (
-                    <ul className="space-y-2">
-                      {sentMessages.map((message, index) => (
-                        <li
-                          key={message.id}
-                          className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
-                            index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
-                          }`}
-                        >
-                          <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10">
-                                <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
-                                <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-semibold text-gray-900 dark:text-white text-lg">
-                                  {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'}
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {message.message_type}
-                                </p>
-                              </div>
-                            </div >
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                              {formatMessageDate(message.created_at)}
-                            </div>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No messages sent yet.</p>
-                  )}
-                </CardContent>
-              </Card>
-              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-                <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground text-base">
-                  {receivedMessages.length > 0 ? (
-                    <ul className="space-y-2">
-                      {receivedMessages.map((message, index) => (
-                        <li
-                          key={message.id}
-                          className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
-                            index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
-                          }`}
-                        >
-                          <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10">
-                                <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
-                                <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-semibold text-gray-900 dark:text-white text-lg">
-                                  {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'}
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {message.message_type}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                              {formatMessageDate(message.created_at)}
-                            </div>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No messages received yet.</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            {user && (
+              <MessageTimeline
+                sentMessages={sentMessages}
+                receivedMessages={receivedMessages}
+                currentUserId={user.id}
+                currentUserProfile={currentUserProfile}
+                partnerProfile={partnerProfile}
+              />
+            )}
           </div>
         </div>
       </div>
