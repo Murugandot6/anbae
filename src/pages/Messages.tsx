@@ -262,7 +262,7 @@ const Messages = () => {
                 {receivedMessages.length > 0 ? (
                   <ul className="space-y-2">
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0 max-w-2xl mx-auto", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
@@ -309,7 +309,7 @@ const Messages = () => {
                 {sentMessages.length > 0 ? (
                   <ul className="space-y-2">
                     {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0 max-w-2xl mx-auto", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
