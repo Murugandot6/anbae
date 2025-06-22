@@ -284,8 +284,8 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8"> {/* Use flex for side-by-side, justify-center to center them */}
-              <div className="flex flex-col items-center text-center p-4 rounded-xl"> {/* Removed bg, shadow, border */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8"> {/* Changed to grid for consistent 2-column layout */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
@@ -295,7 +295,7 @@ const Dashboard = () => {
                   fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
                   altText="Your Avatar"
                   className="mb-2"
-                  size="lg" // Use the new 'lg' size
+                  size="lg"
                 />
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
@@ -304,7 +304,7 @@ const Dashboard = () => {
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4 rounded-xl"> {/* Removed bg, shadow, border */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
@@ -316,7 +316,7 @@ const Dashboard = () => {
                       fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
                       altText="Partner Avatar"
                       className="mb-2"
-                      size="lg" // Use the new 'lg' size
+                      size="lg"
                     />
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
