@@ -12,6 +12,7 @@ import SendMessage from "./pages/SendMessage";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
+import OnboardingWelcome from "./pages/OnboardingWelcome"; // Import the new OnboardingWelcome page
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import the new ProtectedRoute
@@ -42,6 +43,7 @@ const App = () => {
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
+                  <Route path="/onboarding-welcome" element={<OnboardingWelcome />} /> {/* New protected route */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

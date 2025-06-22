@@ -57,7 +57,7 @@ const Register = () => {
         console.error('Registration error:', error.message);
       } else if (data.user) {
         toast.success('Registration successful! Please check your email to confirm your account.');
-        navigate('/login');
+        navigate('/onboarding-welcome'); // Redirect to the new onboarding page
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
