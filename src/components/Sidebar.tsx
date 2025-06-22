@@ -29,17 +29,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
           </Avatar>
           <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
         </div>
-        <ThemeToggle />
-      </div>
-      <div className="flex justify-center mb-6">
-        {user && (
-          <ClearMessagesDialog
-            partnerId={partnerProfile?.id || null}
-            partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-            currentUserId={user.id}
-            onMessagesCleared={onMessagesCleared}
-          />
-        )}
+        <div className="flex gap-2 items-center"> {/* New div to group toggle and clear messages */}
+          {user && (
+            <ClearMessagesDialog
+              partnerId={partnerProfile?.id || null}
+              partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+              currentUserId={user.id}
+              onMessagesCleared={onMessagesCleared}
+            />
+          )}
+          <ThemeToggle />
+        </div>
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         <Link to="/dashboard">
