@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext';
+import { useSession } '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -285,7 +285,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8"> {/* Use flex for side-by-side, justify-center to center them */}
-              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/10 dark:bg-gray-800/10 shadow-sm border border-white/10 dark:border-gray-600/10"> {/* Add a subtle background/border to define the area without being a 'box' */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl"> {/* Removed bg, shadow, border */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
@@ -304,7 +304,7 @@ const Dashboard = () => {
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/10 dark:bg-gray-800/10 shadow-sm border border-white/10 dark:border-gray-600/10"> {/* Similar subtle background */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl"> {/* Removed bg, shadow, border */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
