@@ -37,7 +37,7 @@ const AvatarSelectionDialog: React.FC<AvatarSelectionDialogProps> = ({
             Choose a new avatar from the options below.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4 max-h-[400px] overflow-y-auto"> {/* Added max-h and overflow-y-auto */}
           <AvatarCarousel
             selectedAvatar={selectedAvatar}
             onSelect={handleAvatarSelectAndClose}
