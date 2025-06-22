@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
+import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
@@ -198,7 +198,7 @@ const Dashboard = () => {
   }
 
   return (
-    <BackgroundWrapper className="pt-0 md:pt-0"> {/* Updated component name */}
+    <BackgroundWrapper className="pt-0 md:pt-0">
       <div className="flex min-h-screen w-full">
         {!isMobile && (
           <Sidebar
@@ -285,7 +285,7 @@ const Dashboard = () => {
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
                     fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
                     altText="Your Avatar"
-                    size="md" {/* Changed to md */}
+                    size="md"
                   />
                   {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
                     <Badge className="absolute top-0 left-0 transform translate-x-3/4 translate-y-3/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
@@ -303,7 +303,7 @@ const Dashboard = () => {
 
               {/* Heart icon in between */}
               <div className="flex-shrink-0">
-                <Heart className="w-12 h-12 text-pink-500 dark:text-purple-400" /> {/* Reduced size */}
+                <Heart className="w-12 h-12 text-pink-500 dark:text-purple-400" />
               </div>
 
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
@@ -315,7 +315,7 @@ const Dashboard = () => {
                         avatarUrl={partnerProfile.avatar_url}
                         fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
                         altText="Partner Avatar"
-                        size="md" {/* Changed to md */}
+                        size="md"
                       />
                       {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null && (
                         <Badge className="absolute bottom-0 right-0 transform -translate-x-1/4 -translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
