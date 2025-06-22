@@ -21,11 +21,15 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
 }) => {
   const radius = 40; // Radius of the circle
   const circumference = 2 * Math.PI * radius;
-  const progressOffset = circumference - (score / 100) * circumference;
+  
+  // TEMPORARY: Force score to 50 for debugging visibility
+  const debugScore = 50; 
+  const progressOffset = circumference - (debugScore / 100) * circumference;
 
-  // Define colors for the stroke
+  // Using intended colors, but with a slightly thicker stroke for visibility
   const progressColorClasses = 'stroke-green-500 dark:stroke-green-400'; // Green for the score
   const remainingColorClasses = 'stroke-red-500 dark:stroke-red-600'; // Red for the remaining part
+  const currentStrokeWidth = 12; // Slightly thicker than original 8px
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
@@ -58,7 +62,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         {/* Background (remaining) circle - always a full circle, colored red */}
         <circle
           className={remainingColorClasses}
-          strokeWidth="8"
+          strokeWidth={currentStrokeWidth}
           fill="transparent"
           r={radius}
           cx="50"
@@ -69,7 +73,7 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         {/* Progress circle - green, covers the red based on score */}
         <circle
           className={cn("transition-all duration-500 ease-in-out", progressColorClasses)}
-          strokeWidth="8"
+          strokeWidth={currentStrokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={progressOffset}
           strokeLinecap="round"
