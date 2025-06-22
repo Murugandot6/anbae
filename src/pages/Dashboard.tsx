@@ -297,7 +297,7 @@ const Dashboard = () => {
                     size="lg"
                   />
                   {currentUserProfile?.partner_email && partnerProfile && (
-                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                    <div className="absolute bottom-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     </div>
                   )}
@@ -323,7 +323,7 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
-                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                      <div className="absolute bottom-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       </div>
                     </div>
