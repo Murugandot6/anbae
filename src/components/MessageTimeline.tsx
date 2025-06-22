@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Message, Profile } from '@/types/supabase';
 import { formatMessageDate, cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Keep Avatar imports for other uses if needed, but not for timeline display
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Ensure Button is imported if used in the empty state
@@ -52,10 +52,10 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
       <div className="space-y-8">
         {recentMessages.map((message, index) => {
           const isSentByCurrentUser = message.sender_id === currentUserId;
-          const displayProfile = isSentByCurrentUser ? message.receiverProfile : message.senderProfile;
-          const displayName = displayProfile?.username || displayProfile?.email || 'Unknown Partner';
-          const avatarUrl = displayProfile?.avatar_url || '';
-          const avatarFallback = displayName.charAt(0).toUpperCase();
+          // const displayProfile = isSentByCurrentUser ? message.receiverProfile : message.senderProfile; // No longer needed for avatar
+          // const displayName = displayProfile?.username || displayProfile?.email || 'Unknown Partner'; // No longer needed for avatar
+          // const avatarUrl = displayProfile?.avatar_url || ''; // No longer needed for avatar
+          // const avatarFallback = displayName.charAt(0).toUpperCase(); // No longer needed for avatar
 
           return (
             <div
@@ -73,13 +73,9 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                 {formatMessageDate(message.created_at)}
               </div>
 
-              {/* Timeline Dot and Avatar */}
-              <div className="relative z-10 flex-shrink-0">
-                <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
-                <Avatar className="w-16 h-16 border-2 border-white dark:border-gray-800 shadow-md">
-                  <AvatarImage src={avatarUrl} alt={displayName} />
-                  <AvatarFallback>{avatarFallback}</AvatarFallback>
-                </Avatar>
+              {/* Timeline Dot (now without Avatar) */}
+              <div className="relative z-10 flex-shrink-0 w-16 h-16 flex items-center justify-center"> {/* Added fixed size and centering */}
+                <div className="w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
               </div>
 
               {/* Message Card */}
@@ -98,13 +94,11 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
                         <MessageSquare className="w-5 h-5" />
                         {message.subject}
                       </CardTitle>
-                      {/* Removed date from here */}
                     </CardHeader>
                     <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
                       {message.content}
                     </CardContent>
                     <div className="flex justify-end items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      {/* Removed sender/receiver name here */}
                       {message.read_at && isSentByCurrentUser && (
                         <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                           <CheckCheck className="w-3 h-3" /> Read
