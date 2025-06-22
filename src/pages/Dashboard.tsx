@@ -276,8 +276,8 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            {/* Flex container for profiles and heart - will arrange in a row on larger screens */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
+            {/* Flex container for profiles and heart - now always a row */}
+            <div className="flex items-center justify-center gap-4 mb-8 flex-wrap"> {/* Added flex-wrap for smaller screens if needed */}
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
                   <CircularProgressAvatar
@@ -285,10 +285,10 @@ const Dashboard = () => {
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
                     fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
                     altText="Your Avatar"
-                    size="lg"
+                    size="md" {/* Changed to md */}
                   />
                   {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
-                    <Badge className="absolute top-0 left-0 transform translate-x-1/2 translate-y-1/2 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                    <Badge className="absolute top-0 left-0 transform translate-x-3/4 translate-y-3/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
                       I
                     </Badge>
                   )}
@@ -315,7 +315,7 @@ const Dashboard = () => {
                         avatarUrl={partnerProfile.avatar_url}
                         fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
                         altText="Partner Avatar"
-                        size="lg"
+                        size="md" {/* Changed to md */}
                       />
                       {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null && (
                         <Badge className="absolute bottom-0 right-0 transform -translate-x-1/4 -translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
