@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext'; // Corrected import path
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck
 import { Profile, Message } from '@/types/supabase'; // Import shared types
 import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { formatMessageDate } from '@/lib/utils'; // Import formatMessageDate
+import { formatMessageDate, cn } from '@/lib/utils'; // Import formatMessageDate and cn
 import { Badge } from '@/components/ui/badge'; // Import Badge component
 import AppBackground from '@/components/AppBackground'; // Import AppBackground
 
@@ -217,6 +217,21 @@ const Messages = () => {
     return null;
   }
 
+  const getMessageTypeClasses = (messageType: string) => {
+    switch (messageType) {
+      case 'Grievance':
+        return 'bg-red-100 dark:bg-red-950 border-red-300 dark:border-red-700';
+      case 'Compliment':
+        return 'bg-green-100 dark:bg-green-950 border-green-300 dark:border-green-700';
+      case 'Good Memory':
+        return 'bg-yellow-100 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700';
+      case 'How I Feel':
+        return 'bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700';
+      default:
+        return 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600';
+    }
+  };
+
   return (
     <AppBackground className="pt-20">
       <div className="w-full max-w-4xl mx-auto">
@@ -247,8 +262,8 @@ const Messages = () => {
                 {receivedMessages.length > 0 ? (
                   <ul className="space-y-4">
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                      <li key={message.id} className={cn("border-b pb-4 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
@@ -291,8 +306,8 @@ const Messages = () => {
                 {sentMessages.length > 0 ? (
                   <ul className="space-y-4">
                     {sentMessages.map((message) => (
-                      <li key={message.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center gap-3">
+                      <li key={message.id} className={cn("border-b pb-4 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
