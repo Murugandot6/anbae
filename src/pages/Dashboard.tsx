@@ -12,10 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
-import { useIsMobile } from '@/hooks/use-mobile'; // Corrected import statement
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import Sidebar from '@/components/Sidebar'; // Import the new Sidebar component
+import Sidebar from '@/components/Sidebar';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -202,8 +202,8 @@ const Dashboard = () => {
   }
 
   return (
-    <AppBackground className="pt-0 md:pt-0"> {/* Adjust padding for desktop sidebar */}
-      <div className="flex min-h-screen w-full"> {/* Flex container for sidebar and main content */}
+    <AppBackground className="pt-0 md:pt-0">
+      <div className="flex min-h-screen w-full">
         {!isMobile && (
           <Sidebar
             currentUserProfile={currentUserProfile}
@@ -214,7 +214,7 @@ const Dashboard = () => {
           />
         )}
 
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative md:ml-64"> {/* Main content area */}
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative md:ml-64">
           {isMobile && (
             <Sheet>
               <SheetTrigger asChild>
@@ -224,7 +224,6 @@ const Dashboard = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
                 <div className="flex justify-between items-center mb-4">
-                  {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle (left), Close Button (right - handled by SheetContent itself) */}
                   <div className="flex items-center gap-2">
                     {user && (
                       <ClearMessagesDialog
@@ -237,7 +236,6 @@ const Dashboard = () => {
                   </div>
                   <ThemeToggle />
                 </div>
-                {/* Profile info below icons */}
                 <div className="flex items-center gap-3 mb-6">
                   <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
                     <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
@@ -284,19 +282,24 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8"> {/* Changed to grid-cols-2 to force 2 columns */}
+            <div className="grid grid-cols-2 gap-8 mb-8">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
-                <CircularProgressAvatar
-                  score={currentUserProfile?.lifetime_score ?? 100}
-                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
-                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
-                  altText="Your Avatar"
-                  className="mb-2"
-                  size="lg"
-                />
+                <div className="relative"> {/* Added relative positioning for the badge */}
+                  <CircularProgressAvatar
+                    score={currentUserProfile?.lifetime_score ?? 100}
+                    avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                    fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                    altText="Your Avatar"
+                    className="mb-2"
+                    size="lg"
+                  />
+                  <div className="absolute bottom-0 right-0 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                    i
+                  </div>
+                </div>
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
                 </p>
@@ -309,7 +312,7 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
-                  <>
+                  <div className="relative"> {/* Added relative positioning for the badge */}
                     <CircularProgressAvatar
                       score={partnerProfile.lifetime_score ?? 100}
                       avatarUrl={partnerProfile.avatar_url}
@@ -318,13 +321,10 @@ const Dashboard = () => {
                       className="mb-2"
                       size="lg"
                     />
-                    <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {partnerProfile.username || partnerProfile.email}
-                    </p>
-                    <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
-                    </p>
-                  </>
+                    <div className="absolute bottom-0 right-0 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                      u
+                    </div>
+                  </div>
                 ) : (
                   <p className="text-muted-foreground text-base">No partner profile linked or found.</p>
                 )}
