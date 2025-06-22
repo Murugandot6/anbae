@@ -17,7 +17,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import AppBackground from '@/components/AppBackground';
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Badge } from '@/components/ui/badge';
 
@@ -359,7 +359,7 @@ const ViewMessage = () => {
   const canReply = message.status === 'open';
 
   return (
-    <AppBackground className="pt-20">
+    <BackgroundWrapper className="pt-20"> {/* Updated component name */}
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
@@ -457,7 +457,7 @@ const ViewMessage = () => {
           </Card>
         )}
       </div>
-    </AppBackground>
+    </BackgroundWrapper>
   );
 };
 
