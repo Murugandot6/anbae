@@ -279,9 +279,9 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-2 gap-8 mb-8"> {/* Changed to grid-cols-2 for all screen sizes */}
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                {/* Removed: <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
-                </h3>
+                </h3> */}
                 <div className="relative mb-4">
                   <CircularProgressAvatar
                     score={currentUserProfile?.lifetime_score ?? 100}
@@ -299,9 +299,9 @@ const Dashboard = () => {
                 </p>
               </div>
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
-                <h3 className="xl font-bold text-gray-900 dark:text-purple-400 mb-4 flex items-center gap-2">
+                {/* Removed: <h3 className="xl font-bold text-gray-900 dark:text-purple-400 mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
-                </h3>
+                </h3> */}
                 {partnerProfile ? (
                   <>
                     <div className="relative mb-4">
