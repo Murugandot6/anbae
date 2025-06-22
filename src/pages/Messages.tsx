@@ -257,7 +257,7 @@ const Messages = () => {
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
-                                Conversation with {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} about {message.message_type}
+                                Conversation with {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'} about {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                                 {message.is_read ? null : <span className="text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
@@ -267,9 +267,7 @@ const Messages = () => {
                                 {formatMessageDate(message.created_at)}
                               </span>
                             </p>
-                            {/* Removed the redundant "From: X | Received: Y" line */}
                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                              <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
                               <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
                             </div>
@@ -303,7 +301,7 @@ const Messages = () => {
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
-                                Conversation with {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} about {message.message_type}
+                                Conversation with {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'} about {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                                 {message.read_at && (
@@ -317,9 +315,7 @@ const Messages = () => {
                                 {formatMessageDate(message.created_at)}
                               </span>
                             </p>
-                            {/* Removed the redundant "To: X | Sent: Y" line */}
                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                              <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> {message.message_type}</span>
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
                               <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
                             </div>
