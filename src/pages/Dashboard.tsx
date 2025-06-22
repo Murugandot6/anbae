@@ -224,7 +224,7 @@ const Dashboard = () => {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-64 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+              <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
                 <div className="flex items-center gap-3 mb-6">
                   <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
                     <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
