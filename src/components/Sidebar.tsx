@@ -20,16 +20,31 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
   if (!user) return null; // Should not happen if ProtectedRoute works, but for safety
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-full"> {/* Removed my-4 and rounded-lg, set h-full */}
+    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-full">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
-            <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-            <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
-          </Avatar>
-          <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+        {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle on right */}
+        <div className="flex items-center gap-2">
+          {user && (
+            <ClearMessagesDialog
+              partnerId={partnerProfile?.id || null}
+              partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+              currentUserId={user.id}
+              onMessagesCleared={onMessagesCleared}
+            />
+          )}
         </div>
-        <ThemeToggle /> {/* Moved ThemeToggle here */}
+        <ThemeToggle />
+      </div>
+      {/* Profile info below icons */}
+      <div className="flex items-center gap-3 mb-6">
+        <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
+          <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+          <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+        </Avatar>
+        <div>
+          <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+        </div>
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         <Link to="/dashboard">
@@ -54,14 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-2">
-        {user && (
-          <ClearMessagesDialog
-            partnerId={partnerProfile?.id || null}
-            partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-            currentUserId={user.id}
-            onMessagesCleared={onMessagesCleared}
-          />
-        )}
         <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
           <LogOut className="w-5 h-5 mr-2" /> Logout
         </Button>
