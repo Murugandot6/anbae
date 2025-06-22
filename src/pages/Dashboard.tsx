@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext';
+import { useSession } => '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -133,7 +133,7 @@ const Dashboard = () => {
         }
 
         const sent = allTopLevelMessages?.filter(msg => msg.sender_id === user.id) || [];
-        const received = allTopTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || [];
+        const received = allTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || []; // Corrected typo here
 
         const allRelatedUserIds = new Set<string>();
         sent.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
