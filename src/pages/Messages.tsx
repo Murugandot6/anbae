@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext'; // Corrected: Added 'from' keyword
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -247,7 +247,6 @@ const Messages = () => {
     }
   };
 
-  // This function now returns the same classes as getMessageTypeClasses for the background
   const getMessageTypeEmojiBackgroundClasses = (messageType: string) => {
     return getMessageTypeClasses(messageType);
   };
@@ -284,14 +283,14 @@ const Messages = () => {
                     {receivedMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          {/* Emoji positioned above avatar */}
+                          {/* Emoji positioned inside top-left corner */}
                           <span className={cn(
-                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            "absolute top-2 left-2 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
+                          <Avatar className="w-12 h-12 ml-14"> {/* Adjusted ml for spacing */}
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
@@ -336,14 +335,14 @@ const Messages = () => {
                     {sentMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          {/* Emoji positioned above avatar */}
+                          {/* Emoji positioned inside top-left corner */}
                           <span className={cn(
-                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            "absolute top-2 left-2 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
+                          <Avatar className="w-12 h-12 ml-14"> {/* Adjusted ml for spacing */}
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
