@@ -288,7 +288,7 @@ const Dashboard = () => {
                   />
                   {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
                     <Badge className="absolute top-0 left-0 transform translate-x-1/8 translate-y-1/8 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
-                      {currentUserProfile.lifetime_score}
+                      I
                     </Badge>
                   )}
                 </div>
@@ -312,7 +312,7 @@ const Dashboard = () => {
                       />
                       {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null && (
                         <Badge className="absolute bottom-0 right-0 transform -translate-x-1/4 -translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
-                          {partnerProfile.lifetime_score}
+                          U
                         </Badge>
                       )}
                     </div>
