@@ -224,7 +224,7 @@ const Dashboard = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
                 <div className="flex justify-between items-center mb-4">
-                  {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle on right */}
+                  {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle (left), Close Button (right - handled by SheetContent itself) */}
                   <div className="flex items-center gap-2">
                     {user && (
                       <ClearMessagesDialog
@@ -285,7 +285,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8"> {/* Use flex for side-by-side, justify-center to center them */}
-              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20"> {/* Add a subtle background/border to define the area without being a 'box' */}
+              <div className="flex flex-col items-center text-center"> {/* Removed p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20 */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
@@ -304,7 +304,7 @@ const Dashboard = () => {
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20"> {/* Similar subtle background */}
+              <div className="flex flex-col items-center text-center"> {/* Removed p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/30 */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
