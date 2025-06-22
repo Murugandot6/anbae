@@ -87,8 +87,10 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
         <div className="flex flex-wrap justify-center gap-2 mb-6">
           <Button
             variant={selectedChart === 'scores' ? 'default' : 'outline'}
+            size="sm" // Make button small
             onClick={() => setSelectedChart('scores')}
             className={cn(
+              "rounded-full", // Make button rounded
               selectedChart === 'scores' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
             )}
           >
@@ -96,8 +98,10 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
           </Button>
           <Button
             variant={selectedChart === 'sent' ? 'default' : 'outline'}
+            size="sm" // Make button small
             onClick={() => setSelectedChart('sent')}
             className={cn(
+              "rounded-full", // Make button rounded
               selectedChart === 'sent' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
             )}
           >
@@ -105,8 +109,10 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
           </Button>
           <Button
             variant={selectedChart === 'received' ? 'default' : 'outline'}
+            size="sm" // Make button small
             onClick={() => setSelectedChart('received')}
             className={cn(
+              "rounded-full", // Make button rounded
               selectedChart === 'received' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
             )}
           >
@@ -114,8 +120,10 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
           </Button>
           <Button
             variant={selectedChart === 'mood' ? 'default' : 'outline'}
+            size="sm" // Make button small
             onClick={() => setSelectedChart('mood')}
             className={cn(
+              "rounded-full", // Make button rounded
               selectedChart === 'mood' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
             )}
           >
