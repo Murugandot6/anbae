@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
   if (!user) return null; // Should not happen if ProtectedRoute works, but for safety
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-[calc(100vh-32px)] my-4 rounded-lg"> {/* Added my-4 and rounded-lg */}
+    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-full"> {/* Removed my-4 and rounded-lg, set h-full */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
