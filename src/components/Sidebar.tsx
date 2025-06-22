@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
+import { ThemeToggle } from "@/components/ThemeToggle"; // Import ThemeToggle
 
 interface SidebarProps {
   currentUserProfile: Profile | null;
@@ -20,15 +21,25 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-screen">
-      <div className="flex items-center gap-3 mb-6 mt-4">
-        <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
-          <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-          <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
-        </Avatar>
-        <div>
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
+          <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
+            <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+            <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+          </Avatar>
           <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
         </div>
+        <ThemeToggle />
+      </div>
+      <div className="flex justify-center mb-6">
+        {user && (
+          <ClearMessagesDialog
+            partnerId={partnerProfile?.id || null}
+            partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+            currentUserId={user.id}
+            onMessagesCleared={onMessagesCleared}
+          />
+        )}
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         <Link to="/dashboard">
@@ -53,14 +64,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-2">
-        {user && (
-          <ClearMessagesDialog
-            partnerId={partnerProfile?.id || null}
-            partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-            currentUserId={user.id}
-            onMessagesCleared={onMessagesCleared}
-          />
-        )}
         <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
           <LogOut className="w-5 h-5 mr-2" /> Logout
         </Button>
