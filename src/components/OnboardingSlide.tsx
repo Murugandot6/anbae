@@ -11,19 +11,24 @@ interface OnboardingSlideProps {
 
 const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, lottieUrl, bgColorClass }) => {
   const [animationData, setAnimationData] = useState<any | null>(null);
-  const [loadingLottie, setLoadingLottie] = useState(false); // Default to false, only load if URL exists
+  const [loadingLottie, setLoadingLottie] = useState(false);
   const [errorLottie, setErrorLottie] = useState<string | null>(null);
 
+  console.log(`OnboardingSlide: Rendering for title "${title}" with bgColorClass "${bgColorClass}"`);
+  console.log(`OnboardingSlide: lottieUrl: ${lottieUrl}`);
+
   useEffect(() => {
-    if (!lottieUrl) { // If no Lottie URL, no need to fetch
+    if (!lottieUrl) {
       setLoadingLottie(false);
       setAnimationData(null);
+      console.log(`OnboardingSlide: No lottieUrl provided for "${title}".`);
       return;
     }
 
     const fetchLottieData = async () => {
       setLoadingLottie(true);
       setErrorLottie(null);
+      console.log(`OnboardingSlide: Fetching Lottie data from ${lottieUrl} for "${title}"`);
       try {
         const response = await fetch(lottieUrl);
         if (!response.ok) {
@@ -31,8 +36,9 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
         }
         const data = await response.json();
         setAnimationData(data);
+        console.log(`OnboardingSlide: Lottie data fetched successfully for "${title}".`);
       } catch (error: any) {
-        console.error('Error loading Lottie animation:', error);
+        console.error(`OnboardingSlide: Error loading Lottie animation for "${title}":`, error);
         setErrorLottie(`Failed to load animation: ${error.message}`);
       } finally {
         setLoadingLottie(false);
@@ -40,12 +46,12 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
     };
 
     fetchLottieData();
-  }, [lottieUrl]);
+  }, [lottieUrl, title]);
 
   return (
     <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}>
-      {lottieUrl && ( // Only render Lottie container if lottieUrl is provided
-        <div className="w-64 h-64 mb-8"> {/* Adjust size as needed */}
+      {lottieUrl && (
+        <div className="w-64 h-64 mb-8">
           {loadingLottie ? (
             <div className="flex items-center justify-center h-full text-gray-600">Loading animation...</div>
           ) : errorLottie ? (

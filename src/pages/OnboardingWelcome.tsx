@@ -18,6 +18,8 @@ const OnboardingWelcome: React.FC = () => {
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  console.log("OnboardingWelcome: Component rendering.");
+
   const slidesData = [
     {
       title: "We will take care",
@@ -70,6 +72,8 @@ const OnboardingWelcome: React.FC = () => {
     },
   ];
 
+  console.log("OnboardingWelcome: slidesData length:", slidesData.length);
+
   const scrollPrev = useCallback(() => {
     emblaApi?.scrollPrev();
   }, [emblaApi]);
@@ -82,13 +86,18 @@ const OnboardingWelcome: React.FC = () => {
     setSelectedIndex(emblaApi.selectedScrollSnap());
     setPrevBtnDisabled(!emblaApi.canScrollPrev());
     setNextBtnDisabled(!emblaApi.canScrollNext());
+    console.log("OnboardingWelcome: Selected index:", emblaApi.selectedScrollSnap());
   }, []);
 
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {
+      console.log("OnboardingWelcome: Embla API not initialized yet.");
+      return;
+    }
     onSelect(emblaApi);
     emblaApi.on('reInit', onSelect);
     emblaApi.on('select', onSelect);
+    console.log("OnboardingWelcome: Embla API initialized and listeners set.");
   }, [emblaApi, onSelect]);
 
   const handleSkip = () => {
