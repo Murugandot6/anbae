@@ -15,7 +15,7 @@ import AvatarSelector from '@/components/AvatarSelector';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import helper to fetch partner profile
 import { Profile } from '@/types/supabase'; // Import Profile type
-import AppBackground from '@/components/AppBackground'; // Import AppBackground
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
@@ -170,7 +170,7 @@ const EditProfile = () => {
   }
 
   return (
-    <AppBackground>
+    <BackgroundWrapper>
       <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
         <div className="text-center mb-6">
           <User className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
@@ -249,7 +249,7 @@ const EditProfile = () => {
           </Link>
         </div>
       </div>
-    </AppBackground>
+    </BackgroundWrapper>
   );
 };
 
