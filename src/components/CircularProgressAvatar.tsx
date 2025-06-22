@@ -21,12 +21,12 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
 }) => {
   const radius = 40; // Radius of the circle
   const circumference = 2 * Math.PI * radius;
+  // The progressOffset is still calculated based on score, but we'll make both parts green
   const progressOffset = circumference - (score / 100) * circumference;
 
   // Determine colors based on score
-  // Changed progressColor to always be green, as requested
-  const progressColor = 'stroke-green-500 dark:stroke-green-400';
-  const remainingColor = 'stroke-red-500 dark:stroke-red-400';
+  // Changed both progressColor and remainingColor to always be green
+  const greenColorClasses = 'stroke-green-500 dark:stroke-green-400';
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
@@ -56,21 +56,21 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         className={cn(svgSizeClasses, "transform -rotate-90")} // Adjust size to match avatar, rotate to start from top
         viewBox="0 0 100 100" // Standard viewBox for a 100x100 SVG
       >
-        {/* Background circle (red part) */}
+        {/* Background circle (now always green) */}
         <circle
-          className={cn("stroke-current text-gray-200 dark:text-gray-700", remainingColor)}
+          className={cn("stroke-current text-gray-200 dark:text-gray-700", greenColorClasses)}
           strokeWidth="8"
           fill="transparent"
           r={radius}
           cx="50"
           cy="50"
         />
-        {/* Progress circle (green part) */}
+        {/* Progress circle (now always green, effectively filling the whole circle) */}
         <circle
-          className={cn("stroke-current transition-all duration-500 ease-in-out", progressColor)}
+          className={cn("stroke-current transition-all duration-500 ease-in-out", greenColorClasses)}
           strokeWidth="8"
           strokeDasharray={circumference}
-          strokeDashoffset={progressOffset}
+          strokeDashoffset={progressOffset} // This will still animate, but the color is the same
           strokeLinecap="round"
           fill="transparent"
           r={radius}
