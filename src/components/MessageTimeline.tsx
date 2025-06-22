@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Message, Profile } from '@/types/supabase';
 import { formatMessageDate, cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MessageTimelineProps {
@@ -68,57 +67,78 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
           const isSentByCurrentUser = message.sender_id === currentUserId;
 
           return (
-            <div
-              key={message.id}
-              className={cn(
-                "flex items-center w-full gap-4",
-                isSentByCurrentUser ? "flex-row-reverse" : "flex-row"
-              )}
-            >
-              {/* Date Pill */}
-              <div className={cn(
-                "flex-shrink-0 w-32 text-center", // Fixed width for the date pill container
-                isSentByCurrentUser ? "text-left" : "text-right" // Align text within the container
-              )}>
-                <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                  {formatMessageDate(message.created_at)}
-                </span>
-              </div>
-
-              {/* Timeline Dot */}
-              <div className="relative z-10 flex-shrink-0 w-4 h-4">
-                <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
-              </div>
-
-              {/* Message Card */}
-              <div
-                className={cn(
-                  "flex-1 p-4 rounded-xl shadow-lg backdrop-blur-sm border",
-                  isSentByCurrentUser
-                    ? "bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30"
-                    : "bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30"
-                )}
-              >
-                <Link to={`/messages/${message.id}`} className="block">
-                  <Card className="bg-transparent border-none shadow-none">
-                    <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        {getMessageTypeEmoji(message.message_type)} {message.subject}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
-                      {message.content}
-                    </CardContent>
-                    <div className="flex justify-end items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      {message.read_at && isSentByCurrentUser && (
-                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                          <CheckCheck className="w-3 h-3" /> Read
-                        </span>
+            <div key={message.id} className="grid grid-cols-[1fr_auto_1fr] items-center w-full">
+              {isSentByCurrentUser ? (
+                <>
+                  {/* Date Pill (Left for sent messages) */}
+                  <div className="col-start-1 col-end-2 flex justify-end pr-4"> {/* pr-4 for spacing */}
+                    <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                      {formatMessageDate(message.created_at)}
+                    </span>
+                  </div>
+                  {/* Dot (Center) */}
+                  <div className="col-start-2 col-end-3 relative z-10 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
+                  </div>
+                  {/* Message Card (Right for sent messages) */}
+                  <div className="col-start-3 col-end-4 flex justify-start pl-4"> {/* pl-4 for spacing */}
+                    <div
+                      className={cn(
+                        "p-4 rounded-xl shadow-lg backdrop-blur-sm border max-w-md w-full",
+                        "bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30"
                       )}
+                    >
+                      <Link to={`/messages/${message.id}`} className="block">
+                        <Card className="bg-transparent border-none shadow-none">
+                          <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
+                            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                              {getMessageTypeEmoji(message.message_type)} {message.subject}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
+                            {message.content}
+                          </CardContent>
+                        </Card>
+                      </Link>
                     </div>
-                  </Card>
-                </Link>
-              </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Message Card (Left for received messages) */}
+                  <div className="col-start-1 col-end-2 flex justify-end pr-4"> {/* pr-4 for spacing */}
+                    <div
+                      className={cn(
+                        "p-4 rounded-xl shadow-lg backdrop-blur-sm border max-w-md w-full",
+                        "bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30"
+                      )}
+                    >
+                      <Link to={`/messages/${message.id}`} className="block">
+                        <Card className="bg-transparent border-none shadow-none">
+                          <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between">
+                            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                              {getMessageTypeEmoji(message.message_type)} {message.subject}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-0 text-muted-foreground text-sm line-clamp-2">
+                            {message.content}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </div>
+                  </div>
+                  {/* Dot (Center) */}
+                  <div className="col-start-2 col-end-3 relative z-10 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
+                  </div>
+                  {/* Date Pill (Right for received messages) */}
+                  <div className="col-start-3 col-end-4 flex justify-start pl-4"> {/* pl-4 for spacing */}
+                    <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                      {formatMessageDate(message.created_at)}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
