@@ -260,9 +260,9 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {receivedMessages.length > 0 ? (
-                  <ul className="space-y-4">
+                  <ul className="space-y-2"> {/* Reduced space-y from 4 to 2 */}
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-4 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}> {/* Reduced pb-4 to pb-2 */}
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
@@ -307,9 +307,9 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {sentMessages.length > 0 ? (
-                  <ul className="space-y-4">
+                  <ul className="space-y-2"> {/* Reduced space-y from 4 to 2 */}
                     {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-4 last:border-b-0", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}> {/* Reduced pb-4 to pb-2 */}
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
