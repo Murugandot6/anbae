@@ -223,8 +223,8 @@ const Dashboard = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-                {/* Top row: Broken Heart (left), Theme Toggle (left), Close Button (right - handled by SheetContent itself) */}
                 <div className="flex justify-between items-center mb-4">
+                  {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle on right */}
                   <div className="flex items-center gap-2">
                     {user && (
                       <ClearMessagesDialog
@@ -234,9 +234,8 @@ const Dashboard = () => {
                         onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
                       />
                     )}
-                    <ThemeToggle />
                   </div>
-                  {/* The SheetPrimitive.Close button is rendered automatically by SheetContent at top-4 right-4 */}
+                  <ThemeToggle />
                 </div>
                 {/* Profile info below icons */}
                 <div className="flex items-center gap-3 mb-6">
@@ -285,57 +284,51 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-                <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
-                    <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
-                  <CircularProgressAvatar
-                    score={currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 100}
-                    avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
-                    fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
-                    altText="Your Avatar"
-                    className="mb-2"
-                  />
-                  <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                    {user.user_metadata.nickname || user.email}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-                <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
-                    <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
-                  {partnerProfile ? (
-                    <>
-                      <CircularProgressAvatar
-                        score={partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 100}
-                        avatarUrl={partnerProfile.avatar_url}
-                        fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
-                        altText="Partner Avatar"
-                        className="mb-2"
-                      />
-                      <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                        {partnerProfile.username || partnerProfile.email}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
-                      </p>
-                    </>
-                  ) : (
-                    <p>No partner profile linked or found.</p>
-                  )}
-                </CardContent>
-              </Card>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8"> {/* Use flex for side-by-side, justify-center to center them */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20"> {/* Add a subtle background/border to define the area without being a 'box' */}
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
+                </h3>
+                <CircularProgressAvatar
+                  score={currentUserProfile?.lifetime_score ?? 100}
+                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                  altText="Your Avatar"
+                  className="mb-2"
+                  size="lg" // Use the new 'lg' size
+                />
+                <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                  {user.user_metadata.nickname || user.email}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
+                </p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20"> {/* Similar subtle background */}
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
+                </h3>
+                {partnerProfile ? (
+                  <>
+                    <CircularProgressAvatar
+                      score={partnerProfile.lifetime_score ?? 100}
+                      avatarUrl={partnerProfile.avatar_url}
+                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                      altText="Partner Avatar"
+                      className="mb-2"
+                      size="lg" // Use the new 'lg' size
+                    />
+                    <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                      {partnerProfile.username || partnerProfile.email}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground text-base">No partner profile linked or found.</p>
+                )}
+              </div>
             </div>
 
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
