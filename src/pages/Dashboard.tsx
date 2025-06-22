@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
-import { useIsMobile } => '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
