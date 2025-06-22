@@ -285,12 +285,12 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-2 to left-4
+                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Emoji position
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-12"> {/* Adjusted ml for spacing */}
+                          <Avatar className="w-12 h-12 ml-8"> {/* Adjusted ml-12 to ml-8 */}
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
@@ -337,12 +337,12 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-2 to left-4
+                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Emoji position
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-12"> {/* Adjusted ml for spacing */}
+                          <Avatar className="w-12 h-12 ml-8"> {/* Adjusted ml-12 to ml-8 */}
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
