@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-2">
-        <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
+        <Button onClick={handleLogout} variant="destructive" className="w-full justify-start">
           <LogOut className="w-5 h-5 mr-2" /> Logout
         </Button>
       </div>
