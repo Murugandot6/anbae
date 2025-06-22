@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu, CheckCircle } from 'lucide-react'; // Import CheckCircle
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react'; // Removed CheckCircle import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -297,8 +297,8 @@ const Dashboard = () => {
                     size="lg"
                   />
                   {currentUserProfile?.partner_email && partnerProfile && (
-                    <div className="absolute bottom-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                      i
                     </div>
                   )}
                 </div>
@@ -323,8 +323,8 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
-                      <div className="absolute bottom-3 right-3 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                        u
                       </div>
                     </div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
