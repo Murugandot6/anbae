@@ -245,7 +245,7 @@ const Dashboard = () => {
                   </Avatar>
                   <div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+                    <p className="text-base font-semibold text-gray-700 dark:text-gray-300">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
                   </div>
                 </div>
                 <nav className="flex flex-col gap-2 mb-auto">
@@ -285,7 +285,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8"> {/* Use flex for side-by-side, justify-center to center them */}
-              <div className="flex flex-col items-center text-center"> {/* Removed p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/20 */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/10 dark:bg-gray-800/10 shadow-sm border border-white/10 dark:border-gray-600/10"> {/* Add a subtle background/border to define the area without being a 'box' */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
@@ -300,11 +300,11 @@ const Dashboard = () => {
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center"> {/* Removed p-4 rounded-xl bg-white/20 dark:bg-gray-800/20 shadow-lg backdrop-blur-sm border border-white/20 dark:border-gray-600/30 */}
+              <div className="flex flex-col items-center text-center p-4 rounded-xl bg-white/10 dark:bg-gray-800/10 shadow-sm border border-white/10 dark:border-gray-600/10"> {/* Similar subtle background */}
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
@@ -321,7 +321,7 @@ const Dashboard = () => {
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
                       Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
                     </p>
                   </>
