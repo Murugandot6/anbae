@@ -12,7 +12,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helpe
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import formatMessageDate, cn, and formatDateTimeForMessageView
 import { Badge } from '@/components/ui/badge'; // Import Badge component
-import AppBackground from '@/components/AppBackground'; // Import AppBackground
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
 const Messages = () => {
@@ -253,7 +253,7 @@ const Messages = () => {
   };
 
   return (
-    <AppBackground className="justify-start items-start">
+    <BackgroundWrapper className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
           {/* Back to Dashboard Button (now on left, icon-only) */}
@@ -392,7 +392,7 @@ const Messages = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppBackground>
+    </BackgroundWrapper>
   );
 };
 
