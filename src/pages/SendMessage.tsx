@@ -14,6 +14,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { Profile } from '@/types/supabase'; // Import shared Profile type
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import shared helper
 import AppBackground from '@/components/AppBackground'; // Import AppBackground
+import { cn } from '@/lib/utils'; // Import cn utility for conditional classes
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -44,6 +45,9 @@ const SendMessage = () => {
       mood: 'Neutral',
     },
   });
+
+  // Watch for changes in message_type to dynamically update card styling
+  const selectedMessageType = form.watch('message_type');
 
   useEffect(() => {
     const fetchPartnerDetails = async () => {
@@ -156,12 +160,31 @@ const SendMessage = () => {
     );
   }
 
+  // Function to get dynamic card classes based on message type
+  const getCardClassesForMessageType = (messageType: string) => {
+    switch (messageType) {
+      case 'Grievance':
+        return 'bg-red-100/30 dark:bg-red-950/30 border-red-300/30 dark:border-red-700/30';
+      case 'Compliment':
+        return 'bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30';
+      case 'Good Memory':
+        return 'bg-yellow-100/30 dark:bg-yellow-950/30 border-yellow-300/30 dark:border-yellow-700/30';
+      case 'How I Feel':
+        return 'bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30';
+      default:
+        return 'bg-white/30 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30'; // Default neutral
+    }
+  };
+
   return (
     <AppBackground>
-      <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+      <div className={cn(
+        "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-sm transition-colors duration-300",
+        getCardClassesForMessageType(selectedMessageType)
+      )}>
         <div className="text-center mb-6">
           <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Send a Grievance</h2>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Send a Message</h2>
           <p className="text-muted-foreground">Share your thoughts with {partnerNickname || 'your partner'}.</p>
         </div>
         <Form {...form}>
@@ -253,7 +276,7 @@ const SendMessage = () => {
               />
             </div>
             <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
-              <Send className="w-4 h-4 mr-2" /> Send Grievance
+              <Send className="w-4 h-4 mr-2" /> Send Message
             </Button>
           </form>
         </Form>
