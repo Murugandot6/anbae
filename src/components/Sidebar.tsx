@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
   if (!user) return null; // Should not happen if ProtectedRoute works, but for safety
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg min-h-screen">
+    <aside className="hidden md:flex flex-col w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 shadow-lg fixed inset-y-0 left-0 h-screen">
       <div className="flex items-center gap-3 mb-6 mt-4">
         <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
           <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />

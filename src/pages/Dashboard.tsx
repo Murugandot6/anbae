@@ -214,7 +214,7 @@ const Dashboard = () => {
           />
         )}
 
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative"> {/* Main content area */}
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative md:ml-64"> {/* Main content area */}
           <div className="absolute top-4 right-4 z-10">
             <ThemeToggle />
           </div>
