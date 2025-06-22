@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } => '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
@@ -297,7 +297,7 @@ const Dashboard = () => {
                     size="lg"
                   />
                   {currentUserProfile?.partner_email && partnerProfile && (
-                    <div className="absolute -bottom-2 -right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                    <div className="absolute -bottom-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700 z-50">
                       i
                     </div>
                   )}
@@ -310,7 +310,7 @@ const Dashboard = () => {
                 </p>
               </div>
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-purple-400 mb-4 flex items-center gap-2">
+                <h3 className="xl font-bold text-gray-900 dark:text-purple-400 mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
@@ -323,7 +323,7 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
-                      <div className="absolute -bottom-2 -right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                      <div className="absolute -bottom-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700 z-50">
                         u
                       </div>
                     </div>
