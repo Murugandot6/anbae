@@ -282,7 +282,10 @@ const Messages = () => {
                                 {formatMessageDate(message.created_at)}
                               </span>
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                              {message.content}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-1">
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
                               <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
                             </div>
@@ -330,7 +333,10 @@ const Messages = () => {
                                 {formatMessageDate(message.created_at)}
                               </span>
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                              {message.content}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-1">
                               <span className="flex items-center gap-1"><Zap className="w-3 h-3" /> {message.priority}</span>
                               <span className="flex items-center gap-1"><Smile className="w-3 h-3" /> {message.mood}</span>
                             </div>
