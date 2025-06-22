@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext'; // Corrected '=>' to 'from'
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,8 +16,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
-import MessageTimeline from '@/components/MessageTimeline'; // Import the new component
-import { Badge } from '@/components/ui/badge'; // Import Badge component
+import MessageTimeline from '@/components/MessageTimeline';
+import { Badge } from '@/components/ui/badge';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -134,12 +134,12 @@ const Dashboard = () => {
         }
 
         const sent = allTopLevelMessages?.filter(msg => msg.sender_id === user.id) || [];
-        const received = allTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || []; // Corrected typo here
+        const received = allTopLevelMessages?.filter(msg => msg.receiver_id === user.id) || [];
 
         const allRelatedUserIds = new Set<string>();
         sent.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
         received.forEach(msg => allRelatedUserIds.add(msg.sender_id));
-        allRelatedUserIds.add(user.id); // Include current user's ID
+        allRelatedUserIds.add(user.id);
 
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
@@ -219,7 +219,7 @@ const Dashboard = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-                <div className="flex items-center gap-2 mb-4"> {/* Changed from justify-between to gap-2 */}
+                <div className="flex items-center gap-2 mb-4">
                   {user && (
                     <ClearMessagesDialog
                       partnerId={partnerProfile?.id || null}
@@ -276,7 +276,7 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8"> {/* Changed to grid-cols-2 for all screen sizes */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
                   <CircularProgressAvatar
@@ -287,7 +287,7 @@ const Dashboard = () => {
                     size="lg"
                   />
                   {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
-                    <Badge className="absolute top-0 left-0 transform translate-x-1/8 translate-y-1/8 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                    <Badge className="absolute top-0 left-0 transform translate-x-1/4 translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
                       I
                     </Badge>
                   )}
@@ -299,6 +299,12 @@ const Dashboard = () => {
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
               </div>
+
+              {/* Heart icon in between */}
+              <div className="flex-shrink-0">
+                <Heart className="w-16 h-16 text-pink-500 dark:text-purple-400" />
+              </div>
+
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 {partnerProfile ? (
                   <>
