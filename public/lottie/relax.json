@@ -29,30 +29,12 @@
           "ty": "gr",
           "it": [
             {
-              "ind": 0,
-              "ty": "sh",
-              "ix": 1,
-              "ks": {
-                "a": 0,
-                "k": [
-                  { "i": { "x": 0.667, "y": 1 }, "o": { "x": 0.333, "y": 0 }, "t": 0, "s": [0, 0] },
-                  { "t": 1, "s": [100, 100] }
-                ],
-                "ix": 2
-              },
-              "nm": "Shape 1",
-              "mn": "ADBE Vector Shape"
-            },
-            {
-              "ty": "st",
-              "c": { "a": 0, "k": [0.2, 0.8, 0.6, 1], "ix": 3 },
-              "o": { "a": 0, "k": 100, "ix": 4 },
-              "w": { "a": 0, "k": 5, "ix": 5 },
-              "lc": 1,
-              "lj": 1,
-              "ml": 4,
-              "nm": "Stroke 1",
-              "mn": "ADBE Vector Stroke"
+              "ty": "el",
+              "d": 1,
+              "s": { "a": 0, "k": [40, 40], "ix": 2 },
+              "p": { "a": 0, "k": [0, 0], "ix": 3 },
+              "nm": "Ellipse Path 1",
+              "mn": "ADBE Vector Shape - Ellipse"
             },
             {
               "ty": "fl",
