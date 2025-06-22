@@ -247,21 +247,6 @@ const Messages = () => {
     }
   };
 
-  const getMessageTypeBarColor = (messageType: string) => {
-    switch (messageType) {
-      case 'Grievance':
-        return 'bg-red-500';
-      case 'Compliment':
-        return 'bg-green-500';
-      case 'Good Memory':
-        return 'bg-yellow-500';
-      case 'How I Feel':
-        return 'bg-blue-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   return (
     <AppBackground className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
@@ -293,9 +278,7 @@ const Messages = () => {
                   <ul className="space-y-2">
                     {receivedMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
-                        {/* Colored bar on the left */}
-                        <div className={cn("absolute left-0 top-0 bottom-0 w-2 rounded-l-lg", getMessageTypeBarColor(message.message_type))}></div>
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3 pl-4"> {/* Added pl-4 */}
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className="absolute -top-2 left-4 text-2xl z-10">
                             {getMessageTypeEmoji(message.message_type)}
@@ -344,9 +327,7 @@ const Messages = () => {
                   <ul className="space-y-2">
                     {sentMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
-                        {/* Colored bar on the left */}
-                        <div className={cn("absolute left-0 top-0 bottom-0 w-2 rounded-l-lg", getMessageTypeBarColor(message.message_type))}></div>
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3 pl-4"> {/* Added pl-4 */}
+                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className="absolute -top-2 left-4 text-2xl z-10">
                             {getMessageTypeEmoji(message.message_type)}
