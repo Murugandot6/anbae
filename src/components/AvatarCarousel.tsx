@@ -30,61 +30,38 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
   }
 
   const updateCarouselState = useCallback(() => {
-    if (!emblaApi) {
-      console.log('updateCarouselState: emblaApi not ready.');
-      return;
-    }
+    if (!emblaApi) return;
     const newIndex = emblaApi.selectedScrollSnap();
     setSelectedIndex(newIndex);
     setPrevBtnDisabled(!emblaApi.canScrollPrev());
     setNextBtnDisabled(!emblaApi.canScrollNext());
     const currentActivePath = avatarPaths[newIndex];
     setActiveAvatarPath(currentActivePath);
-    console.log('--- updateCarouselState triggered ---');
-    console.log('  newIndex:', newIndex);
-    console.log('  currentActivePath (from array):', currentActivePath);
-    console.log('  activeAvatarPath state set to:', currentActivePath);
-    console.log('-----------------------------------');
   }, [emblaApi, avatarPaths]);
 
   const scrollPrev = useCallback(() => {
-    console.log('User clicked scrollPrev');
     emblaApi?.scrollPrev();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    console.log('User clicked scrollNext');
     emblaApi?.scrollNext();
   }, [emblaApi]);
 
   useEffect(() => {
-    console.log('AvatarCarousel useEffect ran. selectedAvatar prop:', selectedAvatar);
-    if (!emblaApi) {
-      console.log('AvatarCarousel useEffect: emblaApi not ready on initial render.');
-      return;
-    }
-
-    // Attach listeners
+    if (!emblaApi) return;
     emblaApi.on('select', updateCarouselState);
     emblaApi.on('reInit', updateCarouselState);
 
-    // Initial setup: set active avatar and scroll to selected if available
     const initialIndex = avatarPaths.findIndex(path => path === selectedAvatar);
     if (initialIndex !== -1) {
-      emblaApi.scrollTo(initialIndex, false); // false for no animation
-      setActiveAvatarPath(selectedAvatar); // Set initial active avatar
-      console.log('Initial setup: selectedAvatar found, scrolling to index', initialIndex, 'and setting activeAvatarPath to', selectedAvatar);
+      emblaApi.scrollTo(initialIndex, false);
+      setActiveAvatarPath(selectedAvatar);
     } else {
-      // If no selectedAvatar or not found, set the first avatar as active
       setActiveAvatarPath(avatarPaths[0] || null);
-      console.log('Initial setup: selectedAvatar not found, setting activeAvatarPath to first avatar', avatarPaths[0]);
     }
-    // Call updateCarouselState immediately after initial scroll/active path setup
-    // This ensures prev/next buttons are correctly enabled/disabled and activeAvatarPath is set based on current snap
     updateCarouselState(); 
 
     return () => {
-      console.log('AvatarCarousel useEffect cleanup: removing listeners.');
       emblaApi.off('select', updateCarouselState);
       emblaApi.off('reInit', updateCarouselState);
     };
@@ -96,7 +73,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
         <div className="embla__container flex -ml-4"> {/* Negative margin to offset padding */}
           {avatarPaths.map((path, index) => (
             <div
-              className="embla__slide flex-shrink-0 flex-grow-0 basis-full pl-4" // Changed basis to full for single item display
+              className="embla__slide flex-shrink-0 flex-grow-0 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 pl-4" // Reverted basis for multiple items
               key={path}
             >
               <div
@@ -104,10 +81,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
                   "relative cursor-pointer transition-all duration-200 p-1 rounded-full", // Added padding and rounded-full
                   activeAvatarPath === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400", // Use activeAvatarPath for visual
                 )}
-                onClick={() => {
-                  console.log('Avatar clicked:', path);
-                  onSelect(path); // onSelect is only called when an avatar is clicked
-                }}
+                onClick={() => onSelect(path)} // onSelect is only called when an avatar is clicked
               >
                 <Avatar className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 aspect-square overflow-hidden block flex-shrink-0 rounded-full">
                   <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
@@ -127,7 +101,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
       </div>
 
       <Button
-        type="button" // Added type="button" to prevent form submission
+        type="button"
         className="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/50 hover:bg-gray-700/70 text-white rounded-full w-8 h-8 p-0 flex items-center justify-center z-10"
         onClick={scrollPrev}
         disabled={prevBtnDisabled}
@@ -137,7 +111,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
         <ChevronLeft className="w-5 h-5" />
       </Button>
       <Button
-        type="button" // Added type="button" to prevent form submission
+        type="button"
         className="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/50 hover:bg-gray-700/70 text-white rounded-full w-8 h-8 p-0 flex items-center justify-center z-10"
         onClick={scrollNext}
         disabled={nextBtnDisabled}

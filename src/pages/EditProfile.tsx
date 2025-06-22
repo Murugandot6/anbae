@@ -11,17 +11,17 @@ import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AvatarSelector from '@/components/AvatarSelector';
+import AvatarSelectionDialog from '@/components/AvatarSelectionDialog'; // Import the new dialog component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import helper to fetch partner profile
-import { Profile } from '@/types/supabase'; // Import Profile type
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
+import { fetchProfileByEmail } from '@/lib/supabaseHelpers';
+import { Profile } from '@/types/supabase';
+import BackgroundWrapper from '@/components/BackgroundWrapper';
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
   partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
-  avatar_url: z.string().optional().or(z.literal('')), // Changed from .url() to plain string
+  avatar_url: z.string().optional().or(z.literal('')),
 }).refine((data) => {
   const sessionContext = (window as any).dyadSessionContext;
   const currentUserEmail = sessionContext?.user?.email;
@@ -36,7 +36,8 @@ const EditProfile = () => {
   const { user, loading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
-  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null); // State for partner profile
+  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false); // State for dialog open/close
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,7 +49,6 @@ const EditProfile = () => {
     },
   });
 
-  // Log form errors for debugging
   useEffect(() => {
     if (Object.keys(form.formState.errors).length > 0) {
       console.error('EditProfile: Form validation errors:', form.formState.errors);
@@ -63,7 +63,6 @@ const EditProfile = () => {
     const loadProfileData = async () => {
       if (!sessionLoading && user) {
         const currentAvatar = user.user_metadata.avatar_url || '';
-        console.log('EditProfile: Initial user_metadata.avatar_url:', currentAvatar);
         setSelectedAvatar(currentAvatar);
         form.reset({
           nickname: user.user_metadata.nickname || '',
@@ -72,7 +71,6 @@ const EditProfile = () => {
           avatar_url: currentAvatar,
         });
 
-        // Fetch partner profile (still needed for partner_nickname field validation/display)
         const currentUsersPartnerEmail = user.user_metadata.partner_email;
         if (currentUsersPartnerEmail) {
           try {
@@ -80,7 +78,6 @@ const EditProfile = () => {
             if (partnerData) {
               setPartnerProfile(partnerData);
             } else {
-              console.log('EditProfile: Partner profile not found for email:', currentUsersPartnerEmail);
               setPartnerProfile(null);
             }
           } catch (error) {
@@ -99,24 +96,20 @@ const EditProfile = () => {
   }, [user, sessionLoading, navigate, form]);
 
   const handleAvatarSelect = (url: string) => {
-    console.log('EditProfile: Avatar selected, setting form value to:', url);
     setSelectedAvatar(url);
     form.setValue('avatar_url', url, { shouldValidate: true });
+    // Dialog closing is handled within AvatarSelectionDialog's onSelect prop
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('EditProfile: onSubmit function triggered!');
     if (!user) {
       toast.error('User not authenticated.');
       return;
     }
 
     setLoading(true);
-    console.log('EditProfile: Submitting form with values:', values);
-    console.log('EditProfile: Avatar URL being sent:', values.avatar_url);
 
     try {
-      // 1. Update user_metadata in auth.users
       const { data: authUpdateData, error: authError } = await supabase.auth.updateUser({
         data: {
           nickname: values.nickname,
@@ -129,9 +122,7 @@ const EditProfile = () => {
       if (authError) {
         throw authError;
       }
-      console.log('EditProfile: Supabase auth.updateUser response:', authUpdateData);
 
-      // 2. Update public.profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -145,7 +136,6 @@ const EditProfile = () => {
       if (profileError) {
         throw profileError;
       }
-      console.log('EditProfile: Supabase profiles update successful.');
 
       toast.success('Profile updated successfully!');
       navigate('/dashboard');
@@ -218,23 +208,25 @@ const EditProfile = () => {
                 </FormItem>
               )}
             />
-            {/* Avatar Selection Field */}
+            {/* Avatar Selection Field - now with a dialog trigger */}
             <FormItem>
               <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Select Your Avatar</FormLabel>
               <div className="flex items-center gap-4 mb-4">
-                {selectedAvatar && (
-                  <div className="text-center">
-                    <Avatar className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400 mx-auto rounded-full"> {/* Added rounded-full here */}
-                      <AvatarImage src={selectedAvatar} alt="Your Avatar" />
-                      <AvatarFallback>AV</AvatarFallback>
-                    </Avatar>
-                    <p className="text-sm text-muted-foreground mt-1">Your Current Avatar</p>
-                  </div>
-                )}
+                <Avatar
+                  className="w-20 h-20 border-2 border-blue-500 dark:border-purple-400 mx-auto rounded-full cursor-pointer"
+                  onClick={() => setIsAvatarDialogOpen(true)} // Open dialog on click
+                >
+                  <AvatarImage src={selectedAvatar || ''} alt="Your Avatar" />
+                  <AvatarFallback>AV</AvatarFallback>
+                </Avatar>
+                <p className="text-sm text-muted-foreground mt-1">Click your avatar to change it</p>
               </div>
-              <FormControl>
-                <AvatarSelector selectedAvatar={selectedAvatar} onSelect={handleAvatarSelect} />
-              </FormControl>
+              <AvatarSelectionDialog
+                isOpen={isAvatarDialogOpen}
+                onOpenChange={setIsAvatarDialogOpen}
+                selectedAvatar={selectedAvatar}
+                onSelect={handleAvatarSelect}
+              />
               <FormMessage>{form.formState.errors.avatar_url?.message}</FormMessage>
             </FormItem>
 
