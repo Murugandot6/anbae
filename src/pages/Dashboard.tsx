@@ -200,7 +200,7 @@ const Dashboard = () => {
   return (
     <BackgroundWrapper className="pt-0 md:pt-0">
       <div className="flex min-h-screen w-full">
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative"> {/* Removed pt-32 */}
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="fixed top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
@@ -259,7 +259,7 @@ const Dashboard = () => {
             </SheetContent>
           </Sheet>
 
-          <div className="w-full max-w-4xl mx-auto animate-fade-in">
+          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16"> {/* Added mt-16 here */}
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
