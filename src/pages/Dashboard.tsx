@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } '@/contexts/SessionContext';
+import { useSession } from '@/contexts/SessionContext'; // Corrected: Added 'from'
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -200,10 +200,10 @@ const Dashboard = () => {
   return (
     <BackgroundWrapper className="pt-0 md:pt-0">
       <div className="flex min-h-screen w-full">
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative pt-16"> {/* Added pt-16 */}
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative pt-16">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="fixed top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"> {/* Changed absolute to fixed */}
+              <Button variant="outline" size="icon" className="fixed top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
