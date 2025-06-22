@@ -15,9 +15,9 @@ import CircularProgressAvatar from '@/components/CircularProgressAvatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-// import Sidebar from '@/components/Sidebar'; // Removed Sidebar import
 import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
+import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts'; // Import the new component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -324,7 +324,15 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
+            {/* New Charts Section */}
+            <ScoreAndMessageCharts
+              currentUserProfile={currentUserProfile}
+              partnerProfile={partnerProfile}
+              sentMessages={sentMessages}
+              receivedMessages={receivedMessages}
+            />
+
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6 mt-8">Recent Messages</h2>
             {user && (
               <MessageTimeline
                 sentMessages={sentMessages}
