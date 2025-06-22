@@ -232,6 +232,21 @@ const Messages = () => {
     }
   };
 
+  const getMessageTypeEmoji = (messageType: string) => {
+    switch (messageType) {
+      case 'Grievance':
+        return '💔';
+      case 'Compliment':
+        return '💖';
+      case 'Good Memory':
+        return '✨';
+      case 'How I Feel':
+        return '🤔';
+      default:
+        return '';
+    }
+  };
+
   return (
     <AppBackground className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
@@ -271,7 +286,7 @@ const Messages = () => {
                           <div className="flex-1">
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5" />
+                                {getMessageTypeEmoji(message.message_type)} <MessageSquare className="w-5 h-5" />
                                 {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -316,7 +331,7 @@ const Messages = () => {
                           <div className="flex-1">
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5" />
+                                {getMessageTypeEmoji(message.message_type)} <MessageSquare className="w-5 h-5" />
                                 {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
