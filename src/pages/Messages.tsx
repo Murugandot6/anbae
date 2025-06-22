@@ -233,10 +233,10 @@ const Messages = () => {
   };
 
   return (
-    <AppBackground className="pt-20">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
+    <AppBackground> {/* Removed pt-20 here */}
+      <div className="w-full max-w-4xl mx-auto pt-8"> {/* Added pt-8 here */}
+        <div className="flex justify-between items-center mb-6"> {/* Changed mb-8 to mb-6 */}
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1> {/* Changed text-4xl to text-3xl */}
           <Link to="/dashboard">
             <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Dashboard
@@ -260,9 +260,9 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {receivedMessages.length > 0 ? (
-                  <ul className="space-y-2"> {/* Reduced space-y from 4 to 2 */}
+                  <ul className="space-y-2">
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}> {/* Reduced pb-4 to pb-2 */}
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
@@ -307,9 +307,9 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {sentMessages.length > 0 ? (
-                  <ul className="space-y-2"> {/* Reduced space-y from 4 to 2 */}
+                  <ul className="space-y-2">
                     {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}> {/* Reduced pb-4 to pb-2 */}
+                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 p-2 rounded-md transition-colors flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
