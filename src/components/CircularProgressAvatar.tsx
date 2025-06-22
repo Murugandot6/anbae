@@ -24,8 +24,8 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   const progressOffset = circumference - (score / 100) * circumference;
 
   // Define colors for the stroke
-  const progressColorClasses = 'stroke-green-500 dark:stroke-green-400';
-  const trackColorClasses = 'stroke-gray-300 dark:stroke-gray-700'; // New: for the background track
+  const progressColorClasses = 'stroke-green-500 dark:stroke-green-400'; // Green for the score
+  const remainingColorClasses = 'stroke-red-500 dark:stroke-red-600'; // Red for the remaining part
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
@@ -55,18 +55,20 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         className={cn(svgSizeClasses, "transform -rotate-90")} // Adjust size to match avatar, rotate to start from top
         viewBox="0 0 100 100" // Standard viewBox for a 100x100 SVG
       >
-        {/* Background track circle */}
+        {/* Background (remaining) circle - always a full circle, colored red */}
         <circle
-          className={cn("stroke-current", trackColorClasses)} // Use new track color
+          className={cn("stroke-current", remainingColorClasses)}
           strokeWidth="8"
           fill="transparent"
           r={radius}
           cx="50"
           cy="50"
+          strokeDasharray={circumference}
+          strokeDashoffset={0}
         />
-        {/* Progress circle */}
+        {/* Progress circle - green, covers the red based on score */}
         <circle
-          className={cn("stroke-current transition-all duration-500 ease-in-out", progressColorClasses)} // Use progress color
+          className={cn("stroke-current transition-all duration-500 ease-in-out", progressColorClasses)}
           strokeWidth="8"
           strokeDasharray={circumference}
           strokeDashoffset={progressOffset}
