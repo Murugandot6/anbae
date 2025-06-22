@@ -223,8 +223,8 @@ const Dashboard = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+                {/* Top row: Broken Heart (left), Theme Toggle (left), Close Button (right - handled by SheetContent itself) */}
                 <div className="flex justify-between items-center mb-4">
-                  {/* Icons row: Broken Heart (Clear Messages) on left, Theme Toggle on right */}
                   <div className="flex items-center gap-2">
                     {user && (
                       <ClearMessagesDialog
@@ -234,8 +234,9 @@ const Dashboard = () => {
                         onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
                       />
                     )}
+                    <ThemeToggle />
                   </div>
-                  <ThemeToggle />
+                  {/* The SheetPrimitive.Close button is rendered automatically by SheetContent at top-4 right-4 */}
                 </div>
                 {/* Profile info below icons */}
                 <div className="flex items-center gap-3 mb-6">
