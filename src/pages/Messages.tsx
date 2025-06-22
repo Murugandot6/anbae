@@ -247,6 +247,21 @@ const Messages = () => {
     }
   };
 
+  const getMessageTypeEmojiBackgroundClasses = (messageType: string) => {
+    switch (messageType) {
+      case 'Grievance':
+        return 'bg-red-500 text-white';
+      case 'Compliment':
+        return 'bg-green-500 text-white';
+      case 'Good Memory':
+        return 'bg-yellow-500 text-white';
+      case 'How I Feel':
+        return 'bg-blue-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  };
+
   return (
     <AppBackground className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
@@ -280,7 +295,10 @@ const Messages = () => {
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
-                          <span className="absolute -top-2 left-4 text-2xl z-10">
+                          <span className={cn(
+                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            getMessageTypeEmojiBackgroundClasses(message.message_type)
+                          )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
                           <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
@@ -329,7 +347,10 @@ const Messages = () => {
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
-                          <span className="absolute -top-2 left-4 text-2xl z-10">
+                          <span className={cn(
+                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            getMessageTypeEmojiBackgroundClasses(message.message_type)
+                          )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
                           <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
