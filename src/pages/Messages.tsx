@@ -279,7 +279,7 @@ const Messages = () => {
                                 {message.status === 'closed' && (
                                   <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
                                 )}
-                                {formatMessageDate(message.created_at)}
+                                {/* Removed formatMessageDate from here */}
                               </span>
                             </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
@@ -329,7 +329,7 @@ const Messages = () => {
                                 {message.status === 'closed' && (
                                   <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
                                 )}
-                                {formatMessageDate(message.created_at)}
+                                {/* Removed formatMessageDate from here */}
                               </span>
                             </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">

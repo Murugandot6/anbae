@@ -19,9 +19,5 @@ export function formatMessageDate(dateString: string): string {
 
 export function formatDateTimeForMessageView(dateString: string): string {
   const date = new Date(dateString);
-  if (isToday(date)) {
-    return format(date, "h:mm a"); // e.g., "8:04 am"
-  }
-  // Using 'dd/MM/yyyy, HH:mm:ss' format as seen in your screenshot
-  return format(date, "dd/MM/yyyy, HH:mm:ss"); // e.g., "21/06/2025, 00:47:06"
+  return format(date, "h:mm a"); // e.g., "8:04 am" - now always shows only hour and minute
 }
