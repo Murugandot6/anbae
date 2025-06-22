@@ -257,18 +257,24 @@ const Messages = () => {
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
           {/* Back to Dashboard Button (now on left, icon-only) */}
-          <Link to="/dashboard">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Back to Dashboard
-              </TooltipContent>
-            </Tooltip>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                onClick={() => {
+                  console.log('Navigating to dashboard from Messages page.');
+                  navigate('/dashboard');
+                }}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Back to Dashboard
+            </TooltipContent>
+          </Tooltip>
           {/* Your Messages Title (now on right) */}
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
         </div>
