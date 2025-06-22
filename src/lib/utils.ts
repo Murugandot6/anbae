@@ -23,7 +23,7 @@ export function formatDateTimeForMessageView(dateString: string): string {
     return format(date, "h:mm a"); // e.g., "8:04 am"
   }
   if (isYesterday(date)) {
-    return format(date, "Yesterday, h:mm a"); // e.g., "Yesterday, 8:04 am"
+    return format(date, "'Yesterday', h:mm a"); // e.g., "Yesterday, 8:04 am" - Fixed: 'Yesterday' is now escaped
   }
   return format(date, "MMM d, yyyy, h:mm a"); // e.g., "Jun 21, 2024, 8:04 am"
 }

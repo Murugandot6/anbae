@@ -234,12 +234,6 @@ const Messages = () => {
 
   return (
     <AppBackground className="justify-start items-start">
-      {/* Temporary Debugging Indicator */}
-      <div className="absolute top-0 left-0 p-2 bg-yellow-300 text-black text-xs z-50">
-        Messages Page Rendered!
-      </div>
-      {/* End Temporary Debugging Indicator */}
-
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
