@@ -6,6 +6,9 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
 import OnboardingSlide from '@/components/OnboardingSlide';
 
+// Import Lottie JSON data with ?url suffix
+import likingLottie from '/lottie/Liking.json?url';
+
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
@@ -19,6 +22,7 @@ const OnboardingWelcome: React.FC = () => {
     {
       title: "Your Personalized Hub",
       description: "Here you'll find your Lifetime Score, a gentle whisper of your communication health. See your and your partner's profiles, a glance at the souls intertwined, and a timeline of recent messages, the thoughts you've recently shared.",
+      lottieUrl: likingLottie, // Added Lottie URL here
       bgColorClass: "bg-purple-300",
     },
     {
