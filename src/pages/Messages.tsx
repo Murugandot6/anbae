@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext'; // Corrected: Added 'from' keyword
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -286,7 +286,7 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            "absolute -top-4 right-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-4 to right-4
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
@@ -338,7 +338,7 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                            "absolute -top-4 right-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-4 to right-4
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
