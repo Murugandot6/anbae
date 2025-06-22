@@ -277,16 +277,20 @@ const Messages = () => {
                 {receivedMessages.length > 0 ? (
                   <ul className="space-y-2">
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          <Avatar className="w-12 h-12">
+                          {/* Emoji positioned above avatar */}
+                          <span className="absolute -top-2 left-4 text-2xl z-10">
+                            {getMessageTypeEmoji(message.message_type)}
+                          </span>
+                          <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
                             <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                {getMessageTypeEmoji(message.message_type)} <MessageSquare className="w-5 h-5" />
+                                <MessageSquare className="w-5 h-5" />
                                 {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
@@ -322,16 +326,20 @@ const Messages = () => {
                 {sentMessages.length > 0 ? (
                   <ul className="space-y-2">
                     {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          <Avatar className="w-12 h-12">
+                          {/* Emoji positioned above avatar */}
+                          <span className="absolute -top-2 left-4 text-2xl z-10">
+                            {getMessageTypeEmoji(message.message_type)}
+                          </span>
+                          <Avatar className="w-12 h-12 ml-8"> {/* Added ml-8 for spacing */}
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
                             <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                {getMessageTypeEmoji(message.message_type)} <MessageSquare className="w-5 h-5" />
+                                <MessageSquare className="w-5 h-5" />
                                 {message.subject}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
