@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/SessionContext';
+import { useSession } from '@/contexts/Session/SessionContext'; // Corrected import path
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -287,7 +287,7 @@ const Dashboard = () => {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
                 </h3>
-                <div className="relative"> {/* Added relative positioning for the badge */}
+                <div className="relative">
                   <CircularProgressAvatar
                     score={currentUserProfile?.lifetime_score ?? 100}
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
@@ -296,7 +296,7 @@ const Dashboard = () => {
                     className="mb-2"
                     size="lg"
                   />
-                  <div className="absolute bottom-0 right-0 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                  <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
                     i
                   </div>
                 </div>
@@ -312,7 +312,7 @@ const Dashboard = () => {
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
                 </h3>
                 {partnerProfile ? (
-                  <div className="relative"> {/* Added relative positioning for the badge */}
+                  <div className="relative">
                     <CircularProgressAvatar
                       score={partnerProfile.lifetime_score ?? 100}
                       avatarUrl={partnerProfile.avatar_url}
@@ -321,7 +321,7 @@ const Dashboard = () => {
                       className="mb-2"
                       size="lg"
                     />
-                    <div className="absolute bottom-0 right-0 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                    <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
                       u
                     </div>
                   </div>
