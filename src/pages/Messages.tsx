@@ -285,7 +285,7 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 left-0 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-2 to left-0
+                            "absolute -top-4 -left-2 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-0 to -left-2
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
@@ -337,7 +337,7 @@ const Messages = () => {
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
                           {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 left-0 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-2 to left-0
+                            "absolute -top-4 -left-2 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Changed left-0 to -left-2
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
