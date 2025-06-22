@@ -21,15 +21,11 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
 }) => {
   const radius = 40; // Radius of the circle
   const circumference = 2 * Math.PI * radius;
-  
-  // TEMPORARY: Force score to 50 for debugging visibility
-  const debugScore = 50; 
-  const progressOffset = circumference - (debugScore / 100) * circumference;
+  const progressOffset = circumference - (score / 100) * circumference;
 
-  // TEMPORARY: Use very contrasting colors and thick stroke for debugging
-  const progressColorClasses = 'stroke-blue-500'; // Bright blue
-  const remainingColorClasses = 'stroke-yellow-500'; // Bright yellow
-  const debugStrokeWidth = 20; // Very thick stroke
+  // Define colors for the stroke
+  const progressColorClasses = 'stroke-green-500 dark:stroke-green-400'; // Green for the score
+  const remainingColorClasses = 'stroke-red-500 dark:stroke-red-600'; // Red for the remaining part
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
@@ -53,19 +49,16 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
       break;
   }
 
-  console.log('CircularProgressAvatar Debug: Score (forced):', debugScore, 'Avatar URL:', avatarUrl, 'Size:', size);
-  console.log('CircularProgressAvatar Debug: Circumference:', circumference, 'Progress Offset:', progressOffset);
-
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
       <svg
         className={cn(svgSizeClasses, "transform -rotate-90")}
         viewBox="0 0 100 100"
       >
-        {/* Background (remaining) circle - always a full circle, colored yellow */}
+        {/* Background (remaining) circle - always a full circle, colored red */}
         <circle
           className={remainingColorClasses}
-          strokeWidth={debugStrokeWidth}
+          strokeWidth="8"
           fill="transparent"
           r={radius}
           cx="50"
@@ -73,10 +66,10 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
           strokeDasharray={circumference}
           strokeDashoffset={0}
         />
-        {/* Progress circle - blue, covers the yellow based on score */}
+        {/* Progress circle - green, covers the red based on score */}
         <circle
           className={cn("transition-all duration-500 ease-in-out", progressColorClasses)}
-          strokeWidth={debugStrokeWidth}
+          strokeWidth="8"
           strokeDasharray={circumference}
           strokeDashoffset={progressOffset}
           strokeLinecap="round"
