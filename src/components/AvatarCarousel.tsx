@@ -18,6 +18,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeAvatarPath, setActiveAvatarPath] = useState<string | null>(null); // New state for the visually active avatar
 
   const avatarPaths: string[] = [];
   const prefixes = ['romeo', 'juliet'];
@@ -28,33 +29,46 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
     });
   }
 
+  const updateCarouselState = useCallback(() => {
+    if (!emblaApi) return;
+    const newIndex = emblaApi.selectedScrollSnap();
+    setSelectedIndex(newIndex);
+    setPrevBtnDisabled(!emblaApi.canScrollPrev());
+    setNextBtnDisabled(!emblaApi.canScrollNext());
+    setActiveAvatarPath(avatarPaths[newIndex]); // Update the active avatar path
+  }, [emblaApi, avatarPaths]);
+
   const scrollPrev = useCallback(() => {
     emblaApi?.scrollPrev();
+    // updateCarouselState will be called by the 'select' event listener
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
     emblaApi?.scrollNext();
+    // updateCarouselState will be called by the 'select' event listener
   }, [emblaApi]);
-
-  const onSelectHandler = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-    setPrevBtnDisabled(!emblaApi.canScrollPrev());
-    setNextBtnDisabled(!emblaApi.canScrollNext());
-  }, [emblaApi, setSelectedIndex]);
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelectHandler();
-    emblaApi.on('select', onSelectHandler);
-    emblaApi.on('reInit', onSelectHandler);
+    emblaApi.on('select', updateCarouselState);
+    emblaApi.on('reInit', updateCarouselState);
 
-    // Set initial selected avatar if provided
+    // Set initial selected avatar if provided and scroll to it
     const initialIndex = avatarPaths.findIndex(path => path === selectedAvatar);
     if (initialIndex !== -1) {
       emblaApi.scrollTo(initialIndex, false); // false for no animation
+      setActiveAvatarPath(selectedAvatar); // Set initial active avatar
+    } else {
+      // If no selectedAvatar or not found, set the first avatar as active
+      setActiveAvatarPath(avatarPaths[0] || null);
     }
-  }, [emblaApi, onSelectHandler, selectedAvatar, avatarPaths]);
+    updateCarouselState(); // Initial state update
+
+    return () => {
+      emblaApi.off('select', updateCarouselState);
+      emblaApi.off('reInit', updateCarouselState);
+    };
+  }, [emblaApi, updateCarouselState, selectedAvatar, avatarPaths]);
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -68,9 +82,9 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
               <div
                 className={cn(
                   "relative cursor-pointer transition-all duration-200 p-1 rounded-full", // Added padding and rounded-full
-                  selectedAvatar === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400",
+                  activeAvatarPath === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400", // Use activeAvatarPath for visual
                 )}
-                onClick={() => onSelect(path)}
+                onClick={() => onSelect(path)} // onSelect is only called when an avatar is clicked
               >
                 <Avatar className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 aspect-square overflow-hidden block flex-shrink-0 rounded-full">
                   <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
@@ -78,7 +92,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
                     AV
                   </AvatarFallback>
                 </Avatar>
-                {selectedAvatar === path && (
+                {activeAvatarPath === path && ( // Use activeAvatarPath for checkmark
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-full">
                     <span className="text-white text-2xl">✓</span>
                   </div>
