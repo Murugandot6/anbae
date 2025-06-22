@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { Profile } from '@/types/supabase'; // Import shared Profile type
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import shared helper
+import AppBackground from '@/components/AppBackground'; // Import AppBackground
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -156,8 +157,8 @@ const SendMessage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 pt-20">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+    <AppBackground>
+      <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
         <div className="text-center mb-6">
           <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Send a Grievance</h2>
@@ -262,7 +263,7 @@ const SendMessage = () => {
           </Link>
         </div>
       </div>
-    </div>
+    </AppBackground>
   );
 };
 

@@ -12,6 +12,7 @@ import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helpe
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { formatMessageDate } from '@/lib/utils'; // Import formatMessageDate
 import { Badge } from '@/components/ui/badge'; // Import Badge component
+import AppBackground from '@/components/AppBackground'; // Import AppBackground
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -217,7 +218,7 @@ const Messages = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground p-4 pt-20">
+    <AppBackground className="pt-20">
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
@@ -238,7 +239,7 @@ const Messages = () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="inbox">
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">Received Messages</CardTitle>
               </CardHeader>
@@ -284,7 +285,7 @@ const Messages = () => {
             </Card>
           </TabsContent>
           <TabsContent value="outbox">
-            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-white">Sent Messages</CardTitle>
               </CardHeader>
@@ -335,7 +336,7 @@ const Messages = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppBackground>
   );
 };
 
