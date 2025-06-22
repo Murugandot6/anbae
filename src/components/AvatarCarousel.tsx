@@ -96,7 +96,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
         <div className="embla__container flex -ml-4"> {/* Negative margin to offset padding */}
           {avatarPaths.map((path, index) => (
             <div
-              className="embla__slide flex-shrink-0 flex-grow-0 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 pl-4" // Adjust basis for number of visible items
+              className="embla__slide flex-shrink-0 flex-grow-0 basis-full pl-4" // Changed basis to full for single item display
               key={path}
             >
               <div
@@ -127,6 +127,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
       </div>
 
       <Button
+        type="button" // Added type="button" to prevent form submission
         className="embla__button embla__button--prev absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/50 hover:bg-gray-700/70 text-white rounded-full w-8 h-8 p-0 flex items-center justify-center z-10"
         onClick={scrollPrev}
         disabled={prevBtnDisabled}
@@ -136,6 +137,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
         <ChevronLeft className="w-5 h-5" />
       </Button>
       <Button
+        type="button" // Added type="button" to prevent form submission
         className="embla__button embla__button--next absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/50 hover:bg-gray-700/70 text-white rounded-full w-8 h-8 p-0 flex items-center justify-center z-10"
         onClick={scrollNext}
         disabled={nextBtnDisabled}
