@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import AppBackground from '@/components/AppBackground';
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
@@ -198,7 +198,7 @@ const Dashboard = () => {
   }
 
   return (
-    <AppBackground className="pt-0 md:pt-0">
+    <BackgroundWrapper className="pt-0 md:pt-0"> {/* Updated component name */}
       <div className="flex min-h-screen w-full">
         {!isMobile && (
           <Sidebar
@@ -349,7 +349,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </AppBackground>
+    </BackgroundWrapper>
   );
 };
 

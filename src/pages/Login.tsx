@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import ForgotPasswordDialog from '@/components/ForgotPasswordDialog';
 import { useState } from 'react';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import VideoBackground from '@/components/VideoBackground'; // Import VideoBackground
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -52,8 +52,7 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden"> {/* Outer container for video */}
-      <VideoBackground /> {/* The animated background */}
+    <BackgroundWrapper> {/* Updated component name */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4"> {/* Content wrapper */}
         <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
@@ -119,7 +118,7 @@ const Login = () => {
         </div>
         <ForgotPasswordDialog isOpen={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen} />
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 
