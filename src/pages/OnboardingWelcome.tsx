@@ -1,85 +1,113 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import BackgroundWrapper from '@/components/BackgroundWrapper';
-import { Heart, MessageSquare, Inbox, Settings, HeartCrack, Sun, LayoutDashboard } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
+import OnboardingSlide from '@/components/OnboardingSlide';
+
+// Import Lottie JSON data
+import travelLottie from '/lottie/travel.json';
+import relaxLottie from '/lottie/relax.json';
+import paymentLottie from '/lottie/payment.json';
 
 const OnboardingWelcome: React.FC = () => {
-  const features = [
+  const navigate = useNavigate();
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+  const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
+  const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const slidesData = [
     {
-      title: "Your Personalized Hub",
-      description: "Here you'll find your Lifetime Score, a gentle whisper of your communication health. See your and your partner's profiles, a glance at the souls intertwined, and a timeline of recent messages, the thoughts you've recently shared.",
-      icon: <LayoutDashboard className="w-6 h-6 text-blue-500 dark:text-blue-400" />,
+      title: "We will take care",
+      description: "of tickets, transfers and a cool place to stay",
+      lottieData: travelLottie,
+      bgColorClass: "bg-yellow-400",
     },
     {
-      title: "Speak from the Heart",
-      description: "This is where your feelings take flight. Send Grievances to address conflicts openly, or shower your partner with Compliments to show appreciation. Relive cherished Good Memories, or simply express How I Feel in the moment.",
-      icon: <MessageSquare className="w-6 h-6 text-green-500 dark:text-green-400" />,
+      title: "Relax & enjoy",
+      description: "Sunbathe, swim, eat and drink deliciously",
+      lottieData: relaxLottie,
+      bgColorClass: "bg-blue-300",
     },
     {
-      title: "Your Conversation Hub",
-      description: "You'll find a flowing river of all your communications, keeping track of every conversation. You can easily reply to messages and mark them as read, ensuring you stay connected.",
-      icon: <Inbox className="w-6 h-6 text-purple-500 dark:text-purple-400" />,
-    },
-    {
-      title: "Craft Your Presence",
-      description: "This section allows you to personalize your experience. Update your nickname, link to your partner's account by their email, give your partner a special nickname, and choose a unique avatar to represent you.",
-      icon: <Settings className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />,
-    },
-    {
-      title: "A Fresh Start",
-      description: "Need a clean slate? This feature lets you send a request to your partner to clear your entire message history. This provides a fresh start, but remember, it requires mutual agreement.",
-      icon: <HeartCrack className="w-6 h-6 text-red-500 dark:text-red-400" />,
-    },
-    {
-      title: "Your View, Your Way",
-      description: "With this toggle, you can switch between light and dark modes to suit your preference, making your app experience comfortable for your eyes, day or night.",
-      icon: <Sun className="w-6 h-6 text-orange-500 dark:text-orange-400" />,
+      title: "Flexible payment",
+      description: "credit card and transfer, cryptocurrency",
+      lottieData: paymentLottie,
+      bgColorClass: "bg-pink-300",
     },
   ];
 
+  const scrollPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  const onSelect = useCallback((emblaApi: any) => {
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+    setPrevBtnDisabled(!emblaApi.canScrollPrev());
+    setNextBtnDisabled(!emblaApi.canScrollNext());
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect(emblaApi);
+    emblaApi.on('reInit', onSelect);
+    emblaApi.on('select', onSelect);
+  }, [emblaApi, onSelect]);
+
+  const handleSkip = () => {
+    navigate('/dashboard'); // Navigate to dashboard or login after skipping
+  };
+
   return (
-    <BackgroundWrapper className="pt-0 md:pt-0">
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="absolute top-4 right-4 z-20">
-          <ThemeToggle />
-        </div>
-        <Card className="w-full max-w-2xl bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-center">
-          <CardHeader className="mb-6">
-            <Heart className="w-16 h-16 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
-            <CardTitle className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Anbae!</CardTitle>
-            <p className="text-lg text-gray-700 dark:text-gray-300">Discover how Anbae can help you nurture your relationship.</p>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[calc(100vh-350px)] max-h-[500px] pr-4"> {/* Adjusted height for better fit */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-4 p-4 bg-white/50 dark:bg-gray-700/50 rounded-lg shadow-sm border border-white/40 dark:border-gray-600/40">
-                    <div className="flex-shrink-0 mt-1">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">{feature.title}</h3>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{feature.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-            <div className="mt-8">
-              <Link to="/dashboard">
-                <Button className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 text-lg py-3">
-                  Continue to Dashboard
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="relative h-screen w-screen overflow-hidden flex flex-col">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
       </div>
-    </BackgroundWrapper>
+      <div className="absolute top-4 left-4 z-20">
+        <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+          Skip
+        </Button>
+      </div>
+
+      <div className="embla flex-1 overflow-hidden">
+        <div className="embla__viewport h-full" ref={emblaRef}>
+          <div className="embla__container flex h-full">
+            {slidesData.map((slide, index) => (
+              <div className="embla__slide flex-[0_0_100%] min-w-0 h-full" key={index}>
+                <OnboardingSlide {...slide} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+        <Button
+          onClick={scrollPrev}
+          disabled={prevBtnDisabled}
+          variant="outline"
+          size="icon"
+          className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </Button>
+        <Button
+          onClick={scrollNext}
+          disabled={nextBtnDisabled}
+          variant="outline"
+          size="icon"
+          className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+        >
+          <ArrowRight className="w-6 h-6" />
+        </Button>
+      </div>
+    </div>
   );
 };
 
