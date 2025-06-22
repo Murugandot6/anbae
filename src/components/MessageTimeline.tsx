@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Message, Profile } from '@/types/supabase';
 import { formatMessageDate, cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Keep Avatar imports for other uses if needed, but not for timeline display
+// Removed Avatar imports as they are no longer used in this component
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Ensure Button is imported if used in the empty state
@@ -52,36 +52,32 @@ const MessageTimeline: React.FC<MessageTimelineProps> = ({
       <div className="space-y-8">
         {recentMessages.map((message, index) => {
           const isSentByCurrentUser = message.sender_id === currentUserId;
-          // const displayProfile = isSentByCurrentUser ? message.receiverProfile : message.senderProfile; // No longer needed for avatar
-          // const displayName = displayProfile?.username || displayProfile?.email || 'Unknown Partner'; // No longer needed for avatar
-          // const avatarUrl = displayProfile?.avatar_url || ''; // No longer needed for avatar
-          // const avatarFallback = displayName.charAt(0).toUpperCase(); // No longer needed for avatar
 
           return (
             <div
               key={message.id}
               className={cn(
-                "flex items-center w-full gap-4", // Added gap for spacing
+                "flex items-center w-full gap-4",
                 isSentByCurrentUser ? "flex-row-reverse" : "flex-row"
               )}
             >
               {/* Date */}
               <div className={cn(
-                "flex-shrink-0 text-sm text-gray-500 dark:text-gray-400 w-24 text-right", // Fixed width for date
-                isSentByCurrentUser ? "text-left" : "text-right" // Align date opposite to message
+                "flex-shrink-0 text-sm text-gray-500 dark:text-gray-400 w-24",
+                isSentByCurrentUser ? "text-left" : "text-right"
               )}>
                 {formatMessageDate(message.created_at)}
               </div>
 
-              {/* Timeline Dot (now without Avatar) */}
-              <div className="relative z-10 flex-shrink-0 w-16 h-16 flex items-center justify-center"> {/* Added fixed size and centering */}
-                <div className="w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
+              {/* Timeline Dot */}
+              <div className="relative z-10 flex-shrink-0 w-4 h-4"> {/* Adjusted size to just fit the dot */}
+                <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-purple-500 border-2 border-white dark:border-gray-800"></div>
               </div>
 
               {/* Message Card */}
               <div
                 className={cn(
-                  "flex-1 p-4 rounded-xl shadow-lg backdrop-blur-sm border", // Use flex-1 to take remaining space
+                  "flex-1 p-4 rounded-xl shadow-lg backdrop-blur-sm border",
                   isSentByCurrentUser
                     ? "bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30"
                     : "bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30"
