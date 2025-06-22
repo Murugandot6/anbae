@@ -233,7 +233,13 @@ const Messages = () => {
   };
 
   return (
-    <AppBackground className="justify-start items-start"> {/* Added justify-start and items-start */}
+    <AppBackground className="justify-start items-start">
+      {/* Temporary Debugging Indicator */}
+      <div className="absolute top-0 left-0 p-2 bg-yellow-300 text-black text-xs z-50">
+        Messages Page Rendered!
+      </div>
+      {/* End Temporary Debugging Indicator */}
+
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
@@ -279,7 +285,6 @@ const Messages = () => {
                                 {message.status === 'closed' && (
                                   <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
                                 )}
-                                {/* Removed formatMessageDate from here */}
                               </span>
                             </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
@@ -329,7 +334,6 @@ const Messages = () => {
                                 {message.status === 'closed' && (
                                   <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
                                 )}
-                                {/* Removed formatMessageDate from here */}
                               </span>
                             </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
