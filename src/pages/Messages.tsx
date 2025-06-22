@@ -289,7 +289,7 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {receivedMessages.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-4"> {/* Changed space-y-2 to space-y-4 */}
                     {receivedMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
@@ -341,7 +341,7 @@ const Messages = () => {
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {sentMessages.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-4"> {/* Changed space-y-2 to space-y-4 */}
                     {sentMessages.map((message) => (
                       <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
