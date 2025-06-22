@@ -51,8 +51,8 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
           <div className="flex items-center justify-center h-full text-gray-600 dark:text-gray-400">No animation data.</div>
         )}
       </div>
-      <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{title}</h2>
-      <p className="text-lg text-gray-700 dark:text-gray-300 max-w-md">{description}</p>
+      <h2 className="text-4xl font-bold text-gray-900 mb-4">{title}</h2> {/* Removed dark:text-white */}
+      <p className="text-lg text-gray-700 max-w-md">{description}</p> {/* Removed dark:text-gray-300 */}
     </div>
   );
 };
