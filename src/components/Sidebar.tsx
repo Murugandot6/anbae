@@ -29,17 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
           </Avatar>
           <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
         </div>
-        <div className="flex gap-2 items-center"> {/* New div to group toggle and clear messages */}
-          {user && (
-            <ClearMessagesDialog
-              partnerId={partnerProfile?.id || null}
-              partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-              currentUserId={user.id}
-              onMessagesCleared={onMessagesCleared}
-            />
-          )}
-          <ThemeToggle />
-        </div>
+        <ThemeToggle /> {/* Moved ThemeToggle here */}
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         <Link to="/dashboard">
@@ -64,6 +54,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-2">
+        {user && (
+          <ClearMessagesDialog
+            partnerId={partnerProfile?.id || null}
+            partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+            currentUserId={user.id}
+            onMessagesCleared={onMessagesCleared}
+          />
+        )}
         <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
           <LogOut className="w-5 h-5 mr-2" /> Logout
         </Button>

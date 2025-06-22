@@ -215,8 +215,6 @@ const Dashboard = () => {
         )}
 
         <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative md:ml-64"> {/* Main content area */}
-          {/* Removed the ThemeToggle from here */}
-
           {isMobile && (
             <Sheet>
               <SheetTrigger asChild>
@@ -225,15 +223,18 @@ const Dashboard = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-                <div className="flex items-center gap-3 mb-6">
-                  <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
-                    <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-                    <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+                <div className="flex justify-between items-center mb-6"> {/* Adjusted for ThemeToggle */}
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+                      <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                      <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+                    </div>
                   </div>
+                  <ThemeToggle /> {/* Moved ThemeToggle here */}
                 </div>
                 <nav className="flex flex-col gap-2 mb-auto">
                   <Link to="/dashboard">
