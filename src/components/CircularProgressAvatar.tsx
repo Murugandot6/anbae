@@ -22,14 +22,13 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   const radius = 40; // Radius of the circle
   const circumference = 2 * Math.PI * radius;
   
-  // TEMPORARY: Force score to 50 for debugging visibility
-  const debugScore = 50; 
-  const progressOffset = circumference - (debugScore / 100) * circumference;
+  // Use the actual score passed in props
+  const progressOffset = circumference - (score / 100) * circumference;
 
-  // Using intended colors, but with a slightly thicker stroke for visibility
+  // Using intended colors, with a slightly thicker stroke for better visibility
   const progressColorClasses = 'stroke-green-500 dark:stroke-green-400'; // Green for the score
   const remainingColorClasses = 'stroke-red-500 dark:stroke-red-600'; // Red for the remaining part
-  const currentStrokeWidth = 12; // Slightly thicker than original 8px
+  const currentStrokeWidth = 12; // Keeping it at 12px for better visibility
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
