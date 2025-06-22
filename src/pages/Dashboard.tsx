@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } => '@/contexts/SessionContext';
+import { useSession } from '@/contexts/SessionContext'; // Corrected '=>' to 'from'
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
