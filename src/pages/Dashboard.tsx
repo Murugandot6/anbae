@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react'; // Removed CheckCircle import
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -80,7 +80,7 @@ const Dashboard = () => {
             } else if (partnerData) {
               console.log('Dashboard: Partner profile fetched:', partnerData);
               setPartnerProfile(partnerData);
-              console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score); // Log partner score
+              console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score);
             } else {
               console.log('Dashboard: Partner profile not found for email:', profileData.partner_email);
               setPartnerProfile(null);
@@ -296,11 +296,7 @@ const Dashboard = () => {
                     altText="Your Avatar"
                     size="lg"
                   />
-                  {currentUserProfile?.partner_email && partnerProfile && (
-                    <div className="absolute -bottom-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700 z-50">
-                      i
-                    </div>
-                  )}
+                  {/* Removed the 'i' badge */}
                 </div>
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
@@ -323,9 +319,7 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size="lg"
                       />
-                      <div className="absolute -bottom-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700 z-50">
-                        u
-                      </div>
+                      {/* Removed the 'u' badge */}
                     </div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
                       {partnerProfile.username || partnerProfile.email}
