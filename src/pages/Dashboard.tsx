@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/contexts/Session/SessionContext'; // Corrected import path
+import { useSession } from '@/contexts/SessionContext'; // Corrected import path
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -296,7 +296,7 @@ const Dashboard = () => {
                     className="mb-2"
                     size="lg"
                   />
-                  <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
+                  <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-5 h-5 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
                     i
                   </div>
                 </div>
@@ -321,7 +321,7 @@ const Dashboard = () => {
                       className="mb-2"
                       size="lg"
                     />
-                    <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-6 h-6 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
+                    <div className="absolute bottom-0.5 right-0.5 bg-white rounded-full w-5 h-5 flex items-center justify-center text-black font-bold text-xs border border-gray-200 dark:border-gray-700">
                       u
                     </div>
                   </div>
