@@ -276,7 +276,8 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
+            {/* New grid container for profiles and heart */}
+            <div className="grid grid-cols-2 gap-8 mb-8 items-center justify-items-center">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
                   <CircularProgressAvatar
@@ -287,7 +288,7 @@ const Dashboard = () => {
                     size="lg"
                   />
                   {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
-                    <Badge className="absolute top-0 left-0 transform translate-x-1/4 translate-y-1/4 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                    <Badge className="absolute top-0 left-0 transform translate-x-1/2 translate-y-1/2 bg-blue-500 text-white dark:bg-blue-700 dark:text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
                       I
                     </Badge>
                   )}
@@ -298,11 +299,6 @@ const Dashboard = () => {
                 <p className="text-base font-semibold text-gray-700 dark:text-gray-300">
                   Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                 </p>
-              </div>
-
-              {/* Heart icon in between */}
-              <div className="flex-shrink-0">
-                <Heart className="w-16 h-16 text-pink-500 dark:text-purple-400" />
               </div>
 
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
@@ -332,6 +328,11 @@ const Dashboard = () => {
                 ) : (
                   <p className="text-muted-foreground text-base">No partner profile linked or found.</p>
                 )}
+              </div>
+
+              {/* Heart icon - now spans both columns and is centered below */}
+              <div className="col-span-2 flex justify-center mt-4">
+                <Heart className="w-16 h-16 text-pink-500 dark:text-purple-400" />
               </div>
             </div>
 
