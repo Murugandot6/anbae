@@ -4,13 +4,12 @@ import { cn } from '@/lib/utils';
 
 interface BackgroundImageWrapperProps {
   children: React.ReactNode;
-  className?: string; // For additional styling on the content wrapper
+  className?: string;
 }
 
 const BackgroundImageWrapper: React.FC<BackgroundImageWrapperProps> = ({ children, className }) => {
   const { theme } = useTheme();
-  console.log('BackgroundImageWrapper: Component rendered with theme:', theme); // Added console log
-  // This comment is added to force a re-render/re-evaluation by the build system.
+  console.log('BackgroundImageWrapper: Component rendered with theme:', theme);
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
