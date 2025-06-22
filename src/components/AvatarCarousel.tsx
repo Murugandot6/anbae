@@ -34,7 +34,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 p-4"> {/* Simple grid layout */}
+      <div className="grid grid-cols-2 gap-4 p-4"> {/* Changed to grid-cols-2 */}
         {avatarPaths.map((path) => (
           <div
             key={path}
