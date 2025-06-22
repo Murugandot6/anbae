@@ -232,6 +232,25 @@ const Messages = () => {
     }
   };
 
+  const getMoodEmoji = (mood: string) => {
+    switch (mood) {
+      case 'Happy':
+        return '😊';
+      case 'Sad':
+        return '😔';
+      case 'Angry':
+        return '😠';
+      case 'Neutral':
+        return '😐';
+      case 'Anxious':
+        return '😟';
+      case 'Grateful':
+        return '🙏';
+      default:
+        return '';
+    }
+  };
+
   return (
     <AppBackground className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
@@ -272,7 +291,7 @@ const Messages = () => {
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
-                                {message.subject}
+                                {message.subject} {getMoodEmoji(message.mood)} {/* Added Mood Emoji */}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                                 {message.is_read ? null : <span className="text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
@@ -317,7 +336,7 @@ const Messages = () => {
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
-                                {message.subject}
+                                {message.subject} {getMoodEmoji(message.mood)} {/* Added Mood Emoji */}
                               </span>
                               <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
                                 {message.read_at && (
