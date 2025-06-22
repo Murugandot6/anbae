@@ -6,10 +6,10 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
 import OnboardingSlide from '@/components/OnboardingSlide';
 
-// Import Lottie JSON data
-import travelLottie from '/lottie/travel.json';
-import relaxLottie from '/lottie/relax.json';
-import paymentLottie from '/lottie/payment.json';
+// Import Lottie JSON data with ?url suffix
+import travelLottie from '/lottie/travel.json?url';
+import relaxLottie from '/lottie/relax.json?url';
+import paymentLottie from '/lottie/payment.json?url';
 
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
