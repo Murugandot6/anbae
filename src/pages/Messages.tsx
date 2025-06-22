@@ -234,7 +234,7 @@ const Messages = () => {
 
   return (
     <AppBackground className="justify-start items-start"> {/* Added justify-start and items-start */}
-      <div className="w-full max-w-4xl mx-auto pt-8">
+      <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
           <Link to="/dashboard">
