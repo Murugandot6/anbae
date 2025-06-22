@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu, CheckCircle } from 'lucide-react'; // Import CheckCircle
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -283,7 +283,7 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
@@ -296,9 +296,11 @@ const Dashboard = () => {
                     altText="Your Avatar"
                     size="lg"
                   />
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
-                    i
-                  </div>
+                  {currentUserProfile?.partner_email && partnerProfile && (
+                    <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    </div>
+                  )}
                 </div>
                 <p className="font-semibold text-lg text-gray-900 dark:text-white">
                   {user.user_metadata.nickname || user.email}
@@ -322,7 +324,7 @@ const Dashboard = () => {
                         size="lg"
                       />
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full w-7 h-7 flex items-center justify-center text-black font-bold text-sm border border-gray-200 dark:border-gray-700">
-                        u
+                        <CheckCircle className="w-5 h-5 text-green-500" />
                       </div>
                     </div>
                     <p className="font-semibold text-lg text-gray-900 dark:text-white">
