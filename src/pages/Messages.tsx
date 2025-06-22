@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; //
 import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import formatMessageDate, cn, and formatDateTimeForMessageView
 import { Badge } from '@/components/ui/badge'; // Import Badge component
 import AppBackground from '@/components/AppBackground'; // Import AppBackground
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -255,12 +256,21 @@ const Messages = () => {
     <AppBackground className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
+          {/* Back to Dashboard Button (now on left, icon-only) */}
           <Link to="/dashboard">
-            <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <ArrowLeft className="w-5 h-5 mr-2" /> Back to Dashboard
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Back to Dashboard
+              </TooltipContent>
+            </Tooltip>
           </Link>
+          {/* Your Messages Title (now on right) */}
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
         </div>
 
         <Tabs defaultValue="inbox" className="w-full">
