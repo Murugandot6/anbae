@@ -21,11 +21,11 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
 }) => {
   const radius = 40; // Radius of the circle
   const circumference = 2 * Math.PI * radius;
-  // The progressOffset is still calculated based on score, but we'll make both parts green
   const progressOffset = circumference - (score / 100) * circumference;
 
-  // Define green color classes for the stroke
-  const greenColorClasses = 'stroke-green-500 dark:stroke-green-400';
+  // Define colors for the stroke
+  const progressColorClasses = 'stroke-green-500 dark:stroke-green-400';
+  const trackColorClasses = 'stroke-gray-300 dark:stroke-gray-700'; // New: for the background track
 
   let svgSizeClasses = 'w-24 h-24';
   let avatarSizeClasses = 'w-20 h-20';
@@ -55,21 +55,21 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
         className={cn(svgSizeClasses, "transform -rotate-90")} // Adjust size to match avatar, rotate to start from top
         viewBox="0 0 100 100" // Standard viewBox for a 100x100 SVG
       >
-        {/* Background circle (now always green) */}
+        {/* Background track circle */}
         <circle
-          className={cn("stroke-current", greenColorClasses)} // Removed text-gray-200 to ensure it's always green
+          className={cn("stroke-current", trackColorClasses)} // Use new track color
           strokeWidth="8"
           fill="transparent"
           r={radius}
           cx="50"
           cy="50"
         />
-        {/* Progress circle (now always green, effectively filling the whole circle) */}
+        {/* Progress circle */}
         <circle
-          className={cn("stroke-current transition-all duration-500 ease-in-out", greenColorClasses)}
+          className={cn("stroke-current transition-all duration-500 ease-in-out", progressColorClasses)} // Use progress color
           strokeWidth="8"
           strokeDasharray={circumference}
-          strokeDashoffset={progressOffset} // This will still animate, but the color is the same
+          strokeDashoffset={progressOffset}
           strokeLinecap="round"
           fill="transparent"
           r={radius}
