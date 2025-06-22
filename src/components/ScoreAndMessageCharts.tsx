@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Profile, Message } from '@/types/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button'; // Import Button
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes'; // Import useTheme to get current theme
 
 interface ScoreAndMessageChartsProps {
   currentUserProfile: Profile | null;
@@ -17,6 +19,9 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
   sentMessages,
   receivedMessages,
 }) => {
+  const [selectedChart, setSelectedChart] = useState<'scores' | 'sent' | 'received' | 'mood'>('scores');
+  const { theme } = useTheme(); // Get current theme
+
   // 1. Lifetime Score Data
   const scoreData = [
     {
@@ -69,113 +74,134 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
 
   const renderCustomBar = (props: any) => {
     const { x, y, width, height, fill, darkFill } = props;
-    const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     const currentFill = theme === 'dark' ? darkFill : fill;
     return <rect x={x} y={y} width={width} height={height} fill={currentFill} rx={4} ry={4} />;
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-      {/* Lifetime Score Comparison */}
-      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-        <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Lifetime Score Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={scoreData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-              <YAxis stroke="hsl(var(--foreground))" domain={[0, 100]} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  color: 'hsl(var(--foreground))',
-                }}
-                itemStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Bar dataKey="score" shape={renderCustomBar} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+    <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 p-4">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-gray-900 dark:text-white text-center">Communication Insights</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          <Button
+            variant={selectedChart === 'scores' ? 'default' : 'outline'}
+            onClick={() => setSelectedChart('scores')}
+            className={cn(
+              selectedChart === 'scores' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+            )}
+          >
+            Lifetime Scores
+          </Button>
+          <Button
+            variant={selectedChart === 'sent' ? 'default' : 'outline'}
+            onClick={() => setSelectedChart('sent')}
+            className={cn(
+              selectedChart === 'sent' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+            )}
+          >
+            Sent Messages
+          </Button>
+          <Button
+            variant={selectedChart === 'received' ? 'default' : 'outline'}
+            onClick={() => setSelectedChart('received')}
+            className={cn(
+              selectedChart === 'received' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+            )}
+          >
+            Received Messages
+          </Button>
+          <Button
+            variant={selectedChart === 'mood' ? 'default' : 'outline'}
+            onClick={() => setSelectedChart('mood')}
+            className={cn(
+              selectedChart === 'mood' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+            )}
+          >
+            Overall Moods
+          </Button>
+        </div>
 
-      {/* Sent Message Types */}
-      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-        <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Sent Message Types</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={sentMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-              <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  color: 'hsl(var(--foreground))',
-                }}
-                itemStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Bar dataKey="count" fill="hsl(var(--primary))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        <div className="h-[250px] w-full"> {/* Fixed height for chart container */}
+          {selectedChart === 'scores' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={scoreData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                <YAxis stroke="hsl(var(--foreground))" domain={[0, 100]} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar dataKey="score" shape={renderCustomBar} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
 
-      {/* Received Message Types */}
-      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-        <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Received Message Types</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={receivedMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-              <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  color: 'hsl(var(--foreground))',
-                }}
-                itemStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Bar dataKey="count" fill="hsl(var(--secondary))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+          {selectedChart === 'sent' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sentMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar dataKey="count" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
 
-      {/* Overall Mood Distribution */}
-      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-        <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Overall Mood Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={moodData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-              <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  borderColor: 'hsl(var(--border))',
-                  color: 'hsl(var(--foreground))',
-                }}
-                itemStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Bar dataKey="count" fill="hsl(var(--accent))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
+          {selectedChart === 'received' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={receivedMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar dataKey="count" fill="hsl(var(--secondary))" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+
+          {selectedChart === 'mood' && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={moodData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Bar dataKey="count" fill="hsl(var(--accent))" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
