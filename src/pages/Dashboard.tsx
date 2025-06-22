@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react'; // Added Menu icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -12,9 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
-import { Button } from '@/components/ui/button'; // Ensure Button is imported
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import Sidebar from '@/components/Sidebar'; // Import the new Sidebar component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -26,7 +27,7 @@ const Dashboard = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
-  const isMobile = useIsMobile(); // Use the hook
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     try {
@@ -201,245 +202,226 @@ const Dashboard = () => {
   }
 
   return (
-    <AppBackground className="pt-20">
-      <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
-        </div>
-
-        {isMobile && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="absolute top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-              <div className="flex items-center gap-3 mb-6">
-                <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
-                  <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-                  <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
-                </div>
-              </div>
-              <nav className="flex flex-col gap-2 mb-auto">
-                <Link to="/dashboard">
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <Heart className="w-5 h-5 mr-2" /> Dashboard
-                  </Button>
-                </Link>
-                <Link to="/send-message">
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <MessageSquare className="w-5 h-5 mr-2" /> Send Message
-                  </Button>
-                </Link>
-                <Link to="/messages">
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <Inbox className="w-5 h-5 mr-2" /> Messages
-                  </Button>
-                </Link>
-                <Link to="/edit-profile">
-                  <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <Settings className="w-5 h-5 mr-2" /> Edit Profile
-                  </Button>
-                </Link>
-              </nav>
-              <div className="mt-auto flex flex-col gap-2">
-                {user && (
-                  <ClearMessagesDialog
-                    partnerId={partnerProfile?.id || null}
-                    partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-                    currentUserId={user.id}
-                    onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-                  />
-                )}
-                <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
-                  <LogOut className="w-5 h-5 mr-2" /> Logout
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+    <AppBackground className="pt-0 md:pt-0"> {/* Adjust padding for desktop sidebar */}
+      <div className="flex min-h-screen w-full"> {/* Flex container for sidebar and main content */}
+        {!isMobile && (
+          <Sidebar
+            currentUserProfile={currentUserProfile}
+            partnerProfile={partnerProfile}
+            user={user}
+            handleLogout={handleLogout}
+            onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+          />
         )}
 
-        <div className="w-full max-w-4xl mx-auto animate-fade-in">
-          <div className="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
-            {!isMobile && ( // Only show these buttons on non-mobile
-              <>
-                <Link to="/send-message">
-                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                    <MessageSquare className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link to="/messages">
-                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                    <Inbox className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link to="/edit-profile">
-                  <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                    <Settings className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button onClick={handleLogout} size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 rounded-full">
-                  <LogOut className="w-5 h-5" />
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative"> {/* Main content area */}
+          <div className="absolute top-4 right-4 z-10">
+            <ThemeToggle />
+          </div>
+
+          {isMobile && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="absolute top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                  <Menu className="w-5 h-5" />
                 </Button>
-                {user && (
-                  <ClearMessagesDialog
-                    partnerId={partnerProfile?.id || null}
-                    partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-                    currentUserId={user.id}
-                    onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-                  />
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
-                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
-                <CircularProgressAvatar
-                  score={currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 100}
-                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
-                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
-                  altText="Your Avatar"
-                  className="mb-2"
-                />
-                <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                  {user.user_metadata.nickname || user.email}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
-                  <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
-                {partnerProfile ? (
-                  <>
-                    <CircularProgressAvatar
-                      score={partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 100}
-                      avatarUrl={partnerProfile.avatar_url}
-                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
-                      altText="Partner Avatar"
-                      className="mb-2"
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 bg-white/30 dark:bg-gray-800/30 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+                <div className="flex items-center gap-3 mb-6">
+                  <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+                    <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
+                    <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+                  </div>
+                </div>
+                <nav className="flex flex-col gap-2 mb-auto">
+                  <Link to="/dashboard">
+                    <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Heart className="w-5 h-5 mr-2" /> Dashboard
+                    </Button>
+                  </Link>
+                  <Link to="/send-message">
+                    <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <MessageSquare className="w-5 h-5 mr-2" /> Send Message
+                    </Button>
+                  </Link>
+                  <Link to="/messages">
+                    <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Inbox className="w-5 h-5 mr-2" /> Messages
+                    </Button>
+                  </Link>
+                  <Link to="/edit-profile">
+                    <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Settings className="w-5 h-5 mr-2" /> Edit Profile
+                    </Button>
+                  </Link>
+                </nav>
+                <div className="mt-auto flex flex-col gap-2">
+                  {user && (
+                    <ClearMessagesDialog
+                      partnerId={partnerProfile?.id || null}
+                      partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
+                      currentUserId={user.id}
+                      onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
                     />
-                    <p className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {partnerProfile.username || partnerProfile.email}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
-                    </p>
-                  </>
-                ) : (
-                  <p>No partner profile linked or found.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  )}
+                  <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900">
+                    <LogOut className="w-5 h-5 mr-2" /> Logout
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
 
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground text-base">
-                {sentMessages.length > 0 ? (
-                  <ul className="space-y-2">
-                    {sentMessages.map((message, index) => (
-                      <li
-                        key={message.id}
-                        className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
-                          index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
-                        }`}
-                      >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
-                              <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white text-lg">
-                                {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'}
-                              </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {message.message_type}
-                              </p>
+          <div className="w-full max-w-4xl mx-auto animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
+                    <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Your Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
+                  <CircularProgressAvatar
+                    score={currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 100}
+                    avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                    fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                    altText="Your Avatar"
+                    className="mb-2"
+                  />
+                  <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                    {user.user_metadata.nickname || user.email}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 dark:text-white text-xl flex items-center gap-2">
+                    <Heart className="w-6 h-6 text-pink-600 dark:text-purple-400" /> Partner Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground text-base flex flex-col items-center text-center gap-2">
+                  {partnerProfile ? (
+                    <>
+                      <CircularProgressAvatar
+                        score={partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 100}
+                        avatarUrl={partnerProfile.avatar_url}
+                        fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                        altText="Partner Avatar"
+                        className="mb-2"
+                      />
+                      <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                        {partnerProfile.username || partnerProfile.email}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
+                      </p>
+                    </>
+                  ) : (
+                    <p>No partner profile linked or found.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Recent Messages</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 dark:text-white text-xl">Outbox ({sentMessages.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground text-base">
+                  {sentMessages.length > 0 ? (
+                    <ul className="space-y-2">
+                      {sentMessages.map((message, index) => (
+                        <li
+                          key={message.id}
+                          className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
+                            index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700 p-2 rounded-md' : ''
+                          }`}
+                        >
+                          <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
+                                <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                                  {message.receiverProfile?.username || message.receiverProfile?.email || 'Unknown Partner'}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {message.message_type}
+                                </p>
+                              </div>
+                            </div >
+                            <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                              {formatMessageDate(message.created_at)}
                             </div>
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                            {formatMessageDate(message.created_at)}
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No messages sent yet.</p>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground text-base">
-                {receivedMessages.length > 0 ? (
-                  <ul className="space-y-2">
-                    {receivedMessages.map((message, index) => (
-                      <li
-                        key={message.id}
-                        className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
-                          index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
-                        }`}
-                      >
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
-                              <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white text-lg">
-                                {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'}
-                              </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {message.message_type}
-                              </p>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No messages sent yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+                <CardHeader>
+                  <CardTitle className="text-gray-900 dark:text-white text-xl">Inbox ({receivedMessages.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground text-base">
+                  {receivedMessages.length > 0 ? (
+                    <ul className="space-y-2">
+                      {receivedMessages.map((message, index) => (
+                        <li
+                          key={message.id}
+                          className={`border-b border-gray-200 dark:border-gray-700 pb-2 last:border-b-0 ${
+                            index === 0 ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 p-2 rounded-md' : ''
+                          }`}
+                        >
+                          <Link to={`/messages/${message.id}`} className="block hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
+                                <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                                  {message.senderProfile?.username || message.senderProfile?.email || 'Unknown Sender'}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {message.message_type}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                            {formatMessageDate(message.created_at)}
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No messages received yet.</p>
-                )}
-              </CardContent>
-            </Card>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                              {formatMessageDate(message.created_at)}
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No messages received yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
+      </div>
     </AppBackground>
   );
 };
