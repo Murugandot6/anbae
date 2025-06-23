@@ -7,7 +7,13 @@ import useEmblaCarousel from 'embla-carousel-react';
 import OnboardingSlide from '@/components/OnboardingSlide';
 
 // Import Lottie JSON data with ?url suffix
-import likingLottie from '/lottie/Liking.json?url';
+import pinkyPromiseLottie from '/lottie/Pinky Promise.json?url';
+import cobotLottie from '/lottie/Cobot.json?url';
+import loveFilledFlutesLottie from '/lottie/Love-Filled Flutes.json?url';
+import djPartyLottie from '/lottie/DJ Party.json?url';
+import resetPasswordLottie from '/lottie/Reset Password.json?url';
+import hotStoneRelaxationLottie from '/lottie/Hot Stone Relaxation.json?url';
+
 
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
@@ -22,32 +28,37 @@ const OnboardingWelcome: React.FC = () => {
     {
       title: "Your Personalized Hub",
       description: "Here you'll find your Lifetime Score, a gentle whisper of your communication health. See your and your partner's profiles, a glance at the souls intertwined, and a timeline of recent messages, the thoughts you've recently shared.",
-      lottieUrl: likingLottie, // Added Lottie URL here
+      lottieUrl: pinkyPromiseLottie,
       bgColorClass: "bg-purple-300",
     },
     {
       title: "Speak from the Heart",
       description: "This is where your feelings take flight. Send Grievances to address conflicts openly, or shower your partner with Compliments to show appreciation. Relive cherished Good Memories, or simply express How I Feel in the moment.",
+      lottieUrl: cobotLottie,
       bgColorClass: "bg-red-300",
     },
     {
       title: "Your Conversation Hub",
       description: "You'll find a flowing river of all your communications, keeping track of every conversation. You can easily reply to messages and mark them as read, ensuring you stay connected.",
+      lottieUrl: loveFilledFlutesLottie,
       bgColorClass: "bg-blue-300",
     },
     {
       title: "Craft Your Presence",
       description: "This section allows you to personalize your experience. Update your nickname, link to your partner's account by their email, give your partner a special nickname, and choose a unique avatar to represent you.",
+      lottieUrl: djPartyLottie,
       bgColorClass: "bg-green-300",
     },
     {
       title: "A Fresh Start",
       description: "Need a clean slate? This feature lets you send a request to your partner to clear your entire message history. This provides a fresh start, but remember, it requires mutual agreement.",
+      lottieUrl: resetPasswordLottie,
       bgColorClass: "bg-orange-300",
     },
     {
       title: "Your View, Your Way",
       description: "With this toggle, you can switch between light and dark modes to suit your preference, making your app experience comfortable for your eyes, day or night.",
+      lottieUrl: hotStoneRelaxationLottie,
       bgColorClass: "bg-gray-300",
     },
   ];
