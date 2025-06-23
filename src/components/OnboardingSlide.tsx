@@ -14,6 +14,11 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [errorLottie, setErrorLottie] = useState<string | null>(null);
 
+  // Add this console log to see when the component re-renders
+  useEffect(() => {
+    console.log(`OnboardingSlide: Component "${title}" mounted/re-rendered.`);
+  }, [title]);
+
   console.log(`OnboardingSlide: Rendering for title "${title}" with bgColorClass "${bgColorClass}"`);
   console.log(`OnboardingSlide: lottieUrl: ${lottieUrl}`);
 
@@ -63,8 +68,8 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
           )}
         </div>
       )}
-      <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in">{title}</h2> {/* Added animate-fade-in */}
-      <p className="text-lg text-gray-700 max-w-md animate-fade-in delay-200">{description}</p> {/* Added animate-fade-in and delay */}
+      <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in">{title}</h2>
+      <p className="text-lg text-gray-700 max-w-md animate-fade-in delay-200">{description}</p>
     </div>
   );
 };
