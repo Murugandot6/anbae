@@ -25,7 +25,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
       setLoading(false);
 
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-        if (currentSession && (window.location.pathname === '/login' || window.location.pathname === '/register')) {
+        if (currentSession && (window.location.pathname === '/login' || window.location.pathname === '/register' || window.location.pathname === '/onboarding-welcome')) {
           navigate('/dashboard');
         }
       } else if (event === 'SIGNED_OUT') {

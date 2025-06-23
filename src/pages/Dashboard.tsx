@@ -54,7 +54,7 @@ const Dashboard = () => {
         return;
       }
 
-      console.log('Dashboard: Fetching current user profile for user ID:', user.id);
+      // console.log('Dashboard: Fetching current user profile for user ID:', user.id); // Removed for production
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -66,10 +66,10 @@ const Dashboard = () => {
           console.error('Dashboard: Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
-          console.log('Dashboard: Current user profile fetched:', profileData);
+          // console.log('Dashboard: Current user profile fetched:', profileData); // Removed for production
           setCurrentUserProfile(profileData);
           if (profileData.partner_email) {
-            console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email);
+            // console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email); // Removed for production
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
               .select('id, username, email, avatar_url, lifetime_score')
@@ -80,19 +80,19 @@ const Dashboard = () => {
               console.error('Dashboard: Supabase Error fetching partner profile:', partnerError.message, partnerError);
               toast.error('Failed to load partner profile: ' + partnerError.message);
             } else if (partnerData) {
-              console.log('Dashboard: Partner profile fetched:', partnerData);
+              // console.log('Dashboard: Partner profile fetched:', partnerData); // Removed for production
               setPartnerProfile(partnerData);
-              console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score);
+              // console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score); // Removed for production
             } else {
-              console.log('Dashboard: Partner profile not found for email:', profileData.partner_email);
+              // console.log('Dashboard: Partner profile not found for email:', profileData.partner_email); // Removed for production
               setPartnerProfile(null);
             }
           } else {
-            console.log('Dashboard: Current user does not have a partner email set.');
+            // console.log('Dashboard: Current user does not have a partner email set.'); // Removed for production
             setPartnerProfile(null);
           }
         } else {
-          console.log('Dashboard: Current user profile not found for ID:', user.id);
+          // console.log('Dashboard: Current user profile not found for ID:', user.id); // Removed for production
           setCurrentUserProfile(null);
         }
       } catch (error: any) {

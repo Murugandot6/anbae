@@ -52,24 +52,24 @@ const SendMessage = () => {
   useEffect(() => {
     const fetchPartnerDetails = async () => {
       if (sessionLoading || !user) {
-        console.log('Session loading or user not available. Skipping partner fetch.');
+        // console.log('Session loading or user not available. Skipping partner fetch.'); // Removed for production
         setFetchingPartner(false);
         return;
       }
 
-      console.log('Current user object:', user);
+      // console.log('Current user object:', user); // Removed for production
       const currentUsersPartnerEmail = user?.user_metadata?.partner_email;
-      console.log('Attempting to fetch partner with email from user metadata:', currentUsersPartnerEmail);
+      // console.log('Attempting to fetch partner with email from user metadata:', currentUsersPartnerEmail); // Removed for production
 
       if (currentUsersPartnerEmail) {
         try {
           const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail); // Use the helper
           if (partnerData) {
-            console.log('Partner profile found:', partnerData);
+            // console.log('Partner profile found:', partnerData); // Removed for production
             setPartnerId(partnerData.id);
             setPartnerNickname(partnerData.username);
           } else {
-            console.log('No partner profile data returned for email:', currentUsersPartnerEmail);
+            // console.log('No partner profile data returned for email:', currentUsersPartnerEmail); // Removed for production
             toast.error('Partner profile not found for the specified email. Please ensure your partner has registered.');
             setPartnerId(null);
             setPartnerNickname(null);
@@ -79,7 +79,7 @@ const SendMessage = () => {
           toast.error('An unexpected error occurred while fetching partner details.');
         }
       } else {
-        console.log('Current user does not have a partner email set in metadata. Displaying message to update profile.');
+        // console.log('Current user does not have a partner email set in metadata. Displaying message to update profile.'); // Removed for production
         toast.error('Your profile does not have a partner email set. Please update your profile.');
       }
       setFetchingPartner(false);

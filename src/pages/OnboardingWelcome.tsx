@@ -36,7 +36,7 @@ const OnboardingWelcome: React.FC = () => {
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  console.log("OnboardingWelcome: Component rendering.");
+  // console.log("OnboardingWelcome: Component rendering."); // Removed for production
 
   const slidesData = [
     {
@@ -77,15 +77,15 @@ const OnboardingWelcome: React.FC = () => {
     },
   ];
 
-  console.log("OnboardingWelcome: slidesData length:", slidesData.length);
+  // console.log("OnboardingWelcome: slidesData length:", slidesData.length); // Removed for production
 
   const scrollPrev = useCallback(() => {
-    console.log("Scroll Prev clicked. emblaApi:", emblaApi);
+    // console.log("Scroll Prev clicked. emblaApi:", emblaApi); // Removed for production
     emblaApi?.scrollPrev();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    console.log("Scroll Next clicked. emblaApi:", emblaApi);
+    // console.log("Scroll Next clicked. emblaApi:", emblaApi); // Removed for production
     emblaApi?.scrollNext();
   }, [emblaApi]);
 
@@ -98,10 +98,10 @@ const OnboardingWelcome: React.FC = () => {
     setPrevBtnDisabled(!canScrollPrev);
     setNextBtnDisabled(!canScrollNext);
 
-    console.log("OnboardingWelcome: onSelect triggered.");
-    console.log(`  Selected index: ${newSelectedIndex}`);
-    console.log(`  Can scroll prev: ${canScrollPrev}, Prev button disabled: ${!canScrollPrev}`);
-    console.log(`  Can scroll next: ${canScrollNext}, Next button disabled: ${!canScrollNext}`);
+    // console.log("OnboardingWelcome: onSelect triggered."); // Removed for production
+    // console.log(`  Selected index: ${newSelectedIndex}`); // Removed for production
+    // console.log(`  Can scroll prev: ${canScrollPrev}, Prev button disabled: ${!canScrollPrev}`); // Removed for production
+    // console.log(`  Can scroll next: ${canScrollNext}, Next button disabled: ${!canScrollNext}`); // Removed for production
   }, []);
 
   // New callback for when a slide's typing animation completes
@@ -109,17 +109,17 @@ const OnboardingWelcome: React.FC = () => {
     const isLastSlide = slideIndex === slidesData.length - 1;
     const delayBeforeNext = 1500; // 1.5 seconds pause after typing finishes
 
-    console.log(`OnboardingWelcome: Typing complete for slide ${slideIndex}. Is last slide: ${isLastSlide}`);
+    // console.log(`OnboardingWelcome: Typing complete for slide ${slideIndex}. Is last slide: ${isLastSlide}`); // Removed for production
 
     if (isLastSlide) {
       setIsExiting(true); // Trigger fade-out
       setTimeout(() => {
-        console.log('OnboardingWelcome: Last slide typing complete, navigating to dashboard.');
+        // console.log('OnboardingWelcome: Last slide typing complete, navigating to dashboard.'); // Removed for production
         navigate('/dashboard');
       }, 500); // Match animation duration
     } else {
       setTimeout(() => {
-        console.log('OnboardingWelcome: Typing complete, scrolling to next slide.');
+        // console.log('OnboardingWelcome: Typing complete, scrolling to next slide.'); // Removed for production
         emblaApi?.scrollNext();
       }, delayBeforeNext);
     }
@@ -127,10 +127,10 @@ const OnboardingWelcome: React.FC = () => {
 
   useEffect(() => {
     if (!emblaApi) {
-      console.log("OnboardingWelcome: Embla API not initialized yet.");
+      // console.log("OnboardingWelcome: Embla API not initialized yet."); // Removed for production
       return;
     }
-    console.log("OnboardingWelcome: Embla API initialized. Setting up listeners.");
+    // console.log("OnboardingWelcome: Embla API initialized. Setting up listeners."); // Removed for production
     onSelect(emblaApi); // Initial update of button states
     emblaApi.on('reInit', onSelect);
     emblaApi.on('select', onSelect);

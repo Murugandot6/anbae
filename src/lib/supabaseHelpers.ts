@@ -8,7 +8,7 @@ import { Profile } from '@/types/supabase';
  * @returns The profile data or null if not found/error.
  */
 export const fetchProfileById = async (profileId: string): Promise<Profile | null> => {
-  console.log(`SupabaseHelpers: Attempting to fetch profile by ID: ${profileId}`);
+  // console.log(`SupabaseHelpers: Attempting to fetch profile by ID: ${profileId}`); // Removed for production
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, email, partner_email, partner_nickname, created_at, avatar_url') // Explicitly select columns including avatar_url
@@ -24,7 +24,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
     }
     return null;
   }
-  console.log(`SupabaseHelpers: Profile fetched by ID ${profileId}:`, data);
+  // console.log(`SupabaseHelpers: Profile fetched by ID ${profileId}:`, data); // Removed for production
   return data || null;
 };
 
@@ -34,7 +34,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
  * @returns The profile data or null if not found/error.
  */
 export const fetchProfileByEmail = async (email: string): Promise<Profile | null> => {
-  console.log(`SupabaseHelpers: Attempting to fetch profile by email: ${email}`);
+  // console.log(`SupabaseHelpers: Attempting to fetch profile by email: ${email}`); // Removed for production
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, email, partner_email, partner_nickname, created_at, avatar_url') // Explicitly select columns including avatar_url
@@ -50,6 +50,6 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
     }
     return null;
   }
-  console.log(`SupabaseHelpers: Profile fetched by email ${email}:`, data);
+  // console.log(`SupabaseHelpers: Profile fetched by email ${email}:`, data); // Removed for production
   return data || null;
 };

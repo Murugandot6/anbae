@@ -179,11 +179,11 @@ const ViewMessage = () => {
           filter: `id=eq.${id}.or.parent_message_id=eq.${id}` // Filter for the main message OR its replies
         },
         async (payload) => {
-          console.log('Realtime: Payload received in ViewMessage:', payload);
+          // console.log('Realtime: Payload received in ViewMessage:', payload); // Removed for production
           if (payload.eventType === 'UPDATE' && payload.old.id === id) {
             // This is an update to the main message
             const updatedMessage = payload.new as Message;
-            console.log('Realtime: Main message updated:', updatedMessage);
+            // console.log('Realtime: Main message updated:', updatedMessage); // Removed for production
             setMessage(prev => {
               if (!prev) return null;
               return { ...prev, ...updatedMessage }; // Update the main message's properties

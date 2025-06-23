@@ -11,7 +11,6 @@ interface BackgroundImageWrapperProps {
 
 function BackgroundWrapper({ children, className }: BackgroundImageWrapperProps) {
   const { theme } = useTheme();
-  console.log('BackgroundWrapper: Component rendered with theme:', theme);
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden">

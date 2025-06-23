@@ -21,7 +21,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   // Log the base URL being used by Vite for debugging
-  console.log("Vite BASE_URL:", import.meta.env.BASE_URL);
+  // console.log("Vite BASE_URL:", import.meta.env.BASE_URL); // Removed for production
 
   return (
     <QueryClientProvider client={queryClient}>

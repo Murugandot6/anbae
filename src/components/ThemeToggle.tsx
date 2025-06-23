@@ -14,9 +14,6 @@ export function ThemeToggle() {
     setIsClientMounted(true);
   }, []);
 
-  // console.log('ThemeToggle mounted (from next-themes):', mounted); // Keep these logs for debugging
-  // console.log('ThemeToggle theme:', theme);   // Keep these logs for debugging
-
   if (!isClientMounted) {
     // Render nothing or a minimal placeholder until client-side mounted
     return null; 

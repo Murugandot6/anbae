@@ -119,19 +119,20 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
           filter: `receiver_id=eq.${currentUserId}`
         },
         async (payload) => {
-          console.log('Realtime payload (incoming):', payload);
-          if (payload.eventType === 'INSERT' && payload.new.status === 'pending') {
-            const newRequest = payload.new as ClearRequest;
+          // console.log('Realtime payload (incoming):', payload); // Removed for production
+          const newRequest = payload.new as ClearRequest;
+
+          if (payload.eventType === 'INSERT' && newRequest.status === 'pending') {
             const senderProfile = await fetchSenderProfile(newRequest.sender_id);
             setPendingIncomingRequest({ ...newRequest, senderProfile });
             setIsPartnerResponseOpen(true);
             toast.info(`New clear message request from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
-          } else if (payload.eventType === 'UPDATE' && payload.new.status !== 'pending' && payload.new.sender_id === currentUserId) {
-            setPendingOutgoingRequest(payload.new as ClearRequest);
-            if (payload.new.status === 'accepted') {
+          } else if (payload.eventType === 'UPDATE' && newRequest.status !== 'pending' && newRequest.sender_id === currentUserId) {
+            setPendingOutgoingRequest(newRequest);
+            if (newRequest.status === 'accepted') {
               setIsSenderReconfirmOpen(true);
-            } else if (payload.new.status === 'denied') {
-              toast.info(`Your partner denied the clear request: "${payload.new.receiver_response_message || 'No message provided.'}"`);
+            } else if (newRequest.status === 'denied') {
+              toast.info(`Your partner denied the clear request: "${newRequest.receiver_response_message || 'No message provided.'}"`);
             }
           }
         }
@@ -147,7 +148,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   const handleSendRequest = async () => {
     if (!user || !partnerId) {
       toast.error('User or partner not identified.');
-      console.log('Partner ID received by dialog:', partnerId);
+      // console.log('Partner ID received by dialog:', partnerId); // Removed for production
       return;
     }
 
@@ -209,7 +210,7 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       userId: user.id,
       partnerId: pendingOutgoingRequest.receiver_id,
     };
-    console.log('Invoking clear-messages Edge Function with payload:', payload);
+    // console.log('Invoking clear-messages Edge Function with payload:', payload); // Removed for production
 
     try {
       const { data, error } = await supabase.functions.invoke('clear-messages', {
