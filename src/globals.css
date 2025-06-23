@@ -101,6 +101,8 @@
 }
 
 /* Embla Carousel Fade Transition Styles */
+/* The Embla Fade plugin handles the opacity and positioning,
+   so we remove custom CSS that might conflict. */
 .embla {
   position: relative;
 }
@@ -110,17 +112,14 @@
 }
 
 .embla__container {
-  display: flex; /* Explicitly set to flex to ensure Embla's layout works */
+  display: flex; /* Embla requires flex for its internal logic */
   height: 100%;
 }
 
 .embla__slide {
-  opacity: 0;
-  transition: opacity 1s ease-in-out; /* Fade transition */
-  pointer-events: none; /* Prevent interaction with hidden slides */
-}
-
-.embla__slide--active {
-  opacity: 1;
-  pointer-events: auto; /* Allow interaction with active slide */
+  /* The Fade plugin will manage opacity and positioning directly. */
+  /* We only need to ensure it takes full width and height. */
+  flex: 0 0 100%; /* Ensure each slide takes full width */
+  min-width: 0; /* Required for flex items */
+  height: 100%;
 }

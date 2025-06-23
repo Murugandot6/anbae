@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
+import { EmblaOptionsType } from 'embla-carousel'; // Import EmblaOptionsType
+import Autoplay from 'embla-carousel-autoplay'; // Keep if needed, otherwise remove
+import Fade from 'embla-carousel-fade'; // Import the Fade plugin
 import OnboardingSlide from '@/components/OnboardingSlide';
 import { cn } from '@/lib/utils'; // Import cn for conditional classNames
 
@@ -18,10 +21,19 @@ import hotStoneRelaxationLottie from '/lottie/Hot Stone Relaxation.json?url';
 
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
+  
+  // Embla Carousel options for fade effect
+  const options: EmblaOptionsType = { 
+    loop: false,
+    dragFree: false, // Disable dragging if you only want button navigation
+  };
+  
+  // Initialize Embla Carousel with the Fade plugin
+  const [emblaRef, emblaApi] = useEmblaCarousel(options, [Fade()]); // Pass Fade plugin here
+
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0); // Keep selectedIndex for dot navigation if needed
 
   console.log("OnboardingWelcome: Component rendering.");
 
@@ -122,10 +134,7 @@ const OnboardingWelcome: React.FC = () => {
           <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div
-                className={cn(
-                  "embla__slide flex-[0_0_100%] min-w-0 h-full",
-                  { "embla__slide--active": index === selectedIndex }
-                )}
+                className="embla__slide h-full" // Removed flex-[0_0_100%] min-w-0 and embla__slide--active
                 key={index}
               >
                 <OnboardingSlide {...slide} />
