@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <title>Redirecting...</title>
   <script type="text/javascript">
-    // This script redirects all 404 errors back to the root of your application.
+    // This script redirects all 404 errors back to the original path within your application.
     // This is a common workaround for Single-Page Applications (SPAs) deployed on GitHub Pages
     // when using client-side routing (like React Router's BrowserRouter).
-    // Note: Refreshing a sub-path (e.g., /register) will now redirect you to the home page (/).
-    window.location.replace('/');
+    // It ensures that refreshing a sub-path (e.g., /dashboard) will reload the SPA at that path.
+    var path = window.location.pathname;
+    var query = window.location.search;
+    var hash = window.location.hash;
+    window.location.replace('/' + path + query + hash);
   </script>
 </head>
 <body>
