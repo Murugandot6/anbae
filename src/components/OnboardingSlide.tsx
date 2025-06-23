@@ -7,9 +7,10 @@ interface OnboardingSlideProps {
   description: string;
   lottieUrl?: string; // Made optional
   bgColorClass: string; // Tailwind class for background color
+  onTypingComplete?: () => void; // New prop for typing completion callback
 }
 
-const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, lottieUrl, bgColorClass }) => {
+const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, lottieUrl, bgColorClass, onTypingComplete }) => {
   const [animationData, setAnimationData] = useState<any | null>(null);
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [errorLottie, setErrorLottie] = useState<string | null>(null);
@@ -68,11 +69,12 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
       } else {
         clearInterval(timer);
         setIsTypingComplete(true);
+        onTypingComplete?.(); // Call the callback when typing is complete
       }
     }, typingSpeed);
 
     return () => clearInterval(timer); // Cleanup on unmount or description change
-  }, [description, typingSpeed]);
+  }, [description, typingSpeed, onTypingComplete]); // Added onTypingComplete to dependencies
 
   return (
     <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}>

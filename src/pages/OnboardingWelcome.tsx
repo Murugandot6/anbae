@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
-import { EmblaOptionsType } from 'embla-carousel'; // Import EmblaOptionsType
-import Autoplay from 'embla-carousel-autoplay'; // Keep if needed, otherwise remove
-import Fade from 'embla-carousel-fade'; // Import the Fade plugin
+import { EmblaOptionsType } from 'embla-carousel';
+import Autoplay from 'embla-carousel-autoplay';
+import Fade from 'embla-carousel-fade';
 import OnboardingSlide from '@/components/OnboardingSlide';
-import { cn } from '@/lib/utils'; // Import cn for conditional classNames
+import { cn } from '@/lib/utils';
 
 // Import Lottie JSON data with ?url suffix
 import pinkyPromiseLottie from '/lottie/Pinky Promise.json?url';
@@ -29,11 +29,11 @@ const OnboardingWelcome: React.FC = () => {
   };
   
   // Initialize Embla Carousel with the Fade plugin
-  const [emblaRef, emblaApi] = useEmblaCarousel(options, [Fade()]); // Pass Fade plugin here
+  const [emblaRef, emblaApi] = useEmblaCarousel(options, [Fade()]);
 
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(0); // Keep selectedIndex for dot navigation if needed
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   console.log("OnboardingWelcome: Component rendering.");
 
@@ -103,6 +103,26 @@ const OnboardingWelcome: React.FC = () => {
     console.log(`  Can scroll next: ${canScrollNext}, Next button disabled: ${!canScrollNext}`);
   }, []);
 
+  // New callback for when a slide's typing animation completes
+  const handleSlideTypingComplete = useCallback((slideIndex: number) => {
+    const isLastSlide = slideIndex === slidesData.length - 1;
+    const delayBeforeNext = 1500; // 1.5 seconds pause after typing finishes
+
+    console.log(`OnboardingWelcome: Typing complete for slide ${slideIndex}. Is last slide: ${isLastSlide}`);
+
+    if (isLastSlide) {
+      setTimeout(() => {
+        console.log('OnboardingWelcome: Last slide typing complete, navigating to dashboard.');
+        navigate('/dashboard');
+      }, delayBeforeNext);
+    } else {
+      setTimeout(() => {
+        console.log('OnboardingWelcome: Typing complete, scrolling to next slide.');
+        emblaApi?.scrollNext();
+      }, delayBeforeNext);
+    }
+  }, [emblaApi, navigate, slidesData.length]);
+
   useEffect(() => {
     if (!emblaApi) {
       console.log("OnboardingWelcome: Embla API not initialized yet.");
@@ -134,10 +154,13 @@ const OnboardingWelcome: React.FC = () => {
           <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div
-                className="embla__slide h-full" // Removed flex-[0_0_100%] min-w-0 and embla__slide--active
+                className="embla__slide h-full"
                 key={index}
               >
-                <OnboardingSlide {...slide} />
+                <OnboardingSlide
+                  {...slide}
+                  onTypingComplete={() => handleSlideTypingComplete(index)} // Pass the callback
+                />
               </div>
             ))}
           </div>
