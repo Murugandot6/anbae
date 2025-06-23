@@ -13,6 +13,10 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   const [animationData, setAnimationData] = useState<any | null>(null);
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [errorLottie, setErrorLottie] = useState<string | null>(null);
+  const [displayedDescription, setDisplayedDescription] = useState('');
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  const typingSpeed = 30; // Speed in milliseconds per character
 
   useEffect(() => {
     console.log(`OnboardingSlide: Component "${title}" mounted/re-rendered.`);
@@ -52,8 +56,26 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
     fetchLottieData();
   }, [lottieUrl, title]);
 
+  // Typing animation effect
+  useEffect(() => {
+    setDisplayedDescription(''); // Reset displayed text when description changes
+    setIsTypingComplete(false);
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < description.length) {
+        setDisplayedDescription((prev) => prev + description.charAt(i));
+        i++;
+      } else {
+        clearInterval(timer);
+        setIsTypingComplete(true);
+      }
+    }, typingSpeed);
+
+    return () => clearInterval(timer); // Cleanup on unmount or description change
+  }, [description, typingSpeed]);
+
   return (
-    <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}> {/* Removed animate-fade-in from here */}
+    <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}>
       {lottieUrl && (
         <div className="w-64 h-64 mb-8">
           {loadingLottie ? (
@@ -68,7 +90,10 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
         </div>
       )}
       <h2 className="text-4xl font-bold text-gray-900 mb-4">{title}</h2>
-      <p className="text-lg text-gray-700 max-w-md">{description}</p>
+      <p className="text-lg text-gray-700 max-w-md">
+        {displayedDescription}
+        {!isTypingComplete && <span className="animate-pulse">|</span>} {/* Typing cursor */}
+      </p>
     </div>
   );
 };
