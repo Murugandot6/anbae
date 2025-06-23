@@ -107,21 +107,16 @@
 
 .embla__viewport {
   overflow: hidden;
-  position: relative; /* Ensure children are positioned relative to this */
 }
 
 .embla__container {
-  display: block; /* Override Embla's default flex to allow absolute positioning */
-  height: 100%;
-  position: relative; /* For absolute positioning of slides */
+  /* Embla's default is display: flex; we don't need to override it here */
+  /* The component already sets `flex h-full` */
 }
 
 .embla__slide {
-  position: absolute; /* Stack slides on top of each other */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  /* Embla handles the positioning (sliding) via transform. */
+  /* We only control opacity and pointer-events for the fade effect. */
   opacity: 0;
   transition: opacity 1s ease-in-out; /* Fade transition */
   pointer-events: none; /* Prevent interaction with hidden slides */
