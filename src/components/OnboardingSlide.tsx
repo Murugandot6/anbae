@@ -14,7 +14,6 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   const [loadingLottie, setLoadingLottie] = useState(false);
   const [errorLottie, setErrorLottie] = useState<string | null>(null);
 
-  // Add this console log to see when the component re-renders
   useEffect(() => {
     console.log(`OnboardingSlide: Component "${title}" mounted/re-rendered.`);
   }, [title]);
@@ -54,7 +53,7 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   }, [lottieUrl, title]);
 
   return (
-    <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}>
+    <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center animate-fade-in", bgColorClass)}> {/* Added animate-fade-in here */}
       {lottieUrl && (
         <div className="w-64 h-64 mb-8">
           {loadingLottie ? (
@@ -68,8 +67,8 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
           )}
         </div>
       )}
-      <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in">{title}</h2>
-      <p className="text-lg text-gray-700 max-w-md animate-fade-in delay-200">{description}</p>
+      <h2 className="text-4xl font-bold text-gray-900 mb-4">{title}</h2> {/* Removed animate-fade-in from here */}
+      <p className="text-lg text-gray-700 max-w-md delay-200">{description}</p> {/* Removed animate-fade-in from here */}
     </div>
   );
 };
