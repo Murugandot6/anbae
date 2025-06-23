@@ -10,6 +10,8 @@ import { Heart, Mail, Lock, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { ThemeToggle } from "@/components/ThemeToggle";
 import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
+import { useState } from 'react'; // Import useState
+import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -28,6 +30,8 @@ const formSchema = z.object({
 
 const Register = () => {
   const navigate = useNavigate();
+  const [isExiting, setIsExiting] = useState(false); // New state for exit animation
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +61,10 @@ const Register = () => {
         console.error('Registration error:', error.message);
       } else if (data.user) {
         toast.success('Registration successful! Please check your email to confirm your account.');
-        navigate('/onboarding-welcome'); // Redirect to the new onboarding page
+        setIsExiting(true); // Trigger fade-out
+        setTimeout(() => {
+          navigate('/onboarding-welcome'); // Navigate after animation
+        }, 500); // Match animation duration
       }
     } catch (error) {
       console.error('Unexpected registration error:', error);
@@ -71,7 +78,10 @@ const Register = () => {
         <div className="absolute top-4 right-4 z-10"> {/* Position ThemeToggle */}
           <ThemeToggle />
         </div>
-        <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30"> {/* Semi-transparent content card with glassmorphism */}
+        <div className={cn(
+          "w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
+          isExiting ? "animate-fade-out" : "animate-fade-in" // Apply fade-out or fade-in
+        )}> {/* Semi-transparent content card with glassmorphism */}
           <div className="text-center mb-6">
             <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>

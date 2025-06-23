@@ -21,6 +21,7 @@ import hotStoneRelaxationLottie from '/lottie/Hot Stone Relaxation.json?url';
 
 const OnboardingWelcome: React.FC = () => {
   const navigate = useNavigate();
+  const [isExiting, setIsExiting] = useState(false); // New state for exit animation
   
   // Embla Carousel options for fade effect
   const options: EmblaOptionsType = { 
@@ -111,10 +112,11 @@ const OnboardingWelcome: React.FC = () => {
     console.log(`OnboardingWelcome: Typing complete for slide ${slideIndex}. Is last slide: ${isLastSlide}`);
 
     if (isLastSlide) {
+      setIsExiting(true); // Trigger fade-out
       setTimeout(() => {
         console.log('OnboardingWelcome: Last slide typing complete, navigating to dashboard.');
         navigate('/dashboard');
-      }, delayBeforeNext);
+      }, 500); // Match animation duration
     } else {
       setTimeout(() => {
         console.log('OnboardingWelcome: Typing complete, scrolling to next slide.');
@@ -135,11 +137,14 @@ const OnboardingWelcome: React.FC = () => {
   }, [emblaApi, onSelect]);
 
   const handleSkip = () => {
-    navigate('/dashboard'); // Navigate to dashboard or login after skipping
+    setIsExiting(true); // Trigger fade-out
+    setTimeout(() => {
+      navigate('/dashboard'); // Navigate after animation
+    }, 500); // Match animation duration
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden flex flex-col">
+    <div className={cn("relative h-screen w-screen overflow-hidden flex flex-col", isExiting ? "animate-fade-out" : "animate-fade-in")}>
       <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
