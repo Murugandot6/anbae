@@ -110,13 +110,11 @@
 }
 
 .embla__container {
-  /* Embla's default is display: flex; we don't need to override it here */
-  /* The component already sets `flex h-full` */
+  display: flex; /* Explicitly set to flex to ensure Embla's layout works */
+  height: 100%;
 }
 
 .embla__slide {
-  /* Embla handles the positioning (sliding) via transform. */
-  /* We only control opacity and pointer-events for the fade effect. */
   opacity: 0;
   transition: opacity 1s ease-in-out; /* Fade transition */
   pointer-events: none; /* Prevent interaction with hidden slides */

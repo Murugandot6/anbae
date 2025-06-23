@@ -67,18 +67,28 @@ const OnboardingWelcome: React.FC = () => {
   console.log("OnboardingWelcome: slidesData length:", slidesData.length);
 
   const scrollPrev = useCallback(() => {
+    console.log("Scroll Prev clicked. emblaApi:", emblaApi);
     emblaApi?.scrollPrev();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
+    console.log("Scroll Next clicked. emblaApi:", emblaApi);
     emblaApi?.scrollNext();
   }, [emblaApi]);
 
   const onSelect = useCallback((emblaApi: any) => {
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-    setPrevBtnDisabled(!emblaApi.canScrollPrev());
-    setNextBtnDisabled(!emblaApi.canScrollNext());
-    console.log("OnboardingWelcome: Selected index:", emblaApi.selectedScrollSnap());
+    const newSelectedIndex = emblaApi.selectedScrollSnap();
+    const canScrollPrev = emblaApi.canScrollPrev();
+    const canScrollNext = emblaApi.canScrollNext();
+
+    setSelectedIndex(newSelectedIndex);
+    setPrevBtnDisabled(!canScrollPrev);
+    setNextBtnDisabled(!canScrollNext);
+
+    console.log("OnboardingWelcome: onSelect triggered.");
+    console.log(`  Selected index: ${newSelectedIndex}`);
+    console.log(`  Can scroll prev: ${canScrollPrev}, Prev button disabled: ${!canScrollPrev}`);
+    console.log(`  Can scroll next: ${canScrollNext}, Next button disabled: ${!canScrollNext}`);
   }, []);
 
   useEffect(() => {
@@ -86,10 +96,10 @@ const OnboardingWelcome: React.FC = () => {
       console.log("OnboardingWelcome: Embla API not initialized yet.");
       return;
     }
-    onSelect(emblaApi);
+    console.log("OnboardingWelcome: Embla API initialized. Setting up listeners.");
+    onSelect(emblaApi); // Initial update of button states
     emblaApi.on('reInit', onSelect);
     emblaApi.on('select', onSelect);
-    console.log("OnboardingWelcome: Embla API initialized and listeners set.");
   }, [emblaApi, onSelect]);
 
   const handleSkip = () => {
@@ -109,7 +119,7 @@ const OnboardingWelcome: React.FC = () => {
 
       <div className="embla flex-1 overflow-hidden">
         <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}>
-          <div className="embla__container flex h-full"> {/* Keep flex for Embla's internal logic, but CSS will override positioning */}
+          <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div
                 className={cn(
