@@ -100,7 +100,7 @@ const OnboardingWelcome: React.FC = () => {
           <div className="embla__container flex h-full">
             {slidesData.map((slide, index) => (
               <div className="embla__slide flex-[0_0_100%] min-w-0 h-full" key={index}>
-                <OnboardingSlide {...slide} />
+                <OnboardingSlide {...slide} key={index} /> {/* Added key={index} here */}
               </div>
             ))}
           </div>

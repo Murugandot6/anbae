@@ -63,8 +63,8 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
           )}
         </div>
       )}
-      <h2 className="text-4xl font-bold text-gray-900 mb-4">{title}</h2>
-      <p className="text-lg text-gray-700 max-w-md">{description}</p>
+      <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in">{title}</h2> {/* Added animate-fade-in */}
+      <p className="text-lg text-gray-700 max-w-md animate-fade-in delay-200">{description}</p> {/* Added animate-fade-in and delay */}
     </div>
   );
 };
