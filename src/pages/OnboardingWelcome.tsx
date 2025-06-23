@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import useEmblaCarousel from 'embla-carousel-react';
 import OnboardingSlide from '@/components/OnboardingSlide';
+import { cn } from '@/lib/utils'; // Import cn for conditional classNames
 
 // Import Lottie JSON data with ?url suffix
 import pinkyPromiseLottie from '/lottie/Pinky Promise.json?url';
@@ -108,10 +109,16 @@ const OnboardingWelcome: React.FC = () => {
 
       <div className="embla flex-1 overflow-hidden">
         <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}>
-          <div className="embla__container flex h-full">
+          <div className="embla__container flex h-full"> {/* Keep flex for Embla's internal logic, but CSS will override positioning */}
             {slidesData.map((slide, index) => (
-              <div className="embla__slide flex-[0_0_100%] min-w-0 h-full" key={index}>
-                <OnboardingSlide {...slide} key={index} /> {/* Added key={index} here */}
+              <div
+                className={cn(
+                  "embla__slide flex-[0_0_100%] min-w-0 h-full",
+                  { "embla__slide--active": index === selectedIndex }
+                )}
+                key={index}
+              >
+                <OnboardingSlide {...slide} />
               </div>
             ))}
           </div>

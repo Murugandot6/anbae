@@ -99,3 +99,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Embla Carousel Fade Transition Styles */
+.embla {
+  position: relative;
+}
+
+.embla__viewport {
+  overflow: hidden;
+  position: relative; /* Ensure children are positioned relative to this */
+}
+
+.embla__container {
+  display: block; /* Override Embla's default flex to allow absolute positioning */
+  height: 100%;
+  position: relative; /* For absolute positioning of slides */
+}
+
+.embla__slide {
+  position: absolute; /* Stack slides on top of each other */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease-in-out; /* Fade transition */
+  pointer-events: none; /* Prevent interaction with hidden slides */
+}
+
+.embla__slide--active {
+  opacity: 1;
+  pointer-events: auto; /* Allow interaction with active slide */
+}
