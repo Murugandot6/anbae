@@ -10,7 +10,7 @@ import { showSuccess, showError } from '@/utils/toast';
 import ReactPlayer from 'react-player';
 import { Input } from '@/components/ui/input';
 import { Send, Play, Pause, FastForward, Rewind, Users, MessageSquare, Copy, ArrowLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } => '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -304,13 +304,12 @@ const Room: React.FC = () => {
 
         <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden shadow-xl mb-4">
           <ReactPlayer
+            key={roomData.current_video_id} // Added key to force re-mount on URL change
             ref={playerRef}
             url={roomData.current_video_id} // Use the full URL directly
             playing={roomData.playback_status === 'playing'}
             muted={true} // Video will now be muted
-            controls={false} // Custom controls below
-            light={true} // Show thumbnail before playing
-            playIcon={<Play className="w-16 h-16 text-white opacity-75 hover:opacity-100 transition-opacity" />} // Custom play icon
+            controls={true} // Temporarily enable native controls for debugging
             width="100%"
             height="100%"
             onPlay={handlePlay}
