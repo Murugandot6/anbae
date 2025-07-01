@@ -13,7 +13,8 @@ import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
-import Journal from "./pages/Journal"; // Import the new Journal page
+import Journal from "./pages/Journal";
+import WatchParty from "./pages/WatchParty";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -43,6 +44,7 @@ const App = () => {
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
+                  <Route path="/watch-party" element={<WatchParty />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
