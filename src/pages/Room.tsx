@@ -77,7 +77,10 @@ const Room: React.FC = () => {
   }, [isHost, updateRoomPlayback, playerIsReady]);
 
   const handleSeek = useCallback((time: number) => {
-    if (isHost && playerRef.current && playerIsReady) updateRoomPlayback(roomData?.playback_status || 'paused', time);
+    if (isHost && playerRef.current && playerIsReady) {
+        const newTime = Math.max(0, time); // Ensure time doesn't go below 0
+        updateRoomPlayback(roomData?.playback_status || 'paused', newTime);
+    }
   }, [isHost, updateRoomPlayback, roomData?.playback_status, playerIsReady]);
 
   const handleProgress = useCallback((state: { playedSeconds: number }) => {
@@ -255,7 +258,7 @@ const Room: React.FC = () => {
       supabase.removeChannel(roomChannel);
       supabase.removeChannel(chatChannel);
     };
-  }, [roomData?.id]); // Removed playerIsReady and roomData.current_video_id from here, as the new useEffect handles sync
+  }, [roomData?.id]);
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -309,20 +312,19 @@ const Room: React.FC = () => {
 
         <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden shadow-xl mb-4">
           <ReactPlayer
-            key={roomData.current_video_id} // Added key to force re-mount on URL change
+            key={roomData.current_video_id}
             ref={playerRef}
-            url={roomData.current_video_id} // Use the full URL directly
-            playing={roomData.playback_status === 'playing'}
-            muted={true} // Video will now be muted
-            controls={false} // Custom controls below
+            url={roomData.current_video_id}
+            muted={true}
+            controls={false}
             width="100%"
             height="100%"
             onPlay={handlePlay}
             onPause={handlePause}
             onEnded={handleEnded}
             onProgress={handleProgress}
-            onReady={handlePlayerReady} // Use the new onReady handler
-            onError={(e) => console.error('ReactPlayer error:', e)} // Added for debugging
+            onReady={handlePlayerReady}
+            onError={(e) => console.error('ReactPlayer error:', e)}
             config={{
               youtube: {
                 playerVars: {
@@ -348,16 +350,16 @@ const Room: React.FC = () => {
               <Button onClick={handleSetVideo}>Set Video</Button>
             </div>
             <div className="flex gap-2 justify-center">
-              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() - 10, 'seconds')} variant="outline" size="icon" disabled={!playerIsReady}>
+              <Button onClick={() => { if (playerRef.current) handleSeek(playerRef.current.getCurrentTime() - 10); }} variant="outline" size="icon" disabled={!playerIsReady}>
                 <Rewind className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.play()} disabled={roomData.playback_status === 'playing' || !playerIsReady} variant="outline" size="icon">
+              <Button onClick={handlePlay} disabled={roomData.playback_status === 'playing' || !playerIsReady} variant="outline" size="icon">
                 <Play className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.pause()} disabled={roomData.playback_status === 'paused' || !playerIsReady} variant="outline" size="icon">
+              <Button onClick={handlePause} disabled={roomData.playback_status === 'paused' || !playerIsReady} variant="outline" size="icon">
                 <Pause className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() + 10, 'seconds')} variant="outline" size="icon" disabled={!playerIsReady}>
+              <Button onClick={() => { if (playerRef.current) handleSeek(playerRef.current.getCurrentTime() + 10); }} variant="outline" size="icon" disabled={!playerIsReady}>
                 <FastForward className="w-5 h-5" />
               </Button>
             </div>
