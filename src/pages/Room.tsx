@@ -4,12 +4,12 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from '@/components/made-with-dyad';
-import { useSession } from '@/contexts/SessionContext'; // Corrected import path
+import { useSession } from '@/contexts/SessionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import ReactPlayer from 'react-player';
 import { Input } from '@/components/ui/input';
-import { Send, Play, Pause, FastForward, Rewind, Volume2, VolumeX, Users, MessageSquare, Copy } from 'lucide-react';
+import { Send, Play, Pause, FastForward, Rewind, Volume2, VolumeX, Users, MessageSquare, Copy, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,7 +45,7 @@ const Room: React.FC = () => {
   const [videoUrlInput, setVideoUrlInput] = useState('');
 
   const playerRef = useRef<ReactPlayer>(null);
-  const chatScrollRef = useRef<HTMLDivSlement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null); // Corrected type to HTMLDivElement
 
   const isHost = user?.user_metadata.nickname === roomData?.host_username || user?.email === roomData?.host_username;
 
@@ -170,26 +170,12 @@ const Room: React.FC = () => {
       if (error || !data) {
         console.error('Error fetching room:', error?.message || 'Room not found');
         showError("Room not found or an error occurred.");
-        navigate('/lobby');
+        setRoomData(null); // Ensure roomData is null on error
+        setLoadingRoom(false);
         return;
       }
       setRoomData(data);
       setLoadingRoom(false);
-    };
-
-    const fetchChatMessages = async () => {
-      if (!roomData?.id) return;
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('room_id', roomData.id)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching chat messages:', error.message);
-      } else {
-        setChatMessages(data || []);
-      }
     };
 
     if (!isLoading && user) {
@@ -269,10 +255,10 @@ const Room: React.FC = () => {
     }
   }, [chatMessages]);
 
-  if (isLoading) {
+  if (isLoading || loadingRoom) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-300">Loading user session...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300">
+        <p className="text-xl">Loading room...</p>
       </div>
     );
   }
@@ -280,6 +266,18 @@ const Room: React.FC = () => {
   if (!user) {
     navigate('/login');
     return null;
+  }
+
+  if (!roomData) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Room Not Found</h2>
+        <p className="text-muted-foreground mb-6">The room you are looking for does not exist or an error occurred.</p>
+        <Button onClick={() => navigate('/lobby')} variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Lobby
+        </Button>
+      </div>
+    );
   }
 
   return (
