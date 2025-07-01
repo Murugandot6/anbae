@@ -309,6 +309,8 @@ const Room: React.FC = () => {
             playing={roomData.playback_status === 'playing'}
             muted={true} // Video will now be muted
             controls={false} // Custom controls below
+            light={true} // Show thumbnail before playing
+            playIcon={<Play className="w-16 h-16 text-white opacity-75 hover:opacity-100 transition-opacity" />} // Custom play icon
             width="100%"
             height="100%"
             onPlay={handlePlay}
