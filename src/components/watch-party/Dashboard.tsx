@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Room } from '@/types/watchParty';
 import { PlusIcon, LoginIcon as JoinIcon } from '@/components/watch-party/icons';
+import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 // Helper to format the DB response into the client-side Room object
@@ -103,7 +105,12 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-white mb-8 text-center">Your Watch Parties</h1>
+      <div className="relative mb-8 text-center">
+        <Link to="/dashboard" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition-colors" aria-label="Back to Dashboard">
+            <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-3xl font-bold text-white">Your Watch Parties</h1>
+      </div>
       
       <div className="grid md:grid-cols-2 gap-8">
         {/* Create Room Card */}
