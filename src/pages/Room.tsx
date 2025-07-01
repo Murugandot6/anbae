@@ -108,7 +108,7 @@ const Room: React.FC = () => {
       .from('rooms')
       .update({
         current_video_id: videoUrlInput.trim(), // Store the full URL
-        playback_status: 'unstarted', // Reset status when new video is set
+        playback_status: 'playing', // Set to playing to autoplay
         current_playback_time: 0,
         last_updated_at: new Date().toISOString(),
       })
@@ -307,6 +307,7 @@ const Room: React.FC = () => {
             ref={playerRef}
             url={roomData.current_video_id} // Use the full URL directly
             playing={roomData.playback_status === 'playing'}
+            muted={true} // Video will now be muted
             controls={false} // Custom controls below
             width="100%"
             height="100%"
