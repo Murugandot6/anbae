@@ -10,7 +10,7 @@ import { showSuccess, showError } from '@/utils/toast';
 import ReactPlayer from 'react-player';
 import { Input } from '@/components/ui/input';
 import { Send, Play, Pause, FastForward, Rewind, Users, MessageSquare, Copy, ArrowLeft } from 'lucide-react';
-import { cn } => '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
