@@ -157,21 +157,19 @@ const Room: React.FC = () => {
   const handlePlayerReady = useCallback(() => {
     setPlayerIsReady(true);
     console.log('ReactPlayer is truly ready!');
-    // The actual sync will now happen in the dedicated useEffect
   }, []);
 
-  // Effect to sync player state when roomData or player readiness changes
+  // Effect to sync player time when roomData changes
   useEffect(() => {
     if (playerRef.current && roomData && playerIsReady) {
-      console.log('Syncing player state:', roomData.playback_status, roomData.current_playback_time);
-      playerRef.current.seekTo(roomData.current_playback_time, 'seconds');
-      if (roomData.playback_status === 'playing') {
-        playerRef.current.play();
-      } else {
-        playerRef.current.pause();
+      const playerTime = playerRef.current.getCurrentTime();
+      // To prevent jitter, only seek if the time difference is more than a couple of seconds
+      if (Math.abs(playerTime - roomData.current_playback_time) > 2) {
+        console.log(`Seeking player from ${playerTime} to ${roomData.current_playback_time}`);
+        playerRef.current.seekTo(roomData.current_playback_time, 'seconds');
       }
     }
-  }, [roomData, playerIsReady]); // Dependencies: roomData and playerIsReady
+  }, [roomData, playerIsReady]);
 
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -217,11 +215,7 @@ const Room: React.FC = () => {
         (payload) => {
           const updatedRoom = payload.new as RoomData;
           console.log('Realtime update received for room:', updatedRoom);
-          
-          // If video URL has changed, ReactPlayer will re-mount due to `key` prop.
-          // The `onReady` callback will handle setting playerIsReady, and the dedicated
-          // useEffect will then handle syncing the new player.
-          setRoomData(updatedRoom); // Update the room data state
+          setRoomData(updatedRoom);
         }
       )
       .subscribe();
@@ -315,6 +309,7 @@ const Room: React.FC = () => {
             key={roomData.current_video_id}
             ref={playerRef}
             url={roomData.current_video_id}
+            playing={roomData.playback_status === 'playing'}
             muted={true}
             controls={false}
             width="100%"
