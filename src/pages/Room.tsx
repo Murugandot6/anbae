@@ -7,7 +7,7 @@ import { MadeWithDyad } from '@/components/made-with-dyad';
 import { useSession } from '@/components/SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
-import ReactPlayer from 'react-player/youtube';
+import ReactPlayer from 'react-player'; // Changed import path
 import { Input } from '@/components/ui/input';
 import { Send, Play, Pause, FastForward, Rewind, Volume2, VolumeX, Users, MessageSquare, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,7 @@ const Room: React.FC = () => {
   const [videoUrlInput, setVideoUrlInput] = useState('');
 
   const playerRef = useRef<ReactPlayer>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivSlement>(null);
 
   const isHost = user?.user_metadata.nickname === roomData?.host_username || user?.email === roomData?.host_username;
 
