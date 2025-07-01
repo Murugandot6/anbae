@@ -31,7 +31,16 @@ const journalFormSchema = z.object({
   heading: z.string().min(1, "Please give your day a title.").max(100),
   content: z.string().min(1, "Please jot down your thoughts.").max(5000),
   emoji: z.string().min(1, "Please select an emoji."),
+  mood: z.string().optional(),
 });
+
+const moodOptions = [
+  { emoji: '😍', mood: 'Loved' },
+  { emoji: '😊', mood: 'Happy' },
+  { emoji: '😐', mood: 'Neutral' },
+  { emoji: '😟', mood: 'Sad' },
+  { emoji: '😭', mood: 'Crying' },
+];
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -50,6 +59,7 @@ const Journal = () => {
       heading: '',
       content: '',
       emoji: '😊',
+      mood: 'Happy',
     },
   });
 
@@ -87,6 +97,7 @@ const Journal = () => {
       heading: values.heading,
       content: values.content,
       emoji: values.emoji,
+      mood: values.mood,
       created_at: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
     });
 
@@ -99,6 +110,7 @@ const Journal = () => {
         heading: '',
         content: '',
         emoji: '😊',
+        mood: 'Happy',
       });
       fetchJournalData();
     }
@@ -112,6 +124,11 @@ const Journal = () => {
       toast.success('Entry deleted.');
       fetchJournalData();
     }
+  };
+
+  const handleMoodSelect = (mood: string, emoji: string) => {
+    form.setValue('mood', mood, { shouldValidate: true });
+    form.setValue('emoji', emoji, { shouldValidate: true });
   };
 
   const dailyEntries = useMemo(() => {
@@ -160,34 +177,48 @@ const Journal = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="emoji"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>How are you feeling?</FormLabel>
-                        <FormControl>
-                          <EmojiPickerPopover
-                            isOpen={isEmojiPickerOpen}
-                            onOpenChange={setIsEmojiPickerOpen}
-                            onEmojiSelect={(emoji) => {
-                              form.setValue('emoji', emoji, { shouldValidate: true });
-                            }}
-                          >
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
+                  <FormItem>
+                    <FormLabel>How are you feeling?</FormLabel>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {moodOptions.map(({ emoji, mood }) => (
+                        <Tooltip key={mood}>
+                          <TooltipTrigger asChild>
+                            <button
                               type="button"
+                              onClick={() => handleMoodSelect(mood, emoji)}
+                              className={cn(
+                                "text-4xl p-2 rounded-full transition-transform duration-200 hover:scale-110",
+                                form.watch('emoji') === emoji ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900' : ''
+                              )}
                             >
-                              <span className="text-2xl mr-2">{field.value}</span>
-                              <span>Select an emoji to represent your mood</span>
-                            </Button>
-                          </EmojiPickerPopover>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                              {emoji}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{mood}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                      <EmojiPickerPopover
+                        isOpen={isEmojiPickerOpen}
+                        onOpenChange={setIsEmojiPickerOpen}
+                        onEmojiSelect={(emoji) => {
+                          form.setValue('emoji', emoji, { shouldValidate: true });
+                          form.setValue('mood', undefined, { shouldValidate: true });
+                        }}
+                      >
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="rounded-full w-14 h-14"
+                          type="button"
+                        >
+                          <Smile className="w-6 h-6" />
+                        </Button>
+                      </EmojiPickerPopover>
+                    </div>
+                    <FormMessage>{form.formState.errors.emoji?.message}</FormMessage>
+                  </FormItem>
                   <FormField
                     control={form.control}
                     name="content"
