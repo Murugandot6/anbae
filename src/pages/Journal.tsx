@@ -9,16 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { BookText, Smile, Send, Trash2 } from 'lucide-react';
+import { BookOpen, CalendarDays, Trash2 } from 'lucide-react';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
-import EmojiPickerPopover from '@/components/EmojiPickerPopover';
-import { format, isSameDay, startOfDay } from 'date-fns';
-import Sidebar from '@/components/Sidebar';
-import { Profile } from '@/types/supabase';
+import { format, isSameDay } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface JournalEntry {
   id: string;
@@ -30,11 +27,19 @@ interface JournalEntry {
 }
 
 const journalFormSchema = z.object({
-  heading: z.string().min(3, "Heading must be at least 3 characters.").max(100),
-  mood: z.string().min(1, "Please select a mood."),
-  content: z.string().min(10, "Content must be at least 10 characters.").max(5000),
-  emoji: z.string().optional(),
+  heading: z.string().min(1, "Please give your day a title.").max(100),
+  mood: z.string().min(1, "Please select how you are feeling."),
+  content: z.string().min(1, "Please jot down your thoughts.").max(5000),
+  emoji: z.string().min(1, "Please select an emoji."),
 });
+
+const moodOptions = [
+  { emoji: '😍', mood: 'Loved' },
+  { emoji: '😊', mood: 'Happy' },
+  { emoji: '😐', mood: 'Neutral' },
+  { emoji: '😟', mood: 'Sad' },
+  { emoji: '😭', mood: 'Crying' },
+];
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -42,9 +47,7 @@ const Journal = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
-  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
-  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
+  const [view, setView] = useState<'journal' | 'calendar'>('journal');
 
   const form = useForm<z.infer<typeof journalFormSchema>>({
     resolver: zodResolver(journalFormSchema),
@@ -52,7 +55,7 @@ const Journal = () => {
       heading: '',
       mood: 'Neutral',
       content: '',
-      emoji: '😊',
+      emoji: '😐',
     },
   });
 
@@ -82,11 +85,6 @@ const Journal = () => {
     }
   }, [user, sessionLoading, navigate]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
-
   const onSubmit = async (values: z.infer<typeof journalFormSchema>) => {
     if (!user) return;
 
@@ -96,6 +94,7 @@ const Journal = () => {
       mood: values.mood,
       content: values.content,
       emoji: values.emoji,
+      created_at: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
     });
 
     if (error) {
@@ -107,9 +106,10 @@ const Journal = () => {
         heading: '',
         mood: 'Neutral',
         content: '',
-        emoji: '😊',
+        emoji: '😐',
       });
-      fetchJournalData(); // Refresh entries
+      fetchJournalData();
+      setView('calendar');
     }
   };
 
@@ -123,8 +123,9 @@ const Journal = () => {
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    form.setValue('emoji', emoji);
+  const handleEmojiSelect = (mood: string, emoji: string) => {
+    form.setValue('mood', mood, { shouldValidate: true });
+    form.setValue('emoji', emoji, { shouldValidate: true });
   };
 
   const dailyEntries = useMemo(() => {
@@ -132,26 +133,13 @@ const Journal = () => {
     return entries.filter(entry => isSameDay(new Date(entry.created_at), selectedDate));
   }, [entries, selectedDate]);
 
-  const moodModifiers = useMemo(() => {
-    const modifiers: { [key: string]: Date[] } = {};
-    entries.forEach(entry => {
-      const date = startOfDay(new Date(entry.created_at));
-      const key = `mood-${date.toISOString()}`;
-      if (!modifiers[key]) {
-        modifiers[key] = [];
-      }
-      modifiers[key].push(date);
-    });
-    return modifiers;
-  }, [entries]);
-
   const DayWithMood = ({ date }: { date: Date }) => {
-    const dayEntries = entries.filter(entry => isSameDay(new Date(entry.created_at), date));
+    const dayEntry = entries.find(entry => isSameDay(new Date(entry.created_at), date));
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <span>{format(date, 'd')}</span>
-        {dayEntries.length > 0 && (
-          <span className="absolute bottom-0 right-0 text-xs">{dayEntries[0].emoji}</span>
+        {dayEntry && (
+          <span className="absolute text-2xl flex items-center justify-center w-full h-full opacity-80">{dayEntry.emoji}</span>
         )}
       </div>
     );
@@ -159,135 +147,133 @@ const Journal = () => {
 
   return (
     <BackgroundWrapper>
-      <Sidebar
-        currentUserProfile={currentUserProfile}
-        partnerProfile={partnerProfile}
-        user={user}
-        handleLogout={handleLogout}
-        onMessagesCleared={() => {}}
-      />
-      <div className="flex-1 flex flex-col md:flex-row gap-8 p-4 md:p-8 mt-16 md:mt-0 md:ml-0">
-        {/* Left Column: Form */}
-        <div className="w-full md:w-1/3">
-          <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl text-gray-900 dark:text-white">
-                <BookText /> New Journal Entry
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="heading"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Heading</FormLabel>
-                        <FormControl><Input placeholder="A title for your thoughts" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="content"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>How I Felt</FormLabel>
-                        <FormControl><Textarea placeholder="Describe your feelings and the events of the day..." {...field} rows={6} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex gap-4">
+      <div className="w-full max-w-lg mx-auto p-4 md:p-8 mt-16 md:mt-8">
+        <header className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-2xl">M</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Moodscape</h1>
+          </div>
+          <div className="flex items-center gap-1 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
+            <Button
+              variant={view === 'journal' ? 'secondary' : 'ghost'}
+              onClick={() => setView('journal')}
+              className="flex items-center gap-2 px-3 py-1 h-auto"
+            >
+              <BookOpen className="w-4 h-4" /> Journal
+            </Button>
+            <Button
+              variant={view === 'calendar' ? 'secondary' : 'ghost'}
+              onClick={() => setView('calendar')}
+              className="flex items-center gap-2 px-3 py-1 h-auto"
+            >
+              <CalendarDays className="w-4 h-4" /> Calendar
+            </Button>
+          </div>
+        </header>
+
+        <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <CardContent className="p-6">
+            {view === 'journal' && (
+              <div>
+                <div className="mb-6 text-center">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">How was your day?</h2>
+                  <p className="text-muted-foreground">{format(selectedDate || new Date(), "EEEE, MMMM d, yyyy")}</p>
+                </div>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
                       control={form.control}
-                      name="mood"
+                      name="heading"
                       render={({ field }) => (
-                        <FormItem className="flex-1">
-                          <FormLabel>Mood</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select your mood" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="Happy">😊 Happy</SelectItem>
-                              <SelectItem value="Sad">😔 Sad</SelectItem>
-                              <SelectItem value="Angry">😠 Angry</SelectItem>
-                              <SelectItem value="Neutral">😐 Neutral</SelectItem>
-                              <SelectItem value="Anxious">😟 Anxious</SelectItem>
-                              <SelectItem value="Grateful">🙏 Grateful</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <FormItem>
+                          <FormLabel>Give your day a title</FormLabel>
+                          <FormControl><Input placeholder="e.g., A Productive Afternoon" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    
                     <FormItem>
-                      <FormLabel>Emoji</FormLabel>
-                      <EmojiPickerPopover
-                        isOpen={isEmojiPickerOpen}
-                        onOpenChange={setIsEmojiPickerOpen}
-                        onEmojiSelect={handleEmojiSelect}
-                      >
-                        <Button type="button" variant="outline" className="p-2 text-2xl h-10 w-12">
-                          {form.watch('emoji')}
-                        </Button>
-                      </EmojiPickerPopover>
-                    </FormItem>
-                  </div>
-                  <Button type="submit" className="w-full"><Send className="w-4 h-4 mr-2" /> Save Entry</Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Calendar and Entries */}
-        <div className="w-full md:w-2/3 flex flex-col gap-8">
-          <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
-            <CardHeader><CardTitle className="text-2xl text-gray-900 dark:text-white">Your Mood Calendar</CardTitle></CardHeader>
-            <CardContent className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                className="p-0"
-                modifiers={moodModifiers}
-                components={{ DayContent: DayWithMood }}
-              />
-            </CardContent>
-          </Card>
-
-          <div className="flex-1">
-            <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-              Entries for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}
-            </h3>
-            <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-              {loading ? (
-                <p>Loading entries...</p>
-              ) : dailyEntries.length > 0 ? (
-                dailyEntries.map(entry => (
-                  <Card key={entry.id} className="bg-white/50 dark:bg-gray-800/50">
-                    <CardHeader className="flex flex-row justify-between items-start pb-2">
-                      <div>
-                        <CardTitle className="text-xl">{entry.emoji} {entry.heading}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
+                      <FormLabel>How are you feeling?</FormLabel>
+                      <div className="flex justify-around items-center p-2">
+                        {moodOptions.map(({ emoji, mood }) => (
+                          <button
+                            type="button"
+                            key={mood}
+                            onClick={() => handleEmojiSelect(mood, emoji)}
+                            className={cn(
+                              "text-4xl p-2 rounded-full transition-transform duration-200 hover:scale-110",
+                              form.watch('emoji') === emoji ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900' : ''
+                            )}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="whitespace-pre-wrap">{entry.content}</p>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <p className="text-muted-foreground">No entries for this day.</p>
-              )}
-            </div>
-          </div>
-        </div>
+                      <FormMessage>{form.formState.errors.mood?.message}</FormMessage>
+                    </FormItem>
+
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jot down your thoughts</FormLabel>
+                          <FormControl><Textarea placeholder="What happened today? How did it make you feel?" {...field} rows={5} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Save Entry</Button>
+                  </form>
+                </Form>
+              </div>
+            )}
+
+            {view === 'calendar' && (
+              <div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="p-0 rounded-md w-full flex justify-center"
+                  components={{ DayContent: DayWithMood }}
+                />
+                <div className="mt-6">
+                  <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                    Entries for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}
+                  </h3>
+                  <div className="space-y-4 max-h-[30vh] overflow-y-auto pr-2">
+                    {loading ? (
+                      <p>Loading entries...</p>
+                    ) : dailyEntries.length > 0 ? (
+                      dailyEntries.map(entry => (
+                        <Card key={entry.id} className="bg-white/50 dark:bg-gray-800/50">
+                          <CardHeader className="flex flex-row justify-between items-start pb-2">
+                            <div>
+                              <CardTitle className="text-lg">{entry.emoji} {entry.heading}</CardTitle>
+                              <p className="text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)}>
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <p className="whitespace-pre-wrap">{entry.content}</p>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">No entries for this day. Click a date to view entries or go to the Journal tab to add one.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </BackgroundWrapper>
   );
