@@ -11,10 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { BookOpen, Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft } from 'lucide-react';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface JournalEntry {
   id: string;
@@ -135,22 +136,24 @@ const Journal = () => {
 
   return (
     <BackgroundWrapper>
-      <div className="w-full max-w-4xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
+      <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">M</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Moodscape Journal</h1>
-          </div>
-          <Link to="/dashboard">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
-            </Button>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/dashboard">
+                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Back to Dashboard</p>
+            </TooltipContent>
+          </Tooltip>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Journal</h1>
         </header>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex flex-col gap-8">
           <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -208,7 +211,7 @@ const Journal = () => {
             </CardContent>
           </Card>
 
-          <div className="mt-6 md:mt-0">
+          <div>
             <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
               Entries for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}
             </h3>
