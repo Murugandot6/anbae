@@ -13,12 +13,11 @@ import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
-import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts'; // Import the new component
-import Sidebar from '@/components/Sidebar'; // Import the Sidebar component
+import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts';
+import Sidebar from '@/components/Sidebar';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -55,7 +54,6 @@ const Dashboard = () => {
         return;
       }
 
-      // console.log('Dashboard: Fetching current user profile for user ID:', user.id); // Removed for production
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -67,10 +65,8 @@ const Dashboard = () => {
           console.error('Dashboard: Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
-          // console.log('Dashboard: Current user profile fetched:', profileData); // Removed for production
           setCurrentUserProfile(profileData);
           if (profileData.partner_email) {
-            // console.log('Dashboard: Attempting to fetch partner profile for email:', profileData.partner_email); // Removed for production
             const { data: partnerData, error: partnerError } = await supabase
               .from('profiles')
               .select('id, username, email, avatar_url, lifetime_score')
@@ -81,19 +77,14 @@ const Dashboard = () => {
               console.error('Dashboard: Supabase Error fetching partner profile:', partnerError.message, partnerError);
               toast.error('Failed to load partner profile: ' + partnerError.message);
             } else if (partnerData) {
-              // console.log('Dashboard: Partner profile fetched:', partnerData); // Removed for production
               setPartnerProfile(partnerData);
-              // console.log('Dashboard: Partner lifetime score:', partnerData.lifetime_score); // Removed for production
             } else {
-              // console.log('Dashboard: Partner profile not found for email:', profileData.partner_email); // Removed for production
               setPartnerProfile(null);
             }
           } else {
-            // console.log('Dashboard: Current user does not have a partner email set.'); // Removed for production
             setPartnerProfile(null);
           }
         } else {
-          // console.log('Dashboard: Current user profile not found for ID:', user.id); // Removed for production
           setCurrentUserProfile(null);
         }
       } catch (error: any) {
@@ -119,7 +110,6 @@ const Dashboard = () => {
 
       setMessagesLoading(true);
       try {
-        // Fetch all top-level messages (not replies) for the current user, both sent and received
         const { data: allTopLevelMessages, error: messagesError } = await supabase
           .from('messages')
           .select('*')
@@ -201,45 +191,20 @@ const Dashboard = () => {
   return (
     <BackgroundWrapper className="pt-0 md:pt-0">
       <div className="flex min-h-screen w-full">
-        {/* Mobile Sidebar (Sheet) */}
-        {isMobile && (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="fixed top-4 left-4 z-10 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-              <Sidebar
-                currentUserProfile={currentUserProfile}
-                partnerProfile={partnerProfile}
-                user={user}
-                handleLogout={handleLogout}
-                onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-              />
-            </SheetContent>
-          </Sheet>
-        )}
+        <Sidebar
+          currentUserProfile={currentUserProfile}
+          partnerProfile={partnerProfile}
+          user={user}
+          handleLogout={handleLogout}
+          onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+        />
 
-        {/* Desktop Sidebar (always visible on md and up) */}
-        {!isMobile && (
-          <Sidebar
-            currentUserProfile={currentUserProfile}
-            partnerProfile={partnerProfile}
-            user={user}
-            handleLogout={handleLogout}
-            onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-          />
-        )}
-
-        {/* Main content area */}
         <div className={`flex-1 flex flex-col items-center p-4 md:p-8 relative ${!isMobile ? 'ml-64' : ''}`}>
-          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16">
+          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-0">
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            {/* Flex container for profiles and heart - now always a row */}
             <div className="flex items-center justify-center gap-4 mb-8">
               <div className="flex flex-col items-center text-center p-4 rounded-xl">
                 <div className="relative mb-4">
@@ -264,7 +229,6 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              {/* Heart icon in between */}
               <div className="flex-shrink-0">
                 <Heart className="w-8 h-8 text-pink-500 dark:text-purple-400" />
               </div>
@@ -299,7 +263,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* New Charts Section */}
             <ScoreAndMessageCharts
               currentUserProfile={currentUserProfile}
               partnerProfile={partnerProfile}
