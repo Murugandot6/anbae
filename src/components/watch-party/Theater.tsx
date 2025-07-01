@@ -3,8 +3,9 @@ import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
-import { LogoutIcon, ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
+import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
+import { ArrowLeft } from 'lucide-react';
 
 interface TheaterProps {
   room: Room;
@@ -33,25 +34,27 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">{room.title}</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <p className="text-gray-400">Share Code:</p>
-            <p className="text-blue-400 font-mono text-lg bg-gray-700 px-3 py-1 rounded-md">{room.room_code}</p>
-            <button onClick={handleCopyCode} className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition-colors">
-              <ClipboardCopyIcon className="h-4 w-4" />
-              {copyStatus}
-            </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onLeaveRoom}
+            className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition-colors"
+            aria-label="Leave room"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-white">{room.title}</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-gray-400">Share Code:</p>
+              <p className="text-blue-400 font-mono text-lg bg-gray-700 px-3 py-1 rounded-md">{room.room_code}</p>
+              <button onClick={handleCopyCode} className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition-colors">
+                <ClipboardCopyIcon className="h-4 w-4" />
+                {copyStatus}
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          onClick={onLeaveRoom}
-          className="flex items-center self-start sm:self-center gap-2 bg-gray-700 hover:bg-red-600 text-white font-bold px-4 py-2 rounded-lg transition-colors"
-        >
-          <LogoutIcon className="h-5 w-5 transform rotate-180" />
-          Leave Room
-        </button>
       </div>
 
       <form onSubmit={handleSetVideo} className="mb-6 bg-gray-800 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3">
