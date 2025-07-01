@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { Input } from '@/components/ui/input';
 import { nanoid } from 'nanoid';
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
+import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 const Lobby: React.FC = () => {
   const { user, isLoading } = useSession();
@@ -105,35 +107,40 @@ const Lobby: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
-      <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Welcome, {user.email}!</h1>
-        <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-          This is your lobby. Create a new watch party room or join an existing one.
-        </p>
-        <div className="flex flex-col gap-4 max-w-sm mx-auto">
-          <Button onClick={handleCreateRoom} disabled={isCreatingRoom || isJoiningRoom} className="bg-blue-600 hover:bg-blue-700 text-white">
-            {isCreatingRoom ? 'Creating Room...' : 'Create New Room'}
-          </Button>
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Enter room code"
-              value={roomCodeInput}
-              onChange={(e) => setRoomCodeInput(e.target.value)}
-              className="flex-1"
-              disabled={isCreatingRoom || isJoiningRoom}
-            />
-            <Button onClick={handleJoinRoom} disabled={isCreatingRoom || isJoiningRoom}>
-              {isJoiningRoom ? 'Joining...' : 'Join Room'}
-            </Button>
-          </div>
+    <BackgroundWrapper> {/* Wrap content with BackgroundWrapper */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
         </div>
-        <Button onClick={handleLogout} variant="destructive" className="mt-8">
-          Logout
-        </Button>
+        <div className="text-center bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Welcome, {user.user_metadata.nickname || user.email}!</h1>
+          <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+            This is your lobby. Create a new watch party room or join an existing one.
+          </p>
+          <div className="flex flex-col gap-4 max-w-sm mx-auto">
+            <Button onClick={handleCreateRoom} disabled={isCreatingRoom || isJoiningRoom} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {isCreatingRoom ? 'Creating Room...' : 'Create New Room'}
+            </Button>
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Enter room code"
+                value={roomCodeInput}
+                onChange={(e) => setRoomCodeInput(e.target.value)}
+                className="flex-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                disabled={isCreatingRoom || isJoiningRoom}
+              />
+              <Button onClick={handleJoinRoom} disabled={isCreatingRoom || isJoiningRoom}>
+                {isJoiningRoom ? 'Joining...' : 'Join Room'}
+              </Button>
+            </div>
+          </div>
+          <Button onClick={handleLogout} variant="destructive" className="mt-8">
+            Logout
+          </Button>
+        </div>
+        <MadeWithDyad />
       </div>
-      <MadeWithDyad />
-    </div>
+    </BackgroundWrapper>
   );
 };
 
