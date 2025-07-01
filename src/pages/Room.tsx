@@ -49,8 +49,6 @@ const Room: React.FC = () => {
 
   const isHost = user?.user_metadata.nickname === roomData?.host_username || user?.email === roomData?.host_username;
 
-  // Removed parseYouTubeVideoId as ReactPlayer handles various URLs directly
-
   const updateRoomPlayback = useCallback(async (status: 'playing' | 'paused' | 'ended', time: number) => {
     if (!roomData || !user || !isHost) return;
 
@@ -102,6 +100,8 @@ const Room: React.FC = () => {
       showError("Please enter a video URL.");
       return;
     }
+
+    console.log('Attempting to set video URL:', videoUrlInput.trim()); // Log the URL being set
 
     // ReactPlayer can handle various URLs directly, so store the full URL
     const { error } = await supabase
@@ -192,7 +192,18 @@ const Room: React.FC = () => {
         { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomData.id}` },
         (payload) => {
           const updatedRoom = payload.new as RoomData;
-          setRoomData(updatedRoom);
+          console.log('Realtime update received for room:', updatedRoom); // Log the updated room data
+          
+          // Check if video URL has changed
+          if (updatedRoom.current_video_id !== roomData.current_video_id) {
+            if (playerRef.current) {
+              playerRef.current.seekTo(0, 'seconds'); // Reset video to start
+              playerRef.current.pause(); // Pause when new video is set
+            }
+          }
+
+          setRoomData(updatedRoom); // Update the room data state
+
           // Sync player state if not host or if host's state is out of sync
           if (playerRef.current) {
             if (updatedRoom.playback_status === 'playing' && !playerRef.current.props.playing) {
@@ -201,10 +212,6 @@ const Room: React.FC = () => {
             } else if (updatedRoom.playback_status === 'paused' && playerRef.current.props.playing) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
               playerRef.current.pause(); // Use ReactPlayer's pause method
-            } else if (updatedRoom.playback_status === 'unstarted' && updatedRoom.current_video_id !== playerRef.current.props.url) {
-              // This case handles new video being set
-              playerRef.current.seekTo(0, 'seconds');
-              playerRef.current.pause(); // Pause when new video is set
             }
           }
         }
@@ -243,7 +250,7 @@ const Room: React.FC = () => {
       supabase.removeChannel(roomChannel);
       supabase.removeChannel(chatChannel);
     };
-  }, [roomData?.id, isHost]);
+  }, [roomData?.id, isHost, roomData?.current_video_id]); // Added roomData.current_video_id to dependencies
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -307,6 +314,8 @@ const Room: React.FC = () => {
             onPause={handlePause}
             onEnded={handleEnded}
             onProgress={handleProgress}
+            onReady={() => console.log('ReactPlayer is ready!')} // Added for debugging
+            onError={(e) => console.error('ReactPlayer error:', e)} // Added for debugging
             config={{
               youtube: {
                 playerVars: {
