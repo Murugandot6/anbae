@@ -2,13 +2,13 @@
 
 export interface Profile {
   id: string;
-  username: string | null; // Explicitly defined
+  username: string | null;
   email: string | null;
   partner_email?: string | null;
   partner_nickname?: string | null;
-  created_at?: string; // Added created_at as it's in the table
-  avatar_url?: string | null; // New: URL to the user's selected avatar
-  lifetime_score?: number | null; // New: Lifetime score for the user
+  created_at?: string;
+  avatar_url?: string | null;
+  lifetime_score?: number | null;
 }
 
 export interface Message {
@@ -23,11 +23,11 @@ export interface Message {
   priority: string;
   mood: string;
   read_at: string | null;
-  parent_message_id: string | null; // New: Link to parent message for threading
+  parent_message_id: string | null;
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
-  replies?: Message[]; // New: For nested replies in UI
-  status: 'open' | 'closed'; // New: Status of the message
+  replies?: Message[];
+  status: 'open' | 'closed';
 }
 
 export interface ClearRequest {
@@ -41,4 +41,32 @@ export interface ClearRequest {
   updated_at: string;
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
+}
+
+export interface Room {
+  id: string;
+  created_at: string;
+  room_code: string;
+  host_id: string;
+  current_video_url: string | null;
+  playback_status: 'playing' | 'paused' | 'unstarted';
+  current_playback_time: number;
+  last_updated_at: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  created_at: string;
+  room_id: string;
+  user_id: string;
+  username: string;
+  message: string;
+}
+
+export interface RoomUser {
+  id: number;
+  created_at: string;
+  room_id: string;
+  user_id: string;
+  username: string;
 }
