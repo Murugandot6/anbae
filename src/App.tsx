@@ -14,6 +14,7 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import Journal from "./pages/Journal"; // Import the new Journal page
+import Theater from "./pages/Theater"; // Import the new Theater page
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -39,6 +40,7 @@ const App = () => {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/journal" element={<Journal />} />
+                  <Route path="/theater" element={<Theater />} />
                   <Route path="/send-message" element={<SendMessage />} />
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
