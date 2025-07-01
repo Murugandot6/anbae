@@ -206,10 +206,12 @@ const Room: React.FC = () => {
 
           // Sync player state if not host or if host's state is out of sync
           if (playerRef.current) {
-            if (updatedRoom.playback_status === 'playing' && !playerRef.current.props.playing) {
+            const isPlayerActuallyPlaying = playerRef.current.isPlaying(); // Use ReactPlayer's method
+
+            if (updatedRoom.playback_status === 'playing' && !isPlayerActuallyPlaying) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
               playerRef.current.play(); // Use ReactPlayer's play method
-            } else if (updatedRoom.playback_status === 'paused' && playerRef.current.props.playing) {
+            } else if (updatedRoom.playback_status === 'paused' && isPlayerActuallyPlaying) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
               playerRef.current.pause(); // Use ReactPlayer's pause method
             }
@@ -309,7 +311,9 @@ const Room: React.FC = () => {
             url={roomData.current_video_id} // Use the full URL directly
             playing={roomData.playback_status === 'playing'}
             muted={true} // Video will now be muted
-            controls={true} // Temporarily enable native controls for debugging
+            controls={false} // Custom controls below
+            light={true} // Show thumbnail before playing
+            playIcon={<Play className="w-16 h-16 text-white opacity-75 hover:opacity-100 transition-opacity" />} // Custom play icon
             width="100%"
             height="100%"
             onPlay={handlePlay}
