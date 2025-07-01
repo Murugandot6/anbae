@@ -298,7 +298,7 @@ const Room: React.FC = () => {
         <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden shadow-xl mb-4">
           <ReactPlayer
             ref={playerRef}
-            url={roomData.current_video_id} {/* Use the full URL directly */}
+            url={roomData.current_video_id} // Use the full URL directly
             playing={roomData.playback_status === 'playing'}
             controls={false} // Custom controls below
             width="100%"
