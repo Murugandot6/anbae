@@ -312,7 +312,6 @@ const Room: React.FC = () => {
             playing={roomData.playback_status === 'playing'}
             muted={true} // Video will now be muted
             controls={false} // Custom controls below
-            // Removed light={true} and playIcon for debugging
             width="100%"
             height="100%"
             onPlay={handlePlay}
@@ -338,7 +337,7 @@ const Room: React.FC = () => {
           <div className="flex flex-col gap-2 mb-4">
             <div className="flex gap-2">
               <Input
-                placeholder="YouTube video URL"
+                placeholder="Video URL (YouTube, MP4, etc.)"
                 value={videoUrlInput}
                 onChange={(e) => setVideoUrlInput(e.target.value)}
                 className="flex-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
