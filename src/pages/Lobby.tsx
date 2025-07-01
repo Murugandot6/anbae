@@ -41,7 +41,7 @@ const Lobby: React.FC = () => {
         .insert({
           room_code: newRoomCode,
           host_username: user.user_metadata.nickname || user.email,
-          current_video_id: 'dQw4w9WgXcQ', // Default YouTube video ID (Rick Astley)
+          current_video_id: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Default YouTube video URL
           playback_status: 'unstarted',
           current_playback_time: 0,
         })
