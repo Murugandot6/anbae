@@ -1,16 +1,21 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSession } from '@/components/SessionContextProvider';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
+import { Input } from '@/components/ui/input';
+import { nanoid } from 'nanoid';
 
 const Lobby: React.FC = () => {
   const { user, isLoading } = useSession();
   const navigate = useNavigate();
+  const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [isJoiningRoom, setIsJoiningRoom] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -18,6 +23,71 @@ const Lobby: React.FC = () => {
       showError("Failed to log out: " + error.message);
     } else {
       // SessionContextProvider handles navigation on SIGNED_OUT event
+    }
+  };
+
+  const handleCreateRoom = async () => {
+    if (!user) {
+      showError("You must be logged in to create a room.");
+      return;
+    }
+    setIsCreatingRoom(true);
+    try {
+      const newRoomCode = nanoid(6); // Generate a 6-character unique ID
+      const { data, error } = await supabase
+        .from('rooms')
+        .insert({
+          room_code: newRoomCode,
+          host_username: user.user_metadata.nickname || user.email,
+          current_video_id: 'dQw4w9WgXcQ', // Default YouTube video ID (Rick Astley)
+          playback_status: 'unstarted',
+          current_playback_time: 0,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      showSuccess(`Room "${newRoomCode}" created successfully!`);
+      navigate(`/room/${newRoomCode}`);
+    } catch (error: any) {
+      console.error('Error creating room:', error.message);
+      showError("Failed to create room: " + error.message);
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!user) {
+      showError("You must be logged in to join a room.");
+      return;
+    }
+    if (!roomCodeInput) {
+      showError("Please enter a room code.");
+      return;
+    }
+    setIsJoiningRoom(true);
+    try {
+      const { data, error } = await supabase
+        .from('rooms')
+        .select('id')
+        .eq('room_code', roomCodeInput)
+        .single();
+
+      if (error || !data) {
+        throw new Error("Room not found or an error occurred.");
+      }
+
+      showSuccess(`Joined room "${roomCodeInput}"!`);
+      navigate(`/room/${roomCodeInput}`);
+    } catch (error: any) {
+      console.error('Error joining room:', error.message);
+      showError("Failed to join room: " + error.message);
+    } finally {
+      setIsJoiningRoom(false);
     }
   };
 
@@ -39,15 +109,24 @@ const Lobby: React.FC = () => {
       <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
         <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Welcome, {user.email}!</h1>
         <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-          This is your lobby. Here you can create a new watch party room or join an existing one.
+          This is your lobby. Create a new watch party room or join an existing one.
         </p>
-        <div className="space-x-4">
-          <Button onClick={() => navigate('/room/new')} className="bg-blue-600 hover:bg-blue-700 text-white">
-            Create New Room
+        <div className="flex flex-col gap-4 max-w-sm mx-auto">
+          <Button onClick={handleCreateRoom} disabled={isCreatingRoom || isJoiningRoom} className="bg-blue-600 hover:bg-blue-700 text-white">
+            {isCreatingRoom ? 'Creating Room...' : 'Create New Room'}
           </Button>
-          <Button onClick={() => showSuccess("Join room functionality coming soon!")} variant="secondary">
-            Join Room
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Enter room code"
+              value={roomCodeInput}
+              onChange={(e) => setRoomCodeInput(e.target.value)}
+              className="flex-1"
+              disabled={isCreatingRoom || isJoiningRoom}
+            />
+            <Button onClick={handleJoinRoom} disabled={isCreatingRoom || isJoiningRoom}>
+              {isJoiningRoom ? 'Joining...' : 'Join Room'}
+            </Button>
+          </div>
         </div>
         <Button onClick={handleLogout} variant="destructive" className="mt-8">
           Logout
