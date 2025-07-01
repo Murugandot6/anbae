@@ -188,18 +188,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
             onProgress={handleProgress}
             onSeek={handlePlayerSeek}
             progressInterval={500}
-            onError={(e: any) => {
-                console.error('Player Error:', e);
+            onError={(e: any, data?: any) => {
+                console.error('Player Error:', e, data);
                 let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
-                const errorCode = Number(e);
-                if (!isNaN(errorCode)) {
+                
+                const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
+
+                if (errorCode !== null) {
                     switch (errorCode) {
                         case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
                         case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
                         case 100: errorMessage = 'The video was not found. It might be private or have been deleted.'; break;
-                        case 101: case 150: errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
+                        case 101: 
+                        case 150: 
+                            errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
+                        default:
+                            break;
                     }
+                } else if (e instanceof Error) {
+                    errorMessage = e.message;
+                } else if (typeof e === 'string' && e.length > 0) {
+                    errorMessage = e;
                 }
+
                 setPlayerError(errorMessage);
                 if (videoState.isPlaying) {
                     sendVideoAction({ type: 'pause', payload: playerRef.current?.getCurrentTime() });
