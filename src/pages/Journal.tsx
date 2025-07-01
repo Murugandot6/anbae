@@ -11,11 +11,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft, Smile } from 'lucide-react';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 
 interface JournalEntry {
   id: string;
@@ -28,18 +29,9 @@ interface JournalEntry {
 
 const journalFormSchema = z.object({
   heading: z.string().min(1, "Please give your day a title.").max(100),
-  mood: z.string().min(1, "Please select how you are feeling."),
   content: z.string().min(1, "Please jot down your thoughts.").max(5000),
   emoji: z.string().min(1, "Please select an emoji."),
 });
-
-const moodOptions = [
-  { emoji: '😍', mood: 'Loved' },
-  { emoji: '😊', mood: 'Happy' },
-  { emoji: '😐', mood: 'Neutral' },
-  { emoji: '😟', mood: 'Sad' },
-  { emoji: '😭', mood: 'Crying' },
-];
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -50,14 +42,14 @@ const Journal = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     location.state?.selectedDate ? new Date(location.state.selectedDate) : new Date()
   );
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const form = useForm<z.infer<typeof journalFormSchema>>({
     resolver: zodResolver(journalFormSchema),
     defaultValues: {
       heading: '',
-      mood: 'Neutral',
       content: '',
-      emoji: '😐',
+      emoji: '😊',
     },
   });
 
@@ -93,7 +85,6 @@ const Journal = () => {
     const { error } = await supabase.from('journal_entries').insert({
       user_id: user.id,
       heading: values.heading,
-      mood: values.mood,
       content: values.content,
       emoji: values.emoji,
       created_at: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
@@ -106,9 +97,8 @@ const Journal = () => {
       toast.success('Journal entry saved!');
       form.reset({
         heading: '',
-        mood: 'Neutral',
         content: '',
-        emoji: '😐',
+        emoji: '😊',
       });
       fetchJournalData();
     }
@@ -122,11 +112,6 @@ const Journal = () => {
       toast.success('Entry deleted.');
       fetchJournalData();
     }
-  };
-
-  const handleEmojiSelect = (mood: string, emoji: string) => {
-    form.setValue('mood', mood, { shouldValidate: true });
-    form.setValue('emoji', emoji, { shouldValidate: true });
   };
 
   const dailyEntries = useMemo(() => {
@@ -175,25 +160,34 @@ const Journal = () => {
                       </FormItem>
                     )}
                   />
-                  <FormItem>
-                    <FormLabel>How are you feeling?</FormLabel>
-                    <div className="flex justify-around items-center p-2">
-                      {moodOptions.map(({ emoji, mood }) => (
-                        <button
-                          type="button"
-                          key={mood}
-                          onClick={() => handleEmojiSelect(mood, emoji)}
-                          className={cn(
-                            "text-4xl p-2 rounded-full transition-transform duration-200 hover:scale-110",
-                            form.watch('emoji') === emoji ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900' : ''
-                          )}
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                    <FormMessage>{form.formState.errors.mood?.message}</FormMessage>
-                  </FormItem>
+                  <FormField
+                    control={form.control}
+                    name="emoji"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>How are you feeling?</FormLabel>
+                        <FormControl>
+                          <EmojiPickerPopover
+                            isOpen={isEmojiPickerOpen}
+                            onOpenChange={setIsEmojiPickerOpen}
+                            onEmojiSelect={(emoji) => {
+                              form.setValue('emoji', emoji, { shouldValidate: true });
+                            }}
+                          >
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                              type="button"
+                            >
+                              <span className="text-2xl mr-2">{field.value}</span>
+                              <span>Select an emoji to represent your mood</span>
+                            </Button>
+                          </EmojiPickerPopover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="content"
