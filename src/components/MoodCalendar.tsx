@@ -90,12 +90,8 @@ const MoodCalendar = () => {
             <Calendar
               mode="single"
               onSelect={handleDateSelect}
-              className="p-0 rounded-md mx-auto"
+              className="p-0 rounded-md"
               classNames={{
-                root: 'w-full',
-                months: 'w-full',
-                month: 'w-full',
-                table: 'w-full',
                 caption_label: 'text-lg',
               }}
               components={{ DayContent: DayWithMood }}
