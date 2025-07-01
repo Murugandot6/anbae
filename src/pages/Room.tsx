@@ -43,7 +43,7 @@ const Room: React.FC = () => {
   const [newChatMessage, setNewChatMessage] = useState('');
   const [loadingRoom, setLoadingRoom] = useState(true);
   const [videoUrlInput, setVideoUrlInput] = useState('');
-  const [playerIsReady, setPlayerIsReady] = useState(false); // New state for player readiness
+  const [playerIsReady, setPlayerIsReady] = useState(false); // State for player readiness
 
   const playerRef = useRef<ReactPlayer>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -154,8 +154,13 @@ const Room: React.FC = () => {
   const handlePlayerReady = useCallback(() => {
     setPlayerIsReady(true);
     console.log('ReactPlayer is truly ready!');
-    // Now that player is ready, sync its state with roomData
-    if (playerRef.current && roomData) {
+    // The actual sync will now happen in the dedicated useEffect
+  }, []);
+
+  // Effect to sync player state when roomData or player readiness changes
+  useEffect(() => {
+    if (playerRef.current && roomData && playerIsReady) {
+      console.log('Syncing player state:', roomData.playback_status, roomData.current_playback_time);
       playerRef.current.seekTo(roomData.current_playback_time, 'seconds');
       if (roomData.playback_status === 'playing') {
         playerRef.current.play();
@@ -163,8 +168,7 @@ const Room: React.FC = () => {
         playerRef.current.pause();
       }
     }
-  }, [roomData]);
-
+  }, [roomData, playerIsReady]); // Dependencies: roomData and playerIsReady
 
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -209,26 +213,12 @@ const Room: React.FC = () => {
         { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomData.id}` },
         (payload) => {
           const updatedRoom = payload.new as RoomData;
-          console.log('Realtime update received for room:', updatedRoom); // Log the updated room data
+          console.log('Realtime update received for room:', updatedRoom);
           
           // If video URL has changed, ReactPlayer will re-mount due to `key` prop.
-          // The `onReady` callback will handle syncing the new player.
-          // No need to manually seek/pause here for URL change.
-
+          // The `onReady` callback will handle setting playerIsReady, and the dedicated
+          // useEffect will then handle syncing the new player.
           setRoomData(updatedRoom); // Update the room data state
-
-          // Sync player state if not host and player is ready
-          if (!isHost && playerRef.current && playerIsReady) { // Added playerIsReady check
-            const isPlayerActuallyPlaying = playerRef.current.isPlaying(); // Use ReactPlayer's method
-
-            if (updatedRoom.playback_status === 'playing' && !isPlayerActuallyPlaying) {
-              playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.play();
-            } else if (updatedRoom.playback_status === 'paused' && isPlayerActuallyPlaying) {
-              playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.pause();
-            }
-          }
         }
       )
       .subscribe();
@@ -265,7 +255,7 @@ const Room: React.FC = () => {
       supabase.removeChannel(roomChannel);
       supabase.removeChannel(chatChannel);
     };
-  }, [roomData?.id, isHost, roomData?.current_video_id, playerIsReady]); // Add playerIsReady to dependencies
+  }, [roomData?.id]); // Removed playerIsReady and roomData.current_video_id from here, as the new useEffect handles sync
 
   useEffect(() => {
     if (chatScrollRef.current) {
