@@ -70,7 +70,6 @@ const SendMessage = () => {
             setPartnerNickname(null);
           }
         } catch (error: any) {
-          console.error('Unexpected error fetching partner details:', error.message, error);
           toast.error('An unexpected error occurred while fetching partner details.');
         }
       } else {
@@ -108,13 +107,11 @@ const SendMessage = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Supabase Send message error:', error.message, error);
       } else {
         toast.success('Message sent successfully!');
         navigate('/dashboard');
       }
     } catch (error: any) {
-      console.error('Unexpected send message error:', error.message, error);
       toast.error('An unexpected error occurred while sending the message.');
     }
   };

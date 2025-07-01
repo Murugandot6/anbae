@@ -92,7 +92,6 @@ const ViewMessage = () => {
         .single();
 
       if (error) {
-        console.error('Supabase Error fetching message:', error.message, error);
         toast.error('Failed to load message: ' + error.message);
         setMessage(null);
         setLoadingMessage(false);
@@ -112,7 +111,6 @@ const ViewMessage = () => {
         .order('created_at', { ascending: true });
 
       if (repliesError) {
-        console.error('Supabase Error fetching replies:', repliesError.message, repliesError);
         toast.error('Failed to load replies: ' + repliesError.message);
       }
 
@@ -152,13 +150,12 @@ const ViewMessage = () => {
           .update({ is_read: true, read_at: new Date().toISOString() })
           .eq('id', id);
         if (updateError) {
-          console.error('Supabase Error marking message as read:', updateError.message, updateError);
+          console.error('Supabase Error marking message as read:', updateError.message);
         } else {
           setMessage(prev => prev ? { ...prev, is_read: true, read_at: new Date().toISOString() } : null);
         }
       }
     } catch (error: any) {
-      console.error('Unexpected error fetching message and replies:', error.message, error);
       toast.error('An unexpected error occurred while loading the message.');
     } finally {
       setLoadingMessage(false);
@@ -179,11 +176,9 @@ const ViewMessage = () => {
           filter: `id=eq.${id}.or.parent_message_id=eq.${id}` // Filter for the main message OR its replies
         },
         async (payload) => {
-          // console.log('Realtime: Payload received in ViewMessage:', payload); // Removed for production
           if (payload.eventType === 'UPDATE' && payload.old.id === id) {
             // This is an update to the main message
             const updatedMessage = payload.new as Message;
-            // console.log('Realtime: Main message updated:', updatedMessage); // Removed for production
             setMessage(prev => {
               if (!prev) return null;
               return { ...prev, ...updatedMessage }; // Update the main message's properties
@@ -256,7 +251,6 @@ const ViewMessage = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Supabase Error sending reply:', error.message, error);
       } else if (data) {
         toast.success('Reply sent successfully!');
         replyForm.reset();
@@ -291,7 +285,6 @@ const ViewMessage = () => {
         });
       }
     } catch (error: any) {
-      console.error('Unexpected error sending reply:', error.message, error);
       toast.error('An unexpected error occurred while sending the reply.');
     }
   };
@@ -310,13 +303,11 @@ const ViewMessage = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Supabase Error closing message:', error.message, error);
       } else {
         toast.success('Message closed successfully!');
         setMessage(prev => prev ? { ...prev, status: 'closed' } : null);
       }
     } catch (error: any) {
-      console.error('Unexpected error closing message:', error.message, error);
       toast.error('An unexpected error occurred while closing the message.');
     }
   };

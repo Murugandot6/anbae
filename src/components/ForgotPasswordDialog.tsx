@@ -45,14 +45,12 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({ isOpen, onO
 
       if (error) {
         toast.error(error.message);
-        console.error('Password reset request error:', error.message);
       } else {
         toast.success('Password reset email sent! Please check your inbox.');
         form.reset();
         onOpenChange(false); // Close the dialog
       }
     } catch (error) {
-      console.error('Unexpected password reset request error:', error);
       toast.error('An unexpected error occurred.');
     }
   };

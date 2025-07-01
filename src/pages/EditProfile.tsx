@@ -50,12 +50,6 @@ const EditProfile = () => {
   });
 
   useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      console.error('EditProfile: Form validation errors:', form.formState.errors);
-    }
-  }, [form.formState.errors]);
-
-  useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
 
@@ -81,7 +75,6 @@ const EditProfile = () => {
               setPartnerProfile(null);
             }
           } catch (error) {
-            console.error('EditProfile: Error fetching partner profile:', error);
             setPartnerProfile(null);
           }
         } else {
@@ -140,7 +133,6 @@ const EditProfile = () => {
       toast.success('Profile updated successfully!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('EditProfile: Profile update error:', error.message, error);
       toast.error('Failed to update profile: ' + error.message);
     } finally {
       setLoading(false);

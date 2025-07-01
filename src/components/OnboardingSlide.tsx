@@ -20,24 +20,15 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   const typingSpeed = 30; // Speed in milliseconds per character
 
   useEffect(() => {
-    // console.log(`OnboardingSlide: Component "${title}" mounted/re-rendered.`); // Removed for production
-  }, [title]);
-
-  // console.log(`OnboardingSlide: Rendering for title "${title}" with bgColorClass "${bgColorClass}"`); // Removed for production
-  // console.log(`OnboardingSlide: lottieUrl: ${lottieUrl}`); // Removed for production
-
-  useEffect(() => {
     if (!lottieUrl) {
       setLoadingLottie(false);
       setAnimationData(null);
-      // console.log(`OnboardingSlide: No lottieUrl provided for "${title}".`); // Removed for production
       return;
     }
 
     const fetchLottieData = async () => {
       setLoadingLottie(true);
       setErrorLottie(null);
-      // console.log(`OnboardingSlide: Fetching Lottie data from ${lottieUrl} for "${title}"`); // Removed for production
       try {
         const response = await fetch(lottieUrl);
         if (!response.ok) {
@@ -45,9 +36,7 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
         }
         const data = await response.json();
         setAnimationData(data);
-        // console.log(`OnboardingSlide: Lottie data fetched successfully for "${title}".`); // Removed for production
       } catch (error: any) {
-        console.error(`OnboardingSlide: Error loading Lottie animation for "${title}":`, error);
         setErrorLottie(`Failed to load animation: ${error.message}`);
       } finally {
         setLoadingLottie(false);

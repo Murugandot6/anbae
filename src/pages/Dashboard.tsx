@@ -34,14 +34,12 @@ const Dashboard = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Supabase Logout error:', error.message, error);
         toast.error('Failed to log out: ' + error.message);
       } else {
         toast.success('Logged out successfully!');
         navigate('/login');
       }
     } catch (error: any) {
-      console.error('Unexpected logout error:', error.message, error);
       toast.error('An unexpected error occurred during logout.');
     }
   };
@@ -61,7 +59,6 @@ const Dashboard = () => {
           .single();
 
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Dashboard: Supabase Error fetching current user profile:', profileError.message, profileError);
           toast.error('Failed to load your profile: ' + profileError.message);
         } else if (profileData) {
           setCurrentUserProfile(profileData);
@@ -73,7 +70,6 @@ const Dashboard = () => {
               .single();
 
             if (partnerError && partnerError.code !== 'PGRST116') {
-              console.error('Dashboard: Supabase Error fetching partner profile:', partnerError.message, partnerError);
               toast.error('Failed to load partner profile: ' + partnerError.message);
             } else if (partnerData) {
               setPartnerProfile(partnerData);
@@ -87,7 +83,6 @@ const Dashboard = () => {
           setCurrentUserProfile(null);
         }
       } catch (error: any) {
-        console.error('Dashboard: Unexpected error fetching user/partner profiles:', error.message, error);
         toast.error('An unexpected error occurred while loading profiles.');
       } finally {
         setFetchingProfiles(false);
@@ -117,7 +112,6 @@ const Dashboard = () => {
           .order('created_at', { ascending: false });
 
         if (messagesError) {
-          console.error('Dashboard: Supabase Error fetching all top-level messages:', messagesError.message, messagesError);
           toast.error('Failed to load messages: ' + messagesError.message);
           setMessagesLoading(false);
           return;
@@ -137,7 +131,6 @@ const Dashboard = () => {
           .in('id', Array.from(allRelatedUserIds));
 
         if (profilesError) {
-          console.error('Dashboard: Supabase Error fetching profiles for messages:', profilesError.message, profilesError);
           toast.error('Failed to load associated profiles: ' + profilesError.message);
           setMessagesLoading(false);
           return;
@@ -162,7 +155,6 @@ const Dashboard = () => {
         setReceivedMessages(combinedReceivedMessages);
 
       } catch (error: any) {
-        console.error('Dashboard: Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);

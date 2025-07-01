@@ -74,7 +74,6 @@ const Journal = () => {
 
     if (error) {
       toast.error('Failed to load journal entries.');
-      console.error(error);
     } else {
       setEntries(data);
     }
@@ -103,7 +102,6 @@ const Journal = () => {
 
     if (error) {
       toast.error('Failed to save entry.');
-      console.error(error);
     } else {
       toast.success('Journal entry saved!');
       form.reset({

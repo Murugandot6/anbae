@@ -119,7 +119,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
           filter: `receiver_id=eq.${currentUserId}`
         },
         async (payload) => {
-          // console.log('Realtime payload (incoming):', payload); // Removed for production
           const newRequest = payload.new as ClearRequest;
 
           if (payload.eventType === 'INSERT' && newRequest.status === 'pending') {
@@ -148,7 +147,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
   const handleSendRequest = async () => {
     if (!user || !partnerId) {
       toast.error('User or partner not identified.');
-      // console.log('Partner ID received by dialog:', partnerId); // Removed for production
       return;
     }
 
@@ -162,7 +160,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
       if (error) {
         toast.error(error.message);
-        console.error('Error sending clear request:', error.message);
       } else {
         toast.success('Clear message request sent to your partner!');
         setSenderMessage('');
@@ -170,7 +167,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         setPendingOutgoingRequest(data);
       }
     } catch (error) {
-      console.error('Unexpected error sending clear request:', error);
       toast.error('An unexpected error occurred.');
     }
   };
@@ -186,7 +182,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
       if (error) {
         toast.error(error.message);
-        console.error('Error updating clear request status:', error.message);
       } else {
         toast.success(`Request ${status} successfully!`);
         setReceiverResponseMessage('');
@@ -194,7 +189,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         setPendingIncomingRequest(null);
       }
     } catch (error) {
-      console.error('Unexpected error responding to clear request:', error);
       toast.error('An unexpected error occurred.');
     }
   };
@@ -210,7 +204,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
       userId: user.id,
       partnerId: pendingOutgoingRequest.receiver_id,
     };
-    // console.log('Invoking clear-messages Edge Function with payload:', payload); // Removed for production
 
     try {
       const { data, error } = await supabase.functions.invoke('clear-messages', {
@@ -219,7 +212,6 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
       if (error) {
         toast.error(error.message);
-        console.error('Error invoking clear-messages function:', error.message);
       } else if (data && data.success) {
         toast.success('All messages cleared successfully!');
         setIsSenderReconfirmOpen(false);
@@ -227,10 +219,8 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
         onMessagesCleared?.();
       } else {
         toast.error(data?.message || 'Failed to clear messages.');
-        console.error('Clear messages function response:', data);
       }
     } catch (error) {
-      console.error('Unexpected error calling clear-messages function:', error);
       toast.error('An unexpected error occurred during message clearing.');
     }
   };

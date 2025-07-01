@@ -23,22 +23,14 @@ const Messages = () => {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [profilesMap, setProfilesMap] = useState<Map<string, Profile>>(new Map());
 
-  // console.log('Messages Component: Rendered. sessionLoading:', sessionLoading, 'messagesLoading:', messagesLoading); // Removed for production
-  // console.log('Messages Component: Current user:', user?.id); // Removed for production
-
   // Helper to fetch a single profile if not already in map
   const getOrFetchProfile = async (profileId: string) => {
     if (profilesMap.has(profileId)) {
-      // console.log('Messages: Profile found in map for ID:', profileId); // Removed for production
       return profilesMap.get(profileId);
     }
-    // console.log('Messages: Fetching profile by ID:', profileId); // Removed for production
     const profile = await fetchProfileById(profileId);
     if (profile) {
       setProfilesMap(prev => new Map(prev).set(profileId, profile));
-      // console.log('Messages: Profile fetched and added to map:', profile); // Removed for production
-    } else {
-      // console.log('Messages: Profile not found for ID:', profileId); // Removed for production
     }
     return profile;
   };
@@ -47,12 +39,10 @@ const Messages = () => {
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
         setMessagesLoading(false); // Set loading to false if no user
-        // console.log('Messages: No user session, skipping message fetch.'); // Removed for production
         return;
       }
 
       setMessagesLoading(true); // Set loading to true at the start of fetch
-      // console.log('Messages: Fetching all messages for user ID:', user.id); // Removed for production
       try {
         // Fetch all top-level messages (not replies) for the current user, both sent and received
         const { data: sentData, error: sentError } = await supabase
@@ -63,10 +53,7 @@ const Messages = () => {
           .order('created_at', { ascending: false });
 
         if (sentError) {
-          console.error('Messages: Supabase Error fetching sent messages:', sentError.message, sentError);
           toast.error('Failed to load sent messages: ' + sentError.message);
-        } else {
-          // console.log('Messages: Raw sent messages data from initial fetch:', sentData); // Removed for production
         }
 
         // Fetch all received messages that are NOT replies (parent_message_id is null)
@@ -78,10 +65,7 @@ const Messages = () => {
           .order('created_at', { ascending: false });
 
         if (receivedError) {
-          console.error('Messages: Supabase Error fetching received messages:', receivedError.message, receivedError);
           toast.error('Failed to load received messages: ' + receivedError.message);
-        } else {
-          // console.log('Messages: Raw received messages data from initial fetch:', receivedData); // Removed for production
         }
 
         const allRelatedUserIds = new Set<string>();
@@ -89,7 +73,6 @@ const Messages = () => {
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
         allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
 
-        // console.log('Messages: Fetching profiles for related user IDs:', Array.from(allRelatedUserIds)); // Removed for production
         const fetchedProfiles: Profile[] = [];
         for (const id of Array.from(allRelatedUserIds)) {
           const profile = await fetchProfileById(id);
@@ -103,36 +86,30 @@ const Messages = () => {
           initialProfilesMap.set(profile.id, profile);
         });
         setProfilesMap(initialProfilesMap);
-        // console.log('Messages: Initial profiles map created:', initialProfilesMap); // Removed for production
 
         const combinedSentMessages = sentData?.map(msg => ({
           ...msg,
           receiverProfile: initialProfilesMap.get(msg.receiver_id) || null,
         })) || [];
-        // console.log('Messages: Combined sent messages after initial fetch:', combinedSentMessages); // Removed for production
 
         const combinedReceivedMessages = receivedData?.map(msg => ({
           ...msg,
           senderProfile: initialProfilesMap.get(msg.sender_id) || null,
         })) || [];
-        // console.log('Messages: Combined received messages after initial fetch:', combinedReceivedMessages); // Removed for production
 
         setSentMessages(combinedSentMessages);
         setReceivedMessages(combinedReceivedMessages);
 
       } catch (error: any) {
-        console.error('Messages: Unexpected error fetching messages:', error.message, error);
         toast.error('An unexpected error occurred while loading messages.');
       } finally {
         setMessagesLoading(false);
-        // console.log('Messages: Message fetching completed. messagesLoading set to false.'); // Removed for production
       }
     };
 
     if (!sessionLoading && user) {
       fetchAllMessagesAndProfiles();
     } else if (!sessionLoading && !user) {
-      // console.log('Messages: User not authenticated, navigating to login.'); // Removed for production
       navigate('/login');
     }
 
@@ -147,12 +124,10 @@ const Messages = () => {
           filter: `sender_id=eq.${user?.id}.or.receiver_id=eq.${user?.id}`
         },
         async (payload) => {
-          // console.log('Messages: Realtime message payload:', payload); // Removed for production
           const newMessage = payload.new as Message;
 
           // Only process top-level messages for the main list
           if (newMessage.parent_message_id !== null) {
-            // console.log('Realtime: Skipping reply message for main list:', newMessage); // Removed for production
             return; // Do not add replies to the main inbox/outbox lists
           }
 
@@ -167,23 +142,12 @@ const Messages = () => {
             };
 
             if (newMessage.receiver_id === user?.id) {
-              // console.log('Realtime: Adding new RECEIVED message to state:', messageWithProfiles); // Removed for production
-              setReceivedMessages(prev => {
-                const newState = [messageWithProfiles, ...prev];
-                // console.log('Realtime: New receivedMessages state:', newState); // Removed for production
-                return newState;
-              });
+              setReceivedMessages(prev => [messageWithProfiles, ...prev]);
               toast.info(`New message from ${senderProfile?.username || senderProfile?.email || 'Your Partner'}!`);
             } else if (newMessage.sender_id === user?.id) {
-              // console.log('Realtime: Adding new SENT message to state:', messageWithProfiles); // Removed for production
-              setSentMessages(prev => {
-                const newState = [messageWithProfiles, ...prev];
-                // console.log('Realtime: New sentMessages state:', newState); // Removed for production
-                return newState;
-              });
+              setSentMessages(prev => [messageWithProfiles, ...prev]);
             }
           } else if (payload.eventType === 'UPDATE') {
-            // console.log('Realtime: Updating message in state:', newMessage); // Removed for production
             setReceivedMessages(prev =>
               prev.map(msg => (msg.id === newMessage.id ? { ...msg, ...newMessage } : msg))
             );
@@ -196,15 +160,11 @@ const Messages = () => {
       .subscribe();
 
     return () => {
-      // console.log('Messages: Unsubscribing from messages_channel.'); // Removed for production
       supabase.removeChannel(channel);
     };
   }, [user, sessionLoading, navigate]);
 
-  // console.log('Messages Component: State before rendering JSX - sentMessages:', sentMessages.length, 'receivedMessages:', receivedMessages.length); // Removed for production
-
   if (sessionLoading || messagesLoading) {
-    // console.log('Messages Component: Displaying loading state.'); // Removed for production
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
         <p className="text-xl">Loading messages...</p>
@@ -213,7 +173,6 @@ const Messages = () => {
   }
 
   if (!user) {
-    // console.log('Messages Component: User not found, navigating to login.'); // Removed for production
     navigate('/login');
     return null;
   }
@@ -264,7 +223,6 @@ const Messages = () => {
                 size="icon"
                 className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                 onClick={() => {
-                  // console.log('Navigating to dashboard from Messages page.'); // Removed for production
                   navigate('/dashboard', { replace: true }); // Added replace: true
                 }}
               >

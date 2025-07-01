@@ -40,13 +40,11 @@ const Login = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Login error:', error.message);
       } else {
         toast.success('Logged in successfully!');
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Unexpected login error:', error);
       toast.error('An unexpected error occurred during login.');
     }
   };

@@ -58,7 +58,6 @@ const Register = () => {
 
       if (error) {
         toast.error(error.message);
-        console.error('Registration error:', error.message);
       } else if (data.user) {
         toast.success('Registration successful! Please check your email to confirm your account.');
         setIsExiting(true); // Trigger fade-out
@@ -67,7 +66,6 @@ const Register = () => {
         }, 500); // Match animation duration
       }
     } catch (error) {
-      console.error('Unexpected registration error:', error);
       toast.error('An unexpected error occurred during registration.');
     }
   };
