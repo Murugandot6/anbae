@@ -52,24 +52,19 @@ const SendMessage = () => {
   useEffect(() => {
     const fetchPartnerDetails = async () => {
       if (sessionLoading || !user) {
-        // console.log('Session loading or user not available. Skipping partner fetch.'); // Removed for production
         setFetchingPartner(false);
         return;
       }
 
-      // console.log('Current user object:', user); // Removed for production
       const currentUsersPartnerEmail = user?.user_metadata?.partner_email;
-      // console.log('Attempting to fetch partner with email from user metadata:', currentUsersPartnerEmail); // Removed for production
 
       if (currentUsersPartnerEmail) {
         try {
           const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail); // Use the helper
           if (partnerData) {
-            // console.log('Partner profile found:', partnerData); // Removed for production
             setPartnerId(partnerData.id);
             setPartnerNickname(partnerData.username);
           } else {
-            // console.log('No partner profile data returned for email:', currentUsersPartnerEmail); // Removed for production
             toast.error('Partner profile not found for the specified email. Please ensure your partner has registered.');
             setPartnerId(null);
             setPartnerNickname(null);
@@ -79,7 +74,6 @@ const SendMessage = () => {
           toast.error('An unexpected error occurred while fetching partner details.');
         }
       } else {
-        // console.log('Current user does not have a partner email set in metadata. Displaying message to update profile.'); // Removed for production
         toast.error('Your profile does not have a partner email set. Please update your profile.');
       }
       setFetchingPartner(false);
@@ -93,27 +87,35 @@ const SendMessage = () => {
       return;
     }
 
+    const authorName = user.user_metadata.nickname || user.email;
+    if (!authorName) {
+      toast.error("Could not determine your author name. Please ensure you have a nickname set in your profile.");
+      return;
+    }
+
     try {
       const { error } = await supabase.from('messages').insert({
+        user_id: user.id,
         sender_id: user.id,
         receiver_id: partnerId,
-        subject: values.message_type, // Use message_type as subject
+        author_name: authorName,
+        subject: values.message_type,
         content: values.content,
-        message_type: values.message_type, // New field
-        priority: values.priority,         // New field
-        mood: values.mood,                 // New field
+        message_type: values.message_type,
+        priority: values.priority,
+        mood: values.mood,
       });
 
       if (error) {
         toast.error(error.message);
         console.error('Supabase Send message error:', error.message, error);
       } else {
-        toast.success('Grievance sent successfully!');
+        toast.success('Message sent successfully!');
         navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('Unexpected send message error:', error.message, error);
-      toast.error('An unexpected error occurred while sending the grievance.');
+      toast.error('An unexpected error occurred while sending the message.');
     }
   };
 
