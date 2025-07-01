@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
 import { Profile, Message } from '@/types/supabase';
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +28,6 @@ const Dashboard = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
-  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     try {
@@ -199,7 +197,7 @@ const Dashboard = () => {
           onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
         />
 
-        <div className={`flex-1 flex flex-col items-center p-4 md:p-8 relative ${!isMobile ? 'ml-64' : ''}`}>
+        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
           <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-0">
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
