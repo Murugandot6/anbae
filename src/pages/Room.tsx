@@ -43,6 +43,7 @@ const Room: React.FC = () => {
   const [newChatMessage, setNewChatMessage] = useState('');
   const [loadingRoom, setLoadingRoom] = useState(true);
   const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [playerIsReady, setPlayerIsReady] = useState(false); // New state for player readiness
 
   const playerRef = useRef<ReactPlayer>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ const Room: React.FC = () => {
   const isHost = user?.user_metadata.nickname === roomData?.host_username || user?.email === roomData?.host_username;
 
   const updateRoomPlayback = useCallback(async (status: 'playing' | 'paused' | 'ended', time: number) => {
-    if (!roomData || !user || !isHost) return;
+    if (!roomData || !user || !isHost || !playerRef.current || !playerIsReady) return; // Ensure player is ready
 
     const { error } = await supabase
       .from('rooms')
@@ -65,19 +66,19 @@ const Room: React.FC = () => {
       console.error('Error updating room playback:', error.message);
       showError('Failed to sync playback.');
     }
-  }, [roomData, user, isHost]);
+  }, [roomData, user, isHost, playerIsReady]); // Add playerIsReady to dependencies
 
   const handlePlay = useCallback(() => {
-    if (isHost) updateRoomPlayback('playing', playerRef.current?.getCurrentTime() || 0);
-  }, [isHost, updateRoomPlayback]);
+    if (isHost && playerRef.current && playerIsReady) updateRoomPlayback('playing', playerRef.current.getCurrentTime());
+  }, [isHost, updateRoomPlayback, playerIsReady]);
 
   const handlePause = useCallback(() => {
-    if (isHost) updateRoomPlayback('paused', playerRef.current?.getCurrentTime() || 0);
-  }, [isHost, updateRoomPlayback]);
+    if (isHost && playerRef.current && playerIsReady) updateRoomPlayback('paused', playerRef.current.getCurrentTime());
+  }, [isHost, updateRoomPlayback, playerIsReady]);
 
   const handleSeek = useCallback((time: number) => {
-    if (isHost) updateRoomPlayback(roomData?.playback_status || 'paused', time);
-  }, [isHost, updateRoomPlayback, roomData?.playback_status]);
+    if (isHost && playerRef.current && playerIsReady) updateRoomPlayback(roomData?.playback_status || 'paused', time);
+  }, [isHost, updateRoomPlayback, roomData?.playback_status, playerIsReady]);
 
   const handleProgress = useCallback((state: { playedSeconds: number }) => {
     // Only host updates the time frequently
@@ -88,8 +89,8 @@ const Room: React.FC = () => {
   }, [isHost, roomData?.playback_status]);
 
   const handleEnded = useCallback(() => {
-    if (isHost) updateRoomPlayback('ended', playerRef.current?.getDuration() || 0);
-  }, [isHost, updateRoomPlayback]);
+    if (isHost && playerRef.current && playerIsReady) updateRoomPlayback('ended', playerRef.current.getDuration());
+  }, [isHost, updateRoomPlayback, playerIsReady]);
 
   const handleSetVideo = async () => {
     if (!roomData || !user || !isHost) {
@@ -149,6 +150,22 @@ const Room: React.FC = () => {
     }
   };
 
+  // Callback for when ReactPlayer is ready
+  const handlePlayerReady = useCallback(() => {
+    setPlayerIsReady(true);
+    console.log('ReactPlayer is truly ready!');
+    // Now that player is ready, sync its state with roomData
+    if (playerRef.current && roomData) {
+      playerRef.current.seekTo(roomData.current_playback_time, 'seconds');
+      if (roomData.playback_status === 'playing') {
+        playerRef.current.play();
+      } else {
+        playerRef.current.pause();
+      }
+    }
+  }, [roomData]);
+
+
   useEffect(() => {
     const fetchRoomData = async () => {
       if (!roomId) {
@@ -194,26 +211,22 @@ const Room: React.FC = () => {
           const updatedRoom = payload.new as RoomData;
           console.log('Realtime update received for room:', updatedRoom); // Log the updated room data
           
-          // Check if video URL has changed
-          if (updatedRoom.current_video_id !== roomData.current_video_id) {
-            if (playerRef.current) {
-              playerRef.current.seekTo(0, 'seconds'); // Reset video to start
-              playerRef.current.pause(); // Pause when new video is set
-            }
-          }
+          // If video URL has changed, ReactPlayer will re-mount due to `key` prop.
+          // The `onReady` callback will handle syncing the new player.
+          // No need to manually seek/pause here for URL change.
 
           setRoomData(updatedRoom); // Update the room data state
 
-          // Sync player state if not host or if host's state is out of sync
-          if (playerRef.current) {
+          // Sync player state if not host and player is ready
+          if (!isHost && playerRef.current && playerIsReady) { // Added playerIsReady check
             const isPlayerActuallyPlaying = playerRef.current.isPlaying(); // Use ReactPlayer's method
 
             if (updatedRoom.playback_status === 'playing' && !isPlayerActuallyPlaying) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.play(); // Use ReactPlayer's play method
+              playerRef.current.play();
             } else if (updatedRoom.playback_status === 'paused' && isPlayerActuallyPlaying) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.pause(); // Use ReactPlayer's pause method
+              playerRef.current.pause();
             }
           }
         }
@@ -252,7 +265,7 @@ const Room: React.FC = () => {
       supabase.removeChannel(roomChannel);
       supabase.removeChannel(chatChannel);
     };
-  }, [roomData?.id, isHost, roomData?.current_video_id]); // Added roomData.current_video_id to dependencies
+  }, [roomData?.id, isHost, roomData?.current_video_id, playerIsReady]); // Add playerIsReady to dependencies
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -318,7 +331,7 @@ const Room: React.FC = () => {
             onPause={handlePause}
             onEnded={handleEnded}
             onProgress={handleProgress}
-            onReady={() => console.log('ReactPlayer is ready!')} // Added for debugging
+            onReady={handlePlayerReady} // Use the new onReady handler
             onError={(e) => console.error('ReactPlayer error:', e)} // Added for debugging
             config={{
               youtube: {
@@ -345,16 +358,16 @@ const Room: React.FC = () => {
               <Button onClick={handleSetVideo}>Set Video</Button>
             </div>
             <div className="flex gap-2 justify-center">
-              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() - 10, 'seconds')} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() - 10, 'seconds')} variant="outline" size="icon" disabled={!playerIsReady}>
                 <Rewind className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.play()} disabled={roomData.playback_status === 'playing'} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.play()} disabled={roomData.playback_status === 'playing' || !playerIsReady} variant="outline" size="icon">
                 <Play className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.pause()} disabled={roomData.playback_status === 'paused'} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.pause()} disabled={roomData.playback_status === 'paused' || !playerIsReady} variant="outline" size="icon">
                 <Pause className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() + 10, 'seconds')} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() + 10, 'seconds')} variant="outline" size="icon" disabled={!playerIsReady}>
                 <FastForward className="w-5 h-5" />
               </Button>
             </div>
