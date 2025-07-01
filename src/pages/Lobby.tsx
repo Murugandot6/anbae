@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useSession } from '@/components/SessionContextProvider';
+import { useSession } from '@/contexts/SessionContext'; // Corrected import path
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import { Input } from '@/components/ui/input';
 import { nanoid } from 'nanoid';
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
-import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
+import BackgroundWrapper from '@/components/BackgroundWrapper';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Lobby: React.FC = () => {
   const { user, isLoading } = useSession();
@@ -107,7 +107,7 @@ const Lobby: React.FC = () => {
   }
 
   return (
-    <BackgroundWrapper> {/* Wrap content with BackgroundWrapper */}
+    <BackgroundWrapper>
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />

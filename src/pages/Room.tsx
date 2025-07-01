@@ -4,10 +4,10 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MadeWithDyad } from '@/components/made-with-dyad';
-import { useSession } from '@/components/SessionContextProvider';
+import { useSession } from '@/contexts/SessionContext'; // Corrected import path
 import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
-import ReactPlayer from 'react-player'; // Changed import path
+import ReactPlayer from 'react-player';
 import { Input } from '@/components/ui/input';
 import { Send, Play, Pause, FastForward, Rewind, Volume2, VolumeX, Users, MessageSquare, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -269,15 +269,15 @@ const Room: React.FC = () => {
     }
   }, [chatMessages]);
 
-  if (isLoading || loadingRoom) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-300">Loading room...</p>
+        <p className="text-gray-700 dark:text-gray-300">Loading user session...</p>
       </div>
     );
   }
 
-  if (!user || !roomData) {
+  if (!user) {
     navigate('/login');
     return null;
   }
