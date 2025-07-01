@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { User, Room } from './types';
-import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Theater from './components/Theater';
 import { useSupabase } from './contexts/SupabaseContext';
@@ -39,7 +38,7 @@ const App: React.FC = () => {
     if (session) {
        setUser({
         id: session.user.id,
-        name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Guest',
+        name: session.user.user_metadata.nickname || session.user.email?.split('@')[0] || 'Guest',
         email: session.user.email!,
       });
     } else {
@@ -60,8 +59,10 @@ const App: React.FC = () => {
     return <LoadingSpinner />;
   }
 
-  if (!session || !user) {
-    return <Login />;
+  if (!user) {
+    // This should not happen if the user is properly authenticated in the main app,
+    // but it's a good fallback.
+    return <LoadingSpinner />;
   }
 
   return (
