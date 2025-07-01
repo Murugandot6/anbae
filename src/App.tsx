@@ -13,8 +13,8 @@ import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
-import Lobby from "./pages/Lobby"; // Import Lobby
-import Room from "./pages/Room";     // Import Room
+import Lobby from "./pages/watch-party/Lobby"; // Import Lobby from new folder
+import Room from "./pages/watch-party/Room";     // Import Room from new folder
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
