@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, Film } from 'lucide-react'; // Import Film icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -60,11 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentUserProfile, partnerProfile, u
         <Link to="/messages">
           <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Inbox className="w-5 h-5 mr-2" /> Messages
-          </Button>
-        </Link>
-        <Link to="/lobby"> {/* New link for the Theater/Watch Party */}
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Film className="w-5 h-5 mr-2" /> Theater
           </Button>
         </Link>
         <Link to="/edit-profile">

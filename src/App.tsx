@@ -13,8 +13,6 @@ import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
-import Lobby from "./pages/watch-party/Lobby"; // Import Lobby from new folder
-import Room from "./pages/watch-party/Room";     // Import Room from new folder
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -43,8 +41,6 @@ const App = () => {
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
-                  <Route path="/lobby" element={<Lobby />} /> {/* New protected route for Lobby */}
-                  <Route path="/room/:roomId" element={<Room />} /> {/* New protected route for Room */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
