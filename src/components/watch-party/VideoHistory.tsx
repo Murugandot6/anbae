@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { VideoHistoryEntry } from '../types';
-import { HistoryIcon } from './icons';
+import { VideoHistoryEntry } from '@/types/watchParty';
+import { HistoryIcon } from '@/components/watch-party/icons';
 
 interface VideoHistoryProps {
   history: VideoHistoryEntry[];

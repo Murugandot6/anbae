@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
-import { VideoState, VideoAction } from '../types';
-import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from './icons';
+import { VideoState, VideoAction } from '@/types/watchParty';
+import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
 
 interface VideoPlayerProps {
   videoState: VideoState;

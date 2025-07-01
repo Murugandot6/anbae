@@ -1,7 +1,6 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { ChatMessage, User } from '../types';
-import { SendIcon } from './icons';
+import { ChatMessage, User } from '@/types/watchParty';
+import { SendIcon } from '@/components/watch-party/icons';
 
 interface ChatProps {
   messages: ChatMessage[];

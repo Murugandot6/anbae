@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Room } from '../types';
-import { PlusIcon, LoginIcon as JoinIcon } from './icons';
-import { useSupabase } from '../contexts/SupabaseContext';
+import { Room } from '@/types/watchParty';
+import { PlusIcon, LoginIcon as JoinIcon } from '@/components/watch-party/icons';
+import { supabase } from '@/integrations/supabase/client';
 
 // Helper to format the DB response into the client-side Room object
 const formatRoom = (dbRoom: any): Room => ({
@@ -22,7 +22,6 @@ const generateRoomCode = (): string => {
 }
 
 const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom }) => {
-  const supabase = useSupabase();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<string | null>(null);

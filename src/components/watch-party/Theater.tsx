@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Room, User } from '../types';
-import VideoPlayer from './VideoPlayer';
-import Chat from './Chat';
-import { useSupabaseRealtime } from '../hooks/useSupabaseRealtime';
-import { LogoutIcon, ClipboardCopyIcon, LinkIcon } from './icons';
-import VideoHistory from './VideoHistory';
+import { Room, User } from '@/types/watchParty';
+import VideoPlayer from '@/components/watch-party/VideoPlayer';
+import Chat from '@/components/watch-party/Chat';
+import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
+import { LogoutIcon, ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
+import VideoHistory from '@/components/watch-party/VideoHistory';
 
 interface TheaterProps {
   room: Room;

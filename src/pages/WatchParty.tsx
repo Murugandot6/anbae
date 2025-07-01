@@ -1,16 +1,64 @@
-import React from 'react';
-import WatchPartyApp from '../../watch-party/App';
-import { SupabaseProvider } from '../../watch-party/contexts/SupabaseContext';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState, useCallback, useEffect } from 'react';
+import { User, Room } from '@/types/watchParty';
+import Dashboard from '@/components/watch-party/Dashboard';
+import Theater from '@/components/watch-party/Theater';
+import { useSession } from '@/contexts/SessionContext';
 
-const WatchParty = () => {
-  // This component integrates the standalone "watch-party" app into the main application.
-  // It uses the main app's Supabase client to ensure the user's session is shared,
-  // providing a seamless, single-login experience.
+const LoadingSpinner: React.FC = () => (
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+);
+
+const WatchParty: React.FC = () => {
+  const { session, user: authUser, loading: sessionLoading } = useSession();
+  const [user, setUser] = useState<User | null>(null);
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
+
+  useEffect(() => {
+    if (session && authUser) {
+       setUser({
+        id: authUser.id,
+        name: authUser.user_metadata.nickname || authUser.email?.split('@')[0] || 'Guest',
+        email: authUser.email!,
+      });
+    } else {
+        setUser(null);
+        setCurrentRoom(null);
+    }
+  }, [session, authUser]);
+
+  const handleJoinRoom = useCallback((room: Room) => {
+    setCurrentRoom(room);
+  }, []);
+
+  const handleLeaveRoom = useCallback(() => {
+    setCurrentRoom(null);
+  }, []);
+
+  if (sessionLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return (
+        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white text-center">
+            <h2 className="text-2xl font-bold mb-4">Authentication Error</h2>
+            <p>Could not find a valid user session. Please ensure you are logged in.</p>
+        </div>
+    );
+  }
+
   return (
-    <SupabaseProvider client={supabase}>
-      <WatchPartyApp />
-    </SupabaseProvider>
+    <div className="bg-gray-900 min-h-screen text-white font-sans">
+      <main className="p-4 sm:p-6 lg:p-8">
+        {currentRoom ? (
+          <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
+        ) : (
+          <Dashboard onJoinRoom={handleJoinRoom} />
+        )}
+      </main>
+    </div>
   );
 };
 

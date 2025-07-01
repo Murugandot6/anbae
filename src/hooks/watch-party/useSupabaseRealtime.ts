@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useSupabase } from '../contexts/SupabaseContext';
-import { VideoState, VideoAction, ChatMessage, User, VideoHistoryEntry } from '../types';
+import { supabase } from '@/integrations/supabase/client';
+import { VideoState, VideoAction, ChatMessage, User, VideoHistoryEntry } from '@/types/watchParty';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 // Reducer function to calculate the next state based on an action.
@@ -25,7 +25,6 @@ const videoStateReducer = (state: VideoState, action: VideoAction): VideoState =
 };
 
 export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | null, user: User) => {
-  const supabase = useSupabase();
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
     time: 0,
