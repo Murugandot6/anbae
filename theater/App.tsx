@@ -3,7 +3,6 @@ import { User, Room } from './types';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Theater from './components/Theater';
-import Header from './components/Header';
 import { useSupabase } from './contexts/SupabaseContext';
 import { Session } from '@supabase/supabase-js';
 
@@ -49,10 +48,6 @@ const App: React.FC = () => {
     }
   }, [session]);
 
-  const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
-  }, [supabase]);
-
   const handleJoinRoom = useCallback((room: Room) => {
     setCurrentRoom(room);
   }, []);
@@ -71,7 +66,6 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-gray-900 min-h-screen text-white font-sans">
-      <Header user={user} onLogout={handleLogout} />
       <main className="p-4 sm:p-6 lg:p-8">
         {currentRoom ? (
           <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
