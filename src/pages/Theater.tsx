@@ -1,13 +1,16 @@
 import React from 'react';
-import DevView from '../../theater/DevView';
+import TheaterApp from '../../theater/App';
+import { SupabaseProvider } from '../../theater/contexts/SupabaseContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Theater = () => {
-  // The DevView component is designed to take up the full screen,
-  // so we'll provide a container that allows it to do so.
+  // This component integrates the standalone "theater" app into the main application.
+  // It uses the main app's Supabase client to ensure the user's session is shared,
+  // providing a seamless, single-login experience.
   return (
-    <div className="w-screen h-screen">
-      <DevView />
-    </div>
+    <SupabaseProvider client={supabase}>
+      <TheaterApp />
+    </SupabaseProvider>
   );
 };
 
