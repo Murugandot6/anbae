@@ -198,7 +198,7 @@ const Dashboard = () => {
         />
 
         <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
-          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-0">
+          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-8">
             <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
