@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 import ReactPlayer from 'react-player';
 import { Input } from '@/components/ui/input';
-import { Send, Play, Pause, FastForward, Rewind, Volume2, VolumeX, Users, MessageSquare, Copy, ArrowLeft } from 'lucide-react';
+import { Send, Play, Pause, FastForward, Rewind, Users, MessageSquare, Copy, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,7 +19,7 @@ interface RoomData {
   id: string;
   room_code: string;
   host_username: string;
-  current_video_id: string;
+  current_video_id: string; // This will now store the full URL
   playback_status: 'unstarted' | 'playing' | 'paused' | 'ended';
   current_playback_time: number;
   last_updated_at: string;
@@ -45,15 +45,11 @@ const Room: React.FC = () => {
   const [videoUrlInput, setVideoUrlInput] = useState('');
 
   const playerRef = useRef<ReactPlayer>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null); // Corrected type to HTMLDivElement
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const isHost = user?.user_metadata.nickname === roomData?.host_username || user?.email === roomData?.host_username;
 
-  const parseYouTubeVideoId = (url: string): string | null => {
-    const regExp = /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/;
-    const match = url.match(regExp);
-    return (match && match[1].length === 11) ? match[1] : null;
-  };
+  // Removed parseYouTubeVideoId as ReactPlayer handles various URLs directly
 
   const updateRoomPlayback = useCallback(async (status: 'playing' | 'paused' | 'ended', time: number) => {
     if (!roomData || !user || !isHost) return;
@@ -102,16 +98,16 @@ const Room: React.FC = () => {
       showError("You are not the host or room data is missing.");
       return;
     }
-    const videoId = parseYouTubeVideoId(videoUrlInput);
-    if (!videoId) {
-      showError("Please enter a valid YouTube URL.");
+    if (!videoUrlInput.trim()) {
+      showError("Please enter a video URL.");
       return;
     }
 
+    // ReactPlayer can handle various URLs directly, so store the full URL
     const { error } = await supabase
       .from('rooms')
       .update({
-        current_video_id: videoId,
+        current_video_id: videoUrlInput.trim(), // Store the full URL
         playback_status: 'unstarted', // Reset status when new video is set
         current_playback_time: 0,
         last_updated_at: new Date().toISOString(),
@@ -198,17 +194,17 @@ const Room: React.FC = () => {
           const updatedRoom = payload.new as RoomData;
           setRoomData(updatedRoom);
           // Sync player state if not host or if host's state is out of sync
-          if (playerRef.current && (!isHost || (isHost && updatedRoom.playback_status !== playerRef.current.props.playing))) {
+          if (playerRef.current) {
             if (updatedRoom.playback_status === 'playing' && !playerRef.current.props.playing) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.getInternalPlayer().playVideo();
+              playerRef.current.play(); // Use ReactPlayer's play method
             } else if (updatedRoom.playback_status === 'paused' && playerRef.current.props.playing) {
               playerRef.current.seekTo(updatedRoom.current_playback_time, 'seconds');
-              playerRef.current.getInternalPlayer().pauseVideo();
+              playerRef.current.pause(); // Use ReactPlayer's pause method
             } else if (updatedRoom.playback_status === 'unstarted' && updatedRoom.current_video_id !== playerRef.current.props.url) {
               // This case handles new video being set
               playerRef.current.seekTo(0, 'seconds');
-              playerRef.current.getInternalPlayer().stopVideo(); // Or loadVideoById
+              playerRef.current.pause(); // Pause when new video is set
             }
           }
         }
@@ -302,7 +298,7 @@ const Room: React.FC = () => {
         <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden shadow-xl mb-4">
           <ReactPlayer
             ref={playerRef}
-            url={`https://www.youtube.com/watch?v=${roomData.current_video_id}`}
+            url={roomData.current_video_id} {/* Use the full URL directly */}
             playing={roomData.playback_status === 'playing'}
             controls={false} // Custom controls below
             width="100%"
@@ -339,10 +335,10 @@ const Room: React.FC = () => {
               <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() - 10, 'seconds')} variant="outline" size="icon">
                 <Rewind className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.getInternalPlayer().playVideo()} disabled={roomData.playback_status === 'playing'} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.play()} disabled={roomData.playback_status === 'playing'} variant="outline" size="icon">
                 <Play className="w-5 h-5" />
               </Button>
-              <Button onClick={() => playerRef.current?.getInternalPlayer().pauseVideo()} disabled={roomData.playback_status === 'paused'} variant="outline" size="icon">
+              <Button onClick={() => playerRef.current?.pause()} disabled={roomData.playback_status === 'paused'} variant="outline" size="icon">
                 <Pause className="w-5 h-5" />
               </Button>
               <Button onClick={() => playerRef.current?.seekTo(playerRef.current.getCurrentTime() + 10, 'seconds')} variant="outline" size="icon">
