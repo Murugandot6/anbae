@@ -17,6 +17,7 @@ import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
 import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts';
 import Sidebar from '@/components/Sidebar';
+import MoodCalendar from '@/components/MoodCalendar';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -260,6 +261,8 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+
+            <MoodCalendar />
 
             <ScoreAndMessageCharts
               currentUserProfile={currentUserProfile}
