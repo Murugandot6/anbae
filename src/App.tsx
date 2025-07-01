@@ -12,17 +12,16 @@ import SendMessage from "./pages/SendMessage";
 import EditProfile from "./pages/EditProfile";
 import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
-import OnboardingWelcome from "./pages/OnboardingWelcome"; // Import the new OnboardingWelcome page
+import OnboardingWelcome from "./pages/OnboardingWelcome";
+import Lobby from "./pages/Lobby"; // Import Lobby
+import Room from "./pages/Room";     // Import Room
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
-import ProtectedRoute from "./components/ProtectedRoute"; // Import the new ProtectedRoute
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Log the base URL being used by Vite for debugging
-  // console.log("Vite BASE_URL:", import.meta.env.BASE_URL); // Removed for production
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" attribute="class" enableSystem>
@@ -35,7 +34,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/onboarding-welcome" element={<OnboardingWelcome />} /> {/* Temporarily moved outside ProtectedRoute */}
+                <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
 
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
@@ -44,6 +43,8 @@ const App = () => {
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
+                  <Route path="/lobby" element={<Lobby />} /> {/* New protected route for Lobby */}
+                  <Route path="/room/:roomId" element={<Room />} /> {/* New protected route for Room */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
