@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import ForgotPasswordDialog from '@/components/ForgotPasswordDialog';
 import { useState } from 'react';
 import { ThemeToggle } from "@/components/ThemeToggle";
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
+import VideoBackground from '@/components/VideoBackground';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -50,12 +50,13 @@ const Login = () => {
   };
 
   return (
-    <BackgroundWrapper> {/* Updated component name */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4"> {/* Content wrapper */}
+    <>
+      <VideoBackground />
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
-        <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30"> {/* Semi-transparent content card with glassmorphism */}
+        <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
           <div className="text-center mb-6">
             <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back!</h2>
@@ -116,7 +117,7 @@ const Login = () => {
         </div>
         <ForgotPasswordDialog isOpen={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen} />
       </div>
-    </BackgroundWrapper>
+    </>
   );
 };
 

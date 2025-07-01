@@ -53,7 +53,7 @@ const Index = () => {
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:from-gray-900 dark:to-purple-950 dark:bg-gradient-to-br text-foreground p-4 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-foreground p-4 relative">
       <div className="absolute top-4 right-4 z-10">
         <ThemeToggle />
       </div>
@@ -69,27 +69,27 @@ const Index = () => {
 
       <div className="w-full max-w-xl mb-6 px-4 animate-fade-in delay-200">
         <div className="relative flex items-center">
-          <Search className="absolute left-3 text-gray-400 dark:text-gray-500 w-5 h-5" />
+          <Search className="absolute left-3 text-gray-400 w-5 h-5" />
           <Input
             type="text"
             placeholder={placeholderText}
-            className="w-full pl-10 pr-20 py-3 text-lg rounded-full shadow-md border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            className="w-full pl-10 pr-20 py-3 text-lg rounded-full shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
           />
           <div className="absolute right-3 flex space-x-2">
-            <Mic className="text-gray-400 dark:text-gray-500 w-5 h-5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-400" />
-            <Image className="text-gray-400 dark:text-gray-500 w-5 h-5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-400" />
+            <Mic className="text-gray-400 w-5 h-5 cursor-pointer hover:text-gray-600" />
+            <Image className="text-gray-400 w-5 h-5 cursor-pointer hover:text-gray-600" />
           </div>
         </div>
       </div>
 
       <div className="flex gap-4 mb-8 animate-fade-in delay-400">
         <Link to="/login">
-          <Button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white px-4 py-2 rounded-md shadow-sm">
+          <Button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md shadow-sm">
             Login
           </Button>
         </Link>
         <Link to="/register">
-          <Button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white px-4 py-2 rounded-md shadow-sm">
+          <Button className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md shadow-sm">
             Register
           </Button>
         </Link>
