@@ -7,10 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { format, isSameDay } from 'date-fns';
 import { CalendarDays } from 'lucide-react';
+import JournalEntryDialog from './JournalEntryDialog';
 
 interface JournalEntry {
   id: string;
   created_at: string;
+  heading: string | null;
+  mood: string | null;
+  content: string;
   emoji: string | null;
 }
 
@@ -19,6 +23,8 @@ const MoodCalendar = () => {
   const navigate = useNavigate();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
 
   useEffect(() => {
     const fetchJournalData = async () => {
@@ -29,7 +35,7 @@ const MoodCalendar = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('journal_entries')
-        .select('id, created_at, emoji')
+        .select('id, created_at, emoji, heading, content, mood')
         .eq('user_id', user.id);
 
       if (error) {
@@ -45,7 +51,14 @@ const MoodCalendar = () => {
   }, [user]);
 
   const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
+    if (!date) return;
+
+    const entryForDay = entries.find(entry => isSameDay(new Date(entry.created_at), date));
+
+    if (entryForDay) {
+      setSelectedEntry(entryForDay);
+      setIsDialogOpen(true);
+    } else {
       navigate('/journal', { state: { selectedDate: date.toISOString() } });
     }
   };
@@ -63,32 +76,39 @@ const MoodCalendar = () => {
   };
 
   return (
-    <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 p-4 mb-8">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-gray-900 dark:text-white text-center flex items-center justify-center gap-2">
-          <CalendarDays /> Mood Calendar
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 flex justify-center">
-        {loading ? (
-          <p>Loading calendar...</p>
-        ) : (
-          <Calendar
-            mode="single"
-            onSelect={handleDateSelect}
-            className="p-0 rounded-md"
-            components={{ DayContent: DayWithMood }}
-            classNames={{
-              root: 'w-full',
-              months: 'w-full',
-              month: 'w-full',
-              table: 'w-full',
-              caption_label: 'text-lg',
-            }}
-          />
-        )}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 p-4 mb-8">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-gray-900 dark:text-white text-center flex items-center justify-center gap-2">
+            <CalendarDays /> Mood Calendar
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 flex justify-center">
+          {loading ? (
+            <p>Loading calendar...</p>
+          ) : (
+            <Calendar
+              mode="single"
+              onSelect={handleDateSelect}
+              className="p-0 rounded-md mx-auto"
+              classNames={{
+                root: 'w-full',
+                months: 'w-full',
+                month: 'w-full',
+                table: 'w-full',
+                caption_label: 'text-lg',
+              }}
+              components={{ DayContent: DayWithMood }}
+            />
+          )}
+        </CardContent>
+      </Card>
+      <JournalEntryDialog
+        entry={selectedEntry}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
+    </>
   );
 };
 
