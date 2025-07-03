@@ -402,7 +402,7 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-8 h-8 rounded-full"
+                      className="flex-shrink-0 w-7 h-7 rounded-full"
                       aria-label="Open emoji picker"
                     >
                       <Smile className="w-4 h-4 text-gray-500" />
@@ -418,7 +418,7 @@ const ViewMessage = () => {
                             placeholder="Type a message..."
                             {...field}
                             rows={1}
-                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1.5 h-auto text-sm"
+                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-sm"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -436,7 +436,7 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-8 h-8 rounded-full"
+                      className="flex-shrink-0 w-7 h-7 rounded-full"
                       onClick={handleCloseMessage}
                       aria-label="Close message"
                     >
@@ -447,7 +447,7 @@ const ViewMessage = () => {
                     type="submit"
                     variant="default"
                     size="icon"
-                    className="rounded-full flex-shrink-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="rounded-full flex-shrink-0 w-7 h-7 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
                   >
                     <Send className="w-4 h-4" />
