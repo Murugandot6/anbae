@@ -27,7 +27,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser }) => {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl shadow-lg flex flex-col h-[75vh] lg:h-full max-h-[calc(100vh-12rem)]">
+    <div className="bg-gray-800 rounded-xl shadow-lg flex flex-col h-full">
       <h3 className="text-xl font-bold p-4 border-b border-gray-700">Live Chat</h3>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
