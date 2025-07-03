@@ -10,15 +10,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, Paperclip, XCircle, Send } from 'lucide-react';
+import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, XCircle, Send } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
-import EmojiPickerPopover from '@/components/EmojiPickerPopover';
+import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
 
 const replyFormSchema = z.object({
@@ -66,7 +65,6 @@ const ViewMessage = () => {
   const { user, loading: sessionLoading } = useSession();
   const [message, setMessage] = useState<Message | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(true);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const replyForm = useForm<z.infer<typeof replyFormSchema>>({
     resolver: zodResolver(replyFormSchema),
@@ -214,11 +212,6 @@ const ViewMessage = () => {
     }
   }, [message]);
 
-  const handleEmojiSelect = (emoji: string) => {
-    const currentContent = replyForm.getValues('replyContent');
-    replyForm.setValue('replyContent', currentContent + emoji, { shouldValidate: true });
-  };
-
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
       toast.error('Cannot send reply: User or message not identified.');
@@ -350,7 +343,7 @@ const ViewMessage = () => {
   const canReply = message.status === 'open';
 
   return (
-    <BackgroundWrapper className="pt-20"> {/* Updated component name */}
+    <BackgroundWrapper className="pt-20">
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
@@ -377,7 +370,7 @@ const ViewMessage = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-[120px]">
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-28">
           {message && renderMessageContent(message, user)}
 
           {message && message.replies && message.replies.length > 0 && (
@@ -389,30 +382,29 @@ const ViewMessage = () => {
         </div>
 
         {message && canReply && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg p-2">
+          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-4 bg-transparent">
             <Form {...replyForm}>
-              <form onSubmit={replyForm.handleSubmit(handleReply)}>
-                <div className="flex items-center gap-2 border rounded-full px-2 py-1 bg-white dark:bg-gray-800 shadow-sm">
-                  <EmojiPickerPopover
-                    isOpen={isEmojiPickerOpen}
-                    onOpenChange={setIsEmojiPickerOpen}
-                    onEmojiSelect={handleEmojiSelect}
+              <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
+                <div className="flex items-center gap-2 rounded-full p-2 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full flex-shrink-0 w-10 h-10 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700"
                   >
-                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker">
-                      <Smile className="w-4 h-4" />
-                    </Button>
-                  </EmojiPickerPopover>
+                    <Plus className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  </Button>
                   <FormField
                     control={replyForm.control}
                     name="replyContent"
                     render={({ field }) => (
-                      <FormItem className="flex-1 mb-0">
+                      <FormItem className="flex-1">
                         <FormControl>
                           <Textarea
                             placeholder="Type a message..."
                             {...field}
                             rows={1}
-                            className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto"
+                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-2 h-auto"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -421,24 +413,18 @@ const ViewMessage = () => {
                             }}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="pl-2" />
                       </FormItem>
                     )}
                   />
-                  {canCloseMessage && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 w-8 h-8 text-red-500 dark:text-red-400"
-                      onClick={handleCloseMessage}
-                      aria-label="Close message"
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400">
-                    <Send className="w-4 h-4" />
+                  <Button
+                    type="submit"
+                    variant="default"
+                    size="icon"
+                    className="rounded-full flex-shrink-0 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
+                  >
+                    <Send className="w-5 h-5" />
                   </Button>
                 </div>
               </form>
