@@ -418,7 +418,7 @@ const ViewMessage = () => {
                             placeholder="Type a message..."
                             {...field}
                             rows={1}
-                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-sm"
+                            className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-sm"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
