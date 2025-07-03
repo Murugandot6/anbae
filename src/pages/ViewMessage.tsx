@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
+import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -65,6 +66,7 @@ const ViewMessage = () => {
   const { user, loading: sessionLoading } = useSession();
   const [message, setMessage] = useState<Message | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(true);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const replyForm = useForm<z.infer<typeof replyFormSchema>>({
     resolver: zodResolver(replyFormSchema),
@@ -211,6 +213,11 @@ const ViewMessage = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [message]);
+
+  const handleEmojiSelect = (emoji: string) => {
+    const currentContent = replyForm.getValues('replyContent');
+    replyForm.setValue('replyContent', currentContent + emoji, { shouldValidate: true });
+  };
 
   const handleReply = async (values: z.infer<typeof replyFormSchema>) => {
     if (!user || !message) {
@@ -382,18 +389,25 @@ const ViewMessage = () => {
         </div>
 
         {message && canReply && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-4 bg-transparent">
+          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
             <Form {...replyForm}>
               <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
-                <div className="flex items-center gap-2 rounded-full p-2 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full flex-shrink-0 w-10 h-10 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700"
+                <div className="flex items-center gap-1 rounded-full p-1 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
+                  <EmojiPickerPopover
+                    isOpen={isEmojiPickerOpen}
+                    onOpenChange={setIsEmojiPickerOpen}
+                    onEmojiSelect={handleEmojiSelect}
                   >
-                    <Plus className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 w-8 h-8 rounded-full"
+                      aria-label="Open emoji picker"
+                    >
+                      <Smile className="w-4 h-4 text-gray-500" />
+                    </Button>
+                  </EmojiPickerPopover>
                   <FormField
                     control={replyForm.control}
                     name="replyContent"
@@ -404,7 +418,7 @@ const ViewMessage = () => {
                             placeholder="Type a message..."
                             {...field}
                             rows={1}
-                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-2 h-auto"
+                            className="w-full resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1.5 h-auto text-sm"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -413,19 +427,34 @@ const ViewMessage = () => {
                             }}
                           />
                         </FormControl>
-                        <FormMessage className="pl-2" />
+                        <FormMessage className="hidden" />
                       </FormItem>
                     )}
                   />
+                  {canCloseMessage && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 w-8 h-8 rounded-full"
+                      onClick={handleCloseMessage}
+                      aria-label="Close message"
+                    >
+                      <XCircle className="w-4 h-4 text-red-500" />
+                    </Button>
+                  )}
                   <Button
                     type="submit"
                     variant="default"
                     size="icon"
-                    className="rounded-full flex-shrink-0 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="rounded-full flex-shrink-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="w-4 h-4" />
                   </Button>
+                </div>
+                <div className="px-4 pt-1">
+                  <FormMessage className="text-xs text-red-500">{replyForm.formState.errors.replyContent?.message}</FormMessage>
                 </div>
               </form>
             </Form>
