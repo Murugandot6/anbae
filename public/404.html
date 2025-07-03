@@ -3,16 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>Redirecting...</title>
-  <script type="text/javascript">
-    // This script redirects all 404 errors back to the original path within your application.
-    // This is a common workaround for Single-Page Applications (SPAs) deployed on GitHub Pages
-    // when using client-side routing (like React Router's BrowserRouter).
-    // It ensures that refreshing a sub-path (e.g., /dashboard) will reload the SPA at that path.
-    var path = window.location.pathname;
-    var query = window.location.search;
-    var hash = window.location.hash;
-    window.location.replace('/' + path + query + hash);
+  <script>
+    // Store the full path that led to the 404 page in sessionStorage
+    sessionStorage.redirect = location.href;
   </script>
+  <!-- Use a meta refresh to redirect to the root of the site -->
+  <meta http-equiv="refresh" content="0;URL='/'">
 </head>
 <body>
   <p>If you are not redirected automatically, follow this <a href="/">link to the home page</a>.</p>
