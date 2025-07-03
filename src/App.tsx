@@ -15,7 +15,8 @@ import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import Journal from "./pages/Journal";
 import WatchParty from "./pages/WatchParty";
-import KaraokePage from "./pages/Karaoke";
+import CreatePromposal from "./pages/CreatePromposal";
+import ViewPromposal from "./pages/ViewPromposal";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -36,6 +37,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
+                <Route path="/promposal/:id" element={<ViewPromposal />} />
 
                 {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
@@ -46,7 +48,7 @@ const App = () => {
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
                   <Route path="/watch-party" element={<WatchParty />} />
-                  <Route path="/karaoke" element={<KaraokePage />} />
+                  <Route path="/promposal/create" element={<CreatePromposal />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

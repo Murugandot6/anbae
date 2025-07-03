@@ -5,9 +5,7 @@ import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
 import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
-import { ArrowLeft, Music } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface TheaterProps {
   room: Room;
@@ -16,7 +14,7 @@ interface TheaterProps {
 }
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
-  const { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory, lrcContent, setLrcContent } = useSupabaseRealtime(room.id, room.videoUrl, user);
+  const { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
@@ -32,10 +30,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       changeVideoSource(newVideoUrl.trim());
       setNewVideoUrl('');
     }
-  };
-
-  const handleOpenLyricsPage = () => {
-    window.open(`/karaoke?roomId=${room.id}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -92,21 +86,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             videoState={videoState} 
             sendVideoAction={sendVideoAction} 
           />
-          <div className="mt-6 bg-gray-800 p-4 rounded-xl">
-            <h3 className="text-xl font-bold mb-2 flex items-center gap-2"><Music className="w-6 h-6" /> Karaoke Lyrics</h3>
-            <p className="text-gray-400 mb-4 text-sm">Paste LRC content here to sync it across all devices, then open the dedicated lyrics page.</p>
-            <div className="flex gap-4 items-start">
-                <Textarea
-                    value={lrcContent}
-                    onChange={(e) => setLrcContent(e.target.value)}
-                    placeholder="[00:01.15]I love you still..."
-                    className="w-full h-24 bg-gray-700 border-gray-600 text-white resize-none"
-                />
-                <Button onClick={handleOpenLyricsPage} className="flex-shrink-0 h-24">
-                    Open Lyrics Page
-                </Button>
-            </div>
-          </div>
         </div>
         <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-[75vh] lg:h-auto">
           <Chat 
