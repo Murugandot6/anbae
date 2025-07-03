@@ -392,7 +392,7 @@ const ViewMessage = () => {
           <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
             <Form {...replyForm}>
               <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
-                <div className="flex items-center gap-1 rounded-full p-1 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
                   <EmojiPickerPopover
                     isOpen={isEmojiPickerOpen}
                     onOpenChange={setIsEmojiPickerOpen}
@@ -402,10 +402,10 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-7 h-7 rounded-full"
+                      className="flex-shrink-0 w-6 h-6 rounded-full"
                       aria-label="Open emoji picker"
                     >
-                      <Smile className="w-4 h-4 text-gray-500" />
+                      <Smile className="w-3.5 h-3.5 text-gray-500" />
                     </Button>
                   </EmojiPickerPopover>
                   <FormField
@@ -436,21 +436,21 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-7 h-7 rounded-full"
+                      className="flex-shrink-0 w-6 h-6 rounded-full"
                       onClick={handleCloseMessage}
                       aria-label="Close message"
                     >
-                      <XCircle className="w-4 h-4 text-red-500" />
+                      <XCircle className="w-3.5 h-3.5 text-red-500" />
                     </Button>
                   )}
                   <Button
                     type="submit"
                     variant="default"
                     size="icon"
-                    className="rounded-full flex-shrink-0 w-7 h-7 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="rounded-full flex-shrink-0 w-6 h-6 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className="w-3.5 h-3.5" />
                   </Button>
                 </div>
                 <div className="px-4 pt-1">
