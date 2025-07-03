@@ -35,6 +35,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [videoHistory, setVideoHistory] = useState<VideoHistoryEntry[]>([]);
+  const [lrcContent, setLrcContent] = useState('');
   const channelRef = useRef<RealtimeChannel | null>(null);
   
   const videoStateRef = useRef(videoState);
@@ -121,6 +122,12 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       }
     });
 
+    channel.on('broadcast', { event: 'lrc_update' }, ({ payload }) => {
+        if (payload.senderId !== user.id) {
+          setLrcContent(payload.lrcContent);
+        }
+    });
+
     channel.on('presence', { event: 'join' }, ({ newPresences }) => newPresences.forEach((p: any) => {
         if(p.user_name) addSystemMessage(`${p.user_name} joined.`)
     }));
@@ -196,5 +203,16 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     sendVideoAction({ type: 'source', payload: newUrl });
   }, [roomId, user.id, user.name, supabase, sendVideoAction, addSystemMessage]);
 
-  return { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory };
+  const broadcastLrcContent = useCallback((newLrc: string) => {
+    setLrcContent(newLrc);
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'lrc_update',
+        payload: { lrcContent: newLrc, senderId: user.id },
+      });
+    }
+  }, [user.id]);
+
+  return { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory, lrcContent, setLrcContent: broadcastLrcContent };
 };

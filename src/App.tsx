@@ -15,6 +15,7 @@ import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import Journal from "./pages/Journal";
 import WatchParty from "./pages/WatchParty";
+import KaraokePage from "./pages/Karaoke";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -45,6 +46,7 @@ const App = () => {
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
                   <Route path="/watch-party" element={<WatchParty />} />
+                  <Route path="/karaoke" element={<KaraokePage />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
