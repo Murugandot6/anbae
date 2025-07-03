@@ -5,10 +5,10 @@
   <title>Redirecting...</title>
   <script>
     // Store the full path that led to the 404 page in sessionStorage
+    // and then redirect to the root of the site.
     sessionStorage.redirect = location.href;
+    location.href = location.origin;
   </script>
-  <!-- Use a meta refresh to redirect to the root of the site -->
-  <meta http-equiv="refresh" content="0;URL='/'">
 </head>
 <body>
   <p>If you are not redirected automatically, follow this <a href="/">link to the home page</a>.</p>
