@@ -389,63 +389,61 @@ const ViewMessage = () => {
         </div>
 
         {message && canReply && (
-          <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-2">
-            <CardContent className="p-0">
-              <Form {...replyForm}>
-                <form onSubmit={replyForm.handleSubmit(handleReply)}>
-                  <div className="flex items-center gap-2 border rounded-full px-3 py-1 bg-white dark:bg-gray-800 shadow-sm">
-                    <EmojiPickerPopover
-                      isOpen={isEmojiPickerOpen}
-                      onOpenChange={setIsEmojiPickerOpen}
-                      onEmojiSelect={handleEmojiSelect}
-                    >
-                      <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker">
-                        <Smile className="w-5 h-5" />
-                      </Button>
-                    </EmojiPickerPopover>
-                    <FormField
-                      control={replyForm.control}
-                      name="replyContent"
-                      render={({ field }) => (
-                        <FormItem className="flex-1 mb-0">
-                          <FormControl>
-                            <Textarea
-                              placeholder="Type a message..."
-                              {...field}
-                              rows={1}
-                              className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-0 h-8"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  replyForm.handleSubmit(handleReply)();
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {canCloseMessage && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 w-8 h-8 text-red-500 dark:text-red-400"
-                        onClick={handleCloseMessage}
-                        aria-label="Close message"
-                      >
-                        <XCircle className="w-5 h-5" />
-                      </Button>
-                    )}
-                    <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400">
-                      <Send className="w-5 h-5" />
+          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg p-2">
+            <Form {...replyForm}>
+              <form onSubmit={replyForm.handleSubmit(handleReply)}>
+                <div className="flex items-center gap-2 border rounded-full px-2 py-1 bg-white dark:bg-gray-800 shadow-sm">
+                  <EmojiPickerPopover
+                    isOpen={isEmojiPickerOpen}
+                    onOpenChange={setIsEmojiPickerOpen}
+                    onEmojiSelect={handleEmojiSelect}
+                  >
+                    <Button variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400" aria-label="Open emoji picker">
+                      <Smile className="w-4 h-4" />
                     </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                  </EmojiPickerPopover>
+                  <FormField
+                    control={replyForm.control}
+                    name="replyContent"
+                    render={({ field }) => (
+                      <FormItem className="flex-1 mb-0">
+                        <FormControl>
+                          <Textarea
+                            placeholder="Type a message..."
+                            {...field}
+                            rows={1}
+                            className="resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                replyForm.handleSubmit(handleReply)();
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {canCloseMessage && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="flex-shrink-0 w-8 h-8 text-red-500 dark:text-red-400"
+                      onClick={handleCloseMessage}
+                      aria-label="Close message"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </Button>
+                  )}
+                  <Button type="submit" variant="ghost" size="icon" className="flex-shrink-0 w-8 h-8 text-blue-500 dark:text-blue-400">
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         )}
       </div>
     </BackgroundWrapper>
