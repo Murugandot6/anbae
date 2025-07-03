@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
 import KaraokeLyrics from '@/components/watch-party/KaraokeLyrics';
-import { parseLRC, LyricLine } from '@/lib/lrcParser';
+import { parseLRC } from '@/lib/lrcParser';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 
@@ -93,7 +93,21 @@ const ViewPromposal = () => {
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-4 md:p-8 text-white overflow-hidden">
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+      {/* Hidden ReactPlayer for audio playback */}
+      <div style={{ display: 'none' }}>
+        <ReactPlayer
+          ref={playerRef}
+          url={proposal.video_url}
+          playing={isPlaying}
+          muted={isMuted}
+          onProgress={handleProgress}
+          onDuration={handleDuration}
+          progressInterval={100}
+        />
+      </div>
+
+      {/* Top right controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
         <Button onClick={handleCopyLink} variant="ghost" size="icon">
           {copyStatus ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
         </Button>
@@ -102,22 +116,14 @@ const ViewPromposal = () => {
         </Link>
       </div>
       
-      <div className="w-full max-w-5xl h-[90%] flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col">
-          <div className="relative aspect-video w-full bg-black rounded-xl overflow-hidden shadow-lg shadow-pink-500/20">
-            <ReactPlayer
-              ref={playerRef}
-              url={proposal.video_url}
-              width="100%"
-              height="100%"
-              playing={isPlaying}
-              muted={isMuted}
-              onProgress={handleProgress}
-              onDuration={handleDuration}
-              progressInterval={100}
-            />
-          </div>
-          <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-gray-900/50 rounded-full">
+      {/* Main content area for lyrics */}
+      <div className="w-full h-full flex flex-col justify-center items-center">
+        <KaraokeLyrics lyrics={parsedLyrics} currentTime={currentTime} />
+      </div>
+
+      {/* Bottom controls */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xl z-20">
+        <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-gray-900/50 rounded-full">
             <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon">
               {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
             </Button>
@@ -132,10 +138,6 @@ const ViewPromposal = () => {
             <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon">
               {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
             </Button>
-          </div>
-        </div>
-        <div className="w-full md:w-1/2 h-1/2 md:h-full overflow-hidden bg-gray-900/50 rounded-xl shadow-lg shadow-blue-500/20">
-          <KaraokeLyrics lyrics={parsedLyrics} currentTime={currentTime} />
         </div>
       </div>
     </div>
