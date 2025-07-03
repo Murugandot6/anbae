@@ -389,10 +389,10 @@ const ViewMessage = () => {
         </div>
 
         {message && canReply && (
-          <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-4">
+          <Card className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-t-lg rounded-b-none p-2">
             <CardContent className="p-0">
               <Form {...replyForm}>
-                <form onSubmit={replyForm.handleSubmit(handleReply)} className="space-y-4">
+                <form onSubmit={replyForm.handleSubmit(handleReply)}>
                   <div className="flex items-center gap-2 border rounded-full px-3 py-1 bg-white dark:bg-gray-800 shadow-sm">
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
