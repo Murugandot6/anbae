@@ -22,7 +22,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     if (audioElement.src !== station.url_resolved) {
       audioElement.src = station.url_resolved;
       audioElement.load(); // Explicitly load the new source
-      setError(null); 
+      setError(null); // Clear any previous errors when source changes
     }
 
     if (isPlaying) {
@@ -31,13 +31,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
         playPromise.catch((err) => {
           console.warn("Local playback failed:", err);
           // This is the key change: Set a local error, but DO NOT change the global state.
+          // This error is specifically for autoplay being blocked.
           setError(`Playback blocked by browser. Click play to unmute.`);
         });
       }
     } else {
       audioElement.pause();
     }
-  }, [isPlaying, station.stationuuid]);
+  }, [isPlaying, station.stationuuid, station.url_resolved]); // Added station.url_resolved to dependencies
 
   // Effect to handle unexpected stream errors (e.g., station goes offline)
   useEffect(() => {
@@ -58,7 +59,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
 
   const handleTogglePlay = () => {
     // User's direct action should clear local errors and broadcast their intent.
-    setError(null);
+    setError(null); // Clear any local error when user interacts
     onTogglePlay();
   };
   
