@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Station } from '@/types/waveRoom';
 import { PlayIcon, PauseIcon, RadioIcon, XIcon } from './icons';
+import { PlayCircle } from 'lucide-react';
 
 interface AudioPlayerProps {
   station: Station;
@@ -13,51 +14,47 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isLocallyPlaying, setLocallyPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requiresInteraction, setRequiresInteraction] = useState(false);
 
-  // This primary effect handles all synchronization between the shared state (props) and the local audio element.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
 
-    // When the station changes, update the source and load it.
     if (audioElement.src !== station.url_resolved) {
       audioElement.src = station.url_resolved;
       audioElement.load();
-      setError(null); // Reset error on new station
+      setError(null);
+      setRequiresInteraction(false);
     }
 
-    // Sync the play/pause state.
     if (isPlaying) {
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch(err => {
-          // Ignore AbortError which is expected if the user quickly changes stations.
           if (err.name !== 'AbortError') {
             console.warn("Autoplay was prevented. User interaction is required.", err);
             setError("Click play to start the audio.");
+            setRequiresInteraction(true);
           }
         });
       }
     } else {
       audioElement.pause();
     }
-  }, [station, isPlaying]); // Rerun when station or play state changes.
+  }, [station, isPlaying]);
 
-  // This effect is for updating the local UI (play/pause icon) based on the actual audio element events.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
     
-    const handlePlay = () => setLocallyPlaying(true);
-    const handlePlaying = () => setError(null); // Clear errors when playback actually starts
+    const handlePlay = () => { setLocallyPlaying(true); setRequiresInteraction(false); };
+    const handlePlaying = () => setError(null);
     const handlePause = () => setLocallyPlaying(false);
     const handleError = () => {
       setError('Error loading stream. The station may be offline.');
       setLocallyPlaying(false);
     };
-    const handleStalled = () => {
-      setError('Stream stalled. Buffering...');
-    };
+    const handleStalled = () => setError('Stream stalled. Buffering...');
 
     audioElement.addEventListener('play', handlePlay);
     audioElement.addEventListener('playing', handlePlaying);
@@ -72,55 +69,80 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       audioElement.removeEventListener('error', handleError);
       audioElement.removeEventListener('stalled', handleStalled);
     };
-  }, []); // This effect should only run once to attach listeners.
+  }, []);
+
+  const handleInteraction = () => {
+    const audioElement = audioRef.current;
+    if (audioElement) {
+        audioElement.play().then(() => {
+            setRequiresInteraction(false);
+            if (!isPlaying) {
+                onTogglePlay();
+            }
+        }).catch(err => {
+            console.error("Playback failed after interaction:", err);
+            setError("Could not start playback.");
+        });
+    }
+  };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
   const country = station.country || 'Global';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
-        <div className="container mx-auto flex items-center justify-between gap-4">
-          {/* The key prop is removed to prevent re-mounting */}
-          <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <img
-              src={station.favicon}
-              alt={station.name}
-              className="w-14 h-14 rounded-md shadow-md bg-gray-700"
-              onError={(e) => { 
-                const img = e.currentTarget;
-                img.style.display = 'none';
-                const fallback = img.nextElementSibling;
-                if(fallback) {
-                    fallback.classList.remove('hidden');
-                }
-               }}
-            />
-             <div className="hidden w-14 h-14 rounded-md shadow-md bg-gray-700 flex items-center justify-center">
-                <RadioIcon className="w-8 h-8 text-gray-500"/>
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-white truncate" title={station.name}>{station.name}</p>
-              <div className="space-y-0.5">
-                  <p className="text-sm text-gray-400 truncate" title={country}>{country}</p>
-                  {language && <p className="text-xs text-gray-500 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
-              </div>
-              {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
-            </div>
+    <>
+      {requiresInteraction && (
+        <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-[100] backdrop-blur-sm cursor-pointer" onClick={handleInteraction}>
+          <div className="text-center">
+            <PlayCircle className="w-24 h-24 text-white mx-auto mb-4 animate-pulse" />
+            <h3 className="text-2xl font-bold text-white mb-2">Audio Paused</h3>
+            <p className="text-gray-300">Click anywhere to play</p>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={onTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
-              {isLocallyPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
-            </button>
-             <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
-              <XIcon className="w-5 h-5" />
-            </button>
+        </div>
+      )}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
+          <div className="container mx-auto flex items-center justify-between gap-4">
+            <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <img
+                src={station.favicon}
+                alt={station.name}
+                className="w-14 h-14 rounded-md shadow-md bg-gray-700"
+                onError={(e) => { 
+                  const img = e.currentTarget;
+                  img.style.display = 'none';
+                  const fallback = img.nextElementSibling;
+                  if(fallback) {
+                      fallback.classList.remove('hidden');
+                  }
+                }}
+              />
+              <div className="hidden w-14 h-14 rounded-md shadow-md bg-gray-700 flex items-center justify-center">
+                  <RadioIcon className="w-8 h-8 text-gray-500"/>
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-white truncate" title={station.name}>{station.name}</p>
+                <div className="space-y-0.5">
+                    <p className="text-sm text-gray-400 truncate" title={country}>{country}</p>
+                    {language && <p className="text-xs text-gray-500 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
+                </div>
+                {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={onTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+                {isLocallyPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
+              </button>
+              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <XIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
