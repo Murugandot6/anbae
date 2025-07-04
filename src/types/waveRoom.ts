@@ -43,3 +43,11 @@ export interface SearchParams {
   country?: string;
   tag?: string;
 }
+
+export interface WaveRoom {
+  id: string;
+  room_code: string;
+  current_station: Station | null;
+  is_playing: boolean;
+  created_at: string;
+}

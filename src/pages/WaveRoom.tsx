@@ -1,171 +1,148 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Station } from '@/types/waveRoom';
-import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '@/services/waveroom/radioService';
-import SearchBar from '@/components/waveroom/SearchBar';
-import StationList from '@/components/waveroom/StationList';
-import AudioPlayer from '@/components/waveroom/AudioPlayer';
-import FilterBar from '@/components/waveroom/FilterBar';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { RadioIcon } from '@/components/waveroom/icons/RadioIcon';
+import { ArrowLeft, Plus, LogIn } from 'lucide-react';
+
+const generateRoomCode = (): string => {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 
 const WaveRoom: React.FC = () => {
-  const [stations, setStations] = useState<Station[]>([]);
-  const [currentStation, setCurrentStation] = useState<Station | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
+  const [joinCode, setJoinCode] = useState('');
+  const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
-  const [selectedTag, setSelectedTag] = useState<string>('');
-  
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [countries, setCountries] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-        try {
-            const [langData, countryData, tagData] = await Promise.all([
-                getLanguages(),
-                getCountries(),
-                getTags(150),
-            ]);
-            setLanguages(langData);
-            setCountries(countryData);
-            setTags(tagData);
-        } catch (e) {
-            console.error("Failed to load filter options", e);
-        }
-    };
-    fetchFilterOptions();
-  }, []);
+  const handleCreateRoom = async () => {
+    setLoading('create');
+    setError(null);
+    
+    let roomCode = '';
+    let isCodeUnique = false;
+    let attempts = 0;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-        setIsLoading(true);
-        setError(null);
-        
-        const hasFilters = searchQuery || selectedLanguage || selectedCountry || selectedTag;
+    while (!isCodeUnique && attempts < 10) {
+        roomCode = generateRoomCode();
+        const { data: existing } = await supabase
+            .from('wave_rooms')
+            .select('id')
+            .eq('room_code', roomCode)
+            .single();
+        if (!existing) isCodeUnique = true;
+        attempts++;
+    }
 
-        const fetchPromise = hasFilters
-            ? searchStations({
-                name: searchQuery,
-                language: selectedLanguage,
-                country: selectedCountry,
-                tag: selectedTag,
-              })
-            : getTopClickedStations(100);
+    if (!isCodeUnique) {
+        setError("Failed to generate a unique room code. Please try again.");
+        setLoading(null);
+        return;
+    }
 
-        fetchPromise
-            .then(data => {
-                setStations(data);
-            })
-            .catch(err => {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-                setStations([]);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, 200);
-
-    return () => clearTimeout(timer);
-
-  }, [searchQuery, selectedLanguage, selectedCountry, selectedTag]);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const handleSelectStation = (station: Station) => {
-    if (station.url_resolved) {
-      setCurrentStation(station);
+    const { data: newRoom, error: insertError } = await supabase
+      .from('wave_rooms')
+      .insert({ room_code: roomCode })
+      .select()
+      .single();
+    
+    if (insertError || !newRoom) {
+      setError('Could not create a room. Please try again.');
     } else {
-      setError(`Station ${station.name} does not have a valid stream URL.`);
+      navigate(`/waveroom/${newRoom.room_code}`);
     }
+    setLoading(null);
   };
 
-  const handleClearSearch = () => {
-    setSearchQuery('');
-  };
-
-  const handleFilterChange = (filterType: 'language' | 'country' | 'tag', value: string) => {
-    if (filterType === 'language') setSelectedLanguage(value);
-    if (filterType === 'country') setSelectedCountry(value);
-    if (filterType === 'tag') setSelectedTag(value);
-  };
-
-  const buildTitle = (): string => {
-    if (searchQuery) {
-      return `Results for "${searchQuery}"`;
+  const handleJoinRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) {
+        setError("Please enter a room code.");
+        return;
     }
-    if (selectedLanguage || selectedCountry || selectedTag) {
-      let parts: string[] = [];
-      if (selectedTag) {
-        parts.push(selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1));
-      }
-      parts.push("Stations");
-      if (selectedLanguage) {
-        parts.push(`in ${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`);
-      }
-      if (selectedCountry) {
-        parts.push(`from ${selectedCountry}`);
-      }
-      return parts.join(' ');
+    setLoading('join');
+    setError(null);
+
+    const codeToJoin = joinCode.trim().toUpperCase();
+
+    const { data, error: findError } = await supabase
+      .from('wave_rooms')
+      .select('room_code')
+      .eq('room_code', codeToJoin)
+      .single();
+
+    if (findError || !data) {
+      setError(`Room with code "${codeToJoin}" not found.`);
+    } else {
+      navigate(`/waveroom/${data.room_code}`);
     }
-    return "Top Stations";
+    setLoading(null);
   };
 
   return (
-    <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
-      <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="icon" className="text-white hover:bg-gray-700">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <RadioIcon className="w-8 h-8 text-indigo-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white">FM Party</h1>
-          </div>
-          <div className="w-full max-w-lg">
-            <SearchBar onSearch={handleSearch} isLoading={isLoading} initialQuery={searchQuery} onClear={handleClearSearch} />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="max-w-4xl mx-auto w-full p-4">
+            <div className="relative mb-8 text-center">
+                <Link to="/dashboard" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition-colors" aria-label="Back to Dashboard">
+                    <ArrowLeft className="h-5 w-5" />
+                </Link>
+                <h1 className="text-3xl font-bold text-white">FM Party</h1>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-gray-800 rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
+                    <div className="bg-blue-500/20 p-4 rounded-full mb-4">
+                        <Plus className="h-10 w-10 text-blue-400"/>
+                    </div>
+                    <h2 className="text-2xl text-white font-semibold mb-2">Start a New Party</h2>
+                    <p className="text-gray-400 mb-6">Create a private room and invite your partner to listen along.</p>
+                    <Button
+                        onClick={handleCreateRoom}
+                        disabled={!!loading}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-blue-800 disabled:cursor-not-allowed"
+                    >
+                        <Plus className="h-6 w-6"/>
+                        {loading === 'create' ? 'Creating...' : 'Create Private Room'}
+                    </Button>
+                </div>
 
-      <main className="flex-grow overflow-y-auto pb-28">
-        <div className="container mx-auto p-4 md:p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-            <h2 className="text-xl font-semibold text-gray-300 flex-shrink-0 order-1 md:order-none">
-              {buildTitle()}
-            </h2>
-            <FilterBar
-              languages={languages}
-              countries={countries}
-              tags={tags}
-              selectedLanguage={selectedLanguage}
-              selectedCountry={selectedCountry}
-              selectedTag={selectedTag}
-              onFilterChange={handleFilterChange}
-              isLoading={isLoading}
-            />
-          </div>
-          <StationList
-            stations={stations}
-            onSelectStation={handleSelectStation}
-            currentStation={currentStation}
-            isLoading={isLoading}
-            error={error}
-          />
+                <div className="bg-gray-800 rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
+                    <div className="bg-green-500/20 p-4 rounded-full mb-4">
+                        <LogIn className="h-10 w-10 text-green-400"/>
+                    </div>
+                    <h2 className="text-2xl text-white font-semibold mb-2">Join an Existing Party</h2>
+                    <p className="text-gray-400 mb-6">Enter the 6-character code your friend gave you.</p>
+                    <form onSubmit={handleJoinRoom} className="w-full flex flex-col gap-4">
+                        <input
+                            type="text"
+                            value={joinCode}
+                            onChange={(e) => {
+                                setJoinCode(e.target.value.toUpperCase());
+                                if (error) setError(null);
+                            }}
+                            placeholder="ABCDEF"
+                            maxLength={6}
+                            className="w-full text-center text-xl tracking-widest font-mono px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                            required
+                            disabled={!!loading}
+                        />
+                        {error && <p className="text-red-400 text-sm">{error}</p>}
+                        <Button
+                            type="submit"
+                            disabled={!!loading}
+                            className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-green-800 disabled:cursor-not-allowed"
+                        >
+                            <LogIn className="h-6 w-6"/>
+                            {loading === 'join' ? 'Joining...' : 'Join With Code'}
+                        </Button>
+                    </form>
+                </div>
+            </div>
         </div>
-      </main>
-
-      {currentStation && <AudioPlayer station={currentStation} onClear={() => setCurrentStation(null)}/>}
     </div>
   );
 };
