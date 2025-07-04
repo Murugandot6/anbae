@@ -14,49 +14,57 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const [isLocallyPlaying, setLocallyPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // This effect synchronizes the audio element's state with the shared `isPlaying` prop.
+  // The `key` prop on the <audio> element handles station changes by creating a new instance.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
 
-    const syncPlayerState = async () => {
-      try {
-        if (isPlaying) {
-          setError(null);
-          await audioElement.play();
-        } else {
-          audioElement.pause();
-        }
-      } catch (err) {
-        console.warn("Playback was prevented or failed:", err);
-        setError('Playback failed. Browser may be blocking autoplay.');
+    if (isPlaying) {
+      const playPromise = audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.error("Playback error:", err);
+          setError("Could not play this station. It may be offline or blocked.");
+          // If play fails, we must inform the central state to stay in sync.
+          onTogglePlay(); 
+        });
       }
-    };
-    
-    syncPlayerState();
+    } else {
+      audioElement.pause();
+    }
+  }, [isPlaying, station.stationuuid, onTogglePlay]); // Rerun when isPlaying or the station itself changes.
 
-  }, [isPlaying, station]);
-  
+  // This effect is for updating the local UI (play/pause icon) based on the actual audio element events.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
     
     const handlePlay = () => { setLocallyPlaying(true); setError(null); };
+    const handlePlaying = () => { setError(null); };
     const handlePause = () => setLocallyPlaying(false);
     const handleError = () => {
       setError('Error loading stream. The station may be offline.');
       setLocallyPlaying(false);
     };
+    const handleStalled = () => {
+      setError('Stream stalled. Buffering...');
+    };
 
     audioElement.addEventListener('play', handlePlay);
+    audioElement.addEventListener('playing', handlePlaying);
     audioElement.addEventListener('pause', handlePause);
     audioElement.addEventListener('error', handleError);
+    audioElement.addEventListener('stalled', handleStalled);
     
     return () => {
       audioElement.removeEventListener('play', handlePlay);
+      audioElement.removeEventListener('playing', handlePlaying);
       audioElement.removeEventListener('pause', handlePause);
       audioElement.removeEventListener('error', handleError);
+      audioElement.removeEventListener('stalled', handleStalled);
     };
-  }, []);
+  }, [station.stationuuid]); // Rerun when the station changes to attach events to the new audio element.
 
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
@@ -67,7 +75,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
         <div className="container mx-auto flex items-center justify-between gap-4">
-          <audio ref={audioRef} src={station.url_resolved} crossOrigin="anonymous" preload="auto" />
+          {/* The `key` prop is crucial. It forces React to create a new <audio> element
+              when the station changes, ensuring a clean state and reliable source switching. */}
+          <audio ref={audioRef} src={station.url_resolved} key={station.stationuuid} crossOrigin="anonymous" preload="auto" />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img
               src={station.favicon}
