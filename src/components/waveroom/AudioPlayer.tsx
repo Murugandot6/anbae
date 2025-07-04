@@ -42,6 +42,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     }
   };
 
+  const handleTogglePlay = () => {
+    setError(null); // Clear error on any attempt to play/pause
+    onTogglePlay();
+  };
+
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
   const subtitleParts: string[] = [];
@@ -58,7 +63,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             src={station.url_resolved}
             crossOrigin="anonymous"
             preload="auto"
-            onError={handleAudioError} // Use the new handler
+            onError={handleAudioError}
           />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img
@@ -78,7 +83,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={onTogglePlay} disabled={!!error} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:cursor-not-allowed">
+            <button onClick={handleTogglePlay} disabled={!station.url_resolved} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:cursor-not-allowed">
               {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
