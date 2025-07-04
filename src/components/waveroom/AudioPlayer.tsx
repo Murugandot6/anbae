@@ -14,35 +14,42 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const [isLocallyPlaying, setLocallyPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // This effect synchronizes the audio element's state with the shared `isPlaying` prop.
+  // This primary effect handles all synchronization between the shared state (props) and the local audio element.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
 
+    // When the station changes, update the source and load it.
+    if (audioElement.src !== station.url_resolved) {
+      audioElement.src = station.url_resolved;
+      audioElement.load();
+      setError(null); // Reset error on new station
+    }
+
+    // Sync the play/pause state.
     if (isPlaying) {
-      // If the shared state is 'playing', try to play.
-      // The catch block will handle autoplay restrictions gracefully.
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch(err => {
-          console.warn("Autoplay was prevented. User interaction is required.", err);
-          setError("Click play to start the audio.");
-          setLocallyPlaying(false);
+          // Ignore AbortError which is expected if the user quickly changes stations.
+          if (err.name !== 'AbortError') {
+            console.warn("Autoplay was prevented. User interaction is required.", err);
+            setError("Click play to start the audio.");
+          }
         });
       }
     } else {
-      // If the shared state is 'paused', always pause the local player.
       audioElement.pause();
     }
-  }, [isPlaying, station.stationuuid]); // Rerun when isPlaying or the station itself changes.
+  }, [station, isPlaying]); // Rerun when station or play state changes.
 
   // This effect is for updating the local UI (play/pause icon) based on the actual audio element events.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
     
-    const handlePlay = () => { setLocallyPlaying(true); setError(null); };
-    const handlePlaying = () => { setError(null); };
+    const handlePlay = () => setLocallyPlaying(true);
+    const handlePlaying = () => setError(null); // Clear errors when playback actually starts
     const handlePause = () => setLocallyPlaying(false);
     const handleError = () => {
       setError('Error loading stream. The station may be offline.');
@@ -65,27 +72,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       audioElement.removeEventListener('error', handleError);
       audioElement.removeEventListener('stalled', handleStalled);
     };
-  }, [station.stationuuid]);
-
-  const handlePlayButtonClick = async () => {
-    const audioElement = audioRef.current;
-    if (!audioElement) return;
-
-    // If the local player is out of sync with the global state (e.g., autoplay blocked)
-    // this click should just sync them up by playing locally.
-    if (isPlaying && audioElement.paused) {
-        try {
-            await audioElement.play();
-            setError(null); // Clear any "autoplay failed" errors
-        } catch (err) {
-            console.error("Manual play failed:", err);
-            setError("Could not start playback.");
-        }
-    } else {
-        // Otherwise, this click should toggle the global state for everyone.
-        onTogglePlay();
-    }
-  };
+  }, []); // This effect should only run once to attach listeners.
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
@@ -95,7 +82,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
         <div className="container mx-auto flex items-center justify-between gap-4">
-          <audio ref={audioRef} src={station.url_resolved} key={station.stationuuid} crossOrigin="anonymous" preload="auto" />
+          {/* The key prop is removed to prevent re-mounting */}
+          <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img
               src={station.favicon}
@@ -123,7 +111,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={handlePlayButtonClick} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+            <button onClick={onTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
               {isLocallyPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
