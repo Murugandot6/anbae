@@ -18,8 +18,7 @@ const WaveRoomTheater: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   const { roomState, setStation, togglePlay, clearStation, isLoading: isRoomLoading, error: roomError } = useWaveRoomRealtime(roomCode, authUser);
-  const { current_station: currentStation, is_playing: isPlaying } = roomState;
-
+  
   const [stations, setStations] = useState<Station[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState<boolean>(true);
   const [stationsError, setStationsError] = useState<string | null>(null);
@@ -117,13 +116,15 @@ const WaveRoomTheater: React.FC = () => {
     return null;
   }
 
-  if (isRoomLoading) {
+  if (isRoomLoading || !roomState) {
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Room...</div>;
   }
 
   if (roomError) {
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-red-400">{roomError}</div>;
   }
+
+  const { current_station: currentStation, is_playing: isPlaying } = roomState;
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
