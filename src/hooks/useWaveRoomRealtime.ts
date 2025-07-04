@@ -62,11 +62,7 @@ export const useWaveRoomRealtime = (roomCode: string | undefined) => {
 
   const updateRoomState = useCallback(async (newState: Partial<RoomState>) => {
     if (!roomCode) return;
-
-    // Perform an optimistic update on the local state for instant UI feedback
-    setRoomState(prevState => ({ ...prevState, ...newState }));
     
-    // Then, send the update to Supabase to sync with other clients
     const { error: updateError } = await supabase
       .from('wave_rooms')
       .update(newState)
@@ -75,8 +71,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined) => {
     if (updateError) {
       toast.error('Failed to sync room state with other users.');
       console.error(updateError);
-      // Note: We are not reverting the state on error for a simpler UX.
-      // The user's player will work, but others might not see the change.
     }
   }, [roomCode]);
 
@@ -85,7 +79,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined) => {
   }, [updateRoomState]);
 
   const togglePlay = useCallback(() => {
-    // The new state depends on the current state
     updateRoomState({ is_playing: !roomState.is_playing });
   }, [roomState.is_playing, updateRoomState]);
 
