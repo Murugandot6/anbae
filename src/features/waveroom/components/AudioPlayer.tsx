@@ -13,13 +13,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const audioRef = useRef<HTMLAudioElement>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Use a ref to get the latest isPlaying value in event handlers
-  // without causing re-renders or stale closures.
-  const isPlayingRef = useRef(isPlaying);
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
-
   // Main effect to control audio playback from the shared state
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -28,7 +21,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     // When the station changes, update the source
     if (audioElement.src !== station.url_resolved) {
       audioElement.src = station.url_resolved;
-      // Reset error state for the new station
+      audioElement.load(); // Explicitly load the new source
       setError(null); 
     }
 
@@ -36,20 +29,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          console.error("Audio playback failed:", err);
-          setError(`Playback blocked. Click play to try again.`);
-          // If play() fails, the shared state is now out of sync.
-          // We must report back that we're not actually playing.
-          if (isPlayingRef.current) {
-            onTogglePlay();
-          }
+          console.warn("Local playback failed:", err);
+          // This is the key change: Set a local error, but DO NOT change the global state.
+          setError(`Playback blocked by browser. Click play to unmute.`);
         });
       }
     } else {
       audioElement.pause();
     }
-    // Only re-run this effect if the station or playing state changes.
-  }, [isPlaying, station.stationuuid, onTogglePlay]);
+  }, [isPlaying, station.stationuuid]);
 
   // Effect to handle unexpected stream errors (e.g., station goes offline)
   useEffect(() => {
@@ -58,22 +46,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
 
     const handleError = () => {
       console.error("Audio stream error.");
-      setError('Stream error. The station may be offline.');
-      // If an error occurs while we are supposed to be playing,
-      // update the shared state to reflect that we've stopped.
-      if (isPlayingRef.current) {
-        onTogglePlay();
-      }
+      // Set a local error, but DO NOT change the global state.
+      setError('Stream error. The station may be offline or the URL is invalid.');
     };
 
     audioElement.addEventListener('error', handleError);
     return () => {
       audioElement.removeEventListener('error', handleError);
     };
-  }, [onTogglePlay, station.stationuuid]);
+  }, [station.stationuuid]);
 
   const handleTogglePlay = () => {
-    // Clear previous errors when user takes direct action
+    // User's direct action should clear local errors and broadcast their intent.
     setError(null);
     onTogglePlay();
   };
@@ -86,6 +70,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
         <div className="container mx-auto flex items-center justify-between gap-4">
+          {/* The key attribute ensures the audio element is re-created when the station changes, resetting its internal state. */}
           <audio ref={audioRef} key={station.stationuuid} crossOrigin="anonymous" preload="auto" />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img
@@ -115,6 +100,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
           </div>
           <div className="flex items-center gap-4">
             <button onClick={handleTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+              {/* The button's icon should reflect the desired state (the shared state), not the actual local state of the audio element. */}
               {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
