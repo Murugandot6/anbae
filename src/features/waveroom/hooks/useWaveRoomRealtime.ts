@@ -77,8 +77,8 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     console.log(`WaveRoom: Attempting to subscribe to broadcast channel: waveroom-broadcast:${roomCode}`);
     const channel = supabase.channel(`waveroom-broadcast:${roomCode}`, { config: { presence: { key: user.id } } })
       .on('broadcast', { event: 'room_state_update' }, ({ payload }) => {
-        // Only update if the sender is not the current user AND the received state is newer
-        if (payload.senderId !== user.id && payload.newState.timestamp > roomStateRef.current.timestamp) {
+        // Only update if the sender is not the current user AND the received state is newer or same timestamp
+        if (payload.senderId !== user.id && payload.newState.timestamp >= roomStateRef.current.timestamp) {
           console.log('WaveRoom: Broadcast update received (from other client):', payload.newState);
           setRoomState(payload.newState);
         }
@@ -95,8 +95,8 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
         }
       })
       .on('broadcast', { event: 'SYNC_ROOM_STATE' }, ({ payload }) => {
-        // If we receive a sync state, update if it's from another client and newer
-        if (payload.senderId !== user.id && payload.roomState.timestamp > roomStateRef.current.timestamp) {
+        // If we receive a sync state, update if it's from another client and newer or same timestamp
+        if (payload.senderId !== user.id && payload.roomState.timestamp >= roomStateRef.current.timestamp) {
           console.log('WaveRoom: Received SYNC_ROOM_STATE (from other client):', payload.roomState);
           setRoomState(payload.roomState);
         }
