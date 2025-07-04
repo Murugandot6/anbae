@@ -47,4 +47,5 @@ export interface SearchParams {
 export interface RoomState {
   current_station: Station | null;
   is_playing: boolean;
+  timestamp: number; // Added for state reconciliation
 }

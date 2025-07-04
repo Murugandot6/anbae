@@ -18,8 +18,6 @@ const WaveRoomTheaterPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   
-  console.log('WaveRoomTheaterPage: Rendering. roomCode:', roomCode, 'authUser:', authUser?.id, 'sessionLoading:', sessionLoading); // NEW LOG HERE
-
   const { roomState, setStation, togglePlay, clearStation, isLoading: isRoomLoading, error: roomError } = useWaveRoomRealtime(roomCode, authUser);
   
   const [stations, setStations] = useState<Station[]>([]);
