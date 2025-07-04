@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RoomState, Station } from '@/types/waveRoom';
 import { RealtimeChannel } from '@supabase/supabase-js';
