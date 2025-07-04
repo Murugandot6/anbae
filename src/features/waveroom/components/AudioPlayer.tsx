@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Station } from '../types';
-import { PlayIcon, PauseIcon, RadioIcon, XIcon } from './icons';
+import { Station } from '@/features/waveroom/types';
+import { PlayIcon, PauseIcon, RadioIcon, XIcon } from '@/features/waveroom/components/icons';
 
 interface AudioPlayerProps {
   station: Station;

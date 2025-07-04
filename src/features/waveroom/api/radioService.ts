@@ -1,5 +1,5 @@
-import { API_BASE_URLS } from './constants';
-import { Station, SearchParams } from '../types';
+import { API_BASE_URLS } from '@/features/waveroom/api/constants';
+import { Station, SearchParams } from '@/features/waveroom/types';
 
 let currentApiBaseIndex = 0;
 

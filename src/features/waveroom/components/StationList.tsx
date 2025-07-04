@@ -1,6 +1,6 @@
 import React from 'react';
-import { Station } from '../types';
-import StationListItem from './StationListItem';
+import { Station } from '@/features/waveroom/types';
+import StationListItem from '@/features/waveroom/components/StationListItem';
 
 interface StationListProps {
   stations: Station[];
