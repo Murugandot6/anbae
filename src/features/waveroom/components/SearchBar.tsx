@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { SearchIcon, XIcon } from '@/features/waveroom/components/icons';
+import { SearchIcon, XIcon } from './icons';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;

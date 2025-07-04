@@ -1,6 +1,6 @@
 import React from 'react';
-import { Station } from '@/features/waveroom/types';
-import { RadioIcon, PlayIcon, VolumeUpIcon } from '@/features/waveroom/components/icons';
+import { Station } from '../types';
+import { RadioIcon, PlayIcon, VolumeUpIcon } from './icons';
 
 interface StationListItemProps {
   station: Station;
