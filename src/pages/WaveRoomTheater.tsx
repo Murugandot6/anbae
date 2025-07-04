@@ -11,11 +11,13 @@ import { useWaveRoomRealtime } from '@/hooks/useWaveRoomRealtime';
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const WaveRoomTheater: React.FC = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
-  const { roomState, setStation, togglePlay, clearStation, isLoading: isRoomLoading, error: roomError } = useWaveRoomRealtime(roomCode);
+  const { user: authUser, loading: sessionLoading } = useSession();
+  const { roomState, setStation, togglePlay, clearStation, isLoading: isRoomLoading, error: roomError } = useWaveRoomRealtime(roomCode, authUser);
   const { current_station: currentStation, is_playing: isPlaying } = roomState;
 
   const [stations, setStations] = useState<Station[]>([]);
@@ -104,6 +106,16 @@ const WaveRoomTheater: React.FC = () => {
     if (selectedTag) return `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Stations`;
     return "Popular Stations";
   };
+
+  if (sessionLoading) {
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Session...</div>;
+  }
+
+  if (!authUser) {
+    toast.error("You must be logged in to enter a Wave Room.");
+    navigate('/login');
+    return null;
+  }
 
   if (isRoomLoading) {
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Room...</div>;
