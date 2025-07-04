@@ -60,11 +60,14 @@ export const useWaveRoomRealtime = (roomCode: string) => {
     }
   };
 
-  const setStation = (station: Station) => {
-    updateRoomState({ current_station: station, is_playing: true });
+  const setStation = (station: Station | null) => {
+    // When a new station is selected, load it but wait for the user to press play.
+    // This prevents issues with browser autoplay policies.
+    updateRoomState({ current_station: station, is_playing: false });
   };
 
   const setPlayState = (isPlaying: boolean) => {
+    if (isPlaying && !room?.current_station) return;
     updateRoomState({ is_playing: isPlaying });
   };
 
