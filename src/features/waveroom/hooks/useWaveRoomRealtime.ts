@@ -13,11 +13,10 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    console.log('WaveRoom: useWaveRoomRealtime useEffect running. roomCode:', roomCode, 'user:', user?.id); // NEW LOG
+    console.log('WaveRoom: useWaveRoomRealtime useEffect running. roomCode:', roomCode, 'user:', user?.id);
 
     if (!roomCode || !user) {
       setIsLoading(false);
-      // If roomCode or user is missing, we should also ensure no channel is active.
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -45,19 +44,19 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
         current_station: data.current_station,
         is_playing: data.is_playing,
       });
-      console.log('WaveRoom: Initial room state fetched:', data); // Added log
+      console.log('WaveRoom: Initial room state fetched:', data);
       setIsLoading(false);
     };
 
     fetchInitialState();
 
-    // Ensure previous channel is removed before subscribing to a new one
     if (channelRef.current) {
       console.log(`WaveRoom: Removing existing channel before re-subscribing: ${roomCode}`);
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
+    console.log(`WaveRoom: Attempting to subscribe to channel: waveroom-db-changes:${roomCode}`); // NEW LOG HERE
     const channel = supabase.channel(`waveroom-db-changes:${roomCode}`)
       .on(
         'postgres_changes',
@@ -68,8 +67,8 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
           filter: `room_code=eq.${roomCode}`,
         },
         (payload) => {
+          console.log('WaveRoom: Realtime update received (inside callback):', payload.new); // NEW LOG HERE
           const updatedRoom = payload.new as { current_station: Station | null; is_playing: boolean };
-          console.log('WaveRoom: Realtime update received:', payload.new); // Added log
           setRoomState({
             current_station: updatedRoom.current_station,
             is_playing: updatedRoom.is_playing,
@@ -78,11 +77,11 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
       )
       .subscribe((status, err) => {
         if (status === 'CHANNEL_ERROR') {
-          console.error('WaveRoom: Realtime channel error:', err); // Added log
+          console.error('WaveRoom: Realtime channel error:', err);
           setError('Realtime connection failed. Please refresh the page.');
           toast.error('Realtime connection failed.');
         } else if (status === 'SUBSCRIBED') {
-            console.log(`WaveRoom: Subscribed to channel: ${roomCode}`); // Added log
+            console.log(`WaveRoom: Subscribed to channel: ${roomCode}`);
         }
       });
 
@@ -90,7 +89,7 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
 
     return () => {
       if (channelRef.current) {
-        console.log(`WaveRoom: Unsubscribing from channel: ${roomCode}`); // Added log
+        console.log(`WaveRoom: Unsubscribing from channel: ${roomCode}`);
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
@@ -100,7 +99,7 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const updateDatabase = async (newState: Partial<RoomState>) => {
     if (!roomCode) return;
     
-    console.log('WaveRoom: Attempting to update database with:', newState); // Added log
+    console.log('WaveRoom: Attempting to update database with:', newState);
     const { error: updateError } = await supabase
       .from('wave_rooms')
       .update(newState)
@@ -108,31 +107,31 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
 
     if (updateError) {
       toast.error("Failed to sync state. Please try again.");
-      console.error("WaveRoom: DB Sync Error:", updateError.message); // Added log
+      console.error("WaveRoom: DB Sync Error:", updateError.message);
     } else {
-        console.log('WaveRoom: Database update successful for:', newState); // Added log
+        console.log('WaveRoom: Database update successful for:', newState);
     }
   };
 
   const setStation = useCallback((station: Station) => {
-    console.log('WaveRoom: setStation called with:', station); // Added log
-    setRoomState({ current_station: station, is_playing: true }); // Update local state immediately
-    updateDatabase({ current_station: station, is_playing: true }); // Then update database
+    console.log('WaveRoom: setStation called with:', station);
+    setRoomState({ current_station: station, is_playing: true });
+    updateDatabase({ current_station: station, is_playing: true });
   }, [roomCode]);
 
   const togglePlay = useCallback(() => {
     setRoomState(prevState => {
       const newState = { ...prevState, is_playing: !prevState.is_playing };
-      console.log('WaveRoom: togglePlay called, new local state:', newState); // Added log
-      updateDatabase({ is_playing: newState.is_playing }); // Update database
+      console.log('WaveRoom: togglePlay called, new local state:', newState);
+      updateDatabase({ is_playing: newState.is_playing });
       return newState;
     });
   }, [roomCode]);
 
   const clearStation = useCallback(() => {
-    console.log('WaveRoom: clearStation called'); // Added log
-    setRoomState({ current_station: null, is_playing: false }); // Update local state immediately
-    updateDatabase({ current_station: null, is_playing: false }); // Then update database
+    console.log('WaveRoom: clearStation called');
+    setRoomState({ current_station: null, is_playing: false });
+    updateDatabase({ current_station: null, is_playing: false });
   }, [roomCode]);
 
   return { roomState, setStation, togglePlay, clearStation, isLoading, error };
