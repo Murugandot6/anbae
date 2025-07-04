@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RoomState, Station } from '@/types/waveRoom';
 import { RealtimeChannel } from '@supabase/supabase-js';
@@ -10,12 +10,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined) => {
   const [error, setError] = useState<string | null>(null);
   
   const channelRef = React.useRef<RealtimeChannel>();
-  const roomStateRef = useRef(roomState);
-
-  // Keep the ref updated with the latest state to avoid stale closures in callbacks
-  useEffect(() => {
-    roomStateRef.current = roomState;
-  }, [roomState]);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -85,9 +79,8 @@ export const useWaveRoomRealtime = (roomCode: string | undefined) => {
   }, [updateRoomState]);
 
   const togglePlay = useCallback(() => {
-    // Read the LATEST state from the ref to determine the new state
-    updateRoomState({ is_playing: !roomStateRef.current.is_playing });
-  }, [updateRoomState]);
+    updateRoomState({ is_playing: !roomState.is_playing });
+  }, [roomState.is_playing, updateRoomState]);
 
   const clearStation = useCallback(() => {
     updateRoomState({ current_station: null, is_playing: false });
