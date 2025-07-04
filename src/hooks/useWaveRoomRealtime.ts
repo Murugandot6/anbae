@@ -11,13 +11,12 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const [error, setError] = useState<string | null>(null);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const roomStateRef = useRef(roomState); // Ref to hold current state for broadcast responses
+  const roomStateRef = useRef(roomState);
 
   useEffect(() => {
     roomStateRef.current = roomState;
   }, [roomState]);
 
-  // Function to persist state to DB. Called in the background.
   const persistStateToDb = useCallback(async (stateToPersist: RoomState) => {
     if (!roomCode) return;
     const { error: updateError } = await supabase
@@ -27,16 +26,12 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
 
     if (updateError) {
       console.error("DB Sync Error:", updateError.message);
-      // Don't show a toast, it's a background task.
     }
   }, [roomCode]);
 
-  // Function to handle any local state change and broadcast it.
   const handleStateChange = useCallback((newState: RoomState) => {
-    // 1. Update local state immediately.
     setRoomState(newState);
     
-    // 2. Broadcast the new state to others.
     if (channelRef.current && user) {
       channelRef.current.send({
         type: 'broadcast',
@@ -45,7 +40,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
       });
     }
     
-    // 3. Persist to DB for new joiners.
     persistStateToDb(newState);
   }, [user, persistStateToDb]);
 
@@ -55,11 +49,13 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
       return;
     }
 
-    const setupRoom = async () => {
+    const channel = supabase.channel(`waveroom:${roomCode}`);
+    channelRef.current = channel;
+
+    const setupAndSubscribe = async () => {
       setIsLoading(true);
       setError(null);
 
-      // Step 1: Fetch initial state from DB for the new joiner.
       const { data, error: fetchError } = await supabase
         .from('wave_rooms')
         .select('current_station, is_playing')
@@ -79,20 +75,13 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
       });
       setIsLoading(false);
 
-      // Step 2: Set up the realtime channel using Broadcast.
-      const channel = supabase.channel(`waveroom:${roomCode}`);
-      channelRef.current = channel;
-
       channel
         .on('broadcast', { event: 'state_update' }, (payload) => {
-          // Listen for state changes from others.
           if (payload.senderId !== user.id) {
             setRoomState(payload.state);
           }
         })
         .on('broadcast', { event: 'request_state' }, () => {
-          // Another user joined and is requesting the current state.
-          // Send them our current state.
           if (channelRef.current) {
             channelRef.current.send({
               type: 'broadcast',
@@ -102,15 +91,12 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
           }
         })
         .on('broadcast', { event: 'sync_state' }, (payload) => {
-          // We received a state sync from another user.
-          // This is useful to quickly sync up if we missed something.
           if (payload.senderId !== user.id) {
             setRoomState(payload.state);
           }
         })
         .subscribe((status, err) => {
           if (status === 'SUBSCRIBED') {
-            // We've successfully joined. Ask for the latest state just in case.
             channel.send({ type: 'broadcast', event: 'request_state' });
           } else if (status === 'CHANNEL_ERROR') {
             console.error('Realtime channel error:', err);
@@ -120,13 +106,11 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
         });
     };
 
-    setupRoom();
+    setupAndSubscribe();
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      supabase.removeChannel(channel);
+      channelRef.current = null;
     };
   }, [roomCode, user]);
 
@@ -136,7 +120,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   }, [handleStateChange]);
 
   const togglePlay = useCallback(() => {
-    // Use a functional update to ensure we have the latest state.
     setRoomState(prevState => {
       const newState = { ...prevState, is_playing: !prevState.is_playing };
       handleStateChange(newState);
