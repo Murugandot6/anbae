@@ -58,7 +58,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   return (
     <SessionContext.Provider value={value}>
       {children}
-    </Session-Context.Provider>
+    </SessionContext.Provider>
   );
 };
 
