@@ -17,8 +17,6 @@ import Journal from "./pages/Journal";
 import WatchParty from "./pages/WatchParty";
 import CreatePromposal from "./pages/CreatePromposal";
 import ViewPromposal from "./pages/ViewPromposal";
-import WaveRoom from "./pages/WaveRoom";
-import WaveRoomTheater from "./pages/WaveRoomTheater";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -51,8 +49,6 @@ const App = () => {
                   <Route path="/messages/:id" element={<ViewMessage />} />
                   <Route path="/watch-party" element={<WatchParty />} />
                   <Route path="/promposal/create" element={<CreatePromposal />} />
-                  <Route path="/waveroom" element={<WaveRoom />} />
-                  <Route path="/waveroom/:roomCode" element={<WaveRoomTheater />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
