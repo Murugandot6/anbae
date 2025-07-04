@@ -15,6 +15,7 @@ import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import Journal from "./pages/Journal";
 import WatchParty from "./pages/WatchParty";
+import WaveRoom from "./pages/WaveRoom";
 import CreatePromposal from "./pages/CreatePromposal";
 import ViewPromposal from "./pages/ViewPromposal";
 import { SessionContextProvider } from "./contexts/SessionContext";
@@ -48,6 +49,7 @@ const App = () => {
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/messages/:id" element={<ViewMessage />} />
                   <Route path="/watch-party" element={<WatchParty />} />
+                  <Route path="/waveroom" element={<WaveRoom />} />
                   <Route path="/promposal/create" element={<CreatePromposal />} />
                 </Route>
 
