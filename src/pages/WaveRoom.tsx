@@ -102,11 +102,11 @@ const WaveRoom: React.FC = () => {
           <CardHeader className="text-center">
             <Users className="w-12 h-12 text-indigo-400 mx-auto mb-4"/>
             <CardTitle>Create a New Room</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col flex-grow justify-between">
-            <CardDescription className="mb-6">
+            <CardDescription>
                 Start a new listening party and invite others to join.
             </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col flex-grow justify-end">
             <Button
               onClick={handleCreateRoom}
               disabled={!!loading}
