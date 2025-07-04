@@ -30,13 +30,18 @@ const WaveRoom: React.FC = () => {
 
     while (!isCodeUnique && attempts < 10) {
         roomCode = generateRoomCode();
-        const { data: existing } = await supabase
+        const { error: checkError } = await supabase
             .from('wave_rooms')
             .select('id')
             .eq('room_code', roomCode)
             .single();
-        if (!existing) {
+        
+        if (checkError && checkError.code === 'PGRST116') {
             isCodeUnique = true;
+        } else if (checkError) {
+            toast.error("Could not verify room code. Please try again.");
+            setLoading(null);
+            return;
         }
         attempts++;
     }
@@ -93,13 +98,15 @@ const WaveRoom: React.FC = () => {
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Card className="bg-white/10 border-gray-700 text-white">
+        <Card className="bg-white/10 border-gray-700 text-white flex flex-col">
           <CardHeader className="text-center">
             <Users className="w-12 h-12 text-indigo-400 mx-auto mb-4"/>
             <CardTitle>Create a New Room</CardTitle>
-            <CardDescription>Start a new listening party and invite others to join.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col flex-grow justify-between">
+            <CardDescription className="mb-6">
+                Start a new listening party and invite others to join.
+            </CardDescription>
             <Button
               onClick={handleCreateRoom}
               disabled={!!loading}
