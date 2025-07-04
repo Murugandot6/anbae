@@ -11,11 +11,11 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const [error, setError] = useState<string | null>(null);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const roomStateRef = useRef(roomState);
+  const userRef = useRef(user);
 
   useEffect(() => {
-    roomStateRef.current = roomState;
-  }, [roomState]);
+    userRef.current = user;
+  }, [user]);
 
   const persistStateToDb = useCallback(async (stateToPersist: RoomState) => {
     if (!roomCode) return;
@@ -29,34 +29,10 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     }
   }, [roomCode]);
 
-  const handleStateChange = useCallback((newState: RoomState) => {
-    setRoomState(newState);
-    
-    if (channelRef.current && user) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'state_update',
-        payload: { state: newState, senderId: user.id },
-      });
-    }
-    
-    persistStateToDb(newState);
-  }, [user, persistStateToDb]);
-
   useEffect(() => {
     if (!roomCode || !user) {
       setIsLoading(false);
       return;
-    }
-
-    // Ensure we don't create duplicate channels
-    if (channelRef.current && channelRef.current.topic === `waveroom:${roomCode}`) {
-      return;
-    }
-
-    // Unsubscribe from any existing channel before creating a new one
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
     }
 
     const channel = supabase.channel(`waveroom:${roomCode}`);
@@ -87,30 +63,12 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
 
       channel
         .on('broadcast', { event: 'state_update' }, (payload) => {
-          if (user && payload.senderId !== user.id) {
-            setRoomState(payload.state);
-          }
-        })
-        .on('broadcast', { event: 'request_state' }, () => {
-          if (channelRef.current && user) {
-            channelRef.current.send({
-              type: 'broadcast',
-              event: 'sync_state',
-              payload: { state: roomStateRef.current, senderId: user.id },
-            });
-          }
-        })
-        .on('broadcast', { event: 'sync_state' }, (payload) => {
-          if (user && payload.senderId !== user.id) {
+          if (userRef.current && payload.senderId !== userRef.current.id) {
             setRoomState(payload.state);
           }
         })
         .subscribe((status, err) => {
-          if (status === 'SUBSCRIBED') {
-            if (channelRef.current && user) {
-                channelRef.current.send({ type: 'broadcast', event: 'request_state', payload: { senderId: user.id } });
-            }
-          } else if (status === 'CHANNEL_ERROR') {
+          if (status === 'CHANNEL_ERROR') {
             console.error('Realtime channel error:', err);
             setError('Realtime connection failed. Please refresh the page.');
             toast.error('Realtime connection failed.');
@@ -128,21 +86,40 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     };
   }, [roomCode, user]);
 
+  const broadcastAndPersist = useCallback((newState: RoomState) => {
+    if (channelRef.current && userRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'state_update',
+        payload: { state: newState, senderId: userRef.current.id },
+      });
+    }
+    persistStateToDb(newState);
+  }, [persistStateToDb]);
+
   const setStation = useCallback((station: Station) => {
-    const newState: RoomState = { current_station: station, is_playing: true };
-    handleStateChange(newState);
-  }, [handleStateChange]);
+    setRoomState(() => {
+      const newState: RoomState = { current_station: station, is_playing: true };
+      broadcastAndPersist(newState);
+      return newState;
+    });
+  }, [broadcastAndPersist]);
 
   const togglePlay = useCallback(() => {
-    const currentState = roomStateRef.current;
-    const newState = { ...currentState, is_playing: !currentState.is_playing };
-    handleStateChange(newState);
-  }, [handleStateChange]);
+    setRoomState(prevState => {
+      const newState = { ...prevState, is_playing: !prevState.is_playing };
+      broadcastAndPersist(newState);
+      return newState;
+    });
+  }, [broadcastAndPersist]);
 
   const clearStation = useCallback(() => {
-    const newState: RoomState = { current_station: null, is_playing: false };
-    handleStateChange(newState);
-  }, [handleStateChange]);
+    setRoomState(() => {
+      const newState: RoomState = { current_station: null, is_playing: false };
+      broadcastAndPersist(newState);
+      return newState;
+    });
+  }, [broadcastAndPersist]);
 
   return { roomState, setStation, togglePlay, clearStation, isLoading, error };
 };
