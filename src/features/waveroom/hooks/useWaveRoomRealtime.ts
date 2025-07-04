@@ -13,8 +13,15 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
+    console.log('WaveRoom: useWaveRoomRealtime useEffect running. roomCode:', roomCode, 'user:', user?.id); // NEW LOG
+
     if (!roomCode || !user) {
       setIsLoading(false);
+      // If roomCode or user is missing, we should also ensure no channel is active.
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
       return;
     }
 
@@ -43,6 +50,13 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     };
 
     fetchInitialState();
+
+    // Ensure previous channel is removed before subscribing to a new one
+    if (channelRef.current) {
+      console.log(`WaveRoom: Removing existing channel before re-subscribing: ${roomCode}`);
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     const channel = supabase.channel(`waveroom-db-changes:${roomCode}`)
       .on(
