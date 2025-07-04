@@ -15,23 +15,32 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const audioRef = useRef<HTMLAudioElement>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset error state when station changes
+  useEffect(() => {
+    setError(null);
+  }, [station]);
+
+  // Control playback
   useEffect(() => {
     const audioElement = audioRef.current;
-    if (!audioElement) return;
+    if (!audioElement || !station) return;
 
     if (isPlaying) {
       audioElement.play().catch(() => {
         setError('Playback failed. Please try another station.');
-        onTogglePlay(); // Sync back the state
+        if (isPlaying) onTogglePlay(); // Sync back state if play fails
       });
     } else {
       audioElement.pause();
     }
-  }, [isPlaying, station]);
+  }, [isPlaying, station, onTogglePlay]);
 
-  useEffect(() => {
-    setError(null);
-  }, [station]);
+  const handleAudioError = () => {
+    setError('Stream error. The station might be offline.');
+    if (isPlaying) {
+      onTogglePlay(); // Set global state to paused
+    }
+  };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
@@ -49,7 +58,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             src={station.url_resolved}
             crossOrigin="anonymous"
             preload="auto"
-            onError={() => setError('Stream error. The station might be offline.')}
+            onError={handleAudioError} // Use the new handler
           />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img

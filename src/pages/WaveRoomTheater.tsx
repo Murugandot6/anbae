@@ -69,7 +69,7 @@ const WaveRoomTheater: React.FC = () => {
             station={room.current_station}
             isPlaying={room.is_playing}
             onTogglePlay={() => setPlayState(!room.is_playing)}
-            onClear={() => setStation(null as any)}
+            onClear={() => setStation(null)}
         />
       )}
     </div>
