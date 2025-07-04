@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Gift } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
@@ -53,11 +53,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
         <Link to="/journal">
           <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <BookText className="w-5 h-5 mr-2" /> Journal
-          </Button>
-        </Link>
-        <Link to="/wish">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Gift className="w-5 h-5 mr-2" /> Wishlist
           </Button>
         </Link>
         <Link to="/promposal/create">

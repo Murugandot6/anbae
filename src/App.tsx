@@ -14,7 +14,6 @@ import Messages from "./pages/Messages";
 import ViewMessage from "./pages/ViewMessage";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import Journal from "./pages/Journal";
-import Wish from "./pages/Wish";
 import WatchParty from "./pages/WatchParty";
 import CreatePromposal from "./pages/CreatePromposal";
 import ViewPromposal from "./pages/ViewPromposal";
@@ -44,7 +43,6 @@ const App = () => {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/journal" element={<Journal />} />
-                  <Route path="/wish" element={<Wish />} />
                   <Route path="/send-message" element={<SendMessage />} />
                   <Route path="/edit-profile" element={<EditProfile />} />
                   <Route path="/messages" element={<Messages />} />
