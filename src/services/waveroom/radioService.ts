@@ -38,17 +38,20 @@ type ApiFilterOption = { name: string, stationcount: number };
 
 export const getLanguages = async (): Promise<string[]> => {
     const languages = await resilientFetch<ApiFilterOption[]>('languages?hidebroken=true&order=stationcount&reverse=true');
-    return languages.map(lang => lang.name).filter(name => name.trim() !== '');
+    const uniqueLanguages = [...new Set(languages.map(lang => lang.name).filter(name => name.trim() !== ''))];
+    return uniqueLanguages;
 };
 
 export const getCountries = async (): Promise<string[]> => {
     const countries = await resilientFetch<ApiFilterOption[]>('countries?hidebroken=true&order=stationcount&reverse=true');
-    return countries.map(country => country.name).filter(name => name.trim() !== '');
+    const uniqueCountries = [...new Set(countries.map(country => country.name).filter(name => name.trim() !== ''))];
+    return uniqueCountries;
 };
 
 export const getTags = async (limit: number = 150): Promise<string[]> => {
     const tags = await resilientFetch<ApiFilterOption[]>(`tags?hidebroken=true&order=stationcount&reverse=true&limit=${limit}`);
-    return tags.map(tag => tag.name).filter(name => name.trim() !== '');
+    const uniqueTags = [...new Set(tags.map(tag => tag.name).filter(name => name.trim() !== ''))];
+    return uniqueTags;
 };
 
 
