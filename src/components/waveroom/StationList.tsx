@@ -1,6 +1,7 @@
 import React from 'react';
 import { Station } from '@/types/waveRoom';
 import StationListItem from './StationListItem';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StationListProps {
   stations: Station[];
@@ -11,12 +12,12 @@ interface StationListProps {
 }
 
 const SkeletonGrid: React.FC = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-    {Array.from({ length: 20 }).map((_, index) => (
-      <div key={index} className="flex flex-col p-4 bg-gray-800 rounded-2xl animate-pulse aspect-square items-center justify-center">
-        <div className="w-24 h-24 rounded-full bg-gray-700 mb-4"></div>
-        <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    {Array.from({ length: 18 }).map((_, index) => (
+      <div key={index} className="flex flex-col p-4 bg-gray-800 rounded-2xl aspect-square items-center justify-center">
+        <Skeleton className="w-24 h-24 rounded-full bg-gray-700 mb-4" />
+        <Skeleton className="h-4 bg-gray-700 rounded w-3/4 mb-2" />
+        <Skeleton className="h-3 bg-gray-700 rounded w-1/2" />
       </div>
     ))}
   </div>
@@ -47,7 +48,7 @@ const StationList: React.FC<StationListProps> = ({ stations, onSelectStation, cu
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
       {stations.map((station) => (
         <StationListItem
           key={station.stationuuid}

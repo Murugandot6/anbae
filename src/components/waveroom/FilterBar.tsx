@@ -1,4 +1,5 @@
 import React from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FilterSelectProps {
   label: string;
@@ -11,22 +12,23 @@ interface FilterSelectProps {
 
 const FilterSelect: React.FC<FilterSelectProps> = ({ label, id, options, value, onChange, disabled }) => (
   <div className="flex-1 min-w-[140px]">
-    <label htmlFor={id} className="sr-only">{label}</label>
-    <select
-      id={id}
-      name={id}
+    <Select
       value={value}
-      onChange={(e) => onChange(id, e.target.value)}
+      onValueChange={(val) => onChange(id, val)}
       disabled={disabled || options.length === 0}
-      className="block w-full rounded-md border-0 bg-gray-700 py-2 pl-3 pr-8 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      <option value="">All {label}s</option>
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option.charAt(0).toUpperCase() + option.slice(1)}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger className="w-full bg-gray-700 border-gray-600 text-white">
+        <SelectValue placeholder={`All ${label}s`} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">All {label}s</SelectItem>
+        {options.map((option) => (
+          <SelectItem key={option} value={option}>
+            {option.charAt(0).toUpperCase() + option.slice(1)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   </div>
 );
 

@@ -1,5 +1,5 @@
 {
-  "name": "wave room",
-  "description": "A web application to discover and listen to thousands of live internet radio stations from around the world. Tune in to your favorite stations with a sleek, modern player.",
+  "name": "Wave Room",
+  "description": "A web application for creating shared listening parties. Create a private room, invite friends, and listen to thousands of internet radio stations together in real-time.",
   "requestFramePermissions": []
 }

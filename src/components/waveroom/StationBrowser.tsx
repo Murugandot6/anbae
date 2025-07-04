@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Station } from '@/types/waveRoom';
 import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '@/services/waveroom/radioService';
-import SearchBar from '@/components/waveroom/SearchBar';
-import StationList from '@/components/waveroom/StationList';
-import FilterBar from '@/components/waveroom/FilterBar';
+import SearchBar from './SearchBar';
+import StationList from './StationList';
+import FilterBar from './FilterBar';
 
 interface StationBrowserProps {
-  currentStation: Station | null;
-  onSelectStation: (station: Station) => void;
+    currentStation: Station | null;
+    onSelectStation: (station: Station) => void;
 }
 
 const StationBrowser: React.FC<StationBrowserProps> = ({ currentStation, onSelectStation }) => {
@@ -69,58 +69,48 @@ const StationBrowser: React.FC<StationBrowserProps> = ({ currentStation, onSelec
             .finally(() => {
                 setIsLoading(false);
             });
-    }, 200);
+    }, 300); // Debounce requests
 
     return () => clearTimeout(timer);
-
   }, [searchQuery, selectedLanguage, selectedCountry, selectedTag]);
-
-  const handleFilterChange = (filterType: 'language' | 'country' | 'tag', value: string) => {
-    if (filterType === 'language') setSelectedLanguage(value);
-    if (filterType === 'country') setSelectedCountry(value);
-    if (filterType === 'tag') setSelectedTag(value);
-  };
 
   const buildTitle = (): string => {
     if (searchQuery) return `Results for "${searchQuery}"`;
-    if (selectedLanguage || selectedCountry || selectedTag) {
-      let parts: string[] = [];
-      if (selectedTag) parts.push(selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1));
-      parts.push("Stations");
-      if (selectedLanguage) parts.push(`in ${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`);
-      if (selectedCountry) parts.push(`from ${selectedCountry}`);
-      return parts.join(' ');
-    }
-    return "Top Stations";
+    if (selectedTag) return `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Stations`;
+    return "Popular Stations";
   };
 
   return (
     <div className="container mx-auto p-4 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-        <h2 className="text-xl font-semibold text-gray-300 flex-shrink-0 order-1 md:order-none">
-          {buildTitle()}
-        </h2>
-        <FilterBar
-          languages={languages}
-          countries={countries}
-          tags={tags}
-          selectedLanguage={selectedLanguage}
-          selectedCountry={selectedCountry}
-          selectedTag={selectedTag}
-          onFilterChange={handleFilterChange}
-          isLoading={isLoading}
-        />
-      </div>
-      <SearchBar onSearch={setSearchQuery} isLoading={isLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
-      <div className="mt-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-xl font-semibold text-gray-300 flex-shrink-0 order-1 md:order-none">
+              {buildTitle()}
+            </h2>
+            <div className="w-full md:max-w-xs order-first md:order-none">
+                <SearchBar onSearch={setSearchQuery} isLoading={isLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
+            </div>
+            <FilterBar
+              languages={languages}
+              countries={countries}
+              tags={tags}
+              selectedLanguage={selectedLanguage}
+              selectedCountry={selectedCountry}
+              selectedTag={selectedTag}
+              onFilterChange={(type, val) => {
+                if(type === 'language') setSelectedLanguage(val);
+                if(type === 'country') setSelectedCountry(val);
+                if(type === 'tag') setSelectedTag(val);
+              }}
+              isLoading={isLoading}
+            />
+        </div>
         <StationList
-          stations={stations}
-          onSelectStation={onSelectStation}
-          currentStation={currentStation}
-          isLoading={isLoading}
-          error={error}
+            stations={stations}
+            onSelectStation={onSelectStation}
+            currentStation={currentStation}
+            isLoading={isLoading}
+            error={error}
         />
-      </div>
     </div>
   );
 };

@@ -44,7 +44,10 @@ export interface SearchParams {
   tag?: string;
 }
 
-export interface RoomState {
-  currentStation: Station | null;
-  isPlaying: boolean;
+export interface WaveRoom {
+    id: string; // uuid
+    room_code: string;
+    current_station: Station | null; // jsonb
+    is_playing: boolean;
+    created_at: string; // timestamp with time zone
 }

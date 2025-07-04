@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Station } from '@/types/waveRoom';
-import { PlayIcon } from './icons/PlayIcon';
-import { PauseIcon } from './icons/PauseIcon';
-import { XIcon } from './icons/XIcon';
+import { Play, Pause, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AudioPlayerProps {
   station: Station;
@@ -15,12 +14,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const audioRef = useRef<HTMLAudioElement>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset error state when station changes
   useEffect(() => {
     setError(null);
   }, [station]);
 
-  // Control playback
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement || !station) return;
@@ -28,7 +25,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     if (isPlaying) {
       audioElement.play().catch(() => {
         setError('Playback failed. Please try another station.');
-        if (isPlaying) onTogglePlay(); // Sync back state if play fails
+        if (isPlaying) onTogglePlay();
       });
     } else {
       audioElement.pause();
@@ -38,12 +35,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const handleAudioError = () => {
     setError('Stream error. The station might be offline.');
     if (isPlaying) {
-      onTogglePlay(); // Set global state to paused
+      onTogglePlay();
     }
   };
 
   const handleTogglePlay = () => {
-    setError(null); // Clear error on any attempt to play/pause
+    setError(null);
     onTogglePlay();
   };
 
@@ -82,13 +79,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={handleTogglePlay} disabled={!station.url_resolved} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:cursor-not-allowed">
-              {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
-            </button>
-             <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
-              <XIcon className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleTogglePlay} disabled={!station.url_resolved} size="icon" className="bg-indigo-600 hover:bg-indigo-500 rounded-full w-12 h-12 disabled:bg-gray-600">
+              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+            </Button>
+             <Button onClick={onClear} variant="ghost" size="icon" className="rounded-full text-gray-300 hover:text-white hover:bg-gray-700">
+              <X className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
