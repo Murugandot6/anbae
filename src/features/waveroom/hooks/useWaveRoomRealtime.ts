@@ -53,6 +53,7 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     if (!roomCode || !user) {
       console.log('WaveRoom: Realtime subscription useEffect BAILING OUT due to missing roomCode or user.');
       if (channelRef.current) {
+        console.log(`WaveRoom: Unsubscribing existing channel before bail out: ${roomCode}`);
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
@@ -92,6 +93,8 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
           toast.error('Realtime connection failed.');
         } else if (status === 'SUBSCRIBED') {
             console.log(`WaveRoom: Subscribed to channel: ${roomCode}`);
+        } else {
+            console.warn(`WaveRoom: Channel status changed to: ${status}`, err); // Log other statuses
         }
       });
 
