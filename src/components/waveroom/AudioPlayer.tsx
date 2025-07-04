@@ -20,17 +20,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     if (!audioElement) return;
 
     if (isPlaying) {
+      // If the shared state is 'playing', try to play.
+      // The catch block will handle autoplay restrictions gracefully.
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch(err => {
-          console.error("Playback error:", err);
-          // Display a local error message. Do NOT toggle the shared state.
-          // The user can try clicking play again to interact with the document and allow audio.
-          setError("Playback failed. Click play to start the audio.");
+          console.warn("Autoplay was prevented. User interaction is required.", err);
+          setError("Click play to start the audio.");
           setLocallyPlaying(false);
         });
       }
     } else {
+      // If the shared state is 'paused', always pause the local player.
       audioElement.pause();
     }
   }, [isPlaying, station.stationuuid]); // Rerun when isPlaying or the station itself changes.
@@ -64,8 +65,27 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       audioElement.removeEventListener('error', handleError);
       audioElement.removeEventListener('stalled', handleStalled);
     };
-  }, [station.stationuuid]); // Rerun when the station changes to attach events to the new audio element.
+  }, [station.stationuuid]);
 
+  const handlePlayButtonClick = async () => {
+    const audioElement = audioRef.current;
+    if (!audioElement) return;
+
+    // If the local player is out of sync with the global state (e.g., autoplay blocked)
+    // this click should just sync them up by playing locally.
+    if (isPlaying && audioElement.paused) {
+        try {
+            await audioElement.play();
+            setError(null); // Clear any "autoplay failed" errors
+        } catch (err) {
+            console.error("Manual play failed:", err);
+            setError("Could not start playback.");
+        }
+    } else {
+        // Otherwise, this click should toggle the global state for everyone.
+        onTogglePlay();
+    }
+  };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
@@ -75,8 +95,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
         <div className="container mx-auto flex items-center justify-between gap-4">
-          {/* The `key` prop is crucial. It forces React to create a new <audio> element
-              when the station changes, ensuring a clean state and reliable source switching. */}
           <audio ref={audioRef} src={station.url_resolved} key={station.stationuuid} crossOrigin="anonymous" preload="auto" />
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <img
@@ -105,7 +123,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={onTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+            <button onClick={handlePlayButtonClick} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
               {isLocallyPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
