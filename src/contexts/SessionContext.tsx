@@ -21,7 +21,16 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       setSession(currentSession);
-      setUser(currentSession?.user || null);
+      
+      // Stabilize the user object reference to prevent unnecessary re-renders
+      setUser(prevUser => {
+        const newUser = currentSession?.user || null;
+        if (!newUser || !prevUser) return newUser;
+        if (prevUser.id !== newUser.id) return newUser;
+        if (JSON.stringify(prevUser.user_metadata) !== JSON.stringify(newUser.user_metadata)) return newUser;
+        return prevUser;
+      });
+
       setLoading(false);
 
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
@@ -49,7 +58,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   return (
     <SessionContext.Provider value={value}>
       {children}
-    </SessionContext.Provider>
+    </Session-Context.Provider>
   );
 };
 
