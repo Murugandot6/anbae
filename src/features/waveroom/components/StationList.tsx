@@ -1,5 +1,5 @@
 import React from 'react';
-import { Station } from '@/types/waveRoom';
+import { Station } from '../types';
 import StationListItem from './StationListItem';
 
 interface StationListProps {

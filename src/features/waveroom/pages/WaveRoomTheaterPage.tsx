@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Station } from '@/types/waveRoom';
-import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '@/services/waveroom/radioService';
-import SearchBar from '@/components/waveroom/SearchBar';
-import StationList from '@/components/waveroom/StationList';
-import AudioPlayer from '@/components/waveroom/AudioPlayer';
-import { WaveIcon } from '@/components/waveroom/icons';
-import FilterBar from '@/components/waveroom/FilterBar';
-import { useWaveRoomRealtime } from '@/hooks/useWaveRoomRealtime';
+import { Station } from '../types';
+import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '../api/radioService';
+import SearchBar from '../components/SearchBar';
+import StationList from '../components/StationList';
+import AudioPlayer from '../components/AudioPlayer';
+import { WaveIcon } from '../components/icons';
+import FilterBar from '../components/FilterBar';
+import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime';
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 
-const WaveRoomTheater: React.FC = () => {
+const WaveRoomTheaterPage: React.FC = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
@@ -190,4 +190,4 @@ const WaveRoomTheater: React.FC = () => {
   );
 };
 
-export default WaveRoomTheater;
+export default WaveRoomTheaterPage;
