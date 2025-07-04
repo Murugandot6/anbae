@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RoomState, Station } from '@/types/waveRoom';
-import { User } from '@supabase/supabase-js';
+import { RealtimeChannel, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | null) => {
@@ -9,20 +9,53 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Use a ref to hold the most current state to prevent race conditions in callbacks
-  const roomStateRef = React.useRef(roomState);
-  useEffect(() => {
-    roomStateRef.current = roomState;
-  }, [roomState]);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // This function ONLY updates the database. It's for persistence.
+  const updateRoomStateInDb = useCallback(async (newState: Partial<RoomState>) => {
+    if (!roomCode) return;
+    
+    const { error: updateError } = await supabase
+      .from('wave_rooms')
+      .update(newState)
+      .eq('room_code', roomCode);
+
+    if (updateError) {
+      // Don't show a toast for this background task, just log it.
+      console.error("Failed to persist room state:", updateError.message);
+    }
+  }, [roomCode]);
+
+  // This function handles any user-initiated state change.
+  const handleStateChange = useCallback((newState: RoomState) => {
+    // 1. Update local state immediately for responsiveness.
+    setRoomState(newState);
+
+    // 2. Broadcast the change to other clients.
+    if (channelRef.current && user) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'state_update',
+        payload: { state: newState, senderId: user.id },
+      });
+    }
+
+    // 3. Persist the change to the database.
+    updateRoomStateInDb(newState);
+  }, [user, updateRoomStateInDb]);
+
 
   useEffect(() => {
     if (!roomCode || !user) {
-        setIsLoading(false);
-        return;
+      setIsLoading(false);
+      return;
     }
 
-    const fetchInitialState = async () => {
+    const setupRoom = async () => {
       setIsLoading(true);
+      setError(null);
+
+      // Step 1: Fetch initial state from DB
       const { data, error: fetchError } = await supabase
         .from('wave_rooms')
         .select('current_station, is_playing')
@@ -41,59 +74,48 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
         is_playing: data.is_playing,
       });
       setIsLoading(false);
+
+      // Step 2: Set up the realtime channel
+      const channel = supabase.channel(`waveroom:${roomCode}`);
+      channelRef.current = channel;
+
+      channel
+        .on('broadcast', { event: 'state_update' }, (payload) => {
+          // Step 3: Listen for broadcasts from other clients
+          if (payload.senderId !== user.id) {
+            setRoomState(payload.state);
+          }
+        })
+        .subscribe();
     };
 
-    fetchInitialState();
-
-    const channel = supabase.channel(`waveroom:${roomCode}`);
-
-    // Listen for database changes as the single source of truth
-    channel
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'wave_rooms',
-        filter: `room_code=eq.${roomCode}`,
-      }, (payload) => {
-        const { current_station, is_playing } = payload.new;
-        // Update local state for all clients based on the database change
-        setRoomState({ current_station, is_playing });
-      })
-      .subscribe();
+    setupRoom();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [roomCode, user]);
 
-  // This function now ONLY updates the database. The UI update will come from the listener above.
-  const updateRoomStateInDb = useCallback(async (newState: Partial<RoomState>) => {
-    if (!roomCode) return;
-    
-    const { error: updateError } = await supabase
-      .from('wave_rooms')
-      .update(newState)
-      .eq('room_code', roomCode);
-
-    if (updateError) {
-      toast.error('Failed to sync room state.');
-      console.error(updateError);
-    }
-  }, [roomCode]);
-
   const setStation = useCallback((station: Station) => {
-    updateRoomStateInDb({ current_station: station, is_playing: true });
-  }, [updateRoomStateInDb]);
+    const newState: RoomState = { current_station: station, is_playing: true };
+    handleStateChange(newState);
+  }, [handleStateChange]);
 
   const togglePlay = useCallback(() => {
-    // Use the ref to get the most current state to avoid race conditions
-    const newIsPlaying = !roomStateRef.current.is_playing;
-    updateRoomStateInDb({ is_playing: newIsPlaying });
-  }, [updateRoomStateInDb]);
+    setRoomState(prevState => {
+      const newState = { ...prevState, is_playing: !prevState.is_playing };
+      handleStateChange(newState);
+      return newState; // Return the new state for the local update
+    });
+  }, [handleStateChange]);
 
   const clearStation = useCallback(() => {
-    updateRoomStateInDb({ current_station: null, is_playing: false });
-  }, [updateRoomStateInDb]);
+    const newState: RoomState = { current_station: null, is_playing: false };
+    handleStateChange(newState);
+  }, [handleStateChange]);
 
   return { roomState, setStation, togglePlay, clearStation, isLoading, error };
 };
