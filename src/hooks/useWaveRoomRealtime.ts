@@ -12,10 +12,15 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   
   const channelRef = useRef<RealtimeChannel | null>(null);
   const roomStateRef = useRef(roomState);
+  const userRef = useRef(user);
 
   useEffect(() => {
     roomStateRef.current = roomState;
   }, [roomState]);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const persistStateToDb = useCallback(async (stateToPersist: RoomState) => {
     if (!roomCode) return;
@@ -32,19 +37,19 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const handleStateChange = useCallback((newState: RoomState) => {
     setRoomState(newState);
     
-    if (channelRef.current && user) {
+    if (channelRef.current && userRef.current) {
       channelRef.current.send({
         type: 'broadcast',
         event: 'state_update',
-        payload: { state: newState, senderId: user.id },
+        payload: { state: newState, senderId: userRef.current.id },
       });
     }
     
     persistStateToDb(newState);
-  }, [user, persistStateToDb]);
+  }, [persistStateToDb]);
 
   useEffect(() => {
-    if (!roomCode || !user) {
+    if (!roomCode) {
       setIsLoading(false);
       return;
     }
@@ -77,27 +82,29 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
 
       channel
         .on('broadcast', { event: 'state_update' }, (payload) => {
-          if (payload.senderId !== user.id) {
+          if (userRef.current && payload.senderId !== userRef.current.id) {
             setRoomState(payload.state);
           }
         })
         .on('broadcast', { event: 'request_state' }, () => {
-          if (channelRef.current) {
+          if (channelRef.current && userRef.current) {
             channelRef.current.send({
               type: 'broadcast',
               event: 'sync_state',
-              payload: { state: roomStateRef.current, senderId: user.id },
+              payload: { state: roomStateRef.current, senderId: userRef.current.id },
             });
           }
         })
         .on('broadcast', { event: 'sync_state' }, (payload) => {
-          if (payload.senderId !== user.id) {
+          if (userRef.current && payload.senderId !== userRef.current.id) {
             setRoomState(payload.state);
           }
         })
         .subscribe((status, err) => {
           if (status === 'SUBSCRIBED') {
-            channel.send({ type: 'broadcast', event: 'request_state' });
+            if (channelRef.current && userRef.current) {
+                channelRef.current.send({ type: 'broadcast', event: 'request_state', payload: { senderId: userRef.current.id } });
+            }
           } else if (status === 'CHANNEL_ERROR') {
             console.error('Realtime channel error:', err);
             setError('Realtime connection failed. Please refresh the page.');
@@ -109,10 +116,12 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     setupAndSubscribe();
 
     return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [roomCode, user]);
+  }, [roomCode]);
 
   const setStation = useCallback((station: Station) => {
     const newState: RoomState = { current_station: station, is_playing: true };
@@ -120,11 +129,9 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   }, [handleStateChange]);
 
   const togglePlay = useCallback(() => {
-    setRoomState(prevState => {
-      const newState = { ...prevState, is_playing: !prevState.is_playing };
-      handleStateChange(newState);
-      return newState;
-    });
+    const currentState = roomStateRef.current;
+    const newState = { ...currentState, is_playing: !currentState.is_playing };
+    handleStateChange(newState);
   }, [handleStateChange]);
 
   const clearStation = useCallback(() => {
