@@ -11,23 +11,6 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
   const [error, setError] = useState<string | null>(null);
   
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const userRef = useRef(user);
-
-  useEffect(() => {
-    userRef.current = user;
-  }, [user]);
-
-  const persistStateToDb = useCallback(async (stateToPersist: RoomState) => {
-    if (!roomCode) return;
-    const { error: updateError } = await supabase
-      .from('wave_rooms')
-      .update(stateToPersist)
-      .eq('room_code', roomCode);
-
-    if (updateError) {
-      console.error("DB Sync Error:", updateError.message);
-    }
-  }, [roomCode]);
 
   useEffect(() => {
     if (!roomCode || !user) {
@@ -35,13 +18,9 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
       return;
     }
 
-    const channel = supabase.channel(`waveroom:${roomCode}`);
-    channelRef.current = channel;
-
-    const setupAndSubscribe = async () => {
+    const fetchInitialState = async () => {
       setIsLoading(true);
       setError(null);
-
       const { data, error: fetchError } = await supabase
         .from('wave_rooms')
         .select('current_station, is_playing')
@@ -60,23 +39,36 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
         is_playing: data.is_playing,
       });
       setIsLoading(false);
-
-      channel
-        .on('broadcast', { event: 'state_update' }, (payload) => {
-          if (userRef.current && payload.senderId !== userRef.current.id) {
-            setRoomState(payload.state);
-          }
-        })
-        .subscribe((status, err) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Realtime channel error:', err);
-            setError('Realtime connection failed. Please refresh the page.');
-            toast.error('Realtime connection failed.');
-          }
-        });
     };
 
-    setupAndSubscribe();
+    fetchInitialState();
+
+    const channel = supabase.channel(`waveroom-db-changes:${roomCode}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'wave_rooms',
+          filter: `room_code=eq.${roomCode}`,
+        },
+        (payload) => {
+          const updatedRoom = payload.new as { current_station: Station | null; is_playing: boolean };
+          setRoomState({
+            current_station: updatedRoom.current_station,
+            is_playing: updatedRoom.is_playing,
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime channel error:', err);
+          setError('Realtime connection failed. Please refresh the page.');
+          toast.error('Realtime connection failed.');
+        }
+      });
+
+    channelRef.current = channel;
 
     return () => {
       if (channelRef.current) {
@@ -86,40 +78,37 @@ export const useWaveRoomRealtime = (roomCode: string | undefined, user: User | n
     };
   }, [roomCode, user]);
 
-  const broadcastAndPersist = useCallback((newState: RoomState) => {
-    if (channelRef.current && userRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'state_update',
-        payload: { state: newState, senderId: userRef.current.id },
-      });
+  const updateDatabase = async (newState: Partial<RoomState>) => {
+    if (!roomCode) return;
+    
+    const { error: updateError } = await supabase
+      .from('wave_rooms')
+      .update(newState)
+      .eq('room_code', roomCode);
+
+    if (updateError) {
+      toast.error("Failed to sync state. Please try again.");
+      console.error("DB Sync Error:", updateError.message);
     }
-    persistStateToDb(newState);
-  }, [persistStateToDb]);
+  };
 
   const setStation = useCallback((station: Station) => {
-    setRoomState(() => {
-      const newState: RoomState = { current_station: station, is_playing: true };
-      broadcastAndPersist(newState);
-      return newState;
-    });
-  }, [broadcastAndPersist]);
+    setRoomState({ current_station: station, is_playing: true });
+    updateDatabase({ current_station: station, is_playing: true });
+  }, [roomCode]);
 
   const togglePlay = useCallback(() => {
     setRoomState(prevState => {
       const newState = { ...prevState, is_playing: !prevState.is_playing };
-      broadcastAndPersist(newState);
+      updateDatabase({ is_playing: newState.is_playing });
       return newState;
     });
-  }, [broadcastAndPersist]);
+  }, [roomCode]);
 
   const clearStation = useCallback(() => {
-    setRoomState(() => {
-      const newState: RoomState = { current_station: null, is_playing: false };
-      broadcastAndPersist(newState);
-      return newState;
-    });
-  }, [broadcastAndPersist]);
+    setRoomState({ current_station: null, is_playing: false });
+    updateDatabase({ current_station: null, is_playing: false });
+  }, [roomCode]);
 
   return { roomState, setStation, togglePlay, clearStation, isLoading, error };
 };
