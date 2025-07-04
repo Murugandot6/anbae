@@ -13,6 +13,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const audioRef = useRef<HTMLAudioElement>(null);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('AudioPlayer: Rendering with station:', station.name, 'URL:', station.url_resolved, 'isPlaying:', isPlaying); // Added log
+
   // Main effect to control audio playback from the shared state
   useEffect(() => {
     const audioElement = audioRef.current;
@@ -20,6 +22,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     
     // When the station changes, update the source
     if (audioElement.src !== station.url_resolved) {
+      console.log('AudioPlayer: Changing audio source to:', station.url_resolved); // Added log
       audioElement.src = station.url_resolved;
       audioElement.load(); // Explicitly load the new source
       setError(null); // Clear any previous errors when source changes
