@@ -12,7 +12,6 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onTogglePlay, onClear }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isLocallyPlaying, setLocallyPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requiresInteraction, setRequiresInteraction] = useState(false);
 
@@ -20,6 +19,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
     const audioElement = audioRef.current;
     if (!audioElement) return;
 
+    // Update source if it has changed
     if (audioElement.src !== station.url_resolved) {
       audioElement.src = station.url_resolved;
       audioElement.load();
@@ -27,63 +27,63 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       setRequiresInteraction(false);
     }
 
+    // Sync with shared isPlaying state
     if (isPlaying) {
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
         playPromise.catch(err => {
-          if (err.name !== 'AbortError') {
+          if (err.name === 'NotAllowedError') {
             console.warn("Autoplay was prevented. User interaction is required.", err);
             setError("Click play to start the audio.");
             setRequiresInteraction(true);
+            // If autoplay fails, tell the shared state we are not playing.
+            if (isPlaying) {
+              onTogglePlay();
+            }
+          } else if (err.name !== 'AbortError') {
+            setError('Error loading stream. The station may be offline.');
+            if (isPlaying) {
+              onTogglePlay();
+            }
           }
         });
       }
     } else {
       audioElement.pause();
     }
-  }, [station, isPlaying]);
+  }, [station, isPlaying, onTogglePlay]);
 
+  // Add event listeners for local feedback (errors, etc.)
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
     
-    const handlePlay = () => { setLocallyPlaying(true); setRequiresInteraction(false); };
-    const handlePlaying = () => setError(null);
-    const handlePause = () => setLocallyPlaying(false);
+    const handlePlaying = () => {
+      setError(null);
+      setRequiresInteraction(false);
+    };
     const handleError = () => {
-      setError('Error loading stream. The station may be offline.');
-      setLocallyPlaying(false);
+      setError('Error loading stream. The station may be offline or the URL is invalid.');
+      if (isPlaying) {
+        onTogglePlay();
+      }
     };
     const handleStalled = () => setError('Stream stalled. Buffering...');
 
-    audioElement.addEventListener('play', handlePlay);
     audioElement.addEventListener('playing', handlePlaying);
-    audioElement.addEventListener('pause', handlePause);
     audioElement.addEventListener('error', handleError);
     audioElement.addEventListener('stalled', handleStalled);
     
     return () => {
-      audioElement.removeEventListener('play', handlePlay);
       audioElement.removeEventListener('playing', handlePlaying);
-      audioElement.removeEventListener('pause', handlePause);
       audioElement.removeEventListener('error', handleError);
       audioElement.removeEventListener('stalled', handleStalled);
     };
-  }, []);
+  }, [isPlaying, onTogglePlay]);
 
   const handleInteraction = () => {
-    const audioElement = audioRef.current;
-    if (audioElement) {
-        audioElement.play().then(() => {
-            setRequiresInteraction(false);
-            if (!isPlaying) {
-                onTogglePlay();
-            }
-        }).catch(err => {
-            console.error("Playback failed after interaction:", err);
-            setError("Could not start playback.");
-        });
-    }
+    setRequiresInteraction(false);
+    onTogglePlay();
   };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
@@ -133,7 +133,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
             </div>
             <div className="flex items-center gap-4">
               <button onClick={onTogglePlay} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
-                {isLocallyPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
+                {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
               </button>
               <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
                 <XIcon className="w-5 h-5" />
