@@ -31,8 +31,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, onClear }) => {
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
     const handleError = () => {
-        setError('Error loading stream. The station might be offline.');
+        const errorMessage = 'Stream error. The station might be offline.';
+        setError(errorMessage);
         setIsPlaying(false);
+        // Automatically clear the broken station after a few seconds
+        setTimeout(() => {
+            onClear();
+        }, 4000);
     };
 
     audioElement.addEventListener('play', handlePlay);
@@ -44,15 +49,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, onClear }) => {
       audioElement.removeEventListener('pause', handlePause);
       audioElement.removeEventListener('error', handleError);
     };
-  }, [station]);
+  }, [station, onClear]);
 
   const togglePlayPause = () => {
     const audioElement = audioRef.current;
-    if (!audioElement) return;
+    if (!audioElement || error) return;
     if (isPlaying) {
       audioElement.pause();
     } else {
-      audioElement.play().catch(() => setError('Playback failed. Please try another station.'));
+      audioElement.play().catch(() => {
+        setError('Playback failed. Please try another station.');
+        setIsPlaying(false);
+      });
     }
   };
 
@@ -85,11 +93,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, onClear }) => {
             <div className="min-w-0">
               <p className="font-bold text-white truncate" title={station.name}>{station.name}</p>
               <p className="text-sm text-gray-400 truncate" title={subtitle}>{subtitle}</p>
-              {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+              {error && (
+                <div className="mt-1 px-2 py-1 bg-red-500/20 border border-red-500/30 rounded-md">
+                    <p className="text-xs text-red-400">{error}</p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={togglePlayPause} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+            <button onClick={togglePlayPause} disabled={!!error} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:bg-gray-600 disabled:cursor-not-allowed">
               {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
              <button onClick={onClear} className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
