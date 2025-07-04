@@ -15,7 +15,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
   const [error, setError] = useState<string | null>(null);
 
   // This effect synchronizes the audio element's state with the shared `isPlaying` prop.
-  // The `key` prop on the <audio> element handles station changes by creating a new instance.
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement) return;
@@ -25,15 +24,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onToggleP
       if (playPromise !== undefined) {
         playPromise.catch(err => {
           console.error("Playback error:", err);
-          setError("Could not play this station. It may be offline or blocked.");
-          // If play fails, we must inform the central state to stay in sync.
-          onTogglePlay(); 
+          // Display a local error message. Do NOT toggle the shared state.
+          // The user can try clicking play again to interact with the document and allow audio.
+          setError("Playback failed. Click play to start the audio.");
+          setLocallyPlaying(false);
         });
       }
     } else {
       audioElement.pause();
     }
-  }, [isPlaying, station.stationuuid, onTogglePlay]); // Rerun when isPlaying or the station itself changes.
+  }, [isPlaying, station.stationuuid]); // Rerun when isPlaying or the station itself changes.
 
   // This effect is for updating the local UI (play/pause icon) based on the actual audio element events.
   useEffect(() => {
