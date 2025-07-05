@@ -37,7 +37,7 @@ const WaveRoomPage: React.FC = () => { // Renamed component
         roomCode = generateRoomCode();
         const { error: checkError } = await supabase
             .from('wave_rooms')
-            .select('id')
+            .select('code') // Changed 'id' to 'code' here
             .eq('code', roomCode)
             .single();
         
