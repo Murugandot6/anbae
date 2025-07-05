@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Database, RoomState, Station, Json } from '../types';
-import { supabase } from '@/integrations/supabase/client'; // Updated import path
+import { RoomState, Station } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // --- Singleton Channel Manager ---
