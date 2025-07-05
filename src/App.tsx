@@ -19,6 +19,7 @@ import CreatePromposal from "./pages/CreatePromposal";
 import ViewPromposal from "./pages/ViewPromposal";
 import WaveRoomPage from "./features/waveroom/pages/WaveRoomPage";
 import WaveRoomTheaterPage from "./features/waveroom/pages/WaveRoomTheaterPage";
+import UserManual from "./pages/UserManual"; // Import the new UserManual component
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -53,6 +54,7 @@ const App = () => {
                   <Route path="/promposal/create" element={<CreatePromposal />} />
                   <Route path="/waveroom" element={<WaveRoomPage />} />
                   <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
+                  <Route path="/manual" element={<UserManual />} /> {/* New route for User Manual */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
