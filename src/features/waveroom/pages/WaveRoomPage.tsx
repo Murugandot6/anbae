@@ -21,9 +21,14 @@ const WaveRoomPage: React.FC = () => { // Renamed component
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null); // Separate error state for create
+  const [joinError, setJoinError] = useState<string | null>(null);     // Separate error state for join
 
   const handleCreateRoom = async () => {
     setLoading('create');
+    setCreateError(null); // Clear previous create error
+    setJoinError(null);   // Clear join error if present
+
     let roomCode = '';
     let isCodeUnique = false;
     let attempts = 0;
@@ -33,35 +38,37 @@ const WaveRoomPage: React.FC = () => { // Renamed component
         const { error: checkError } = await supabase
             .from('wave_rooms')
             .select('id')
-            .eq('code', roomCode) // Changed 'room_code' to 'code'
+            .eq('code', roomCode)
             .single();
         
-        if (checkError && checkError.code === 'PGRST116') {
+        if (checkError && checkError.code === 'PGRST116') { // PGRST116 means no rows found, so code is unique
             isCodeUnique = true;
         } else if (checkError) {
-            toast.error("Could not verify room code. Please try again.");
-            setLoading(null);
-            return;
+             console.error("Error checking for room code uniqueness:", checkError); // Log the full error
+             setCreateError(`Could not verify room code: ${checkError.message}. Please try again.`);
+             setLoading(null);
+             return;
         }
         attempts++;
     }
 
     if (!isCodeUnique) {
-        toast.error("Failed to generate a unique room code. Please try again.");
+        setCreateError("Failed to generate a unique room code after multiple attempts. Please try again.");
         setLoading(null);
         return;
     }
 
     const { data: newRoom, error: insertError } = await supabase
       .from('wave_rooms')
-      .insert({ code: roomCode, is_playing: false }) // Changed 'room_code' to 'code'
+      .insert({ code: roomCode, is_playing: false })
       .select()
       .single();
     
     if (insertError) {
-      toast.error('Could not create a room. Please try again.');
+      console.error('Error creating room:', insertError);
+      setCreateError(`Could not create a room: ${insertError.message}. Please try again.`);
     } else if (newRoom) {
-      navigate(`/waveroom/${newRoom.code}`); // Changed 'room_code' to 'code'
+      navigate(`/waveroom/${newRoom.code}`);
     }
     setLoading(null);
   };
@@ -69,22 +76,26 @@ const WaveRoomPage: React.FC = () => { // Renamed component
   const handleJoinRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) {
-        toast.error("Please enter a room code.");
+        setJoinError("Please enter a room code.");
         return;
     }
     setLoading('join');
+    setJoinError(null);   // Clear previous join error
+    setCreateError(null); // Clear create error if present
+
     const codeToJoin = joinCode.trim().toUpperCase();
 
     const { data, error: findError } = await supabase
       .from('wave_rooms')
-      .select('code') // Changed 'room_code' to 'code'
-      .eq('code', codeToJoin) // Changed 'room_code' to 'code'
+      .select('code')
+      .eq('code', codeToJoin)
       .single();
 
     if (findError || !data) {
-      toast.error(`Room with code "${codeToJoin}" not found.`);
+      console.error('Error finding room:', findError); // Log the full error
+      setJoinError(`Room with code "${codeToJoin}" not found.`);
     } else {
-      navigate(`/waveroom/${data.code}`); // Changed 'room_code' to 'code'
+      navigate(`/waveroom/${data.code}`);
     }
     setLoading(null);
   };
@@ -107,6 +118,7 @@ const WaveRoomPage: React.FC = () => { // Renamed component
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col flex-grow justify-end">
+            {createError && <p className="text-red-400 text-sm mb-2">{createError}</p>} {/* Display create error */}
             <Button
               onClick={handleCreateRoom}
               disabled={!!loading}
@@ -133,6 +145,7 @@ const WaveRoomPage: React.FC = () => { // Renamed component
                 className="text-center font-mono tracking-widest text-lg"
                 maxLength={4}
               />
+              {joinError && <p className="text-red-400 text-sm mt-2">{joinError}</p>} {/* Display join error */}
               <Button
                 type="submit"
                 disabled={!joinCode.trim() || !!loading}
