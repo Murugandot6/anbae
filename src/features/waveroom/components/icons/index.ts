@@ -8,3 +8,4 @@ export * from './UsersIcon';
 export * from './VolumeUpIcon';
 export * from './WaveIcon';
 export * from './XIcon';
+export * from './VolumeOffIcon';

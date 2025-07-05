@@ -7,18 +7,23 @@ import StationList from '../components/StationList';
 import AudioPlayer from '../components/AudioPlayer';
 import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
-import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime';
+import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime'; // Updated hook import
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 
-const WaveRoomTheaterPage: React.FC = () => {
+interface RoomPageProps { // Renamed interface
+  roomCode: string;
+  onLeaveRoom: () => void;
+}
+
+const WaveRoomTheaterPage: React.FC = () => { // Renamed component
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   
-  const { roomState, setStation, togglePlay, clearStation, isLoading: isRoomLoading, error: roomError } = useWaveRoomRealtime(roomCode, authUser);
+  const { roomState, setStation, togglePlay, clearStation, audioRef, isConnected } = useWaveRoomRealtime(roomCode!); // Updated hook usage
   
   const [stations, setStations] = useState<Station[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState<boolean>(true);
@@ -28,10 +33,6 @@ const WaveRoomTheaterPage: React.FC = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
-  
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [countries, setCountries] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
 
   const [copied, setCopied] = useState(false);
 
@@ -100,6 +101,13 @@ const WaveRoomTheaterPage: React.FC = () => {
     toast.success("Room code copied!");
     setTimeout(() => setCopied(false), 2000);
   };
+  
+  const handleShowStationInList = (station: Station) => { // Added from old RoomPage
+    setSearchQuery(station.name);
+    setSelectedLanguage('');
+    setSelectedCountry('');
+    setSelectedTag('');
+  };
 
   const buildTitle = (): string => {
     if (searchQuery) return `Results for "${searchQuery}"`;
@@ -117,18 +125,16 @@ const WaveRoomTheaterPage: React.FC = () => {
     return null;
   }
 
-  if (isRoomLoading || !roomState) {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Room...</div>;
-  }
-
-  if (roomError) {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-red-400">{roomError}</div>;
+  if (!roomCode) {
+    navigate('/waveroom'); // Redirect if no room code
+    return null;
   }
 
   const { current_station: currentStation, is_playing: isPlaying } = roomState;
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
+      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" /> {/* Audio element moved here */}
       <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -186,7 +192,7 @@ const WaveRoomTheaterPage: React.FC = () => {
         </div>
       </main>
 
-      {currentStation && <AudioPlayer station={currentStation} isPlaying={isPlaying} onTogglePlay={togglePlay} onClear={clearStation} />}
+      {currentStation && <AudioPlayer station={currentStation} isPlaying={isPlaying} onSetPlaying={togglePlay} onClear={clearStation} audioRef={audioRef} onShowStation={handleShowStationInList} />}
     </div>
   );
 };

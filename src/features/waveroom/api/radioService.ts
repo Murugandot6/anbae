@@ -1,14 +1,53 @@
 import { API_BASE_URLS } from './constants';
 import { Station, SearchParams } from '../types';
 
+let apiServers: string[] = [];
+let serversInitializationPromise: Promise<void> | null = null;
 let currentApiBaseIndex = 0;
 
+const initializeApiServers = async (): Promise<void> => {
+  try {
+    const response = await fetch('https://all.api.radio-browser.info/json/servers');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch server list: ${response.statusText}`);
+    }
+    const servers: any[] = await response.json();
+    
+    const healthyServers = servers
+      .filter(s => s.lastcheckok === 1)
+      .sort((a, b) => b.votes - a.votes)
+      .map(s => `https://${s.name}`);
+
+    if (healthyServers.length > 0) {
+      apiServers = healthyServers;
+    } else {
+      apiServers = [...API_BASE_URLS];
+    }
+  } catch (error) {
+    apiServers = [...API_BASE_URLS];
+  }
+};
+
+const ensureServersInitialized = (): Promise<void> => {
+  if (!serversInitializationPromise) {
+    serversInitializationPromise = initializeApiServers();
+  }
+  return serversInitializationPromise;
+};
+
+
 const resilientFetch = async <T,>(endpoint: string): Promise<T> => {
-  const maxRetries = API_BASE_URLS.length;
+  await ensureServersInitialized();
+
+  const maxRetries = apiServers.length;
+  if (maxRetries === 0) {
+      throw new Error('No API servers available to fetch from.');
+  }
+
   let lastError: Error | null = null;
 
   for (let i = 0; i < maxRetries; i++) {
-    const baseUrl = API_BASE_URLS[currentApiBaseIndex];
+    const baseUrl = apiServers[currentApiBaseIndex];
     const url = `${baseUrl}/json/${endpoint}`;
     
     try {
@@ -18,6 +57,7 @@ const resilientFetch = async <T,>(endpoint: string): Promise<T> => {
       }
       const data = await response.json();
       if (Array.isArray(data) && data.length === 0) {
+        // Return empty array for no results, don't treat as an error
         return data as T;
       }
       if (!Array.isArray(data)) {
@@ -25,9 +65,8 @@ const resilientFetch = async <T,>(endpoint: string): Promise<T> => {
       }
       return data as T;
     } catch (error) {
-      console.warn(`Failed to fetch from ${baseUrl}. Trying next mirror.`, error);
       lastError = error instanceof Error ? error : new Error(String(error));
-      currentApiBaseIndex = (currentApiBaseIndex + 1) % API_BASE_URLS.length;
+      currentApiBaseIndex = (currentApiBaseIndex + 1) % apiServers.length;
     }
   }
 
@@ -38,20 +77,17 @@ type ApiFilterOption = { name: string, stationcount: number };
 
 export const getLanguages = async (): Promise<string[]> => {
     const languages = await resilientFetch<ApiFilterOption[]>('languages?hidebroken=true&order=stationcount&reverse=true');
-    const uniqueLanguages = [...new Set(languages.map(lang => lang.name).filter(name => name.trim() !== ''))];
-    return uniqueLanguages;
+    return languages.map(lang => lang.name).filter(name => name.trim() !== '');
 };
 
 export const getCountries = async (): Promise<string[]> => {
     const countries = await resilientFetch<ApiFilterOption[]>('countries?hidebroken=true&order=stationcount&reverse=true');
-    const uniqueCountries = [...new Set(countries.map(country => country.name).filter(name => name.trim() !== ''))];
-    return uniqueCountries;
+    return countries.map(country => country.name).filter(name => name.trim() !== '');
 };
 
 export const getTags = async (limit: number = 150): Promise<string[]> => {
     const tags = await resilientFetch<ApiFilterOption[]>(`tags?hidebroken=true&order=stationcount&reverse=true&limit=${limit}`);
-    const uniqueTags = [...new Set(tags.map(tag => tag.name).filter(name => name.trim() !== ''))];
-    return uniqueTags;
+    return tags.map(tag => tag.name).filter(name => name.trim() !== '');
 };
 
 
