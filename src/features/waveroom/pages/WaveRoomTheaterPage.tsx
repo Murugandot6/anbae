@@ -34,6 +34,11 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
 
+  // Define state variables for filter options
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [countries, setCountries] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
