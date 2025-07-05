@@ -60,10 +60,10 @@ const getManager = (
       const dbResult = await supabase
         .from('wave_rooms')
         .upsert([{
-          room_code: roomCode, // Changed 'code' to 'room_code' to match DB schema
+          code: roomCode, // Changed 'room_code' to 'code' to match DB schema
           current_station: newState.current_station,
           is_playing: newState.is_playing
-        }], { onConflict: 'room_code' }); // Changed 'code' to 'room_code'
+        }], { onConflict: 'code' }); // Changed 'room_code' to 'code'
       if (dbResult.error) throw new Error(`DB Error: ${dbResult.error.message}`);
       
       const broadcastResult = await manager.channel.send({
@@ -118,8 +118,8 @@ const getManager = (
       if (status === 'SUBSCRIBED') {
         const { data, error } = await supabase
           .from('wave_rooms')
-          .select('room_code, created_at, current_station, is_playing') // Changed 'code' to 'room_code'
-          .eq('room_code', roomCode) // Changed 'code' to 'room_code'
+          .select('code, created_at, current_station, is_playing') // Changed 'room_code' to 'code'
+          .eq('code', roomCode) // Changed 'room_code' to 'code'
           .single();
         
         if (error && error.code !== 'PGRST116') { // PGRST116: no rows found

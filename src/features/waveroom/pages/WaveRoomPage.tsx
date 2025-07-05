@@ -33,7 +33,7 @@ const WaveRoomPage: React.FC = () => { // Renamed component
         const { error: checkError } = await supabase
             .from('wave_rooms')
             .select('id')
-            .eq('room_code', roomCode) // Changed 'code' to 'room_code'
+            .eq('code', roomCode) // Changed 'room_code' to 'code'
             .single();
         
         if (checkError && checkError.code === 'PGRST116') {
@@ -54,14 +54,14 @@ const WaveRoomPage: React.FC = () => { // Renamed component
 
     const { data: newRoom, error: insertError } = await supabase
       .from('wave_rooms')
-      .insert({ room_code: roomCode, is_playing: false }) // Changed 'code' to 'room_code'
+      .insert({ code: roomCode, is_playing: false }) // Changed 'room_code' to 'code'
       .select()
       .single();
     
     if (insertError) {
       toast.error('Could not create a room. Please try again.');
     } else if (newRoom) {
-      navigate(`/waveroom/${newRoom.room_code}`); // Changed 'code' to 'room_code'
+      navigate(`/waveroom/${newRoom.code}`); // Changed 'room_code' to 'code'
     }
     setLoading(null);
   };
@@ -77,14 +77,14 @@ const WaveRoomPage: React.FC = () => { // Renamed component
 
     const { data, error: findError } = await supabase
       .from('wave_rooms')
-      .select('room_code') // Changed 'code' to 'room_code'
-      .eq('room_code', codeToJoin) // Changed 'code' to 'room_code'
+      .select('code') // Changed 'room_code' to 'code'
+      .eq('code', codeToJoin) // Changed 'room_code' to 'code'
       .single();
 
     if (findError || !data) {
       toast.error(`Room with code "${codeToJoin}" not found.`);
     } else {
-      navigate(`/waveroom/${data.room_code}`); // Changed 'code' to 'room_code'
+      navigate(`/waveroom/${data.code}`); // Changed 'room_code' to 'code'
     }
     setLoading(null);
   };
