@@ -9,6 +9,7 @@ export interface Profile {
   created_at?: string; // Added created_at as it's in the table
   avatar_url?: string | null; // New: URL to the user's selected avatar
   lifetime_score?: number | null; // New: Lifetime score for the user
+  last_watch_party_room_id?: string | null; // New: ID of the last watch party room
 }
 
 export interface Message {
