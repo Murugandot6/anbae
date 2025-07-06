@@ -5,6 +5,7 @@ import Theater from '@/components/watch-party/Theater';
 import { useSession } from '@/contexts/SessionContext';
 import { useNavigate } from 'react-router-dom';
 import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
+import { supabase } from '@/integrations/supabase/client'; // Import supabase
 
 const LoadingSpinner: React.FC = () => (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
@@ -12,11 +13,20 @@ const LoadingSpinner: React.FC = () => (
     </div>
 );
 
+// Helper to format the DB response into the client-side Room object
+const formatRoom = (dbRoom: any): Room => ({
+    id: dbRoom.id,
+    title: `Room ${dbRoom.room_code}`,
+    videoUrl: dbRoom.video_url,
+    room_code: dbRoom.room_code,
+});
+
 const WatchParty: React.FC = () => {
   const { session, user: authUser, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
+  const [initialRoomLoading, setInitialRoomLoading] = useState(true); // New state for initial room loading
 
   useEffect(() => {
     if (session && authUser) {
@@ -28,19 +38,49 @@ const WatchParty: React.FC = () => {
     } else {
         setUser(null);
         setCurrentRoom(null);
+        localStorage.removeItem('watchPartyRoomId'); // Clear persisted room on logout
     }
   }, [session, authUser]);
 
+  // Effect to load persisted room from localStorage
+  useEffect(() => {
+    const loadPersistedRoom = async () => {
+      if (!sessionLoading && authUser) {
+        const persistedRoomId = localStorage.getItem('watchPartyRoomId');
+        if (persistedRoomId) {
+          const { data, error } = await supabase
+            .from('watch_party_rooms')
+            .select('*')
+            .eq('id', persistedRoomId)
+            .single();
+
+          if (error || !data) {
+            console.error('Error loading persisted room:', error?.message);
+            localStorage.removeItem('watchPartyRoomId'); // Clear invalid persisted ID
+            setCurrentRoom(null);
+          } else {
+            setCurrentRoom(formatRoom(data));
+          }
+        }
+      }
+      setInitialRoomLoading(false); // Done with initial room loading check
+    };
+
+    loadPersistedRoom();
+  }, [sessionLoading, authUser]); // Depend on session and authUser to ensure they are loaded
+
   const handleJoinRoom = useCallback((room: Room) => {
     setCurrentRoom(room);
+    localStorage.setItem('watchPartyRoomId', room.id); // Persist room ID
   }, []);
 
   const handleLeaveRoom = useCallback(() => {
     setCurrentRoom(null);
+    localStorage.removeItem('watchPartyRoomId'); // Remove persisted room ID
     navigate('/dashboard');
   }, [navigate]);
 
-  if (sessionLoading) {
+  if (sessionLoading || initialRoomLoading) { // Include initialRoomLoading in overall loading
     return <LoadingSpinner />;
   }
 
