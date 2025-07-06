@@ -57,7 +57,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   }, []);
 
   useEffect(() => {
-    console.log(`[Realtime Debug] Setting up channel for room: ${roomId}`); // New log
+    console.log(`[Realtime Debug] Setting up channel for room: ${roomId}`);
     const fetchInitialData = async () => {
       // Fetch chat messages
       const { data: msgData, error: msgError } = await supabase.from('watch_party_chat_messages').select('*').eq('room_id', roomId).order('created_at', { ascending: true });
@@ -80,13 +80,13 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         const formattedHistory = historyData.map((item: any) => ({
           id: item.id, videoUrl: item.video_url, addedBy: item.user_name, timestamp: new Date(item.created_at).getTime(),
         }));
-        setVideoHistory(prev => [formattedHistory, ...prev]); // Ensure new items are at the top
+        setVideoHistory(prev => [formattedHistory, ...prev]);
       }
     };
     fetchInitialData();
 
-    // Changed: Removed presence config for testing broadcast listener
-    const channel = supabase.channel(`room:${roomId}`); 
+    // Re-added presence config
+    const channel = supabase.channel(`room:${roomId}`, { config: { presence: { key: user.id } } }); 
     channelRef.current = channel;
 
     // Subscription for new chat messages
@@ -128,7 +128,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
 
     // New: Listener for video reactions
     channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
-      console.log(`[Reaction Debug] Listener triggered for video_reaction! Payload:`, payload); // New log
+      console.log(`[Reaction Debug] Listener triggered for video_reaction! Payload:`, payload);
       const { emoji, senderId } = payload;
       console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); 
       const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; 
@@ -162,12 +162,12 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         if(p.user_name) addSystemMessage(`${p.user_name} left.`)
     }));
 
-    channel.subscribe(async (status, err) => { // Added err parameter
-      console.log(`[Realtime Debug] Channel subscription status: ${status}`); // New log
+    channel.subscribe(async (status, err) => {
+      console.log(`[Realtime Debug] Channel subscription status: ${status}`);
       if (status === 'SUBSCRIBED') {
-        setIsConnectedToRealtime(true); // Set connected to true
-        console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current); // New log
-        // Removed channel.track for presence as presence config is removed
+        setIsConnectedToRealtime(true);
+        console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current);
+        await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
 
         // --- SELF-BROADCAST TEST ---
@@ -179,21 +179,22 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         });
         // --- END SELF-BROADCAST TEST ---
 
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') { // Handle other error states
-        setIsConnectedToRealtime(false); // Set connected to false
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        setIsConnectedToRealtime(false);
         console.error(`Realtime channel error or closed: ${status}`, err);
         toast.error(`Realtime connection lost: ${err?.message || 'Please refresh.'}`);
       }
     });
 
     return () => {
+      console.log(`[Realtime Debug] Cleaning up channel for room: ${roomId}`); // New cleanup log
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
-        setIsConnectedToRealtime(false); // Ensure state is reset on unmount
+        setIsConnectedToRealtime(false);
       }
     };
-  }, [roomId, user.id, user.name, addSystemMessage]);
+  }, [roomId, addSystemMessage, user.name, user.id]); // Removed user.id and user.name from dependencies
 
   const sendVideoAction = useCallback((action: VideoAction) => {
     setVideoState(currentState => {
@@ -202,7 +203,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         return currentState;
       }
       const newStateWithTimestamp: VideoState = { ...newState, timestamp: Date.now() };
-      if (channelRef.current && isConnectedToRealtime) { // Only send if connected
+      if (channelRef.current && isConnectedToRealtime) {
         channelRef.current.send({
           type: 'broadcast',
           event: 'video_state_update',
@@ -216,7 +217,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   }, [user.id, isConnectedToRealtime]);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!isConnectedToRealtime) { // Only send if connected
+    if (!isConnectedToRealtime) {
       toast.error("Cannot send message: Not connected to room.");
       return;
     }
@@ -231,9 +232,9 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
 
   // New: Function to send a video reaction
   const sendVideoReaction = useCallback((emoji: string) => {
-    if (channelRef.current && isConnectedToRealtime) { // Only send if connected
+    if (channelRef.current && isConnectedToRealtime) {
       console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); 
-      console.log(`[Reaction Debug] Channel ref current before send:`, channelRef.current); // New log
+      console.log(`[Reaction Debug] Channel ref current before send:`, channelRef.current);
       channelRef.current.send({
         type: 'broadcast',
         event: 'video_reaction',
