@@ -51,6 +51,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           </Button>
         </div>
         
+        {/* Page Title */}
+        <h1 className="text-3xl font-bold text-foreground mx-auto">Watch Party: {room.room_code}</h1>
+
         {/* Room code and Leave button on the right */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-2">

@@ -162,7 +162,7 @@ const WaveRoomTheaterPage: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
-      <header className="bg-card/60 backdrop-blur-md border-b border-border/50 p-4 shadow-lg z-20 sticky top-0">
+      <header className="bg-transparent backdrop-blur-md border-b border-border/50 p-4 z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           {/* Back button on the left */}
           <div className="flex-shrink-0">
@@ -177,10 +177,8 @@ const WaveRoomTheaterPage: React.FC = () => {
             </Button>
           </div>
           
-          {/* Search bar in the middle for larger screens */}
-          <div className="flex-1 max-w-lg mx-auto hidden md:block">
-            <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
-          </div>
+          {/* Page Title */}
+          <h1 className="text-3xl font-bold text-foreground mx-auto">Wave Room</h1>
 
           {/* Room code and Leave button on the right */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -219,6 +217,7 @@ const WaveRoomTheaterPage: React.FC = () => {
               isLoading={isStationsLoading}
             />
           </div>
+          <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
           <StationList
             stations={stations}
             onSelectStation={handleSelectStation}
