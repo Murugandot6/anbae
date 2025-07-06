@@ -18,15 +18,11 @@ const GlobalWaveRoomPlayer: React.FC = () => {
   }
 
   const handleTogglePlay = () => {
-    if (roomCode) {
-      togglePlay(roomCode);
-    }
+    togglePlay();
   };
 
   const handleClearStation = () => {
-    if (roomCode) {
-      clearStation(roomCode);
-    }
+    clearStation();
   };
 
   const handleGoToRoom = () => {

@@ -9,9 +9,10 @@ interface WaveRoomPlayerContextType {
   currentStation: Station | null;
   isPlaying: boolean;
   roomCode: string | null;
-  setStation: (station: Station, roomCode: string) => void;
-  togglePlay: (roomCode: string) => void;
-  clearStation: (roomCode: string) => void;
+  setRoom: (code: string | null) => void;
+  setStation: (station: Station) => void;
+  togglePlay: () => void;
+  clearStation: () => void;
   isConnectedToRoom: boolean;
 }
 
@@ -32,12 +33,27 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     stateRef.current = { currentStation, isPlaying };
   }, [currentStation, isPlaying]);
 
+  const setRoom = useCallback((code: string | null) => {
+    setActiveRoomCode(code);
+    // If leaving a room, we keep the station playing in the mini-player,
+    // but the context is no longer associated with a specific room channel.
+    if (!code) {
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+            channelRef.current = null;
+        }
+        setIsConnectedToRoom(false);
+    }
+  }, []);
+
   useEffect(() => {
+    // Clean up previous channel if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
     if (!activeRoomCode || !user) {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
       setIsConnectedToRoom(false);
       return;
     }
@@ -100,13 +116,10 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         audio.load();
       }
       if (isPlaying) {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.warn("Autoplay prevented:", error);
-            toast.info("Audio paused. Click play to start.");
-          });
-        }
+        audio.play().catch(error => {
+          console.warn("Autoplay prevented:", error);
+          toast.info("Audio paused. Click play to start.");
+        });
       } else {
         audio.pause();
       }
@@ -116,88 +129,60 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, [currentStation, isPlaying]);
 
-  const syncStateToSupabase = useCallback(async (station: Station | null, playStatus: boolean, code: string) => {
-    if (!supabase || !user) {
-      console.error('Supabase client or user not initialized.');
-      return;
+  const syncStateToSupabase = useCallback(async (station: Station | null, playStatus: boolean) => {
+    if (!activeRoomCode || !supabase || !user) return;
+
+    await supabase
+      .from('wave_rooms')
+      .update({ current_station: station, is_playing: playStatus, updated_at: new Date().toISOString() })
+      .eq('code', activeRoomCode);
+
+    if (channelRef.current) {
+      await channelRef.current.send({
+        type: 'broadcast',
+        event: 'state_update',
+        payload: { current_station: station, is_playing: playStatus, senderId: user.id },
+      });
     }
+  }, [activeRoomCode, user]);
 
-    try {
-      const { error: dbError } = await supabase
-        .from('wave_rooms')
-        .update({
-          current_station: station,
-          is_playing: playStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('code', code);
-
-      if (dbError) {
-        console.error('Supabase DB update error:', dbError.message);
-        toast.error('Failed to sync player state to server.');
-        return;
-      }
-
-      if (channelRef.current) {
-        const broadcastResult = await channelRef.current.send({
-          type: 'broadcast',
-          event: 'state_update',
-          payload: {
-            current_station: station,
-            is_playing: playStatus,
-            senderId: user.id,
-            timestamp: Date.now(),
-          },
-        });
-        if (broadcastResult === 'error') {
-          console.error('Supabase broadcast error: Failed to send state update.');
-        }
-      }
-    } catch (error) {
-      console.error('Error syncing state:', error);
-      toast.error('An unexpected error occurred while syncing player state.');
-    }
-  }, [user]);
-
-  const setStation = useCallback((station: Station, roomCode: string) => {
-    setActiveRoomCode(roomCode);
+  const setStation = useCallback((station: Station) => {
+    if (!activeRoomCode) return;
     setCurrentStation(station);
     setIsPlaying(true);
-    syncStateToSupabase(station, true, roomCode);
-  }, [syncStateToSupabase]);
+    syncStateToSupabase(station, true);
+  }, [activeRoomCode, syncStateToSupabase]);
 
-  const togglePlay = useCallback((roomCode: string) => {
+  const togglePlay = useCallback(() => {
+    if (!activeRoomCode) return;
     const audio = audioRef.current;
     if (!audio) return;
 
-    // If audio is paused but room state is 'playing', this is a local "catch up" play.
-    // No need to broadcast, as the room is already in the 'playing' state.
     if (audio.paused && isPlaying) {
-        audio.play().catch(e => {
-            console.error("Failed to play on toggle", e);
-            toast.error("Could not start playback.");
-        });
-        return;
+      audio.play().catch(() => toast.error("Could not start playback."));
+      return;
     }
 
-    // Otherwise, it's a genuine state change for the whole room.
-    setActiveRoomCode(roomCode);
     const newState = !isPlaying;
     setIsPlaying(newState);
-    syncStateToSupabase(currentStation, newState, roomCode);
-  }, [currentStation, isPlaying, syncStateToSupabase]);
+    syncStateToSupabase(currentStation, newState);
+  }, [activeRoomCode, currentStation, isPlaying, syncStateToSupabase]);
 
-  const clearStation = useCallback((roomCode: string) => {
-    setActiveRoomCode(roomCode);
+  const clearStation = useCallback(() => {
+    // This action is now global, not tied to a room, so it clears the player for the current user.
     setCurrentStation(null);
     setIsPlaying(false);
-    syncStateToSupabase(null, false, roomCode);
-  }, [syncStateToSupabase]);
+    if (activeRoomCode) {
+        syncStateToSupabase(null, false);
+    }
+    setActiveRoomCode(null);
+  }, [activeRoomCode, syncStateToSupabase]);
 
   const value = {
     currentStation,
     isPlaying,
     roomCode: activeRoomCode,
+    setRoom,
     setStation,
     togglePlay,
     clearStation,

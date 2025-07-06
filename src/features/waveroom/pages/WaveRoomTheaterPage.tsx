@@ -22,6 +22,7 @@ const WaveRoomTheaterPage: React.FC = () => {
     currentStation, 
     isPlaying, 
     roomCode: activePlayerRoomCode,
+    setRoom,
     setStation,
     togglePlay,
     clearStation
@@ -41,6 +42,16 @@ const WaveRoomTheaterPage: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
 
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (roomCode) {
+      setRoom(roomCode);
+    }
+    // On component unmount, leave the room context
+    return () => {
+      setRoom(null);
+    };
+  }, [roomCode, setRoom]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -93,8 +104,8 @@ const WaveRoomTheaterPage: React.FC = () => {
   }, [searchQuery, selectedLanguage, selectedCountry, selectedTag]);
 
   const handleSelectStation = (station: Station) => {
-    if (station.url_resolved && roomCode) {
-      setStation(station, roomCode);
+    if (station.url_resolved) {
+      setStation(station);
     } else {
       toast.error(`Station ${station.name} does not have a valid stream URL.`);
     }
@@ -217,8 +228,8 @@ const WaveRoomTheaterPage: React.FC = () => {
         <WaveRoomControls
           station={currentStation}
           isPlaying={isPlaying}
-          onSetPlaying={() => togglePlay(roomCode)}
-          onClear={() => clearStation(roomCode)}
+          onSetPlaying={togglePlay}
+          onClear={clearStation}
           onShowStation={handleShowStationInList}
         />
       )}

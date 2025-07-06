@@ -10,7 +10,7 @@ import { VolumeOffIcon } from './icons/VolumeOffIcon';
 interface WaveRoomControlsProps {
   station: Station;
   isPlaying: boolean;
-  onSetPlaying: (shouldPlay: boolean) => void;
+  onSetPlaying: () => void;
   onClear: () => void;
   onShowStation: (station: Station) => void;
 }
@@ -19,7 +19,7 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
   const [isMuted, setIsMuted] = useState(false);
 
   const handlePlayPauseClick = () => {
-    onSetPlaying(!isPlaying);
+    onSetPlaying();
   };
 
   const handleClear = () => {
