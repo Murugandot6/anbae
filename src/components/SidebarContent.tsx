@@ -32,7 +32,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
             />
           )}
         </div>
-        <ThemeToggle />
+        {/* ThemeToggle removed from here */}
       </div>
       <div className="flex items-center gap-3 mb-6">
         <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
