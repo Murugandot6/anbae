@@ -1,11 +1,11 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } => '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Corrected '=>' to 'from'
 import { Menu } from 'lucide-react';
 import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
-import ClearMessagesDialog from '@/components/ClearMessagesDialog'; // Import ClearMessagesDialog here
+import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 
 interface SidebarProps {
   currentUserProfile: Profile | null;
@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
             <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4">
                 {/* ClearMessagesDialog positioned absolutely at top-left */}
                 {props.user && (
-                    <div className="absolute top-4 left-4 z-10"> {/* Changed top-2 to top-4 */}
+                    <div className="absolute top-4 left-4 z-10">
                         <ClearMessagesDialog
                             partnerId={props.partnerProfile?.id || null}
                             partnerNickname={props.partnerProfile?.username || props.currentUserProfile?.partner_nickname || null}
