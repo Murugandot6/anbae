@@ -6,9 +6,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Mail, Lock, User, Users } from 'lucide-react'; // Removed Heart import
+import { Mail, Lock, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { ThemeToggle } from "@/components/ThemeToggle";
+// Removed ThemeToggle import
 import VideoBackground from '@/components/VideoBackground';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -75,14 +75,14 @@ const Register = () => {
       <VideoBackground />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
+          {/* Removed ThemeToggle */}
         </div>
         <div className={cn(
           "w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
           isExiting ? "animate-fade-out" : "animate-fade-in"
         )}>
           <div className="text-center mb-6">
-            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" /> {/* Replaced Heart with img tag */}
+            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
             <p className="text-gray-700 dark:text-gray-300">Create your personalized space.</p>
           </div>

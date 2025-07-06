@@ -6,11 +6,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Mail, Lock } from 'lucide-react'; // Removed Heart import
+import { Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import ForgotPasswordDialog from '@/components/ForgotPasswordDialog';
 import { useState } from 'react';
-import { ThemeToggle } from "@/components/ThemeToggle";
+// Removed ThemeToggle import
 import VideoBackground from '@/components/VideoBackground';
 
 const formSchema = z.object({
@@ -54,11 +54,11 @@ const Login = () => {
       <VideoBackground />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle />
+          {/* Removed ThemeToggle */}
         </div>
         <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
           <div className="text-center mb-6">
-            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" /> {/* Replaced Heart with img tag */}
+            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back!</h2>
             <p className="text-gray-700 dark:text-gray-300">Sign in to continue your journey.</p>
           </div>

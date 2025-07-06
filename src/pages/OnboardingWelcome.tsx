@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
+// Removed ThemeToggle import
 import useEmblaCarousel from 'embla-carousel-react';
 import { EmblaOptionsType } from 'embla-carousel';
 import Autoplay from 'embla-carousel-autoplay';
@@ -129,7 +129,7 @@ const OnboardingWelcome: React.FC = () => {
   return (
     <div className={cn("relative h-screen w-screen overflow-hidden flex flex-col", isExiting ? "animate-fade-out" : "animate-fade-in")}>
       <div className="absolute top-4 right-4 z-20">
-        <ThemeToggle />
+        {/* Removed ThemeToggle */}
       </div>
       <div className="absolute top-4 left-4 z-20">
         <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">

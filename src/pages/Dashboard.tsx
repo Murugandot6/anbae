@@ -6,7 +6,7 @@ import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-reac
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
-import { ThemeToggle } from "@/components/ThemeToggle";
+// Removed ThemeToggle import
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';

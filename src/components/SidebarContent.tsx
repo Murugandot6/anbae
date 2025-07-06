@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
+import { ThemeToggle } from '@/components/ThemeToggle'; // Import ThemeToggle
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -39,10 +40,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
           <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
           <AvatarFallback className="bg-primary text-primary-foreground">{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1"> {/* Added flex-1 to push ThemeToggle to the right */}
           <p className="font-semibold text-lg text-sidebar-foreground">{user.user_metadata.nickname || user.email}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
         </div>
+        <ThemeToggle /> {/* Placing ThemeToggle here */}
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
         {navItems.map((item) => (
