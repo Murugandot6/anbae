@@ -3,12 +3,12 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut } from 'lucide-react'; // Import LogOut icon
+import { Menu, LogOut } from 'lucide-react';
 import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
-import CustomSheetCloseButton from '@/components/CustomSheetCloseButton'; // Re-import CustomSheetCloseButton
+import CustomSheetCloseButton from '@/components/CustomSheetCloseButton';
 
 interface SidebarProps {
   currentUserProfile: Profile | null;
@@ -27,11 +27,8 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
-                {/* SidebarContent now takes remaining space, no fixed top padding needed */}
-                <SidebarContent {...props} />
-
-                {/* New container for Clear Messages and X button at the bottom */}
-                <div className="flex justify-between items-center mt-4 px-2">
+                {/* Container for Clear Messages and X button at the very top */}
+                <div className="flex justify-between items-center mb-4 px-2">
                     {props.user && (
                         <ClearMessagesDialog
                             partnerId={props.partnerProfile?.id || null}
@@ -43,8 +40,11 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                     <CustomSheetCloseButton />
                 </div>
 
+                {/* SidebarContent now follows */}
+                <SidebarContent {...props} />
+
                 {/* Logout button is at the very bottom */}
-                <div className="mt-2 flex flex-col gap-2">
+                <div className="mt-auto flex flex-col gap-2"> {/* Added mt-auto to push it to the bottom */}
                     <Button onClick={props.handleLogout} variant="destructive" className="w-full justify-start">
                         <LogOut className="w-5 h-5 mr-2" /> Logout
                     </Button>
