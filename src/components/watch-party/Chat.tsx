@@ -67,10 +67,9 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
         )}
       </div>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
-        {messages.map((msg) => {
-          const grouped = groupReactions(msg.reactions);
-          return (
-           <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
+        {messages.map((msg) => (
+          <React.Fragment key={msg.id}>
+           <div className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
              {msg.isSystem ? (
                 <span className="text-xs text-center text-muted-foreground italic px-2 py-1 bg-muted/20 rounded-full">{msg.text}</span>
              ) : (
@@ -109,7 +108,8 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
                 </div>
               )}
           </div>
-        })}
+          </React.Fragment>
+        ))}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
