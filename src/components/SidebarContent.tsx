@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, BookOpen } from 'lucide-react'; // Import BookOpen icon
+import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
+import { ThemeToggle } from "@/components/ThemeToggle"; // Re-import ThemeToggle
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -20,7 +21,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="flex justify-center items-center mb-4">
+      <div className="flex justify-between items-center mb-4"> {/* Changed to justify-between */}
         <div className="flex items-center gap-2">
           {user && (
             <ClearMessagesDialog
@@ -31,7 +32,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
             />
           )}
         </div>
-        {/* ThemeToggle removed from here */}
+        <ThemeToggle /> {/* Re-added ThemeToggle here */}
       </div>
       <div className="flex items-center gap-3 mb-6">
         <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
@@ -84,7 +85,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
             <Settings className="w-5 h-5 mr-2" /> Edit Profile
           </Button>
         </Link>
-        <Link to="/manual"> {/* New link for User Manual */}
+        <Link to="/manual">
           <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <BookOpen className="w-5 h-5 mr-2" /> User Manual
           </Button>
