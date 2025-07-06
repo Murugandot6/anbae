@@ -206,20 +206,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Determine player and chat container classes based on fullscreen and chat visibility
   const playerWrapperClasses = cn(
-    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg", // Added h-full, removed aspect-video
-    isFullScreen && "fixed inset-0 z-50 rounded-none", // Removed flex here, as chat will be absolute
+    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg",
+    isFullScreen && "fixed inset-0 z-50 rounded-none",
   );
 
-  // This will be the container for the ReactPlayer itself
   const reactPlayerContainerClasses = cn(
-    "w-full h-full", // Base classes for the video area
-    // No flex-grow/flex-1 needed here, as it will fill the parent
+    "w-full h-full",
   );
 
-  // This will be the container for the Chat component when in fullscreen
+  // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
     "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 bottom-18 z-30" : "hidden" // Reverted to absolute positioning
+    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100vh-4.5rem)]" : "hidden" // Changed to max-h-[calc(100vh-4.5rem)]
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
