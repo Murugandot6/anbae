@@ -44,6 +44,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
 
+  const [isFullScreen, setIsFullScreen] = useState(false); // New state to track fullscreen
   const [showFullscreenChat, setShowFullscreenChat] = useState(false);
 
   const sliderTime = isSeeking ? seekingTime : displayTime;
@@ -90,6 +91,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       setSeekingTime(0);
       setDisplayTime(0);
   }, [videoState.source]);
+
+  // New useEffect to handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+      if (!document.fullscreenElement) {
+        setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -149,7 +172,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     if (playerContainerRef.current) {
         if (document.fullscreenElement) {
             document.exitFullscreen();
-            setShowFullscreenChat(false); // Reset chat visibility on exit
         } else {
             playerContainerRef.current.requestFullscreen();
         }
@@ -162,11 +184,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       window.clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (videoState.isPlaying && !document.fullscreenElement) { // Only hide controls if not in fullscreen
+      if (videoState.isPlaying && !isFullScreen) { // Only hide controls if not in fullscreen
         setShowControls(false);
       }
     }, 3000);
-  }, [videoState.isPlaying]);
+  }, [videoState.isPlaying, isFullScreen]);
 
   useEffect(() => {
     const container = playerContainerRef.current;
@@ -181,53 +203,72 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setDisplayTime(seconds);
   };
 
+  // Determine player and chat container classes based on fullscreen and chat visibility
+  const playerWrapperClasses = cn(
+    "relative aspect-video w-full bg-black rounded-xl overflow-hidden group shadow-lg",
+    isFullScreen && "fixed inset-0 z-50 rounded-none", // Make it truly full screen
+    isFullScreen && showFullscreenChat ? "flex" : "" // Use flexbox when chat is active in fullscreen
+  );
+
+  const reactPlayerContainerClasses = cn(
+    "w-full h-full",
+    isFullScreen && showFullscreenChat ? "flex-grow" : "" // Player takes remaining space
+  );
+
+  const chatContainerClasses = cn(
+    "h-full bg-card/90 backdrop-blur-md rounded-xl shadow-lg", // Base chat styling
+    isFullScreen ? "w-80 flex-shrink-0" : "hidden" // Always 80px wide in fullscreen, hidden otherwise
+  );
+
   return (
-    <div ref={playerContainerRef} className="relative aspect-video w-full bg-black rounded-xl overflow-hidden group shadow-lg">
+    <div ref={playerContainerRef} className={playerWrapperClasses}>
       {videoState.source ? (
         <>
-          <ReactPlayer
-            ref={playerRef}
-            url={videoState.source}
-            width="100%"
-            height="100%"
-            playing={videoState.isPlaying}
-            volume={volume}
-            muted={isMuted}
-            controls={false}
-            onReady={() => setIsPlayerReady(true)}
-            onDuration={(duration: number) => sendVideoAction({ type: 'durationchange', payload: duration })}
-            onProgress={handleProgress}
-            onSeek={handlePlayerSeek}
-            progressInterval={500}
-            onError={(e: any, data?: any) => {
-                console.error('Player Error:', e, data);
-                let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
-                
-                const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
+          <div className={reactPlayerContainerClasses}> {/* Wrap ReactPlayer in this div */}
+            <ReactPlayer
+              ref={playerRef}
+              url={videoState.source}
+              width="100%"
+              height="100%"
+              playing={videoState.isPlaying}
+              volume={volume}
+              muted={isMuted}
+              controls={false}
+              onReady={() => setIsPlayerReady(true)}
+              onDuration={(duration: number) => sendVideoAction({ type: 'durationchange', payload: duration })}
+              onProgress={handleProgress}
+              onSeek={handlePlayerSeek}
+              progressInterval={500}
+              onError={(e: any, data?: any) => {
+                  console.error('Player Error:', e, data);
+                  let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
+                  
+                  const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
 
-                if (errorCode !== null) {
-                    switch (errorCode) {
-                        case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
-                        case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
-                        case 100: 
-                        case 101: 
-                        case 150: 
-                            errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
-                        default:
-                            break;
-                    }
-                } else if (e instanceof Error) {
-                    errorMessage = e.message;
-                } else if (typeof e === 'string' && e.length > 0) {
-                    errorMessage = e;
-                }
+                  if (errorCode !== null) {
+                      switch (errorCode) {
+                          case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
+                          case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
+                          case 100: 
+                          case 101: 
+                          case 150: 
+                              errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
+                          default:
+                              break;
+                      }
+                  } else if (e instanceof Error) {
+                      errorMessage = e.message;
+                  } else if (typeof e === 'string' && e.length > 0) {
+                      errorMessage = e;
+                  }
 
-                setPlayerError(errorMessage);
-                if (videoState.isPlaying) {
-                    sendVideoAction({ type: 'pause', payload: playerRef.current?.getCurrentTime() });
-                }
-            }}
-          />
+                  setPlayerError(errorMessage);
+                  if (videoState.isPlaying) {
+                      sendVideoAction({ type: 'pause', payload: playerRef.current?.getCurrentTime() });
+                  }
+              }}
+            />
+          </div>
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
@@ -268,7 +309,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || isFullScreen ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -317,7 +358,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {document.fullscreenElement && (
+                  {isFullScreen && ( // Only show chat toggle in fullscreen
                     <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                       <MessageSquare className="w-5 h-5" />
                     </button>
@@ -330,8 +371,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             </div>
           </div>
           
-          {document.fullscreenElement && (
-            <div className={`absolute top-0 right-0 h-full transition-all duration-300 ease-in-out z-40 ${showFullscreenChat ? 'w-80' : 'w-0 overflow-hidden'}`}>
+          {/* Fullscreen Chat - now part of the flex container */}
+          {isFullScreen && showFullscreenChat && (
+            <div className={chatContainerClasses}>
               <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} onClose={() => setShowFullscreenChat(false)} />
             </div>
           )}
