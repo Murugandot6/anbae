@@ -114,7 +114,6 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
           if (error.name === 'NotAllowedError') {
             console.warn("Autoplay prevented. User interaction required.");
             toast.info("Audio paused. Click play to start.");
-            // Crucial: Update local state to reflect actual playback status
             setIsPlaying(false); 
           } else {
             console.error("Audio playback error:", error);
@@ -175,7 +174,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   }, [syncState]);
 
   // Action: Toggle play/pause
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => { // Make it async
     const audio = audioRef.current;
     if (!currentStation) return;
 
@@ -183,21 +182,34 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         setLocalUserHasInteracted(true);
     }
 
-    setIsPlaying(prevIsPlaying => { // Use functional update to get the latest state
-        const newPlayStatus = !prevIsPlaying;
-        
-        if (audio) {
+    // Determine the new play status based on the current state
+    const newPlayStatus = !isPlaying; // Use the current isPlaying state directly for this calculation
+
+    setIsPlaying(newPlayStatus); // Optimistically update local state
+
+    if (audio) {
+        try {
             if (newPlayStatus) {
-                audio.play().catch(e => toast.error("Could not start playback."));
+                await audio.play(); // Await the play promise
             } else {
-                audio.pause();
+                await audio.pause(); // Await the pause promise
             }
+        } catch (e: any) {
+            if (e.name === 'NotAllowedError') {
+                console.warn("Autoplay prevented. User interaction required.");
+                toast.info("Audio paused. Click play to start.");
+            } else {
+                console.error("Audio playback error:", e);
+                toast.error("Audio playback failed.");
+            }
+            setIsPlaying(false); // Revert local state if playback failed
+            syncState(currentStation, false); // Sync the failed state
+            return; // Exit if audio operation failed
         }
-        // Call syncState with the *new* status
-        syncState(currentStation, newPlayStatus); 
-        return newPlayStatus;
-    });
-  }, [currentStation, syncState, localUserHasInteracted]); // Removed isPlaying from dependencies as it's now handled by functional update
+    }
+    // Only sync state if audio operation was successful or not applicable (e.g., no audio element)
+    syncState(currentStation, newPlayStatus);
+  }, [currentStation, isPlaying, syncState, localUserHasInteracted]); // Add isPlaying to dependencies
 
   // Action: Clear the player
   const clearStation = useCallback(() => {
