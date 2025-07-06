@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
@@ -98,7 +99,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      {/* Updated: Added items-stretch to make children match height */}
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch">
         <div className="lg:flex-grow lg:w-3/4">
           <VideoPlayer 
             videoState={videoState} 
@@ -111,7 +113,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             isConnectedToRealtime={isConnectedToRealtime}
           />
         </div>
-        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-[75vh] lg:h-auto">
+        {/* Updated: Removed fixed height classes */}
+        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0">
           <Chat 
             messages={messages} 
             sendMessage={sendMessage} 
