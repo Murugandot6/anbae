@@ -39,8 +39,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   };
 
   return (
-    <div className="flex flex-col h-full border-2 border-green-500"> {/* Debug: Green border - Removed max-w-7xl mx-auto from here */}
-      <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow min-h-0"> {/* New inner container for max-width and centering */}
+    <div className="flex flex-col h-full fullscreen:h-screen fullscreen:flex"> {/* Added fullscreen:h-screen and fullscreen:flex */}
+      <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow min-h-0">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           {/* Back button on the left */}
           <div className="flex-shrink-0">
