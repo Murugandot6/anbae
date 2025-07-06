@@ -9,7 +9,7 @@ import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
-
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface TheaterProps {
   room: Room;
