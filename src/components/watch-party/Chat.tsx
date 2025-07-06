@@ -109,7 +109,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
                 </div>
               )}
           </div>
-        ))}
+        })}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
