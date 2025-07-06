@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
-import EmojiPickerPopover from '@/components/EmojiPicker/EmojiPickerPopover';
+import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
