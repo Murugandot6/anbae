@@ -115,10 +115,14 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
             console.warn("Autoplay prevented. User interaction required.");
             toast.info("Audio paused. Click play to start.");
             setIsPlaying(false); 
+            // IMPORTANT: If autoplay fails, we need to sync this back to the room
+            // so other users know this client is not playing.
+            syncState(currentStation, false); // Sync the actual state (paused)
           } else {
             console.error("Audio playback error:", error);
             toast.error("Audio playback failed.");
             setIsPlaying(false); 
+            syncState(currentStation, false); // Sync the actual state (paused)
           }
         });
       } else {
@@ -128,7 +132,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
       audio.pause();
       audio.src = '';
     }
-  }, [currentStation, isPlaying]);
+  }, [currentStation, isPlaying, syncState]); // Added syncState to dependencies
 
   // Function to update the database AND broadcast the state
   const syncState = useCallback(async (station: Station | null, playStatus: boolean) => {
