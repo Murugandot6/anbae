@@ -10,6 +10,7 @@ import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
+import clsx from 'clsx'; // Import clsx for conditional classes
 
 interface TheaterProps {
   room: Room;
@@ -24,7 +25,26 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
   // Fullscreen state and ref for the entire theater container
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
 
   const handleToggleFullscreen = useCallback(() => {
     if (theaterContainerRef.current) {
@@ -59,66 +79,81 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       ref={theaterContainerRef}
       className="flex flex-col h-full fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none"
     >
-      <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow min-h-0">
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          {/* Back button on the left */}
-          <div className="flex-shrink-0">
-            <Button
-              onClick={() => navigate('/dashboard')}
-              variant="outline"
-              size="icon"
-              className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-              aria-label="Back to Dashboard"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </div>
-          
-          {/* Page Title */}
-          <h1 className="text-3xl font-bold text-foreground mx-auto">Watch Party</h1>
-
-          {/* Room code and Leave button on the right */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <p className="text-muted-foreground">Share Code:</p>
-              <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
-              <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
-                <ClipboardCopyIcon className="h-4 w-4" />
-                {copyStatus}
+      {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
+      <div className={clsx(
+        "w-full flex flex-col flex-grow min-h-0",
+        {
+          "max-w-7xl mx-auto": !isFullscreen, // Apply max-width only when NOT fullscreen
+          "max-w-full mx-0": isFullscreen // Take full width when fullscreen
+        }
+      )}>
+        {/* Header elements - conditionally hide when fullscreen */}
+        {!isFullscreen && (
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            {/* Back button on the left */}
+            <div className="flex-shrink-0">
+              <Button
+                onClick={() => navigate('/dashboard')}
+                variant="outline"
+                size="icon"
+                className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                aria-label="Back to Dashboard"
+              >
+                <ArrowLeft className="w-5 h-5" />
               </Button>
             </div>
-            <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-10 h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
+            
+            {/* Page Title */}
+            <h1 className="text-3xl font-bold text-foreground mx-auto">Watch Party</h1>
 
-        <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0">
-          <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
-          <div className="relative w-full">
-              <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                  <LinkIcon className="w-5 h-5 text-muted-foreground" />
+            {/* Room code and Leave button on the right */}
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground">Share Code:</p>
+                <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
+                <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
+                  <ClipboardCopyIcon className="h-4 w-4" />
+                  {copyStatus}
+                </Button>
               </div>
-              <input
-                  id="video-url-input"
-                  type="url"
-                  value={newVideoUrl}
-                  onChange={(e) => {
-                      setNewVideoUrl(e.target.value);
-                      // Optionally clear error if user starts typing
-                  }}
-                  placeholder="Enter YouTube or video URL to start or change the video"
-                  className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
-                  required
-              />
+              <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-10 h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
-          <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-              Set Video
-          </Button>
-        </form>
+        )}
 
-        <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
+        {/* Form - conditionally hide when fullscreen */}
+        {!isFullscreen && (
+          <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0">
+            <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
+            <div className="relative w-full">
+                <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                    <LinkIcon className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <input
+                    id="video-url-input"
+                    type="url"
+                    value={newVideoUrl}
+                    onChange={(e) => {
+                        setNewVideoUrl(e.target.value);
+                        // Optionally clear error if user starts typing
+                    }}
+                    placeholder="Enter YouTube or video URL to start or change the video"
+                    className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
+                    required
+                />
+            </div>
+            <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                Set Video
+            </Button>
+          </form>
+        )}
 
+        {/* Video History - conditionally hide when fullscreen */}
+        {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />}
+
+        {/* Video Player and Chat Container */}
         <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0">
           <div className="lg:flex-grow lg:w-3/4 min-h-0">
             <div className="relative w-full h-full">
