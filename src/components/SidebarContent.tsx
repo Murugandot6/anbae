@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ClearMessagesDialog from '@/components/ClearMessagesDialog';
+// ClearMessagesDialog is no longer imported here as it's moved to Sidebar.tsx
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 // ThemeToggle is no longer needed here as it's being removed from this component.
@@ -13,27 +13,15 @@ interface SidebarContentProps {
   partnerProfile: Profile | null;
   user: User | null;
   handleLogout: () => void;
-  onMessagesCleared: () => void;
+  onMessagesCleared: () => void; // Still needed for the prop, even if not directly used for the dialog trigger
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, partnerProfile, user, handleLogout, onMessagesCleared }) => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full w-full pt-4"> {/* Added pt-4 here */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2"> {/* Removed pt-0.5 from here */}
-          {user && (
-            <ClearMessagesDialog
-              partnerId={partnerProfile?.id || null}
-              partnerNickname={partnerProfile?.username || currentUserProfile?.partner_nickname || null}
-              currentUserId={user.id}
-              onMessagesCleared={onMessagesCleared}
-            />
-          )}
-        </div>
-        {/* ThemeToggle removed from here */}
-      </div>
+    <div className="flex flex-col h-full w-full pt-20"> {/* Adjusted pt-4 to pt-20 to make space for absolute positioned buttons */}
+      {/* ClearMessagesDialog was here, now moved to Sidebar.tsx */}
       <div className="flex items-center gap-3 mb-6">
         <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
           <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
