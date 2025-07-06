@@ -17,6 +17,7 @@ export interface ChatMessage {
   text: string;
   timestamp: number;
   isSystem?: boolean;
+  reactions?: string[]; // Added for emoji reactions
 }
 
 export interface VideoState {

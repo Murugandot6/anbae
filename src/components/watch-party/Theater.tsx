@@ -16,7 +16,7 @@ interface TheaterProps {
 }
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
-  const { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory } = useSupabaseRealtime(room.id, room.videoUrl, user);
+  const { videoState, sendVideoAction, messages, sendMessage, addReaction, changeVideoSource, videoHistory } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
@@ -107,6 +107,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           <Chat 
             messages={messages} 
             sendMessage={sendMessage} 
+            addReaction={addReaction} // Pass addReaction
             currentUser={user}
           />
         </div>

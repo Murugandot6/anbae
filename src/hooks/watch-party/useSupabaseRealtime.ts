@@ -62,7 +62,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         addSystemMessage(`Failed to load chat history: ${msgError.message}`);
       } else {
         const formattedMessages = msgData.map((msg: any) => ({
-          id: msg.id, author: msg.author_name, text: msg.text, timestamp: new Date(msg.created_at).getTime(),
+          id: msg.id, author: msg.author_name, text: msg.text, timestamp: new Date(msg.created_at).getTime(), reactions: msg.reactions || [],
         }));
         setMessages(formattedMessages);
       }
@@ -76,7 +76,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         const formattedHistory = historyData.map((item: any) => ({
           id: item.id, videoUrl: item.video_url, addedBy: item.user_name, timestamp: new Date(item.created_at).getTime(),
         }));
-        setVideoHistory(formattedHistory);
+        setVideoHistory(prev => [formattedHistory, ...prev]); // Ensure new items are at the top
       }
     };
     fetchInitialData();
@@ -88,8 +88,18 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'watch_party_chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
       const newMessage: any = payload.new;
       setMessages(prev => [...prev, {
-        id: newMessage.id, author: newMessage.author_name, text: newMessage.text, timestamp: new Date(newMessage.created_at).getTime(),
+        id: newMessage.id, author: newMessage.author_name, text: newMessage.text, timestamp: new Date(newMessage.created_at).getTime(), reactions: newMessage.reactions || [],
       }]);
+    });
+
+    // Subscription for updated chat messages (e.g., reactions)
+    channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'watch_party_chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
+      const updatedMessage: any = payload.new;
+      setMessages(prev => prev.map(msg => 
+        msg.id === updatedMessage.id 
+          ? { ...msg, reactions: updatedMessage.reactions || [] } 
+          : msg
+      ));
     });
 
     // Subscription for new video history entries
@@ -141,7 +151,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         channelRef.current = null;
       }
     };
-  }, [roomId, user.id, user.name, addSystemMessage, supabase]);
+  }, [roomId, user.id, user.name, addSystemMessage]);
 
   const sendVideoAction = useCallback((action: VideoAction) => {
     setVideoState(currentState => {
@@ -169,7 +179,34 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       console.error('Error sending message:', error.message);
       addSystemMessage(`Could not send message: ${error.message}`);
     }
-  }, [roomId, user.id, user.name, addSystemMessage, supabase]);
+  }, [roomId, user.id, user.name, addSystemMessage]);
+
+  const addReaction = useCallback(async (messageId: string, emoji: string) => {
+    // Fetch current reactions to append
+    const { data: currentMessage, error: fetchError } = await supabase
+      .from('watch_party_chat_messages')
+      .select('reactions')
+      .eq('id', messageId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching message for reaction:', fetchError.message);
+      return;
+    }
+
+    const currentReactions = currentMessage?.reactions || [];
+    const newReactions = [...currentReactions, emoji];
+
+    const { error: updateError } = await supabase
+      .from('watch_party_chat_messages')
+      .update({ reactions: newReactions })
+      .eq('id', messageId);
+
+    if (updateError) {
+      console.error('Error adding reaction:', updateError.message);
+      addSystemMessage(`Could not add reaction: ${updateError.message}`);
+    }
+  }, [addSystemMessage]);
 
   const changeVideoSource = useCallback(async (newUrl: string) => {
     if (!newUrl.trim()) return;
@@ -194,7 +231,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     }
     
     sendVideoAction({ type: 'source', payload: newUrl });
-  }, [roomId, user.id, user.name, supabase, sendVideoAction, addSystemMessage]);
+  }, [roomId, user.id, user.name, sendVideoAction, addSystemMessage]);
 
-  return { videoState, sendVideoAction, messages, sendMessage, changeVideoSource, videoHistory };
+  return { videoState, sendVideoAction, messages, sendMessage, addReaction, changeVideoSource, videoHistory };
 };
