@@ -47,9 +47,17 @@ const WaveRoomTheaterPage: React.FC = () => {
     if (roomCode) {
       setRoom(roomCode);
     }
-    // REMOVED: The cleanup function that sets room to null.
-    // The WaveRoomPlayerContext now manages roomCode persistence.
-  }, [roomCode, setRoom]);
+    // The cleanup function for this useEffect should set the room to null
+    // when the component unmounts (i.e., user navigates away from this page).
+    // This ensures the WaveRoomPlayerContext unsubscribes from the room.
+    return () => {
+      // Only clear the room if it's the one currently active in the player context
+      // This prevents clearing if the user navigates to another Wave Room
+      if (activePlayerRoomCode === roomCode) {
+        setRoom(null); 
+      }
+    };
+  }, [roomCode, setRoom, activePlayerRoomCode]); // Added activePlayerRoomCode to dependencies
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -124,9 +132,15 @@ const WaveRoomTheaterPage: React.FC = () => {
     setSelectedTag('');
   };
 
-  // Changed to navigate to dashboard
-  const handleBackToWaveRoom = () => {
+  const handleBackToDashboard = () => {
     navigate('/dashboard');
+  };
+
+  const handleLeaveRoom = () => {
+    clearStation(); // Stop playback and clear station from context
+    setRoom(null); // Disconnect from the room
+    navigate('/dashboard'); // Navigate to dashboard
+    toast.info("You have left the Wave Room.");
   };
 
   const buildTitle = (): string => {
@@ -162,7 +176,7 @@ const WaveRoomTheaterPage: React.FC = () => {
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button
-              onClick={handleBackToWaveRoom}
+              onClick={handleBackToDashboard}
               variant="ghost"
               size="icon"
               className="w-9 h-9 text-gray-400 hover:text-white"
@@ -186,7 +200,7 @@ const WaveRoomTheaterPage: React.FC = () => {
                     <Copy className="w-4 h-4"/>
                 </Button>
             </div>
-             <Button onClick={() => navigate('/dashboard')} variant="destructive" size="icon" className="w-9 h-9">
+             <Button onClick={handleLeaveRoom} variant="destructive" size="icon" className="w-9 h-9">
                 <LogOut className="w-4 h-4"/>
             </Button>
           </div>
