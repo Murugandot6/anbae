@@ -22,7 +22,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
   return (
     <div className="flex flex-col h-full w-full">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pt-0.5"> {/* Added pt-0.5 here */}
           {user && (
             <ClearMessagesDialog
               partnerId={partnerProfile?.id || null}
