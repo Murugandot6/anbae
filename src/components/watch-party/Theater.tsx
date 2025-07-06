@@ -101,8 +101,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow min-h-0"> {/* Added flex-grow min-h-0 */}
         <div className="lg:flex-grow lg:w-3/4 min-h-0">
-          {/* New wrapper div to control the aspect ratio and height */}
-          <div className="relative aspect-video w-full">
+          {/* Removed aspect-video from here */}
+          <div className="relative w-full h-full">
             <VideoPlayer 
               videoState={videoState} 
               sendVideoAction={sendVideoAction} 

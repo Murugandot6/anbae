@@ -5,7 +5,7 @@ import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
 import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
-import { cn } from '@/lib/utils'; // Import cn for conditional classes
+import { cn } from '@/lib/utils'; // Ensure cn is imported
 
 interface VideoPlayerProps {
   videoState: VideoState;
@@ -206,8 +206,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Determine player and chat container classes based on fullscreen and chat visibility
   const playerWrapperClasses = cn(
-    "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg",
-    !isFullScreen && "aspect-video", // Only apply aspect-video when not in fullscreen
+    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg", // Added h-full, removed aspect-video
     isFullScreen && "fixed inset-0 z-50 rounded-none flex", // Always flex in fullscreen
   );
 
