@@ -85,7 +85,8 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     };
     fetchInitialData();
 
-    const channel = supabase.channel(`room:${roomId}`, { config: { presence: { key: user.id } } });
+    // Changed: Removed presence config for testing broadcast listener
+    const channel = supabase.channel(`room:${roomId}`); 
     channelRef.current = channel;
 
     // Subscription for new chat messages
@@ -166,7 +167,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       if (status === 'SUBSCRIBED') {
         setIsConnectedToRealtime(true); // Set connected to true
         console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current); // New log
-        await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
+        // Removed channel.track for presence as presence config is removed
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
 
         // --- SELF-BROADCAST TEST ---
