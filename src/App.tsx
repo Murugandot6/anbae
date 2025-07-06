@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -35,38 +35,36 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <SessionContextProvider>
-              <WaveRoomPlayerProvider> {/* Wrap with the new provider */}
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
-                  <Route path="/promposal/:id" element={<ViewPromposal />} />
+          <SessionContextProvider>
+            <WaveRoomPlayerProvider> {/* Wrap with the new provider */}
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
+                <Route path="/promposal/:id" element={<ViewPromposal />} />
 
-                  {/* Protected Routes */}
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/journal" element={<Journal />} />
-                    <Route path="/send-message" element={<SendMessage />} />
-                    <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/messages/:id" element={<ViewMessage />} />
-                    <Route path="/watch-party" element={<WatchParty />} />
-                    <Route path="/promposal/create" element={<CreatePromposal />} />
-                    <Route path="/waveroom" element={<WaveRoomPage />} />
-                    <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
-                    <Route path="/manual" element={<UserManual />} /> {/* New route for User Manual */}
-                  </Route>
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/journal" element={<Journal />} />
+                  <Route path="/send-message" element={<SendMessage />} />
+                  <Route path="/edit-profile" element={<EditProfile />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/messages/:id" element={<ViewMessage />} />
+                  <Route path="/watch-party" element={<WatchParty />} />
+                  <Route path="/promposal/create" element={<CreatePromposal />} />
+                  <Route path="/waveroom" element={<WaveRoomPage />} />
+                  <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
+                  <Route path="/manual" element={<UserManual />} /> {/* New route for User Manual */}
+                </Route>
 
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <GlobalWaveRoomPlayer /> {/* Render the global player here */}
-              </WaveRoomPlayerProvider>
-            </SessionContextProvider>
-          </BrowserRouter>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <GlobalWaveRoomPlayer /> {/* Render the global player here */}
+            </WaveRoomPlayerProvider>
+          </SessionContextProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
