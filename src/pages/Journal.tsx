@@ -9,15 +9,7 @@ import { Trash2, ArrowLeft, CalendarDays } from 'lucide-react'; // Import Calend
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-interface JournalEntry {
-  id: string;
-  created_at: string;
-  heading: string | null;
-  mood: string | null;
-  content: string;
-  emoji: string | null;
-}
+import { JournalEntry } from '@/types/supabase'; // Import JournalEntry
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -89,7 +81,7 @@ const Journal = () => {
   };
 
   return (
-    <BackgroundWrapper>
+    <BackgroundWrapper className="pt-0 md:pt-0">
       <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex justify-between items-center mb-6">
           <div className="absolute top-4 left-4 z-10">

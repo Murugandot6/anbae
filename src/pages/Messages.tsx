@@ -209,8 +209,8 @@ const Messages = () => {
   };
 
   return (
-    <BackgroundWrapper className="justify-start items-start">
-      <div className="w-full max-w-2xl mx-auto pt-8">
+    <BackgroundWrapper className="pt-0 md:pt-0">
+      <div className="w-full max-w-2xl mx-auto pt-8 mt-16 md:mt-8"> {/* Changed pt-8 to mt-16 md:mt-8 */}
         <div className="flex justify-between items-center mb-6">
           {/* Replaced Link with Button for consistent styling and positioning */}
           <div className="absolute top-4 left-4 z-10">

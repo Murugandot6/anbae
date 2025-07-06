@@ -102,25 +102,27 @@ const WaveRoomPage: React.FC = () => {
   };
 
   return (
-    <BackgroundWrapper>
-      <div className="absolute top-4 left-4 z-10">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link to="/dashboard">
-              <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Back to Dashboard</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      <div className="text-center mb-12">
-        <Radio className="w-20 h-20 text-primary mx-auto mb-4" />
-        <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
-        <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
+    <BackgroundWrapper className="pt-0 md:pt-0">
+      <div className="relative w-full max-w-4xl mx-auto mt-16 md:mt-8 mb-12">
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 z-10">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/dashboard">
+                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Back to Dashboard</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="text-center">
+          <Radio className="w-20 h-20 text-primary mx-auto mb-4" />
+          <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
+        </div>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">

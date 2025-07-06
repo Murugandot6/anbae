@@ -12,8 +12,8 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <BackgroundWrapper>
-      <div className="w-full max-w-md bg-card/60 dark:bg-card/60 p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50 text-center">
+    <BackgroundWrapper className="pt-0 md:pt-0">
+      <div className="w-full max-w-md bg-card/60 dark:bg-card/60 p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50 text-center mt-16 md:mt-8">
         <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
         <p className="text-xl text-muted-foreground mb-6">Oops! Page not found</p>
         {/* Ensure positioning is absolute for top-left corner */}

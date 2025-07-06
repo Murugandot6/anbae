@@ -42,16 +42,6 @@ const EditProfile = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      nickname: '',
-      partner_email: '',
-      partner_nickname: '',
-      avatar_url: '',
-    },
-  });
-
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
@@ -154,8 +144,8 @@ const EditProfile = () => {
   }
 
   return (
-    <BackgroundWrapper>
-      <div className="w-full max-w-md bg-card/60 dark:bg-card/60 p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50">
+    <BackgroundWrapper className="pt-0 md:pt-0">
+      <div className="w-full max-w-md bg-card/60 dark:bg-card/60 p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50 mt-16 md:mt-8">
         <div className="text-center mb-6">
           <User className="w-12 h-12 text-primary mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-foreground mb-2">Edit Your Profile</h2>
