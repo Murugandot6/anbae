@@ -31,9 +31,16 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // Ref to store the current user's ID to avoid processing their own broadcasts
+  const userIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    userIdRef.current = user?.id || null;
+  }, [user]);
+
   // Effect to setup and teardown the real-time subscription
   useEffect(() => {
     const setupRoom = async (code: string) => {
+      // 1. Fetch initial state from DB for new joiners
       const { data, error } = await supabase
         .from('wave_rooms')
         .select('current_station, is_playing')
@@ -50,23 +57,17 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
       setIsPlaying(data.is_playing);
       setIsConnectedToRoom(true);
 
-      const channel = supabase.channel(`db-room-${code}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'wave_rooms',
-            filter: `code=eq.${code}`
-          },
-          (payload) => {
-            const { current_station, is_playing } = payload.new;
-            setCurrentStation(current_station);
-            setIsPlaying(is_playing);
+      // 2. Subscribe to BROADCAST messages for real-time updates
+      const channel = supabase.channel(`room:${code}`) // Using a simpler channel name for broadcast
+        .on('broadcast', { event: 'wave_room_state_update' }, (payload) => {
+          // Only update if the broadcast came from another user
+          if (payload.payload.senderId !== userIdRef.current) {
+            setCurrentStation(payload.payload.newState);
+            setIsPlaying(payload.payload.isPlaying);
           }
-        )
+        })
         .subscribe((status, err) => {
-            if (status === 'SUBSCRIBE') {
+            if (status === 'SUBSCRIBED') {
                 setIsConnectedToRoom(true);
             }
             if (status === 'CHANNEL_ERROR' || err) {
@@ -124,10 +125,11 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, [currentStation, isPlaying]);
 
-  // Function to update the database
-  const updateDatabaseState = useCallback(async (station: Station | null, playStatus: boolean) => {
-    if (!activeRoomCode) return;
+  // Function to update the database AND broadcast the state
+  const syncState = useCallback(async (station: Station | null, playStatus: boolean) => {
+    if (!activeRoomCode || !user) return;
 
+    // Clean the station object before saving to DB and broadcasting
     const stationToSave = station ? {
         stationuuid: station.stationuuid,
         name: station.name,
@@ -138,23 +140,33 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         tags: station.tags,
     } : null;
 
-    const { error } = await supabase
+    // Update database for persistence
+    const { error: dbError } = await supabase
       .from('wave_rooms')
       .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
       .eq('code', activeRoomCode);
     
-    if (error) {
-        toast.error(`Failed to update room state: ${error.message}`);
+    if (dbError) {
+        toast.error(`Failed to save room state: ${dbError.message}`);
     }
-  }, [activeRoomCode]);
+
+    // Broadcast state to other clients
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'wave_room_state_update',
+        payload: { newState: stationToSave, isPlaying: playStatus, senderId: user.id },
+      });
+    }
+  }, [activeRoomCode, user]);
 
   // Action: Set a new station
   const setStation = useCallback((station: Station) => {
     setLocalUserHasInteracted(false);
     setCurrentStation(station); // Optimistic update
     setIsPlaying(true);         // Optimistic update
-    updateDatabaseState(station, true);
-  }, [updateDatabaseState]);
+    syncState(station, true); // Use the new syncState function
+  }, [syncState]);
 
   // Action: Toggle play/pause
   const togglePlay = useCallback(() => {
@@ -165,27 +177,28 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         setLocalUserHasInteracted(true);
     }
 
-    if (audio && audio.paused) {
-        audio.play().catch(e => toast.error("Could not start playback."));
-        if (!isPlaying) {
-            setIsPlaying(true); // Optimistic update
-            updateDatabaseState(currentStation, true);
+    const newPlayStatus = !isPlaying; // Determine new status based on current local state
+    
+    if (audio) {
+        if (newPlayStatus) {
+            audio.play().catch(e => toast.error("Could not start playback."));
+        } else {
+            audio.pause();
         }
-    } else {
-        audio?.pause();
-        setIsPlaying(false); // Optimistic update
-        updateDatabaseState(currentStation, false);
     }
-  }, [currentStation, isPlaying, updateDatabaseState, localUserHasInteracted]);
+    
+    setIsPlaying(newPlayStatus); // Optimistic update
+    syncState(currentStation, newPlayStatus); // Use the new syncState function
+  }, [currentStation, isPlaying, syncState, localUserHasInteracted]);
 
   // Action: Clear the player
   const clearStation = useCallback(() => {
     setCurrentStation(null); // Optimistic update
     setIsPlaying(false);     // Optimistic update
     if (activeRoomCode) {
-        updateDatabaseState(null, false);
+        syncState(null, false); // Use the new syncState function
     }
-  }, [updateDatabaseState, activeRoomCode]);
+  }, [activeRoomCode, syncState]);
 
   const setRoom = useCallback((code: string | null) => {
     setActiveRoomCode(code);
