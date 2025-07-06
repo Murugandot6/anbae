@@ -57,6 +57,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   }, []);
 
   useEffect(() => {
+    console.log(`[Realtime Debug] Setting up channel for room: ${roomId}`); // New log
     const fetchInitialData = async () => {
       // Fetch chat messages
       const { data: msgData, error: msgError } = await supabase.from('watch_party_chat_messages').select('*').eq('room_id', roomId).order('created_at', { ascending: true });
@@ -155,8 +156,10 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     }));
 
     channel.subscribe(async (status, err) => { // Added err parameter
+      console.log(`[Realtime Debug] Channel subscription status: ${status}`); // New log
       if (status === 'SUBSCRIBED') {
         setIsConnectedToRealtime(true); // Set connected to true
+        console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current); // New log
         await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') { // Handle other error states
@@ -213,6 +216,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   const sendVideoReaction = useCallback((emoji: string) => {
     if (channelRef.current && isConnectedToRealtime) { // Only send if connected
       console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); 
+      console.log(`[Reaction Debug] Channel ref current before send:`, channelRef.current); // New log
       channelRef.current.send({
         type: 'broadcast',
         event: 'video_reaction',
