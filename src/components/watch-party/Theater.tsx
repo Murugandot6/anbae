@@ -8,6 +8,7 @@ import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface TheaterProps {
   room: Room;
@@ -16,6 +17,7 @@ interface TheaterProps {
 }
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
+  const navigate = useNavigate(); // Initialize useNavigate
   const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
@@ -41,11 +43,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         {/* Back button on the left */}
         <div className="flex-shrink-0">
           <Button
-            onClick={onLeaveRoom}
+            onClick={() => navigate('/dashboard')} // Changed to navigate directly to dashboard
             variant="outline"
             size="icon"
             className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-            aria-label="Leave room"
+            aria-label="Back to Dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
