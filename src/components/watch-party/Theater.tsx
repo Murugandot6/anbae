@@ -99,7 +99,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
-      {/* Updated: Added items-stretch to make children match height */}
       <div className="flex flex-col lg:flex-row gap-6 items-stretch">
         <div className="lg:flex-grow lg:w-3/4">
           <VideoPlayer 
@@ -113,8 +112,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             isConnectedToRealtime={isConnectedToRealtime}
           />
         </div>
-        {/* Updated: Removed fixed height classes */}
-        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0">
+        {/* Added h-full to ensure this div stretches to the height of the video player */}
+        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-full">
           <Chat 
             messages={messages} 
             sendMessage={sendMessage} 
