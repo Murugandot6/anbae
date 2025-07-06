@@ -39,12 +39,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col h-full"> {/* Added flex flex-col h-full here */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* Added flex-shrink-0 */}
+    <div className="max-w-7xl mx-auto flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         {/* Back button on the left */}
         <div className="flex-shrink-0">
           <Button
-            onClick={() => navigate('/dashboard')} // Changed to navigate directly to dashboard
+            onClick={() => navigate('/dashboard')}
             variant="outline"
             size="icon"
             className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
@@ -73,7 +73,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         </div>
       </div>
 
-      <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"> {/* Added flex-shrink-0 */}
+      <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0">
         <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
         <div className="relative w-full">
             <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
@@ -99,11 +99,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
-      {/* Blue Border Debugging: Container for video and chat */}
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0 border-4 border-blue-500"> {/* Added h-full min-h-0 */}
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0">
         <div className="lg:flex-grow lg:w-3/4 min-h-0">
-          {/* Removed h-full from here */}
-          <div className="relative aspect-video w-full">
+          <div className="relative w-full h-full"> {/* Changed aspect-video to h-full */}
             <VideoPlayer 
               videoState={videoState} 
               sendVideoAction={sendVideoAction} 

@@ -42,8 +42,8 @@ const App = () => {
             <Sonner />
             <SessionContextProvider>
               <WaveRoomPlayerProvider>
-                {/* Red Border Debugging: Top-level container */}
-                <div className="flex flex-col h-screen border-4 border-red-500">
+                {/* Removed Red Border Debugging */}
+                <div className="flex flex-col h-screen">
                   <Suspense fallback={
                     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
                       <p className="text-xl">Loading application...</p>
