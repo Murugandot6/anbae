@@ -6,7 +6,6 @@ import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-reac
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
-// Removed ThemeToggle import
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
@@ -196,74 +195,57 @@ const Dashboard = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-8">
-              {/* Current User Profile Card */}
-              <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-lg p-6 flex flex-col items-center text-center w-full md:w-1/2 lg:w-1/3 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] rounded-xl">
-                <CardHeader className="p-0 pb-4">
-                  <CardTitle className="text-xl font-semibold text-foreground">You</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex flex-col items-center">
-                  <div className="relative mb-4">
-                    <CircularProgressAvatar
-                      score={currentUserProfile?.lifetime_score ?? 100}
-                      avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
-                      fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
-                      altText="Your Avatar"
-                      size="lg" // Increased size
-                    />
-                    {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null && (
-                      <Badge className="absolute top-0 left-0 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-md">
-                        I
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="font-semibold text-lg text-foreground">
-                    {user.user_metadata.nickname || user.email}
-                  </p>
-                  <p className="text-base font-semibold text-muted-foreground">
-                    Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <div className="flex-shrink-0">
-                <Heart className="w-12 h-12 text-primary dark:text-secondary" /> {/* Larger heart icon */}
+            <div className="grid grid-cols-3 items-center justify-center gap-x-4 mb-8">
+              {/* Current User Profile */}
+              <div className="relative flex flex-col items-center text-center">
+                <CircularProgressAvatar
+                  score={currentUserProfile?.lifetime_score ?? 100}
+                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                  altText="Your Avatar"
+                  size="md"
+                />
+                <Badge className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-bold shadow-md">
+                  I
+                </Badge>
+                <p className="font-semibold text-lg text-foreground mt-2">
+                  {user.user_metadata.nickname || user.email}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
+                </p>
               </div>
 
-              {/* Partner Profile Card */}
-              <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-lg p-6 flex flex-col items-center text-center w-full md:w-1/2 lg:w-1/3 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] rounded-xl">
-                <CardHeader className="p-0 pb-4">
-                  <CardTitle className="text-xl font-semibold text-foreground">Partner</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex flex-col items-center">
-                  {partnerProfile ? (
-                    <>
-                      <div className="relative mb-4">
-                        <CircularProgressAvatar
-                          score={partnerProfile.lifetime_score ?? 100}
-                          avatarUrl={partnerProfile.avatar_url}
-                          fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
-                          altText="Partner Avatar"
-                          size="lg" // Increased size
-                        />
-                        {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null && (
-                          <Badge className="absolute bottom-0 right-0 transform -translate-x-1/4 -translate-y-1/4 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-md">
-                            U
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="font-semibold text-lg text-foreground">
-                        {partnerProfile.username || partnerProfile.email}
-                      </p>
-                      <p className="text-base font-semibold text-muted-foreground">
-                        Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground text-base py-8">No partner profile linked or found.</p>
-                  )}
-                </CardContent>
-              </Card>
+              {/* Heart Icon */}
+              <div className="flex items-center justify-center">
+                <Heart className="w-12 h-12 text-primary dark:text-secondary" />
+              </div>
+
+              {/* Partner Profile */}
+              <div className="relative flex flex-col items-center text-center">
+                {partnerProfile ? (
+                  <>
+                    <CircularProgressAvatar
+                      score={partnerProfile.lifetime_score ?? 100}
+                      avatarUrl={partnerProfile.avatar_url}
+                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                      altText="Partner Avatar"
+                      size="md"
+                    />
+                    <Badge className="absolute top-0 right-0 bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs font-bold shadow-md">
+                      U
+                    </Badge>
+                    <p className="font-semibold text-lg text-foreground mt-2">
+                      {partnerProfile.username || partnerProfile.email}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground text-base py-8">No partner profile linked or found.</p>
+                )}
+              </div>
             </div>
 
             {/* Mood Calendar */}
