@@ -16,7 +16,6 @@ interface VideoPlayerProps {
   sendVideoReaction: (emoji: string) => void; // New prop for sending reactions
   activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
   isConnectedToRealtime: boolean; // New prop for real-time connection status
-  isFullScreen: boolean; // New prop: received from parent
   onToggleFullscreen: () => void; // New prop: received from parent
 }
 
@@ -27,7 +26,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, isFullScreen, onToggleFullscreen }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen }) => {
   const playerRef = useRef<ReactPlayer>(null);
   
   const [isMuted, setIsMuted] = useState(true);
@@ -95,11 +94,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // No longer listening for fullscreenchange here, parent handles it.
   useEffect(() => {
-    if (!isFullScreen) {
+    // Check if document.fullscreenElement is null, meaning we exited fullscreen
+    if (!document.fullscreenElement) {
       setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
     }
-  }, [isFullScreen]);
-
+  }, []); // Removed isFullScreen from dependencies, relying on document.fullscreenElement
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -166,11 +165,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       window.clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (videoState.isPlaying && !isFullScreen) { // Only hide controls if not in fullscreen
+      if (videoState.isPlaying && !document.fullscreenElement) { // Only hide controls if not in fullscreen
         setShowControls(false);
       }
     }, 3000);
-  }, [videoState.isPlaying, isFullScreen]);
+  }, [videoState.isPlaying]); // Removed isFullScreen from dependencies
 
   // Attach mousemove listener to the main player container
   const playerWrapperRef = useRef<HTMLDivElement>(null);
@@ -189,13 +188,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Player wrapper classes now just fill its parent
   const playerWrapperClasses = cn(
-    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg border-2 border-blue-500", // Debug: Blue border
+    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg",
   );
 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
-    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg border-2 border-blue-500", // Debug: Blue border
-    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden"
+    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
+    document.fullscreenElement && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden"
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
@@ -289,7 +288,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || isFullScreen ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -347,7 +346,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {isFullScreen && ( // Chat toggle button moved here
+                  {document.fullscreenElement && ( // Chat toggle button moved here
                     <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                       <MessageSquare className="w-5 h-5" />
                     </button>
@@ -361,7 +360,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           </div>
           
           {/* Fullscreen Chat - now part of the flex container */}
-          {isFullScreen && showFullscreenChat && (
+          {document.fullscreenElement && showFullscreenChat && (
             <div className={chatContainerClasses}>
               <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} onClose={() => setShowFullscreenChat(false)} />
             </div>
