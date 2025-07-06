@@ -4,27 +4,27 @@ import { Station } from '../types';
 import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '../api/radioService';
 import SearchBar from '../components/SearchBar';
 import StationList from '../components/StationList';
-import AudioPlayer from '../components/AudioPlayer';
+import WaveRoomControls from '../components/WaveRoomControls'; // Renamed from AudioPlayer
 import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
-import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime'; // Updated hook import
+import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime';
+import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext'; // Import the new context
 import { Button } from '@/components/ui/button';
-import { Copy, LogOut, ArrowLeft } from 'lucide-react'; // Import ArrowLeft icon
+import { Copy, LogOut, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 
-interface RoomPageProps { // Renamed interface
-  roomCode: string;
-  onLeaveRoom: () => void;
-}
-
-const WaveRoomTheaterPage: React.FC = () => { // Renamed component
+const WaveRoomTheaterPage: React.FC = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   
-  const { roomState, setStation, togglePlay, clearStation, audioRef, isConnected } = useWaveRoomRealtime(roomCode!); // Updated hook usage
+  // Use the WaveRoomRealtime hook to manage Supabase sync
+  const { setStation: setRealtimeStation, togglePlay: toggleRealtimePlay, clearStation: clearRealtimeStation } = useWaveRoomRealtime(roomCode!);
   
+  // Use the WaveRoomPlayer context to get the current playback state
+  const { currentStation, isPlaying, roomCode: activePlayerRoomCode } = useWaveRoomPlayer();
+
   const [stations, setStations] = useState<Station[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState<boolean>(true);
   const [stationsError, setStationsError] = useState<string | null>(null);
@@ -34,7 +34,6 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
 
-  // Define state variables for filter options
   const [languages, setLanguages] = useState<string[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -93,7 +92,7 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
 
   const handleSelectStation = (station: Station) => {
     if (station.url_resolved) {
-      setStation(station);
+      setRealtimeStation(station); // Use the realtime hook to set station
     } else {
       toast.error(`Station ${station.name} does not have a valid stream URL.`);
     }
@@ -107,7 +106,7 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
     setTimeout(() => setCopied(false), 2000);
   };
   
-  const handleShowStationInList = (station: Station) => { // Added from old RoomPage
+  const handleShowStationInList = (station: Station) => {
     setSearchQuery(station.name);
     setSelectedLanguage('');
     setSelectedCountry('');
@@ -115,8 +114,8 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
   };
 
   const handleBackToWaveRoom = () => {
-    clearStation(); // Stop the audio playback
-    navigate('/waveroom'); // Navigate back to the room selection page
+    // No need to clearStation here, as the global player will persist
+    navigate('/waveroom');
   };
 
   const buildTitle = (): string => {
@@ -140,11 +139,12 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
     return null;
   }
 
-  const { current_station: currentStation, is_playing: isPlaying } = roomState;
+  // Check if the global player is currently playing a station from THIS room
+  const isCurrentRoomActive = activePlayerRoomCode === roomCode;
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
-      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" /> {/* Audio element moved here */}
+      {/* Audio element is now in GlobalWaveRoomPlayer */}
       <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -192,7 +192,6 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
               tags={tags}
               selectedLanguage={selectedLanguage}
               selectedCountry={selectedCountry}
-              selectedTag={selectedTag}
               onFilterChange={(type, val) => {
                 if(type === 'language') setSelectedLanguage(val);
                 if(type === 'country') setSelectedCountry(val);
@@ -204,14 +203,23 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
           <StationList
             stations={stations}
             onSelectStation={handleSelectStation}
-            currentStation={currentStation}
+            currentStation={isCurrentRoomActive ? currentStation : null} // Only highlight if it's the active room's station
             isLoading={isStationsLoading}
             error={stationsError}
           />
         </div>
       </main>
 
-      {currentStation && <AudioPlayer station={currentStation} isPlaying={isPlaying} onSetPlaying={togglePlay} onClear={clearStation} audioRef={audioRef} onShowStation={handleShowStationInList} />}
+      {/* WaveRoomControls now receives props from the global context */}
+      {isCurrentRoomActive && currentStation && (
+        <WaveRoomControls
+          station={currentStation}
+          isPlaying={isPlaying}
+          onSetPlaying={() => toggleRealtimePlay()}
+          onClear={() => clearRealtimeStation()}
+          onShowStation={handleShowStationInList}
+        />
+      )}
     </div>
   );
 };

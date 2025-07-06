@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { RoomState, Station } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext'; // Import the new context
 
 // --- Singleton Channel Manager ---
 // This manager ensures only one channel connection, state, and set of action handlers exists per room code.
@@ -14,16 +15,16 @@ interface RoomManager {
   connectionSubscribers: Set<React.Dispatch<React.SetStateAction<boolean>>>;
   refCount: number;
   // Action methods are now part of the manager
-  setStation: (station: Station) => void;
-  setPlaying: (shouldPlay: boolean) => void;
-  clearStation: () => void;
+  // These methods will now only interact with Supabase, not directly with audio
+  syncStateToDbAndBroadcast: (station: Station | null, playStatus: boolean) => Promise<void>;
 }
 
 const roomManagers: Map<string, RoomManager> = new Map();
 
 const getManager = (
   roomCode: string,
-  initialState: RoomState
+  initialState: RoomState,
+  onIncomingStateUpdate: (newState: RoomState) => void // Callback to update global player
 ): RoomManager => {
   if (roomManagers.has(roomCode)) {
     return roomManagers.get(roomCode)!;
@@ -49,55 +50,33 @@ const getManager = (
     manager.connectionSubscribers!.forEach(setConnection => setConnection(manager.isConnected!));
   }
 
-  const handleIncomingUpdate = (payload: { state: RoomState }) => {
-    manager.state = payload.state;
-    notifyStateChange();
-  };
+  // This function is now part of the manager and handles DB update + broadcast
+  manager.syncStateToDbAndBroadcast = async (station: Station | null, playStatus: boolean) => {
+    const newState = { current_station: station, is_playing: playStatus, timestamp: Date.now() };
+    manager.state = newState; // Update manager's internal state immediately
 
-  const syncState = async (newState: RoomState) => {
-    if (!manager.channel || !supabase) return;
     try {
       const dbResult = await supabase
         .from('wave_rooms')
         .upsert([{
-          code: roomCode, // Changed 'room_code' to 'code' to match DB schema
+          code: roomCode,
           current_station: newState.current_station,
-          is_playing: newState.is_playing
-        }], { onConflict: 'code' }); // Changed 'room_code' to 'code'
+          is_playing: newState.is_playing,
+          updated_at: new Date().toISOString(), // Ensure updated_at is set
+        }], { onConflict: 'code' });
       if (dbResult.error) throw new Error(`DB Error: ${dbResult.error.message}`);
       
-      const broadcastResult = await manager.channel.send({
+      const broadcastResult = await manager.channel!.send({
         type: 'broadcast',
         event: 'state_update',
         payload: { state: newState },
       });
       if (broadcastResult === 'error') throw new Error('Broadcast failed');
     } catch (error) {
-      // Errors are now handled silently in production.
+      console.error('Error syncing state to DB and broadcasting:', error);
+      // In production, you might want to toast an error here, but for a shared state,
+      // it's often better to let the UI reflect the last known good state.
     }
-  };
-
-  // Centralize action logic within the manager
-  manager.setStation = (station: Station) => {
-    const newState = { current_station: station, is_playing: true, timestamp: Date.now() }; // Added timestamp
-    manager.state = newState;
-    notifyStateChange();
-    syncState(newState);
-  };
-
-  manager.setPlaying = (shouldPlay: boolean) => {
-    if (!manager.state?.current_station) return;
-    const newState = { ...manager.state, is_playing: shouldPlay, timestamp: Date.now() }; // Added timestamp
-    manager.state = newState;
-    notifyStateChange();
-    syncState(newState);
-  };
-
-  manager.clearStation = () => {
-    const newState = { current_station: null, is_playing: false, timestamp: Date.now() }; // Added timestamp
-    manager.state = newState;
-    notifyStateChange();
-    syncState(newState);
   };
 
   const channel = supabase.channel(`room:${roomCode}`, {
@@ -106,7 +85,13 @@ const getManager = (
 
   channel
     .on('broadcast', { event: 'state_update' }, ({ payload }) => {
-      handleIncomingUpdate(payload as { state: RoomState });
+      const incomingState = payload.state as RoomState;
+      // Only update if the incoming state is newer or if it's a clear command
+      if (incomingState.timestamp > (manager.state?.timestamp || 0) || incomingState.current_station === null) {
+        manager.state = incomingState;
+        notifyStateChange();
+        onIncomingStateUpdate(incomingState); // Notify global player context
+      }
     })
     .subscribe(async (status) => {
         const newIsConnected = status === 'SUBSCRIBED';
@@ -118,24 +103,23 @@ const getManager = (
       if (status === 'SUBSCRIBED') {
         const { data, error } = await supabase
           .from('wave_rooms')
-          .select('code, created_at, current_station, is_playing') // Changed 'room_code' to 'code'
-          .eq('code', roomCode) // Changed 'room_code' to 'code'
+          .select('code, current_station, is_playing')
+          .eq('code', roomCode)
           .single();
         
         if (error && error.code !== 'PGRST116') { // PGRST116: no rows found
+             console.error('Error fetching initial room state from DB:', error.message);
              return;
         }
 
-        if (data) {
-          manager.state = {
-            current_station: data.current_station,
-            is_playing: data.is_playing,
-            timestamp: Date.now(), // Set timestamp on initial fetch
-          };
-        } else {
-          await syncState(initialState);
-        }
+        const fetchedState: RoomState = {
+          current_station: data?.current_station || null,
+          is_playing: data?.is_playing || false,
+          timestamp: Date.now(), // Set timestamp on initial fetch
+        };
+        manager.state = fetchedState;
         notifyStateChange();
+        onIncomingStateUpdate(fetchedState); // Notify global player context
       }
     });
 
@@ -157,18 +141,32 @@ const destroyManager = (roomCode: string) => {
 const initialState: RoomState = {
   current_station: null,
   is_playing: false,
-  timestamp: Date.now(), // Added timestamp
+  timestamp: Date.now(),
 };
 
-export const useWaveRoomRealtime = (roomCode: string) => { // Renamed hook
+export const useWaveRoomRealtime = (roomCode: string) => {
   const [roomState, setRoomState] = useState<RoomState>(initialState);
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  
+  const { setStation: setGlobalStation, togglePlay: toggleGlobalPlay, clearStation: clearGlobalStation } = useWaveRoomPlayer();
 
   useEffect(() => {
-    if (!supabase) return; // Simplified check
+    if (!supabase) return;
 
-    const manager = getManager(roomCode, initialState);
+    const manager = getManager(roomCode, initialState, (newState) => {
+      // Callback to update the global player context when a state update is received
+      setGlobalStation(newState.current_station!, roomCode); // Pass roomCode to setStation
+      if (newState.current_station) {
+        // Only toggle play if there's a station and the state indicates playing
+        if (newState.is_playing) {
+          setGlobalStation(newState.current_station, roomCode); // Ensure station is set and playing
+        } else {
+          toggleGlobalPlay(roomCode); // Just toggle play/pause
+        }
+      } else {
+        clearGlobalStation(roomCode); // Clear if no station
+      }
+    });
     manager.refCount++;
     
     // Set initial state from manager
@@ -187,55 +185,38 @@ export const useWaveRoomRealtime = (roomCode: string) => { // Renamed hook
         destroyManager(roomCode);
       }
     };
-  }, [roomCode]);
+  }, [roomCode, setGlobalStation, toggleGlobalPlay, clearGlobalStation]);
 
-   // Handle audio playback based on shared state
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (roomState.current_station?.url_resolved) {
-      if (audio.src !== roomState.current_station.url_resolved) {
-        audio.src = roomState.current_station.url_resolved;
-      }
-      if (roomState.is_playing) {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {}); // Autoplay was prevented.
-        }
-      }
-      else {
-        audio.pause();
-      }
-    } else {
-      audio.pause();
-      audio.src = '';
-    }
-  }, [roomState.current_station?.stationuuid, roomState.is_playing]);
-
-
-  // These functions now call the centralized methods on the manager
+  // These functions now call the centralized methods on the manager to sync with Supabase
   const setStation = useCallback((station: Station) => {
     const manager = roomManagers.get(roomCode);
-    manager?.setStation(station);
-  }, [roomCode]);
+    if (manager) {
+      manager.syncStateToDbAndBroadcast(station, true);
+      setGlobalStation(station, roomCode); // Also update global player immediately
+    }
+  }, [roomCode, setGlobalStation]);
   
-  const togglePlay = useCallback(() => { // Renamed from setPlaying
+  const togglePlay = useCallback(() => {
     const manager = roomManagers.get(roomCode);
-    manager?.setPlaying(!roomState.is_playing); // Pass the toggled state
-  }, [roomCode, roomState.is_playing]); // Added roomState.is_playing to dependencies
+    if (manager) {
+      manager.syncStateToDbAndBroadcast(manager.state.current_station, !manager.state.is_playing);
+      toggleGlobalPlay(roomCode); // Also update global player immediately
+    }
+  }, [roomCode, toggleGlobalPlay]);
 
   const clearStation = useCallback(() => {
     const manager = roomManagers.get(roomCode);
-    manager?.clearStation();
-  }, [roomCode]);
+    if (manager) {
+      manager.syncStateToDbAndBroadcast(null, false);
+      clearGlobalStation(roomCode); // Also update global player immediately
+    }
+  }, [roomCode, clearGlobalStation]);
 
   return { 
     roomState, 
     setStation, 
-    togglePlay, // Renamed
+    togglePlay,
     clearStation, 
-    audioRef,
     isConnected
   };
 };

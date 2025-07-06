@@ -7,63 +7,32 @@ import { XIcon } from './icons/XIcon';
 import { VolumeUpIcon } from './icons/VolumeUpIcon';
 import { VolumeOffIcon } from './icons/VolumeOffIcon';
 
-interface AudioPlayerProps {
+interface WaveRoomControlsProps { // Renamed interface
   station: Station;
   isPlaying: boolean;
-  onSetPlaying: (shouldPlay: boolean) => void;
+  onSetPlaying: (shouldPlay: boolean) => void; // Simplified to just toggle
   onClear: () => void;
   onShowStation: (station: Station) => void;
-  audioRef: React.RefObject<HTMLAudioElement>;
+  // audioRef is no longer needed here as audio is managed globally
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onSetPlaying, onClear, onShowStation, audioRef }) => {
-  const [error, setError] = useState<string | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-
-  // Effect to clear the error message when the station changes
-  useEffect(() => {
-    setError(null);
-  }, [station.stationuuid]);
-
-  // Effect to handle muting
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.muted = isMuted;
-    }
-  }, [isMuted, audioRef]);
-
-  // Effect to handle audio element's native errors (e.g., stream offline)
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleError = () => {
-      setError('Error loading stream. The station may be offline.');
-      if (isPlaying) {
-        onSetPlaying(false); // Sync error state to other clients
-      }
-    };
-    audio.addEventListener('error', handleError);
-    return () => audio.removeEventListener('error', handleError);
-  }, [audioRef, isPlaying, onSetPlaying]);
-
+const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying, onSetPlaying, onClear, onShowStation }) => {
+  const [isMuted, setIsMuted] = useState(false); // Mute state is local to this UI component
 
   // Handler for direct user interaction to comply with browser policies
   const handlePlayPauseClick = () => {
-    onSetPlaying(!isPlaying);
+    onSetPlaying(!isPlaying); // Call the passed toggle function
   };
 
   const handleClear = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.src = ''; // Stop buffering
-    }
-    onClear();
+    onClear(); // Call the passed clear function
   };
   
-  const toggleMute = () => setIsMuted(prev => !prev);
+  const toggleMute = () => {
+    setIsMuted(prev => !prev);
+    // Note: Actual audio muting is handled by the GlobalWaveRoomPlayer component
+    // which has access to the audioRef. This component only controls its local UI state.
+  };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
   const language = station.language?.split(',')[0].trim();
@@ -100,7 +69,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onSetPlay
                 <p className="text-sm text-gray-400 truncate" title={country}>{country}</p>
                 {language && <p className="text-xs text-gray-500 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
               </div>
-              {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+              {/* Error display removed as it's handled by the global player now */}
             </div>
           </button>
           <div className="flex items-center gap-4">
@@ -120,4 +89,4 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ station, isPlaying, onSetPlay
   );
 };
 
-export default AudioPlayer;
+export default WaveRoomControls; // Export with new name
