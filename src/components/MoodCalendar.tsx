@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { format, isSameDay } from 'date-fns';
 import { CalendarDays } from 'lucide-react';
 import JournalEntryDialog from './JournalEntryDialog';
+import { DayContentProps } from 'react-day-picker'; // Import DayContentProps
 
 interface JournalEntry {
   id: string;
@@ -63,11 +64,12 @@ const MoodCalendar = () => {
     }
   };
 
-  const DayWithMood = ({ date }: { date: Date }) => {
+  // Updated DayWithMood component to correctly render children (the day number)
+  const DayWithMood = ({ date, children }: DayContentProps) => {
     const dayEntry = entries.find(entry => isSameDay(new Date(entry.created_at), date));
     return (
       <div className="relative w-full h-full flex items-center justify-center">
-        <span>{format(date, 'd')}</span>
+        {children} {/* Render the default day number */}
         {dayEntry && (
           <span className="absolute text-2xl flex items-center justify-center w-full h-full opacity-80">{dayEntry.emoji}</span>
         )}
