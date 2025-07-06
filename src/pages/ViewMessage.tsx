@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, XCircle, Send } from 'lucide-react';
-import { Separator } => '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Session } from '@supabase/supabase-js';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
-import EmojiPickerPopover from '@/components/EmojiPickerPopover';
+import EmojiPickerPopover from '@/components/EmojiPicker/EmojiPickerPopover';
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -176,6 +176,8 @@ const ViewMessage = () => {
           filter: `id=eq.${id}.or.parent_message_id=eq.${id}`
         },
         async (payload) => {
+          const newMessage = payload.new as Message;
+
           if (payload.eventType === 'UPDATE' && payload.old.id === id) {
             const updatedMessage = payload.new as Message;
             setMessage(prev => {
