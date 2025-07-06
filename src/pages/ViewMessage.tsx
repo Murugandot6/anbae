@@ -237,11 +237,14 @@ const ViewMessage = () => {
       return;
     }
 
+    const authorName = user.user_metadata.nickname || user.email || 'Unknown User'; // Get author name
+
     try {
       const { data, error } = await supabase.from('messages').insert({
-        user_id: user.id, // Added user_id here
+        user_id: user.id,
         sender_id: user.id,
         receiver_id: replyReceiverId,
+        author_name: authorName, // Added author_name here
         subject: `Re: ${message.subject}`,
         content: values.replyContent,
         message_type: 'Reply',
@@ -259,25 +262,25 @@ const ViewMessage = () => {
         setMessage(prev => {
           if (!prev) return null;
 
-          const isCurrentUserSenderOfReply = data.sender_id === user.id; // Use data.sender_id for the new reply
+          const isCurrentUserSenderOfReply = data.sender_id === user.id;
           
           const newReply: Message = {
             ...data,
             senderProfile: isCurrentUserSenderOfReply
               ? {
                   id: user.id,
-                  username: user.user_metadata.nickname ?? null, // Fix: Use nullish coalescing
-                  email: user.email ?? null, // Fix: Use nullish coalescing
-                  avatar_url: user.user_metadata.avatar_url ?? null, // Fix: Use nullish coalescing
+                  username: user.user_metadata.nickname ?? null,
+                  email: user.email ?? null,
+                  avatar_url: user.user_metadata.avatar_url ?? null,
                 }
-              : prev.senderProfile, // If not current user, it's the original sender
+              : prev.senderProfile,
             receiverProfile: isCurrentUserSenderOfReply
-              ? prev.receiverProfile // If current user is sender, receiver is original receiver
+              ? prev.receiverProfile
               : {
                   id: user.id,
-                  username: user.user_metadata.nickname ?? null, // Fix: Use nullish coalescing
-                  email: user.email ?? null, // Fix: Use nullish coalescing
-                  avatar_url: user.user_metadata.avatar_url ?? null, // Fix: Use nullish coalescing
+                  username: user.user_metadata.nickname ?? null,
+                  email: user.email ?? null,
+                  avatar_url: user.user_metadata.avatar_url ?? null,
                 },
           };
 
