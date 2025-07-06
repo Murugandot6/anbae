@@ -156,7 +156,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         {/* Video Player and Chat Container */}
         <div className="flex flex-col md:flex-row gap-6 items-stretch flex-grow h-full min-h-0">
           <div className="md:flex-grow md:w-2/3 min-h-0">
-            <div className="relative w-full h-full">
+            <div className="relative w-full">
               <VideoPlayer 
                 videoState={videoState} 
                 sendVideoAction={sendVideoAction} 
