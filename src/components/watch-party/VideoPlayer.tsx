@@ -4,7 +4,7 @@ import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
-import { MessageSquare, Heart, Clap, Angry, PartyPopper, Flame } from 'lucide-react'; // Removed Smile, Frown, ThumbsUp; Added Flame
+import { MessageSquare, Heart, HandClap, Angry, PartyPopper, Flame } from 'lucide-react'; // Corrected Clap to HandClap
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 interface VideoPlayerProps {
@@ -359,7 +359,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                     😭
                   </button>
                   <button onClick={() => sendVideoReaction('👏')} disabled={isPlayerActionDisabled} className="hover:text-orange-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Clap className="w-6 h-6" />
+                    <HandClap className="w-6 h-6" />
                   </button>
                   <button onClick={() => sendVideoReaction('😡')} disabled={isPlayerActionDisabled} className="hover:text-red-600 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Angry className="w-6 h-6" />
