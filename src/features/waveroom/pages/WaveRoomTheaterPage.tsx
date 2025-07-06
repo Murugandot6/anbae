@@ -217,7 +217,7 @@ const WaveRoomTheaterPage: React.FC = () => {
               isLoading={isStationsLoading}
             />
           </div>
-          <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
+          <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} className="mb-6" />
           <StationList
             stations={stations}
             onSelectStation={handleSelectStation}
