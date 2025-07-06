@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } => '@/contexts/SessionContext';
+import { useSession } from '@/contexts/SessionContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Settings, MessageSquare, Inbox, Heart, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -241,7 +241,6 @@ const Dashboard = () => {
                   altText="Your Avatar"
                   size="md"
                 />
-                {/* Removed the 'I' Badge */}
                 <p className="font-semibold text-lg text-foreground mt-2">
                   {user.user_metadata.nickname || user.email}
                 </p>
@@ -266,7 +265,6 @@ const Dashboard = () => {
                       altText="Partner Avatar"
                       size="md"
                     />
-                    {/* Removed the 'U' Badge */}
                     <p className="font-semibold text-lg text-foreground mt-2">
                       {partnerProfile.username || partnerProfile.email}
                     </p>
