@@ -6,8 +6,8 @@ import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
-import CustomSheetCloseButton from './CustomSheetCloseButton'; // Import the new component
-import { ThemeToggle } from './ThemeToggle'; // Import ThemeToggle
+import CustomSheetCloseButton from './CustomSheetCloseButton';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
   currentUserProfile: Profile | null;
@@ -25,9 +25,9 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                     <Menu className="w-5 h-5" />
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4">
-                {/* New header for icons */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+            <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+                {/* Header for icons - now part of the flex flow */}
+                <div className="flex justify-between items-center mb-4">
                     {props.user && (
                         <ClearMessagesDialog
                             partnerId={props.partnerProfile?.id || null}
@@ -36,10 +36,10 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                             onMessagesCleared={props.onMessagesCleared}
                         />
                     )}
-                    <ThemeToggle /> {/* Add ThemeToggle here */}
-                    <CustomSheetCloseButton /> {/* Use the custom close button */}
+                    <ThemeToggle />
+                    <CustomSheetCloseButton />
                 </div>
-                {/* SidebarContent now starts lower to avoid overlap with the new header */}
+                {/* SidebarContent now takes remaining space, no fixed top padding needed */}
                 <SidebarContent {...props} />
             </SheetContent>
         </Sheet>
