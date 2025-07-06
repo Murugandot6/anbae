@@ -26,7 +26,10 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                     <Menu className="w-5 h-5" />
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col">
+            <SheetContent
+                side="left"
+                className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col [&>button]:hidden" // Added [&>button]:hidden to hide the default close button
+            >
                 {/* Container for Clear Messages and X button at the very top */}
                 <div className="flex justify-between items-center mb-4 px-2">
                     {props.user && (
@@ -43,7 +46,12 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                 {/* SidebarContent now follows */}
                 <SidebarContent {...props} />
 
-                {/* Removed the duplicate Logout button from here */}
+                {/* Logout button is at the very bottom */}
+                <div className="mt-auto flex flex-col gap-2">
+                    <Button onClick={props.handleLogout} variant="destructive" className="w-full justify-start">
+                        <LogOut className="w-5 h-5 mr-2" /> Logout
+                    </Button>
+                </div>
             </SheetContent>
         </Sheet>
     );
