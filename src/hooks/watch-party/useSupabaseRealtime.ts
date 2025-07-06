@@ -196,8 +196,12 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         event: 'video_reaction',
         payload: { emoji, senderId: user.id },
       });
+      // Optionally, log to database for history/analytics
+      supabase.from('reactions').insert({ room_id: roomId, emoji, created_at: new Date().toISOString() }).then(({ error }) => {
+        if (error) console.error('Error logging reaction to DB:', error.message);
+      });
     }
-  }, [user.id]);
+  }, [roomId, user.id]);
 
   const changeVideoSource = useCallback(async (newUrl: string) => {
     if (!newUrl.trim()) return;

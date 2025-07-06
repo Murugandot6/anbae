@@ -53,3 +53,10 @@ export interface JournalEntry {
   emoji: string | null;
   user_id: string; // Added user_id for consistency with DB schema
 }
+
+export interface Reaction {
+  id: string;
+  room_id: string;
+  emoji: string;
+  created_at: string;
+}
