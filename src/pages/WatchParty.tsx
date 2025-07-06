@@ -61,7 +61,10 @@ const WatchParty: React.FC = () => {
         {currentRoom ? (
           <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
         ) : (
-          <Dashboard onJoinRoom={handleJoinRoom} />
+          <>
+            <h1 className="text-5xl font-bold tracking-tighter mb-8 text-foreground text-center">Watch Party</h1>
+            <Dashboard onJoinRoom={handleJoinRoom} />
+          </>
         )}
       </main>
     </BackgroundWrapper>

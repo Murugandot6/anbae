@@ -162,7 +162,7 @@ const WaveRoomTheaterPage: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
-      <header className="bg-transparent backdrop-blur-md border-b border-border/50 p-4 z-20 sticky top-0">
+      <header className="bg-transparent backdrop-blur-md p-4 z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           {/* Back button on the left */}
           <div className="flex-shrink-0">
