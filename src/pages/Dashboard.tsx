@@ -282,12 +282,14 @@ const Dashboard = () => {
             <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
 
             {/* Communication Insights Charts */}
-            <ScoreAndMessageCharts
-              currentUserProfile={currentUserProfile}
-              partnerProfile={partnerProfile}
-              sentMessages={sentMessages}
-              receivedMessages={receivedMessages}
-            />
+            <div className="mt-8"> {/* Added mt-8 here */}
+              <ScoreAndMessageCharts
+                currentUserProfile={currentUserProfile}
+                partnerProfile={partnerProfile}
+                sentMessages={sentMessages}
+                receivedMessages={receivedMessages}
+              />
+            </div>
 
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 mt-8">Recent Messages</h2>
             {user && (
