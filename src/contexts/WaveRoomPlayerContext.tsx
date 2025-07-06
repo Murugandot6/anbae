@@ -24,6 +24,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeRoomCode, setActiveRoomCode] = useState<string | null>(null);
   const [isConnectedToRoom, setIsConnectedToRoom] = useState(false);
+  const [localUserHasInteracted, setLocalUserHasInteracted] = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -35,8 +36,6 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
 
   const setRoom = useCallback((code: string | null) => {
     setActiveRoomCode(code);
-    // If leaving a room, we keep the station playing in the mini-player,
-    // but the context is no longer associated with a specific room channel.
     if (!code) {
         if (channelRef.current) {
             supabase.removeChannel(channelRef.current);
@@ -47,7 +46,6 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   }, []);
 
   useEffect(() => {
-    // Clean up previous channel if it exists
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
@@ -117,8 +115,10 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
       }
       if (isPlaying) {
         audio.play().catch(error => {
-          console.warn("Autoplay prevented:", error);
-          toast.info("Audio paused. Click play to start.");
+          if (error.name === 'NotAllowedError') {
+            console.warn("Autoplay prevented. User interaction required.");
+            toast.info("Audio paused. Click play to start.");
+          }
         });
       } else {
         audio.pause();
@@ -148,6 +148,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
 
   const setStation = useCallback((station: Station) => {
     if (!activeRoomCode) return;
+    setLocalUserHasInteracted(false);
     setCurrentStation(station);
     setIsPlaying(true);
     syncStateToSupabase(station, true);
@@ -156,25 +157,31 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   const togglePlay = useCallback(() => {
     if (!activeRoomCode) return;
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !currentStation) return;
 
-    if (audio.paused && isPlaying) {
-      audio.play().catch(() => toast.error("Could not start playback."));
-      return;
+    if (!localUserHasInteracted) {
+        setLocalUserHasInteracted(true);
     }
 
-    const newState = !isPlaying;
-    setIsPlaying(newState);
-    syncStateToSupabase(currentStation, newState);
-  }, [activeRoomCode, currentStation, isPlaying, syncStateToSupabase]);
+    if (audio.paused) {
+        audio.play().catch(e => toast.error("Could not start playback."));
+        if (!isPlaying) {
+            setIsPlaying(true);
+            syncStateToSupabase(currentStation, true);
+        }
+    } else {
+        audio.pause();
+        setIsPlaying(false);
+        syncStateToSupabase(currentStation, false);
+    }
+  }, [activeRoomCode, currentStation, isPlaying, syncStateToSupabase, localUserHasInteracted]);
 
   const clearStation = useCallback(() => {
-    // This action is now global, not tied to a room, so it clears the player for the current user.
-    setCurrentStation(null);
-    setIsPlaying(false);
     if (activeRoomCode) {
         syncStateToSupabase(null, false);
     }
+    setCurrentStation(null);
+    setIsPlaying(false);
     setActiveRoomCode(null);
   }, [activeRoomCode, syncStateToSupabase]);
 
