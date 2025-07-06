@@ -255,10 +255,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               <span 
                 key={reaction.id} 
                 className={cn(
-                  "absolute text-6xl md:text-8xl animate-fade-in-out",
-                  `top-[${Math.random() * 80 + 10}%] left-[${Math.random() * 80 + 10}%]` // Random position
+                  "absolute text-6xl md:text-8xl animate-fade-in-out"
                 )}
-                style={{ animationDuration: '5s' }} // Ensure animation duration is 5s
+                style={{ 
+                  animationDuration: '5s',
+                  top: `${Math.random() * 80 + 10}%`, // Random vertical position
+                  left: `${Math.random() * 80 + 10}%` // Random horizontal position
+                }}
               >
                 {reaction.emoji}
               </span>

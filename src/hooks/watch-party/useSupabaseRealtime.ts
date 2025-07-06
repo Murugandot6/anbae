@@ -125,10 +125,17 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     // New: Listener for video reactions
     channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
       const { emoji, senderId } = payload;
-      // Only add if not from self, or if it's from self and we want to see our own reactions
-      if (senderId !== user.id || senderId === user.id) { 
-        setActiveReactions(prev => [...prev, { id: `${emoji}-${Date.now()}`, emoji, timestamp: Date.now() }]);
-      }
+      const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; // Ensure unique ID for each reaction instance
+      
+      setActiveReactions(prev => {
+        const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
+        return newReactions;
+      });
+
+      // Schedule removal of the reaction after 5 seconds
+      setTimeout(() => {
+        setActiveReactions(prev => prev.filter(r => r.id !== reactionId));
+      }, 5000); // 5 seconds
     });
 
     channel.on('presence', { event: 'join' }, ({ newPresences }) => newPresences.forEach((p: any) => {
