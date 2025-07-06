@@ -239,6 +239,7 @@ const ViewMessage = () => {
 
     try {
       const { data, error } = await supabase.from('messages').insert({
+        user_id: user.id, // Added user_id here
         sender_id: user.id,
         receiver_id: replyReceiverId,
         subject: `Re: ${message.subject}`,
