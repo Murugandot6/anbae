@@ -142,7 +142,7 @@ const WatchParty: React.FC = () => {
       </Helmet>
       <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
         {/* Removed Green Border Debugging */}
-        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto flex-grow min-h-0">
+        <main className="pt-2 px-4 sm:pt-4 sm:px-6 lg:pt-6 lg:px-8 w-full max-w-7xl mx-auto flex-grow min-h-0">
           {currentRoom ? (
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
           ) : (
