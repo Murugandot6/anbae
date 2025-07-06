@@ -140,7 +140,7 @@ const WatchParty: React.FC = () => {
         <title>Watch Party - Anbae</title>
         <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
       </Helmet>
-      <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
+      <BackgroundWrapper className="pt-0 md:pt-0"> {/* Added pt-0 to BackgroundWrapper */}
         {/* Removed Green Border Debugging */}
         <main className="pt-2 px-4 sm:pt-4 sm:px-6 lg:pt-6 lg:px-8 w-full max-w-7xl mx-auto flex-grow min-h-0">
           {currentRoom ? (
