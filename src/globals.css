@@ -67,6 +67,8 @@
     /* New Score Colors */
     --score-positive: 142 76% 36%; /* A nice green */
     --score-negative: 0 80% 60%; /* Destructive red */
+
+    --radius: 0.5rem; /* Default border radius for rounded corners */
   }
 
   .dark {
@@ -110,6 +112,8 @@
     /* New Score Colors */
     --score-positive: 142 76% 46%; /* A brighter green for dark mode */
     --score-negative: 0 70% 50%; /* Destructive red */
+
+    --radius: 0.5rem; /* Default border radius for rounded corners */
   }
 }
 
