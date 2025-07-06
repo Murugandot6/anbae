@@ -81,7 +81,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     >
       {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0",
+        "w-full flex flex-col flex-grow min-h-0", // Added flex-col here
         {
           "max-w-7xl mx-auto": !isFullscreen, // Apply max-width only when NOT fullscreen
           "max-w-full mx-0": isFullscreen // Take full width when fullscreen
@@ -89,7 +89,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
         {!isFullscreen && (
-          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* Added flex-shrink-0 */}
             {/* Back button on the left */}
             <div className="flex-shrink-0">
               <Button
@@ -125,7 +125,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Form - conditionally hide when fullscreen */}
         {!isFullscreen && (
-          <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0">
+          <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"> {/* Added flex-shrink-0 */}
             <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
             <div className="relative w-full">
                 <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
@@ -151,11 +151,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}
 
         {/* Video History - conditionally hide when fullscreen */}
-        {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />}
+        {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />} {/* Added flex-shrink-0 */}
 
         {/* Video Player and Chat Container */}
         <div className="flex flex-col md:flex-row gap-6 items-stretch flex-grow h-full min-h-0">
-          <div className="md:flex-grow md:w-2/3 min-h-0"> {/* Changed from lg:w-3/4 to md:w-2/3 */}
+          <div className="md:flex-grow md:w-2/3 min-h-0">
             <div className="relative w-full h-full">
               <VideoPlayer 
                 videoState={videoState} 
@@ -170,7 +170,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               />
             </div>
           </div>
-          <div className="md:w-1/3 md:max-w-sm flex-shrink-0 h-full min-h-0"> {/* Changed from lg:w-1/4 to md:w-1/3 */}
+          <div className="md:w-1/3 md:max-w-sm flex-shrink-0 h-full min-h-0">
             <Chat 
               messages={messages} 
               sendMessage={sendMessage} 
