@@ -159,7 +159,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       window.clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (videoState.isPlaying) {
+      if (videoState.isPlaying && !document.fullscreenElement) { // Only hide controls if not in fullscreen
         setShowControls(false);
       }
     }, 3000);
@@ -246,7 +246,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onMouseMove={handleMouseMove}
           ></div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || !videoState.isPlaying || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -298,7 +298,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           
           {document.fullscreenElement && (
             <div className={`absolute top-0 right-0 h-full transition-all duration-300 ease-in-out z-40 ${showFullscreenChat ? 'w-80' : 'w-0 overflow-hidden'}`}>
-              <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} />
+              <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} onClose={() => setShowFullscreenChat(false)} />
             </div>
           )}
         </>

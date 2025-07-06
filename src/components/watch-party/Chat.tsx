@@ -2,15 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, User } from '@/types/watchParty';
 import { SendIcon } from '@/components/watch-party/icons';
 import { cn } from '@/lib/utils'; // Ensure cn is imported
+import { X } from 'lucide-react'; // Import X icon
+import { Button } from '@/components/ui/button'; // Import Button for the close icon
 
 interface ChatProps {
   messages: ChatMessage[];
   sendMessage: (text: string) => void;
   currentUser: User;
   isOverlay?: boolean; // New prop
+  onClose?: () => void; // New prop for closing the overlay
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverlay }) => {
+const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverlay, onClose }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -29,8 +32,21 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
   };
 
   return (
-    <div className={cn("flex flex-col h-full", isOverlay ? "bg-black/80" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
-      <h3 className={cn("text-xl font-bold p-4 border-b border-border/50 text-foreground", isOverlay ? "bg-black/50" : "")}>Live Chat</h3>
+    <div className={cn("flex flex-col h-full", isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
+      <div className={cn("flex items-center justify-between p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}>
+        <h3 className="text-xl font-bold text-foreground">Live Chat</h3>
+        {isOverlay && onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-accent/20"
+            aria-label="Close chat"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
            <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
@@ -49,7 +65,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-black/50" : "")}>
+      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
         <div className="flex items-center gap-2">
           <input
             type="text"
