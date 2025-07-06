@@ -111,7 +111,8 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
               <ArrowLeft className="h-5 w-5" />
           </Link>
         </div>
-        {/* Removed the h1 title from here */}
+        {/* Title for the dashboard */}
+        <h1 className="text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1>
         <div className="flex-shrink-0 w-10"></div> {/* Spacer for alignment */}
       </div>
       
