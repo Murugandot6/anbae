@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Button variant="outline" size="icon" className="fixed bottom-4 left-4 z-50 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                     <Menu className="w-5 h-5" />
                 </Button>
             </SheetTrigger>
