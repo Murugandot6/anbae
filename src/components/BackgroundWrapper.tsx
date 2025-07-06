@@ -13,23 +13,10 @@ function BackgroundWrapper({ children, className }: BackgroundImageWrapperProps)
   const { theme } = useTheme();
   
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Light Theme Background */}
-      <div
-        className={cn(
-          "absolute inset-0 w-full h-full bg-[url('/images/light.jpg')] bg-cover bg-center bg-fixed transition-opacity duration-1000 ease-in-out",
-          theme === 'light' ? 'opacity-100' : 'opacity-0'
-        )}
-      ></div>
-
-      {/* Dark Theme Background */}
-      <div
-        className={cn(
-          "absolute inset-0 w-full h-full bg-[url('/images/dark.jpg')] bg-cover bg-center bg-fixed transition-opacity duration-1000 ease-in-out",
-          theme === 'dark' ? 'opacity-100' : 'opacity-0'
-        )}
-      ></div>
-
+    <div className={cn(
+      "relative min-h-screen w-full overflow-hidden",
+      theme === 'light' ? 'bg-gradient-to-br from-background to-secondary/20' : 'bg-gradient-to-br from-background to-primary/20'
+    )}>
       {/* Overlay for readability (on top of backgrounds) - Adjusted opacity for new palette */}
       <div className="absolute inset-0 bg-black opacity-10 dark:opacity-30 z-10"></div>
 
