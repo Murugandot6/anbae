@@ -77,22 +77,28 @@ const MoodCalendar = () => {
 
   return (
     <>
-      <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 p-4 mb-8">
+      <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 p-4 mb-8 rounded-xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-gray-900 dark:text-white text-center flex items-center justify-center gap-2">
-            <CalendarDays /> Mood Calendar
+          <CardTitle className="text-foreground text-center flex items-center justify-center gap-2">
+            <CalendarDays className="text-primary" /> Mood Calendar
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 flex justify-center">
           {loading ? (
-            <p>Loading calendar...</p>
+            <p className="text-muted-foreground">Loading calendar...</p>
           ) : (
             <Calendar
               mode="single"
               onSelect={handleDateSelect}
-              className="p-0 rounded-md"
+              className="p-0 rounded-md bg-transparent"
               classNames={{
-                caption_label: 'text-lg',
+                caption_label: 'text-lg text-foreground',
+                nav_button: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+                head_row: 'text-muted-foreground',
+                day: 'text-foreground hover:bg-accent hover:text-accent-foreground',
+                day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground',
+                day_today: 'bg-secondary/50 text-secondary-foreground',
+                day_outside: 'text-muted-foreground opacity-50',
               }}
               components={{ DayContent: DayWithMood }}
             />

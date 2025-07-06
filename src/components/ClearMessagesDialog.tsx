@@ -229,10 +229,10 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
     <div className="clear-messages-dialog-container">
       <AlertDialog open={isSendRequestOpen} onOpenChange={setIsSendRequestOpen}>
         <AlertDialogTrigger asChild>
-          <Tooltip> {/* Tooltip wraps the trigger element */}
+          <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="destructive" size="icon" className="w-10 h-10 bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800 inline-flex items-center justify-center rounded-full">
-                <HeartCrack className="w-5 h-5" /> {/* Only the icon */}
+              <Button variant="destructive" size="icon" className="w-10 h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground inline-flex items-center justify-center rounded-full shadow-md">
+                <HeartCrack className="w-5 h-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -240,12 +240,12 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
             </TooltipContent>
           </Tooltip>
         </AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card/80 backdrop-blur-md border border-border/50 rounded-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Info className="w-6 h-6 text-blue-500" /> Send Clear All Messages Request?
+            <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+              <Info className="w-6 h-6 text-primary" /> Send Clear All Messages Request?
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               This will send a request to {partnerNickname || 'your partner'} to clear all messages. They will need to approve it.
               {pendingIncomingRequest?.sender_message && (
                 <p className="mt-2 italic">"Sender's message: {pendingIncomingRequest.sender_message}"</p>
@@ -254,30 +254,31 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
           </AlertDialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="senderMessage">Optional Message to Partner</Label>
+              <Label htmlFor="senderMessage" className="text-foreground">Optional Message to Partner</Label>
               <Textarea
                 id="senderMessage"
                 placeholder="e.g., 'Let's start fresh!'"
                 value={senderMessage}
                 onChange={(e) => setSenderMessage(e.target.value)}
+                className="bg-input/50 border-border/50 text-foreground"
               />
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSendRequest}>Send Request</AlertDialogAction>
+            <AlertDialogCancel className="text-foreground border-border hover:bg-accent/20 hover:text-accent-foreground">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSendRequest} className="bg-primary hover:bg-primary/90 text-primary-foreground">Send Request</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {pendingIncomingRequest && (
         <AlertDialog open={isPartnerResponseOpen} onOpenChange={setIsPartnerResponseOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-card/80 backdrop-blur-md border border-border/50 rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <Info className="w-6 h-6 text-blue-500" /> Clear Messages Request from {pendingIncomingRequest.senderProfile?.username || pendingIncomingRequest.senderProfile?.email || 'Your Partner'}
+              <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+                <Info className="w-6 h-6 text-primary" /> Clear Messages Request from {pendingIncomingRequest.senderProfile?.username || pendingIncomingRequest.senderProfile?.email || 'Your Partner'}
               </AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription className="text-muted-foreground">
                 Your partner wants to clear all messages.
                 {pendingIncomingRequest.sender_message && (
                   <p className="mt-2 italic">"Sender's message: {pendingIncomingRequest.sender_message}"</p>
@@ -286,20 +287,21 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
             </AlertDialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="receiverResponseMessage">Optional Response Message</Label>
+                <Label htmlFor="receiverResponseMessage" className="text-foreground">Optional Response Message</Label>
                 <Textarea
                   id="receiverResponseMessage"
                   placeholder="e.g., 'Sure, let's do it!'"
                   value={receiverResponseMessage}
                   onChange={(e) => setReceiverResponseMessage(e.target.value)}
+                  className="bg-input/50 border-border/50 text-foreground"
                 />
               </div>
             </div>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => handlePartnerResponse('denied')}>
+              <Button variant="outline" onClick={() => handlePartnerResponse('denied')} className="text-destructive border-destructive hover:bg-destructive/20 hover:text-destructive-foreground">
                 <XCircle className="w-4 h-4 mr-2" /> Deny
               </Button>
-              <Button onClick={() => handlePartnerResponse('accepted')}>
+              <Button onClick={() => handlePartnerResponse('accepted')} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <CheckCircle className="w-4 h-4 mr-2" /> Accept
               </Button>
             </AlertDialogFooter>
@@ -309,24 +311,24 @@ const ClearMessagesDialog: React.FC<ClearMessagesDialogProps> = ({ partnerId, pa
 
       {pendingOutgoingRequest && pendingOutgoingRequest.status === 'accepted' && (
         <AlertDialog open={isSenderReconfirmOpen} onOpenChange={setIsSenderReconfirmOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-card/80 backdrop-blur-md border border-border/50 rounded-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-green-500" /> Partner Accepted Your Request!
+              <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+                <CheckCircle className="w-6 h-6 text-primary" /> Partner Accepted Your Request!
               </AlertDialogTitle>
             </AlertDialogHeader>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-muted-foreground">
               Your partner has accepted your request to clear all messages.
               {pendingOutgoingRequest.receiver_response_message && (
                 <p className="mt-2 italic">"Partner's message: {pendingOutgoingRequest.receiver_response_message}"</p>
               )}
-              <p className="mt-4 font-semibold text-red-600 dark:text-red-400">
+              <p className="mt-4 font-semibold text-destructive">
                 Are you sure you want to proceed with clearing ALL messages? This action cannot be undone.
               </p>
             </AlertDialogDescription>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setPendingOutgoingRequest(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleFinalClearConfirmation}>
+              <AlertDialogCancel className="text-foreground border-border hover:bg-accent/20 hover:text-accent-foreground">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleFinalClearConfirmation} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                 Yes, Clear All Messages
               </AlertDialogAction>
             </AlertDialogFooter>

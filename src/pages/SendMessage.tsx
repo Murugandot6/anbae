@@ -11,10 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Heart, Send, MessageSquare, Users, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
-import { Profile } from '@/types/supabase'; // Import shared Profile type
-import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import shared helper
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
-import { cn } from '@/lib/utils'; // Import cn utility for conditional classes
+import { Profile } from '@/types/supabase';
+import { fetchProfileByEmail } from '@/lib/supabaseHelpers';
+import BackgroundWrapper from '@/components/BackgroundWrapper';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -46,7 +46,6 @@ const SendMessage = () => {
     },
   });
 
-  // Watch for changes in message_type to dynamically update card styling
   const selectedMessageType = form.watch('message_type');
 
   useEffect(() => {
@@ -60,7 +59,7 @@ const SendMessage = () => {
 
       if (currentUsersPartnerEmail) {
         try {
-          const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail); // Use the helper
+          const partnerData = await fetchProfileByEmail(currentUsersPartnerEmail);
           if (partnerData) {
             setPartnerId(partnerData.id);
             setPartnerNickname(partnerData.username);
@@ -118,7 +117,7 @@ const SendMessage = () => {
 
   if (sessionLoading || fetchingPartner) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
         <p className="text-xl">Loading...</p>
       </div>
     );
@@ -133,24 +132,24 @@ const SendMessage = () => {
 
   if (!partnerId) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20">
-        <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Partner Not Found</h2>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
+        <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-foreground mb-4">Partner Not Found</h2>
         <p className="text-muted-foreground mb-2">
           It looks like your partner's profile isn't set up or linked.
         </p>
         <p className="text-muted-foreground mb-6">
-          Your current partner email is: <strong className="text-gray-900 dark:text-white">{currentPartnerEmail}</strong>.
+          Your current partner email is: <strong className="text-foreground">{currentPartnerEmail}</strong>.
           Please ensure your partner has registered with this exact email, or update it in your profile.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link to="/edit-profile">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <Users className="w-5 h-5 mr-2" /> Edit Partner Email
             </Button>
           </Link>
           <Link to="/dashboard">
-            <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
               Back to Dashboard
             </Button>
           </Link>
@@ -159,31 +158,30 @@ const SendMessage = () => {
     );
   }
 
-  // Function to get dynamic card classes based on message type
   const getCardClassesForMessageType = (messageType: string) => {
     switch (messageType) {
       case 'Grievance':
-        return 'bg-red-100/30 dark:bg-red-950/30 border-red-300/30 dark:border-red-700/30';
+        return 'bg-destructive/20 dark:bg-destructive/20 border-destructive/50 dark:border-destructive/50';
       case 'Compliment':
-        return 'bg-green-100/30 dark:bg-green-950/30 border-green-300/30 dark:border-green-700/30';
+        return 'bg-green-100/20 dark:bg-green-950/20 border-green-300/50 dark:border-green-700/50';
       case 'Good Memory':
-        return 'bg-yellow-100/30 dark:bg-yellow-950/30 border-yellow-300/30 dark:border-yellow-700/30';
+        return 'bg-yellow-100/20 dark:bg-yellow-950/20 border-yellow-300/50 dark:border-yellow-700/50';
       case 'How I Feel':
-        return 'bg-blue-100/30 dark:bg-blue-950/30 border-blue-300/30 dark:border-blue-700/30';
+        return 'bg-blue-100/20 dark:bg-blue-950/20 border-blue-300/50 dark:border-blue-700/50';
       default:
-        return 'bg-white/30 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30'; // Default neutral
+        return 'bg-card/60 dark:bg-card/60 border-border/50 dark:border-border/50';
     }
   };
 
   return (
     <BackgroundWrapper>
       <div className={cn(
-        "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-sm transition-colors duration-300",
+        "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-md transition-colors duration-300",
         getCardClassesForMessageType(selectedMessageType)
       )}>
         <div className="text-center mb-6">
-          <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Send a Message</h2>
+          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h2 className="text-3xl font-bold text-foreground mb-2">Send a Message</h2>
           <p className="text-muted-foreground">Share your thoughts with {partnerNickname || 'your partner'}.</p>
         </div>
         <Form {...form}>
@@ -193,14 +191,14 @@ const SendMessage = () => {
               name="message_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Message Type</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Message Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
                         <SelectValue placeholder="Select a message type" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-card border-border text-foreground">
                       <SelectItem value="Grievance">💔 Grievance</SelectItem>
                       <SelectItem value="Compliment">💖 Compliment</SelectItem>
                       <SelectItem value="Good Memory">✨ Good Memory</SelectItem>
@@ -216,9 +214,9 @@ const SendMessage = () => {
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> Explanation</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Explanation</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Explain the situation, how it makes you feel, and what you need." {...field} rows={5} />
+                    <Textarea placeholder="Explain the situation, how it makes you feel, and what you need." {...field} rows={5} className="bg-input/50 border-border/50 text-foreground" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -233,11 +231,11 @@ const SendMessage = () => {
                     <FormLabel className="flex items-center gap-2">Priority</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-card border-border text-foreground">
                         <SelectItem value="Low">Low</SelectItem>
                         <SelectItem value="Medium">Medium</SelectItem>
                         <SelectItem value="High">High</SelectItem>
@@ -256,11 +254,11 @@ const SendMessage = () => {
                     <FormLabel className="flex items-center gap-2">Your Mood</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
                           <SelectValue placeholder="Select your mood" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-card border-border text-foreground">
                         <SelectItem value="Happy">😊 Happy</SelectItem>
                         <SelectItem value="Sad">😔 Sad</SelectItem>
                         <SelectItem value="Angry">😠 Angry</SelectItem>
@@ -274,13 +272,13 @@ const SendMessage = () => {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-800">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
               <Send className="w-4 h-4 mr-2" /> Send Message
             </Button>
           </form>
         </Form>
         <div className="mt-6 text-center">
-          <Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="inline-block w-4 h-4 mr-1" /> Back to Dashboard
           </Link>
         </div>

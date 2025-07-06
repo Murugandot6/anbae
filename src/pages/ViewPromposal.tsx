@@ -16,18 +16,18 @@ interface Proposal {
 }
 
 const LoadingSpinner = () => (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white">
-        <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         <p className="mt-4 text-xl">Loading Your Special Message...</p>
     </div>
 );
 
 const ErrorDisplay = ({ message }: { message: string }) => (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white text-center p-4">
-        <h2 className="text-2xl font-bold text-red-500 mb-4">Oops!</h2>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground text-center p-4">
+        <h2 className="text-2xl font-bold text-destructive mb-4">Oops!</h2>
         <p>{message}</p>
         <Link to="/dashboard">
-            <Button variant="outline" className="mt-4">Back to Dashboard</Button>
+            <Button variant="outline" className="mt-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground">Back to Dashboard</Button>
         </Link>
     </div>
 );
@@ -92,7 +92,7 @@ const ViewPromposal = () => {
   if (!proposal) return <ErrorDisplay message="Something went wrong." />;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-4 md:p-8 text-white overflow-hidden">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-center p-4 md:p-8 text-foreground overflow-hidden">
       {/* Hidden ReactPlayer for audio playback */}
       <div style={{ display: 'none' }}>
         <ReactPlayer
@@ -108,11 +108,11 @@ const ViewPromposal = () => {
 
       {/* Top right controls */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-        <Button onClick={handleCopyLink} variant="ghost" size="icon">
-          {copyStatus ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+        <Button onClick={handleCopyLink} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+          {copyStatus ? <Check className="w-5 h-5 text-primary" /> : <Copy className="w-5 h-5" />}
         </Button>
         <Link to="/dashboard">
-            <Button variant="outline">Dashboard</Button>
+            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">Dashboard</Button>
         </Link>
       </div>
       
@@ -123,8 +123,8 @@ const ViewPromposal = () => {
 
       {/* Bottom controls */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xl z-20">
-        <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-gray-900/50 rounded-full">
-            <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon">
+        <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-card/80 rounded-full shadow-lg backdrop-blur-md border border-border/50">
+            <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
               {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
             </Button>
             <input
@@ -133,9 +133,9 @@ const ViewPromposal = () => {
               max={duration}
               value={currentTime}
               onChange={(e) => playerRef.current?.seekTo(parseFloat(e.target.value))}
-              className="w-full h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm accent-pink-500"
+              className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary"
             />
-            <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon">
+            <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
               {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
             </Button>
         </div>

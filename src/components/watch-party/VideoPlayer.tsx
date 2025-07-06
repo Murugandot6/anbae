@@ -171,7 +171,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
   };
 
   return (
-    <div ref={playerContainerRef} className="relative aspect-video w-full bg-black rounded-xl overflow-hidden group">
+    <div ref={playerContainerRef} className="relative aspect-video w-full bg-black rounded-xl overflow-hidden group shadow-lg">
       {videoState.source ? (
         <>
           <ReactPlayer
@@ -220,15 +220,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
-                <div className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p className="mt-4 text-white">Loading Player...</p>
             </div>
           )}
 
           {playerError && (
             <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-30 p-4 text-center">
-                <p className="text-red-400 text-lg font-semibold">Video Error</p>
-                <p className="text-gray-300 mt-2">{playerError}</p>
+                <p className="text-destructive text-lg font-semibold">Video Error</p>
+                <p className="text-muted-foreground mt-2">{playerError}</p>
             </div>
           )}
 
@@ -250,15 +250,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
                   onChange={handleSeekChange}
                   onMouseUp={handleSeekMouseUp}
                   disabled={!isPlayerReady || !!playerError}
-                  className="w-full h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm accent-blue-500 disabled:bg-gray-700 disabled:accent-gray-600 disabled:cursor-not-allowed"
+                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                 />
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-4">
-                  <button onClick={handlePlayPause} disabled={!isPlayerReady || !!playerError} className="hover:text-blue-400 transition-colors disabled:text-gray-500 disabled:cursor-not-allowed">
+                  <button onClick={handlePlayPause} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     {videoState.isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
                   </button>
                   <div className="flex items-center gap-2">
-                      <button onClick={toggleMute} disabled={!isPlayerReady || !!playerError} className="hover:text-blue-400 transition-colors disabled:text-gray-500 disabled:cursor-not-allowed">
+                      <button onClick={toggleMute} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                           {isMuted ? <VolumeOffIcon className="w-6 h-6"/> : <VolumeUpIcon className="w-6 h-6"/>}
                       </button>
                       <input
@@ -269,13 +269,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
                           value={isMuted ? 0 : volume}
                           onChange={handleVolumeChange}
                           disabled={!isPlayerReady || !!playerError}
-                          className="w-20 h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer range-sm accent-blue-500 disabled:bg-gray-700 disabled:accent-gray-600 disabled:cursor-not-allowed"
+                          className="w-20 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                         />
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-mono">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                    <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-blue-400 transition-colors disabled:text-gray-500 disabled:cursor-not-allowed">
+                  <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
+                    <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                       <MaximizeIcon className="w-5 h-5" />
                     </button>
                 </div>
@@ -285,9 +285,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
         </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
-            <FilmIcon className="w-16 h-16 text-gray-600 mb-4" />
-            <h3 className="text-xl font-bold text-white">No Video Selected</h3>
-            <p className="text-gray-400 mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p>
+            <FilmIcon className="w-16 h-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-bold text-foreground">No Video Selected</h3>
+            <p className="text-muted-foreground mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p>
         </div>
       )}
     </div>

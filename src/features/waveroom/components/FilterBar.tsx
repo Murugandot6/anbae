@@ -18,7 +18,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({ label, id, options, value, 
       value={value}
       onChange={(e) => onChange(id, e.target.value)}
       disabled={disabled || options.length === 0}
-      className="block w-full rounded-md border-0 bg-gray-700 py-2 pl-3 pr-8 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="block w-full rounded-md border-0 bg-input/50 py-2 pl-3 pr-8 text-foreground shadow-sm ring-1 ring-inset ring-border/50 placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <option value="">All {label}s</option>
       {options.map((option) => (

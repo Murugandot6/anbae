@@ -4,6 +4,7 @@ import { Room } from '@/types/watchParty';
 import { PlusIcon, LoginIcon as JoinIcon } from '@/components/watch-party/icons';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button'; // Import shadcn Button
 
 // Helper to format the DB response into the client-side Room object
 const formatRoom = (dbRoom: any): Room => ({
@@ -36,7 +37,6 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
     let isCodeUnique = false;
     let attempts = 0;
 
-    // Loop to ensure the generated code is unique
     while (!isCodeUnique && attempts < 10) {
         roomCode = generateRoomCode();
         const { data: existing, error: checkError } = await supabase
@@ -45,7 +45,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
             .eq('room_code', roomCode)
             .single();
         
-        if (checkError && checkError.code === 'PGRST116') { // PGRST116 means no rows found
+        if (checkError && checkError.code === 'PGRST116') {
             isCodeUnique = true;
         } else if (checkError) {
              console.error("Error checking for room code uniqueness:", checkError);
@@ -62,7 +62,6 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
         return;
     }
 
-    // Insert the new room with the unique code and an empty video_url
     const { data: newRoom, error: insertError } = await supabase
       .from('watch_party_rooms')
       .insert({ room_code: roomCode, video_url: '', playback_status: 'unstarted' })
@@ -106,40 +105,40 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
   return (
     <div className="max-w-4xl mx-auto">
       <div className="relative mb-8 text-center">
-        <Link to="/dashboard" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition-colors" aria-label="Back to Dashboard">
+        <Link to="/dashboard" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md" aria-label="Back to Dashboard">
             <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-3xl font-bold text-white">Your Watch Parties</h1>
+        <h1 className="text-3xl font-bold text-foreground">Your Watch Parties</h1>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8">
         {/* Create Room Card */}
-        <div className="bg-gray-800 rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
-            <div className="bg-blue-500/20 p-4 rounded-full mb-4">
-                <PlusIcon className="h-10 w-10 text-blue-400"/>
+        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <div className="bg-primary/20 p-4 rounded-full mb-4">
+                <PlusIcon className="h-10 w-10 text-primary"/>
             </div>
-            <h2 className="text-2xl text-white font-semibold mb-2">Start a New Party</h2>
-            <p className="text-gray-400 mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
+            <h2 className="text-2xl text-foreground font-semibold mb-2">Start a New Party</h2>
+            <p className="text-muted-foreground mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
             <div className="w-full flex flex-col gap-4">
-                 {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-                <button
+                 {error && <p className="text-destructive text-sm mt-2">{error}</p>}
+                <Button
                     onClick={handleCreateRoom}
                     disabled={!!loading}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-blue-800 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-primary/50 disabled:cursor-not-allowed"
                 >
                     <PlusIcon className="h-6 w-6"/>
                     {loading === 'create' ? 'Creating...' : 'Create Private Room'}
-                </button>
+                </Button>
             </div>
         </div>
 
         {/* Join Room Card */}
-        <div className="bg-gray-800 rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
-            <div className="bg-green-500/20 p-4 rounded-full mb-4">
-                <JoinIcon className="h-10 w-10 text-green-400"/>
+        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <div className="bg-secondary/20 p-4 rounded-full mb-4">
+                <JoinIcon className="h-10 w-10 text-secondary"/>
             </div>
-            <h2 className="text-2xl text-white font-semibold mb-2">Join an Existing Party</h2>
-            <p className="text-gray-400 mb-6">Enter the 6-character code your friend gave you.</p>
+            <h2 className="text-2xl text-foreground font-semibold mb-2">Join an Existing Party</h2>
+            <p className="text-muted-foreground mb-6">Enter the 6-character code your friend gave you.</p>
             <form onSubmit={handleJoinRoom} className="w-full flex flex-col gap-4">
                  <input
                     type="text"
@@ -150,19 +149,19 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
                     }}
                     placeholder="ABC-123"
                     maxLength={7}
-                    className="w-full text-center text-xl tracking-widest font-mono px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    className="w-full text-center text-xl tracking-widest font-mono px-4 py-3 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
                     required
                     disabled={!!loading}
                 />
-                {error && <p className="text-red-400 text-sm">{error}</p>}
-                <button
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                <Button
                     type="submit"
                     disabled={!!loading}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-green-800 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-secondary/50 disabled:cursor-not-allowed"
                 >
                     <JoinIcon className="h-6 w-6"/>
                     {loading === 'join' ? 'Joining...' : 'Join With Code'}
-                </button>
+                </Button>
             </form>
         </div>
       </div>

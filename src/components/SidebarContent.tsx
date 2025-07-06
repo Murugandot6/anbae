@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'; // Import useLocation
 import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
+import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -15,69 +16,52 @@ interface SidebarContentProps {
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, partnerProfile, user, handleLogout, onMessagesCleared }) => {
+  const location = useLocation(); // Get current location
+
   if (!user) return null;
 
+  const navItems = [
+    { to: "/dashboard", icon: Heart, label: "Dashboard" },
+    { to: "/journal", icon: BookText, label: "Journal" },
+    { to: "/promposal/create", icon: Sparkles, label: "Promposal" },
+    { to: "/send-message", icon: MessageSquare, label: "Send Message" },
+    { to: "/messages", icon: Inbox, label: "Messages" },
+    { to: "/watch-party", icon: Film, label: "Watch Party" },
+    { to: "/waveroom", icon: Radio, label: "Wave Room" },
+    { to: "/edit-profile", icon: Settings, label: "Edit Profile" },
+    { to: "/manual", icon: BookOpen, label: "User Manual" },
+  ];
+
   return (
-    <div className="flex flex-col h-full w-full"> {/* Removed pt-24 */}
-      <div className="flex items-center gap-3 mb-6">
-        <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
+    <div className="flex flex-col h-full w-full">
+      <div className="flex items-center gap-3 mb-6 p-2 rounded-lg bg-sidebar-accent/30 border border-sidebar-border/50 shadow-sm">
+        <Avatar className="w-12 h-12 border-2 border-primary dark:border-primary-foreground">
           <AvatarImage src={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''} alt="Your Avatar" />
-          <AvatarFallback>{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground">{user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}</AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-semibold text-lg text-gray-900 dark:text-white">{user.user_metadata.nickname || user.email}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
+          <p className="font-semibold text-lg text-sidebar-foreground">{user.user_metadata.nickname || user.email}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}</p>
         </div>
       </div>
       <nav className="flex flex-col gap-2 mb-auto">
-        <Link to="/dashboard">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Heart className="w-5 h-5 mr-2" /> Dashboard
-          </Button>
-        </Link>
-        <Link to="/journal">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <BookText className="w-5 h-5 mr-2" /> Journal
-          </Button>
-        </Link>
-        <Link to="/promposal/create">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Sparkles className="w-5 h-5 mr-2" /> Promposal
-          </Button>
-        </Link>
-        <Link to="/send-message">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <MessageSquare className="w-5 h-5 mr-2" /> Send Message
-          </Button>
-        </Link>
-        <Link to="/messages">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Inbox className="w-5 h-5 mr-2" /> Messages
-          </Button>
-        </Link>
-        <Link to="/watch-party">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Film className="w-5 h-5 mr-2" /> Watch Party
-          </Button>
-        </Link>
-        <Link to="/waveroom">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Radio className="w-5 h-5 mr-2" /> Wave Room
-          </Button>
-        </Link>
-        <Link to="/edit-profile">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <Settings className="w-5 h-5 mr-2" /> Edit Profile
-          </Button>
-        </Link>
-        <Link to="/manual">
-          <Button variant="ghost" className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-            <BookOpen className="w-5 h-5 mr-2" /> User Manual
-          </Button>
-        </Link>
+        {navItems.map((item) => (
+          <Link to={item.to} key={item.to}>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start transition-colors duration-200",
+                "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                location.pathname === item.to && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+              )}
+            >
+              <item.icon className="w-5 h-5 mr-2" /> {item.label}
+            </Button>
+          </Link>
+        ))}
       </nav>
       <div className="mt-auto flex flex-col gap-2">
-        <Button onClick={handleLogout} variant="destructive" className="w-full justify-start">
+        <Button onClick={handleLogout} variant="destructive" className="w-full justify-start bg-destructive hover:bg-destructive/90 text-destructive-foreground">
           <LogOut className="w-5 h-5 mr-2" /> Logout
         </Button>
       </div>

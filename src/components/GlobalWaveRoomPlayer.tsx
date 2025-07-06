@@ -10,7 +10,6 @@ const GlobalWaveRoomPlayer: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Only show the mini-player if a station is playing AND we are NOT on the WaveRoomTheaterPage
   const showMiniPlayer = currentStation && (location.pathname !== `/waveroom/${roomCode}`);
 
   if (!showMiniPlayer) {
@@ -31,7 +30,7 @@ const GlobalWaveRoomPlayer: React.FC = () => {
     }
   };
 
-  const FallbackIcon = () => <RadioIcon className="w-8 h-8 text-gray-500" />;
+  const FallbackIcon = () => <RadioIcon className="w-8 h-8 text-muted-foreground" />;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
@@ -44,9 +43,9 @@ const GlobalWaveRoomPlayer: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-gray-800/90 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg p-3 flex items-center gap-3">
+      <div className="bg-card/90 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-3 flex items-center gap-3">
         <button onClick={handleGoToRoom} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-          <div className="relative w-12 h-12 flex-shrink-0 rounded-md bg-gray-700 flex items-center justify-center overflow-hidden">
+          <div className="relative w-12 h-12 flex-shrink-0 rounded-md bg-input/50 flex items-center justify-center overflow-hidden">
             {currentStation?.favicon ? (
               <img
                 src={currentStation.favicon}
@@ -62,8 +61,8 @@ const GlobalWaveRoomPlayer: React.FC = () => {
             </div>
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-white text-sm truncate max-w-[150px]">{currentStation?.name || 'Unknown Station'}</p>
-            <p className="text-xs text-gray-400 truncate max-w-[150px]">{currentStation?.country || 'Global'}</p>
+            <p className="font-bold text-foreground text-sm truncate max-w-[150px]">{currentStation?.name || 'Unknown Station'}</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[150px]">{currentStation?.country || 'Global'}</p>
           </div>
         </button>
         <div className="flex items-center gap-2">
@@ -71,7 +70,7 @@ const GlobalWaveRoomPlayer: React.FC = () => {
             onClick={handleTogglePlay}
             variant="ghost"
             size="icon"
-            className="w-8 h-8 text-white hover:bg-gray-700"
+            className="w-8 h-8 text-foreground hover:bg-accent/20"
           >
             {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
           </Button>
@@ -79,7 +78,7 @@ const GlobalWaveRoomPlayer: React.FC = () => {
             onClick={handleClearStation}
             variant="ghost"
             size="icon"
-            className="w-8 h-8 text-gray-400 hover:text-white hover:bg-gray-700"
+            className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-accent/20"
           >
             <XIcon className="w-5 h-5" />
           </Button>

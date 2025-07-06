@@ -7,13 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
-import { Profile, Message } from '@/types/supabase'; // Import shared types
-import { fetchProfileById } from '@/lib/supabaseHelpers'; // Import shared helper
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
-import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils'; // Import formatMessageDate, cn, and formatDateTimeForMessageView
-import { Badge } from '@/components/ui/badge'; // Import Badge component
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Updated import
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
+import { Profile, Message } from '@/types/supabase';
+import { fetchProfileById } from '@/lib/supabaseHelpers';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import BackgroundWrapper from '@/components/BackgroundWrapper';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -38,30 +38,28 @@ const Messages = () => {
   useEffect(() => {
     const fetchAllMessagesAndProfiles = async () => {
       if (!user) {
-        setMessagesLoading(false); // Set loading to false if no user
+        setMessagesLoading(false);
         return;
       }
 
-      setMessagesLoading(true); // Set loading to true at the start of fetch
+      setMessagesLoading(true);
       try {
-        // Fetch all top-level messages (not replies) for the current user, both sent and received
         const { data: sentData, error: sentError } = await supabase
           .from('messages')
-          .select('*') // Select all columns, including 'status'
+          .select('*')
           .eq('sender_id', user.id)
-          .is('parent_message_id', null) // Only top-level messages
+          .is('parent_message_id', null)
           .order('created_at', { ascending: false });
 
         if (sentError) {
           toast.error('Failed to load sent messages: ' + sentError.message);
         }
 
-        // Fetch all received messages that are NOT replies (parent_message_id is null)
         const { data: receivedData, error: receivedError } = await supabase
           .from('messages')
-          .select('*') // Select all columns, including 'status'
+          .select('*')
           .eq('receiver_id', user.id)
-          .is('parent_message_id', null) // Only top-level messages
+          .is('parent_message_id', null)
           .order('created_at', { ascending: false });
 
         if (receivedError) {
@@ -71,7 +69,7 @@ const Messages = () => {
         const allRelatedUserIds = new Set<string>();
         sentData?.forEach(msg => allRelatedUserIds.add(msg.receiver_id));
         receivedData?.forEach(msg => allRelatedUserIds.add(msg.sender_id));
-        allRelatedUserIds.add(user.id); // Include current user's ID for their own profile if needed
+        allRelatedUserIds.add(user.id);
 
         const fetchedProfiles: Profile[] = [];
         for (const id of Array.from(allRelatedUserIds)) {
@@ -126,9 +124,8 @@ const Messages = () => {
         async (payload) => {
           const newMessage = payload.new as Message;
 
-          // Only process top-level messages for the main list
           if (newMessage.parent_message_id !== null) {
-            return; // Do not add replies to the main inbox/outbox lists
+            return;
           }
 
           if (payload.eventType === 'INSERT') {
@@ -166,7 +163,7 @@ const Messages = () => {
 
   if (sessionLoading || messagesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
         <p className="text-xl">Loading messages...</p>
       </div>
     );
@@ -180,15 +177,15 @@ const Messages = () => {
   const getMessageTypeClasses = (messageType: string) => {
     switch (messageType) {
       case 'Grievance':
-        return 'bg-red-100 dark:bg-red-950 border-red-300 dark:border-red-700';
+        return 'bg-destructive/20 dark:bg-destructive/20 border-destructive/50 dark:border-destructive/50';
       case 'Compliment':
-        return 'bg-green-100 dark:bg-green-950 border-green-300 dark:border-green-700';
+        return 'bg-green-100/20 dark:bg-green-950/20 border-green-300/50 dark:border-green-700/50';
       case 'Good Memory':
-        return 'bg-yellow-100 dark:bg-yellow-950 border-yellow-300 dark:border-yellow-700';
+        return 'bg-yellow-100/20 dark:bg-yellow-950/20 border-yellow-300/50 dark:border-yellow-700/50';
       case 'How I Feel':
-        return 'bg-blue-100 dark:bg-blue-950 border-blue-300 dark:border-blue-700';
+        return 'bg-blue-100/20 dark:bg-blue-950/20 border-blue-300/50 dark:border-blue-700/50';
       default:
-        return 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600';
+        return 'bg-card/20 dark:bg-card/20 border-border/50 dark:border-border/50';
     }
   };
 
@@ -215,15 +212,14 @@ const Messages = () => {
     <BackgroundWrapper className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
-          {/* Back to Dashboard Button (now on left, icon-only) */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
                 onClick={() => {
-                  navigate('/dashboard', { replace: true }); // Added replace: true
+                  navigate('/dashboard', { replace: true });
                 }}
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -233,58 +229,56 @@ const Messages = () => {
               Back to Dashboard
             </TooltipContent>
           </Tooltip>
-          {/* Your Messages Title (now on right) */}
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Messages</h1>
+          <h1 className="text-3xl font-bold text-foreground">Your Messages</h1>
         </div>
 
         <Tabs defaultValue="inbox" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="inbox">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/60 backdrop-blur-md border border-border/50 rounded-xl">
+            <TabsTrigger value="inbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
               <Mail className="w-4 h-4 mr-2" /> Inbox ({receivedMessages.length})
             </TabsTrigger>
-            <TabsTrigger value="outbox">
+            <TabsTrigger value="outbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
               <Send className="w-4 h-4 mr-2" /> Outbox ({sentMessages.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="inbox">
-            <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+            <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Received Messages</CardTitle>
+                <CardTitle className="text-foreground">Received Messages</CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {receivedMessages.length > 0 ? (
-                  <ul className="space-y-4"> {/* Changed space-y-2 to space-y-4 */}
+                  <ul className="space-y-4">
                     {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Emoji position
+                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-8"> {/* Adjusted ml-12 to ml-8 */}
+                          <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
                             <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
-                            <AvatarFallback>{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback className="bg-primary text-primary-foreground">{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
+                            <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5" />
+                                <MessageSquare className="w-5 h-5 text-primary" />
                                 {message.subject}
                               </span>
-                              <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
-                                {message.is_read ? null : <span className="text-xs font-bold text-blue-600 dark:text-blue-400">NEW!</span>}
+                              <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                                {message.is_read ? null : <Badge className="bg-accent text-accent-foreground text-xs font-bold">NEW!</Badge>}
                                 {message.status === 'closed' && (
-                                  <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
+                                  <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
                                 )}
                               </span>
                             </p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                            <p className="text-sm text-foreground line-clamp-2">
                               {message.content}
                             </p>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {formatDateTimeForMessageView(message.created_at)}
                             </div>
                           </div>
@@ -299,48 +293,47 @@ const Messages = () => {
             </Card>
           </TabsContent>
           <TabsContent value="outbox">
-            <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+            <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Sent Messages</CardTitle>
+                <CardTitle className="text-foreground">Sent Messages</CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground">
                 {sentMessages.length > 0 ? (
-                  <ul className="space-y-4"> {/* Changed space-y-2 to space-y-4 */}
+                  <ul className="space-y-4">
                     {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("relative border-b pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl", getMessageTypeClasses(message.message_type))}>
+                      <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
                         <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          {/* Emoji positioned above avatar */}
                           <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md", // Emoji position
+                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
                             getMessageTypeEmojiBackgroundClasses(message.message_type)
                           )}>
                             {getMessageTypeEmoji(message.message_type)}
                           </span>
-                          <Avatar className="w-12 h-12 ml-8"> {/* Adjusted ml-12 to ml-8 */}
+                          <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
                             <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
-                            <AvatarFallback>{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback className="bg-primary text-primary-foreground">{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1 flex items-center justify-between gap-2">
+                            <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
                               <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5" />
+                                <MessageSquare className="w-5 h-5 text-primary" />
                                 {message.subject}
                               </span>
-                              <span className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+                              <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
                                 {message.read_at && (
-                                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                  <Badge className="bg-accent text-accent-foreground text-xs font-bold flex items-center gap-1">
                                     <CheckCheck className="w-4 h-4" /> Read
-                                  </span>
+                                  </Badge>
                                 )}
                                 {message.status === 'closed' && (
-                                  <Badge variant="secondary" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
+                                  <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
                                 )}
                               </span>
                             </p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                            <p className="text-sm text-foreground line-clamp-2">
                               {message.content}
                             </p>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {formatDateTimeForMessageView(message.created_at)}
                             </div>
                           </div>

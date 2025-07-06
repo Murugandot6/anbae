@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 interface AvatarCarouselProps {
   selectedAvatar: string | null;
   onSelect: (avatarUrl: string) => void;
-  numAvatars?: number; // Optional prop to specify number of avatars per type (e.g., 10 romeo, 10 juliet)
+  numAvatars?: number;
 }
 
 const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelect, numAvatars = 10 }) => {
@@ -23,36 +23,35 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
   }
 
   useEffect(() => {
-    // Set initial active avatar based on prop
     setActiveAvatarPath(selectedAvatar);
   }, [selectedAvatar]);
 
   const handleAvatarClick = (path: string) => {
-    setActiveAvatarPath(path); // Update visual active state
-    onSelect(path); // Call the parent's onSelect to update the form
+    setActiveAvatarPath(path);
+    onSelect(path);
   };
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <div className="grid grid-cols-2 gap-4 p-4 justify-items-center"> {/* Added justify-items-center */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 justify-items-center">
         {avatarPaths.map((path) => (
           <div
             key={path}
             className={cn(
-              "relative cursor-pointer transition-all duration-200 p-1 rounded-full",
-              activeAvatarPath === path ? "ring-4 ring-blue-600 dark:ring-purple-500" : "hover:ring-2 hover:ring-blue-500 dark:hover:ring-purple-400",
+              "relative cursor-pointer transition-all duration-200 p-1 rounded-full shadow-md",
+              activeAvatarPath === path ? "ring-4 ring-primary dark:ring-primary" : "hover:ring-2 hover:ring-accent dark:hover:ring-accent",
             )}
             onClick={() => handleAvatarClick(path)}
           >
-            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 aspect-square overflow-hidden block flex-shrink-0 rounded-full">
+            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 aspect-square overflow-hidden block flex-shrink-0 rounded-full border-2 border-transparent">
               <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
-              <AvatarFallback className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+              <AvatarFallback className="bg-muted text-muted-foreground">
                 AV
               </AvatarFallback>
             </Avatar>
             {activeAvatarPath === path && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-full">
-                <span className="text-white text-2xl">✓</span>
+              <div className="absolute inset-0 flex items-center justify-center bg-primary/30 rounded-full">
+                <span className="text-primary-foreground text-2xl">✓</span>
               </div>
             )}
           </div>

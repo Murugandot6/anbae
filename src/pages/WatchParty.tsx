@@ -3,17 +3,18 @@ import { User, Room } from '@/types/watchParty';
 import Dashboard from '@/components/watch-party/Dashboard';
 import Theater from '@/components/watch-party/Theater';
 import { useSession } from '@/contexts/SessionContext';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
+import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
 
 const LoadingSpinner: React.FC = () => (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>
 );
 
 const WatchParty: React.FC = () => {
   const { session, user: authUser, loading: sessionLoading } = useSession();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 
@@ -34,10 +35,9 @@ const WatchParty: React.FC = () => {
     setCurrentRoom(room);
   }, []);
 
-  // Modified to navigate to the main dashboard
   const handleLeaveRoom = useCallback(() => {
-    setCurrentRoom(null); // Clear the room state within WatchParty
-    navigate('/dashboard'); // Navigate to the main dashboard
+    setCurrentRoom(null);
+    navigate('/dashboard');
   }, [navigate]);
 
   if (sessionLoading) {
@@ -46,23 +46,25 @@ const WatchParty: React.FC = () => {
 
   if (!user) {
     return (
-        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white text-center">
-            <h2 className="text-2xl font-bold mb-4">Authentication Error</h2>
-            <p>Could not find a valid user session. Please ensure you are logged in.</p>
-        </div>
+        <BackgroundWrapper>
+            <div className="w-full max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-8 rounded-xl shadow-lg text-center">
+                <h2 className="text-2xl font-bold mb-4 text-foreground">Authentication Error</h2>
+                <p className="text-muted-foreground">Could not find a valid user session. Please ensure you are logged in.</p>
+            </div>
+        </BackgroundWrapper>
     );
   }
 
   return (
-    <div className="bg-gray-900 min-h-screen text-white font-sans">
-      <main className="p-4 sm:p-6 lg:p-8">
+    <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
+      <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
         {currentRoom ? (
           <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
         ) : (
           <Dashboard onJoinRoom={handleJoinRoom} />
         )}
       </main>
-    </div>
+    </BackgroundWrapper>
   );
 };
 

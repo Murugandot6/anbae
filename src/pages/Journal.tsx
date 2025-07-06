@@ -141,7 +141,7 @@ const Journal = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="/dashboard">
-                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full">
+                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
               </Link>
@@ -150,13 +150,13 @@ const Journal = () => {
               <p>Back to Dashboard</p>
             </TooltipContent>
           </Tooltip>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Journal</h1>
+          <h1 className="text-3xl font-bold text-foreground">Journal</h1>
         </header>
 
         <div className="flex flex-col gap-8">
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+              <CardTitle className="text-2xl font-bold text-foreground">
                 How was your day?
               </CardTitle>
               <p className="text-muted-foreground">{format(selectedDate || new Date(), "EEEE, MMMM d, yyyy")}</p>
@@ -170,7 +170,7 @@ const Journal = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Give your day a title</FormLabel>
-                        <FormControl><Input placeholder="e.g., A Productive Afternoon" {...field} /></FormControl>
+                        <FormControl><Input placeholder="e.g., A Productive Afternoon" {...field} className="bg-input/50 border-border/50 text-foreground" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -186,7 +186,7 @@ const Journal = () => {
                               onClick={() => handleMoodSelect(mood, emoji)}
                               className={cn(
                                 "text-4xl p-2 rounded-full transition-transform duration-200 hover:scale-110",
-                                form.watch('emoji') === emoji ? 'ring-2 ring-blue-500 bg-blue-100 dark:bg-blue-900' : ''
+                                form.watch('emoji') === emoji ? 'ring-2 ring-primary bg-primary/20 dark:bg-primary/20' : 'hover:bg-accent/20'
                               )}
                             >
                               {emoji}
@@ -208,7 +208,7 @@ const Journal = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="rounded-full w-14 h-14"
+                          className="rounded-full w-14 h-14 text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                           type="button"
                         >
                           <Smile className="w-6 h-6" />
@@ -223,38 +223,38 @@ const Journal = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Jot down your thoughts</FormLabel>
-                        <FormControl><Textarea placeholder="What happened today? How did it make you feel?" {...field} rows={5} /></FormControl>
+                        <FormControl><Textarea placeholder="What happened today? How did it make you feel?" {...field} rows={5} className="bg-input/50 border-border/50 text-foreground" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Save Entry</Button>
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Save Entry</Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
 
           <div>
-            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+            <h3 className="text-xl font-bold mb-4 text-foreground">
               Entries for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}
             </h3>
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               {loading ? (
-                <p>Loading entries...</p>
+                <p className="text-muted-foreground">Loading entries...</p>
               ) : dailyEntries.length > 0 ? (
                 dailyEntries.map(entry => (
-                  <Card key={entry.id} className="bg-white/50 dark:bg-gray-800/50">
+                  <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl">
                     <CardHeader className="flex flex-row justify-between items-start pb-2">
                       <div>
-                        <CardTitle className="text-lg">{entry.emoji} {entry.heading}</CardTitle>
+                        <CardTitle className="text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
                         <p className="text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="text-destructive hover:bg-destructive/20">
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <p className="whitespace-pre-wrap">{entry.content}</p>
+                      <p className="whitespace-pre-wrap text-foreground">{entry.content}</p>
                     </CardContent>
                   </Card>
                 ))

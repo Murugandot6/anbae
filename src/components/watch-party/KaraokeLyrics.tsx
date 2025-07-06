@@ -27,13 +27,11 @@ const KaraokeLyrics: React.FC<KaraokeLyricsProps> = ({ lyrics, currentTime }) =>
     const newLine = activeIndex !== -1 ? lyrics[activeIndex].text : null;
 
     if (newLine !== currentLine) {
-      // Start fade out
-      setAnimationClass('animate-fade-out');
+      setAnimationClass('animate-fade-out'); // Start fade out
 
-      // After fade out, change text and fade in
       const timer = setTimeout(() => {
         setCurrentLine(newLine);
-        setAnimationClass('animate-fade-in');
+        setAnimationClass('animate-fade-in'); // After fade out, change text and fade in
       }, 500); // This duration must match the animation duration in tailwind.config.ts
 
       return () => clearTimeout(timer);
@@ -42,7 +40,7 @@ const KaraokeLyrics: React.FC<KaraokeLyricsProps> = ({ lyrics, currentTime }) =>
 
   if (!lyrics.length) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500 text-2xl">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-2xl">
         <p>Waiting for the song to start...</p>
       </div>
     );
@@ -52,7 +50,7 @@ const KaraokeLyrics: React.FC<KaraokeLyricsProps> = ({ lyrics, currentTime }) =>
     <div className="flex items-center justify-center h-full text-center p-4">
       <p
         className={cn(
-          "text-4xl md:text-6xl font-bold text-white",
+          "text-4xl md:text-6xl font-bold text-foreground drop-shadow-lg", // Added drop-shadow for better readability
           animationClass
         )}
       >

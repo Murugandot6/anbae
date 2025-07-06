@@ -41,13 +41,13 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
         className={cn(
           "max-w-[70%] p-4 rounded-xl shadow-md",
           isSentByCurrentUser
-            ? "bg-blue-600 text-white dark:bg-blue-800 rounded-br-none"
-            : "bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 rounded-bl-none",
+            ? "bg-primary text-primary-foreground rounded-br-none"
+            : "bg-secondary text-secondary-foreground dark:bg-muted-foreground/20 rounded-bl-none",
           isReply ? "mt-2" : ""
         )}
       >
-        <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100")}>{msg.content}</p>
-        <div className={cn("text-xs mt-2", isSentByCurrentUser ? "text-blue-100 dark:text-blue-200 text-right" : "text-gray-600 dark:text-gray-300 text-left")}>
+        <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-primary-foreground" : "text-secondary-foreground dark:text-foreground")}>{msg.content}</p>
+        <div className={cn("text-xs mt-2", isSentByCurrentUser ? "text-primary-foreground/80 text-right" : "text-secondary-foreground/80 dark:text-muted-foreground text-left")}>
           {formattedDateTime}
           {msg.read_at && isSentByCurrentUser && (
             <span className="ml-2 flex items-center justify-end gap-1">
@@ -166,28 +166,26 @@ const ViewMessage = () => {
     fetchMessageAndReplies();
 
     const channel = supabase
-      .channel(`message_view_${id}`) // Unique channel name for this view
+      .channel(`message_view_${id}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'messages',
-          filter: `id=eq.${id}.or.parent_message_id=eq.${id}` // Filter for the main message OR its replies
+          filter: `id=eq.${id}.or.parent_message_id=eq.${id}`
         },
         async (payload) => {
           if (payload.eventType === 'UPDATE' && payload.old.id === id) {
-            // This is an update to the main message
             const updatedMessage = payload.new as Message;
             setMessage(prev => {
               if (!prev) return null;
-              return { ...prev, ...updatedMessage }; // Update the main message's properties
+              return { ...prev, ...updatedMessage };
             });
             if (updatedMessage.status === 'closed') {
                 toast.info('This conversation has been closed by the sender.');
             }
           } else if (payload.eventType === 'INSERT' && payload.new.parent_message_id === id) {
-            // This is a new reply
             const newReply = payload.new as Message;
             const senderProfile = await fetchProfileById(newReply.sender_id);
             const receiverProfile = await fetchProfileById(newReply.receiver_id);
@@ -237,14 +235,14 @@ const ViewMessage = () => {
       return;
     }
 
-    const authorName = user.user_metadata.nickname || user.email || 'Unknown User'; // Get author name
+    const authorName = user.user_metadata.nickname || user.email || 'Unknown User';
 
     try {
       const { data, error } = await supabase.from('messages').insert({
         user_id: user.id,
         sender_id: user.id,
         receiver_id: replyReceiverId,
-        author_name: authorName, // Added author_name here
+        author_name: authorName,
         subject: `Re: ${message.subject}`,
         content: values.replyContent,
         message_type: 'Reply',
@@ -318,7 +316,7 @@ const ViewMessage = () => {
 
   if (sessionLoading || loadingMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
         <p className="text-xl">Loading message...</p>
       </div>
     );
@@ -331,11 +329,11 @@ const ViewMessage = () => {
 
   if (!message) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 p-4 text-center pt-20">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Message Not Found</h2>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
+        <h2 className="text-2xl font-bold text-foreground mb-4">Message Not Found</h2>
         <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
         <Link to="/messages">
-          <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+          <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
             <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
           </Button>
         </Link>
@@ -358,23 +356,23 @@ const ViewMessage = () => {
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <Link to="/messages">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+            <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 border-2 border-blue-500 dark:border-purple-400">
+            <Avatar className="w-16 h-16 border-2 border-primary dark:border-primary-foreground">
               <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
-              <AvatarFallback>{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground">{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="text-right">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-4xl font-bold text-foreground">
                 {conversationPartnerName}
               </h1>
               <p className="text-xl text-muted-foreground mt-1 flex items-center justify-end gap-2">
                 {message.message_type}
                 {message.status === 'closed' && (
-                  <Badge variant="secondary" className="ml-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200">Closed</Badge>
+                  <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground">Closed</Badge>
                 )}
               </p>
             </div>
@@ -396,7 +394,7 @@ const ViewMessage = () => {
           <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
             <Form {...replyForm}>
               <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
-                <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-card/80 dark:bg-card/80 shadow-lg border border-border/50 backdrop-blur-md">
                   <EmojiPickerPopover
                     isOpen={isEmojiPickerOpen}
                     onOpenChange={setIsEmojiPickerOpen}
@@ -406,10 +404,10 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-6 h-6 rounded-full"
+                      className="flex-shrink-0 w-8 h-8 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       aria-label="Open emoji picker"
                     >
-                      <Smile className="w-3.5 h-3.5 text-gray-500" />
+                      <Smile className="w-4 h-4" />
                     </Button>
                   </EmojiPickerPopover>
                   <FormField
@@ -422,7 +420,7 @@ const ViewMessage = () => {
                             placeholder="Type a message..."
                             {...field}
                             rows={1}
-                            className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-sm"
+                            className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-foreground"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
@@ -440,25 +438,25 @@ const ViewMessage = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="flex-shrink-0 w-6 h-6 rounded-full"
+                      className="flex-shrink-0 w-8 h-8 rounded-full text-destructive hover:bg-destructive/20"
                       onClick={handleCloseMessage}
                       aria-label="Close message"
                     >
-                      <XCircle className="w-3.5 h-3.5 text-red-500" />
+                      <XCircle className="w-4 h-4" />
                     </Button>
                   )}
                   <Button
                     type="submit"
                     variant="default"
                     size="icon"
-                    className="rounded-full flex-shrink-0 w-6 h-6 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="rounded-full flex-shrink-0 w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="px-4 pt-1">
-                  <FormMessage className="text-xs text-red-500">{replyForm.formState.errors.replyContent?.message}</FormMessage>
+                  <FormMessage className="text-xs text-destructive">{replyForm.formState.errors.replyContent?.message}</FormMessage>
                 </div>
               </form>
             </Form>

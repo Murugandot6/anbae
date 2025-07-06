@@ -47,8 +47,6 @@ const WaveRoomTheaterPage: React.FC = () => {
     if (roomCode) {
       setRoom(roomCode);
     }
-    // Removed the cleanup function that called setRoom(null)
-    // The room connection will now persist until explicitly left via handleLeaveRoom
   }, [roomCode, setRoom]);
 
   useEffect(() => {
@@ -129,9 +127,9 @@ const WaveRoomTheaterPage: React.FC = () => {
   };
 
   const handleLeaveRoom = () => {
-    clearStation(); // Stop playback and clear station from context
-    setRoom(null); // Disconnect from the room
-    navigate('/dashboard'); // Navigate to dashboard
+    clearStation();
+    setRoom(null);
+    navigate('/dashboard');
     toast.info("You have left the Wave Room.");
   };
 
@@ -143,7 +141,7 @@ const WaveRoomTheaterPage: React.FC = () => {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
         <p className="text-xl">Loading Session...</p>
       </div>
     );
@@ -163,21 +161,21 @@ const WaveRoomTheaterPage: React.FC = () => {
   const isCurrentRoomActive = activePlayerRoomCode === roomCode;
 
   return (
-    <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
-      <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
+    <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
+      <header className="bg-card/60 backdrop-blur-md border-b border-border/50 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button
               onClick={handleBackToDashboard}
               variant="ghost"
               size="icon"
-              className="w-9 h-9 text-gray-400 hover:text-white"
+              className="w-9 h-9 text-foreground hover:bg-accent/20 hover:text-accent-foreground"
               aria-label="Back to Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <WaveIcon className="w-8 h-8 text-indigo-400" />
-            <h1 className="text-2xl font-bold tracking-tight text-white hidden sm:block">Wave Room</h1>
+            <WaveIcon className="w-8 h-8 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground hidden sm:block">Wave Room</h1>
           </div>
 
           <div className="flex-1 max-w-lg">
@@ -185,14 +183,14 @@ const WaveRoomTheaterPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-gray-700/50 rounded-md p-2 border border-gray-600">
-                <span className="text-sm text-gray-400 hidden md:inline">CODE:</span>
-                <span className="font-bold tracking-widest text-white">{roomCode}</span>
-                <Button onClick={handleCopyCode} variant="ghost" size="icon" className="w-7 h-7">
+            <div className="flex items-center gap-2 bg-input/50 rounded-md p-2 border border-border/50">
+                <span className="text-sm text-muted-foreground hidden md:inline">CODE:</span>
+                <span className="font-bold tracking-widest text-foreground">{roomCode}</span>
+                <Button onClick={handleCopyCode} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-accent/20">
                     <Copy className="w-4 h-4"/>
                 </Button>
             </div>
-             <Button onClick={handleLeaveRoom} variant="destructive" size="icon" className="w-9 h-9">
+             <Button onClick={handleLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                 <LogOut className="w-4 h-4"/>
             </Button>
           </div>
@@ -202,7 +200,7 @@ const WaveRoomTheaterPage: React.FC = () => {
       <main className="flex-grow overflow-y-auto pb-32">
         <div className="container mx-auto p-4 md:p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-            <h2 className="text-xl font-semibold text-gray-300 flex-shrink-0 order-1 md:order-none">
+            <h2 className="text-xl font-semibold text-foreground flex-shrink-0 order-1 md:order-none">
               {buildTitle()}
             </h2>
             <FilterBar

@@ -11,23 +11,23 @@ const UserManual: React.FC = () => {
       <div className="w-full max-w-3xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex items-center mb-6">
           <Link to="/dashboard">
-            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full mr-4">
+            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full mr-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Anbae User Manual</h1>
+          <h1 className="text-3xl font-bold text-foreground">Anbae User Manual</h1>
         </header>
 
         <div className="space-y-8">
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Heart className="w-6 h-6 text-pink-600" /> Dashboard
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Heart className="w-6 h-6 text-primary" /> Dashboard
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Your personalized hub for relationship health.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Lifetime Score:** A visual indicator of your communication health with your partner.</li>
                 <li>**Profiles:** See your and your partner's avatars, nicknames, and lifetime scores.</li>
                 <li>**Recent Messages:** A timeline of your most recent communications.</li>
@@ -37,15 +37,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <MessageSquare className="w-6 h-6 text-blue-600" /> Messages
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <MessageSquare className="w-6 h-6 text-primary" /> Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Communicate openly and effectively with your partner.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Send Message:** Choose from message types like Grievance, Compliment, Good Memory, or How I Feel. Set priority and your mood.</li>
                 <li>**Inbox/Outbox:** View all your received and sent messages.</li>
                 <li>**View Message:** Tap on any message to see its full content and engage in a threaded conversation by replying.</li>
@@ -55,15 +55,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <BookText className="w-6 h-6 text-green-600" /> Journal
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <BookText className="w-6 h-6 text-primary" /> Journal
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Reflect on your day and track your emotional journey.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Create Entry:** Write down your thoughts, give your day a title, select an emoji, and choose your mood.</li>
                 <li>**Mood Calendar Integration:** Journal entries are linked to the Mood Calendar on your Dashboard, allowing you to see your emotional patterns over time.</li>
                 <li>**View Past Entries:** Click on a date in the Mood Calendar to view or add entries for that specific day.</li>
@@ -71,15 +71,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Sparkles className="w-6 h-6 text-yellow-500" /> Promposal
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Sparkles className="w-6 h-6 text-primary" /> Promposal
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Create a special video message with synchronized lyrics.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Create:** Upload a video URL (e.g., YouTube) and provide lyrics in LRC format.</li>
                 <li>**Share:** Get a unique link to share your personalized promposal with your partner.</li>
                 <li>**Experience:** The video plays with lyrics appearing in sync, creating a unique and heartfelt message.</li>
@@ -87,15 +87,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Film className="w-6 h-6 text-purple-600" /> Watch Party
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Film className="w-6 h-6 text-primary" /> Watch Party
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Watch videos together in real-time with synchronized playback and live chat.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Create Room:** Start a new private watch party and get a shareable code.</li>
                 <li>**Join Room:** Enter a friend's room code to join their party.</li>
                 <li>**Synchronized Playback:** Everyone in the room sees the video at the same time.</li>
@@ -105,15 +105,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Radio className="w-6 h-6 text-indigo-400" /> Wave Room
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Radio className="w-6 h-6 text-primary" /> Wave Room
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Listen to internet radio stations together in real-time.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Create Room:** Start a new radio listening session and get a shareable code.</li>
                 <li>**Join Room:** Enter a friend's room code to join their listening party.</li>
                 <li>**Browse Stations:** Search and filter thousands of internet radio stations by name, language, country, or tag.</li>
@@ -123,15 +123,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Settings className="w-6 h-6 text-gray-600" /> Edit Profile
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Settings className="w-6 h-6 text-primary" /> Edit Profile
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Personalize your Anbae experience.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Nickname:** Change your display name.</li>
                 <li>**Partner's Email:** Link to your partner's Anbae account.</li>
                 <li>**Partner's Nickname:** Set a special nickname for your partner.</li>
@@ -140,15 +140,15 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Trash2 className="w-6 h-6 text-red-600" /> Clear All Messages
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Trash2 className="w-6 h-6 text-destructive" /> Clear All Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-2">Initiate a fresh start for your message history.</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>**Send Request:** Send a request to your partner to clear all messages between you two.</li>
                 <li>**Mutual Agreement:** This action requires your partner's acceptance.</li>
                 <li>**Irreversible:** Once accepted and confirmed, all messages will be permanently deleted.</li>
@@ -156,10 +156,10 @@ const UserManual: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+          <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                <Sun className="w-6 h-6 text-yellow-500" /> / <Moon className="w-6 h-6 text-gray-400" /> Theme Toggle
+              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+                <Sun className="w-6 h-6 text-primary" /> / <Moon className="w-6 h-6 text-muted-foreground" /> Theme Toggle
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -170,7 +170,7 @@ const UserManual: React.FC = () => {
 
         <div className="mt-8 text-center">
           <Link to="/dashboard">
-            <Button variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
               <ArrowLeft className="w-5 h-5 mr-2" /> Back to Dashboard
             </Button>
           </Link>

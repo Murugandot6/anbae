@@ -28,18 +28,18 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({ entry, isOpen, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/30 dark:border-gray-600/30">
+      <DialogContent className="sm:max-w-[425px] bg-card/80 dark:bg-card/80 backdrop-blur-md border-border/50 rounded-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-4 text-2xl text-gray-900 dark:text-white">
+          <DialogTitle className="flex items-center gap-4 text-2xl text-foreground">
             <span className="text-4xl">{entry.emoji}</span>
             {entry.heading}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground">
             {format(new Date(entry.created_at), "EEEE, MMMM d, yyyy")}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 max-h-[60vh] overflow-y-auto">
-          <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">{entry.content}</p>
+          <p className="whitespace-pre-wrap text-foreground">{entry.content}</p>
         </div>
       </DialogContent>
     </Dialog>

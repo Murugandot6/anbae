@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Profile, Message } from '@/types/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button'; // Import Button
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes'; // Import useTheme to get current theme
+import { useTheme } from 'next-themes';
 
 interface ScoreAndMessageChartsProps {
   currentUserProfile: Profile | null;
@@ -20,21 +20,21 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
   receivedMessages,
 }) => {
   const [selectedChart, setSelectedChart] = useState<'scores' | 'sent' | 'received' | 'mood'>('scores');
-  const { theme } = useTheme(); // Get current theme
+  const { theme } = useTheme();
 
   // 1. Lifetime Score Data
   const scoreData = [
     {
       name: 'You',
       score: currentUserProfile?.lifetime_score ?? 100,
-      fill: 'hsl(222.2 47.4% 11.2%)', // primary color
-      darkFill: 'hsl(210 40% 98%)', // primary-foreground for dark
+      fill: 'hsl(var(--primary))',
+      darkFill: 'hsl(var(--primary))',
     },
     {
       name: partnerProfile?.username || 'Partner',
       score: partnerProfile?.lifetime_score ?? 100,
-      fill: 'hsl(217.2 32.6% 17.5%)', // secondary color
-      darkFill: 'hsl(217.2 32.6% 17.5%)', // secondary color for dark
+      fill: 'hsl(var(--secondary))',
+      darkFill: 'hsl(var(--secondary))',
     },
   ];
 
@@ -79,59 +79,59 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
   };
 
   return (
-    <Card className="bg-white/30 dark:bg-gray-800/30 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30 p-4">
+    <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 p-4 rounded-xl">
       <CardHeader className="pb-4">
-        <CardTitle className="text-gray-900 dark:text-white text-center">Communication Insights</CardTitle>
+        <CardTitle className="text-foreground text-center">Communication Insights</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap justify-center gap-2 mb-6">
           <Button
             variant={selectedChart === 'scores' ? 'default' : 'outline'}
-            size="sm" // Make button small
+            size="sm"
             onClick={() => setSelectedChart('scores')}
             className={cn(
-              "rounded-full", // Make button rounded
-              selectedChart === 'scores' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+              "rounded-full",
+              selectedChart === 'scores' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
             Lifetime Scores
           </Button>
           <Button
             variant={selectedChart === 'sent' ? 'default' : 'outline'}
-            size="sm" // Make button small
+            size="sm"
             onClick={() => setSelectedChart('sent')}
             className={cn(
-              "rounded-full", // Make button rounded
-              selectedChart === 'sent' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+              "rounded-full",
+              selectedChart === 'sent' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
             Sent Messages
           </Button>
           <Button
             variant={selectedChart === 'received' ? 'default' : 'outline'}
-            size="sm" // Make button small
+            size="sm"
             onClick={() => setSelectedChart('received')}
             className={cn(
-              "rounded-full", // Make button rounded
-              selectedChart === 'received' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+              "rounded-full",
+              selectedChart === 'received' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
             Received Messages
           </Button>
           <Button
             variant={selectedChart === 'mood' ? 'default' : 'outline'}
-            size="sm" // Make button small
+            size="sm"
             onClick={() => setSelectedChart('mood')}
             className={cn(
-              "rounded-full", // Make button rounded
-              selectedChart === 'mood' ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+              "rounded-full",
+              selectedChart === 'mood' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
             Overall Moods
           </Button>
         </div>
 
-        <div className="h-[250px] w-full"> {/* Fixed height for chart container */}
+        <div className="h-[250px] w-full">
           {selectedChart === 'scores' && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>

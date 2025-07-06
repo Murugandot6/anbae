@@ -3,7 +3,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react'; // Removed LogOut from here
+import { Menu } from 'lucide-react';
 import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
@@ -22,13 +22,13 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 w-10 h-10 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
                     <Menu className="w-5 h-5" />
                 </Button>
             </SheetTrigger>
             <SheetContent
                 side="left"
-                className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col [&>button]:hidden"
+                className="w-64 bg-gradient-to-br from-sidebar-background to-sidebar-background/80 backdrop-blur-md border-r border-sidebar-border p-4 flex flex-col [&>button]:hidden"
             >
                 {/* Container for Clear Messages and X button at the very top */}
                 <div className="flex justify-between items-center mb-4 px-2">

@@ -52,6 +52,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // New/Updated Sidebar Colors for Gradient
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -97,8 +98,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.5s ease-out forwards", // Reduced duration
-        "fade-out": "fade-out 0.5s ease-out forwards", // Added fade-out
+        "fade-in": "fade-in 0.5s ease-out forwards",
+        "fade-out": "fade-out 0.5s ease-out forwards",
       },
     },
   },

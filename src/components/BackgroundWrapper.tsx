@@ -30,11 +30,11 @@ function BackgroundWrapper({ children, className }: BackgroundImageWrapperProps)
         )}
       ></div>
 
-      {/* Overlay for readability (on top of backgrounds) */}
-      <div className="absolute inset-0 bg-black opacity-20 dark:opacity-40 z-10"></div>
+      {/* Overlay for readability (on top of backgrounds) - Adjusted opacity for new palette */}
+      <div className="absolute inset-0 bg-black opacity-10 dark:opacity-30 z-10"></div>
 
       {/* Content wrapper (on top of overlay and backgrounds) */}
-      <div className={cn("relative z-20 min-h-screen flex flex-col items-center justify-start p-4 pt-20", className)}> {/* Changed justify-center to justify-start and added pt-20 */}
+      <div className={cn("relative z-20 min-h-screen flex flex-col items-center justify-start p-4 pt-20", className)}>
         {children}
       </div>
     </div>

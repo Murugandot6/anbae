@@ -17,17 +17,17 @@ const generateRoomCode = (): string => {
     return result;
 }
 
-const WaveRoomPage: React.FC = () => { // Renamed component
+const WaveRoomPage: React.FC = () => {
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
-  const [createError, setCreateError] = useState<string | null>(null); // Separate error state for create
-  const [joinError, setJoinError] = useState<string | null>(null);     // Separate error state for join
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   const handleCreateRoom = async () => {
     setLoading('create');
-    setCreateError(null); // Clear previous create error
-    setJoinError(null);   // Clear join error if present
+    setCreateError(null);
+    setJoinError(null);
 
     let roomCode = '';
     let isCodeUnique = false;
@@ -37,14 +37,14 @@ const WaveRoomPage: React.FC = () => { // Renamed component
         roomCode = generateRoomCode();
         const { error: checkError } = await supabase
             .from('wave_rooms')
-            .select('code') // Changed 'id' to 'code' here
+            .select('code')
             .eq('code', roomCode)
             .single();
         
-        if (checkError && checkError.code === 'PGRST116') { // PGRST116 means no rows found, so code is unique
+        if (checkError && checkError.code === 'PGRST116') {
             isCodeUnique = true;
         } else if (checkError) {
-             console.error("Error checking for room code uniqueness:", checkError); // Log the full error
+             console.error("Error checking for room code uniqueness:", checkError);
              setCreateError(`Could not verify room code: ${checkError.message}. Please try again.`);
              setLoading(null);
              return;
@@ -80,8 +80,8 @@ const WaveRoomPage: React.FC = () => { // Renamed component
         return;
     }
     setLoading('join');
-    setJoinError(null);   // Clear previous join error
-    setCreateError(null); // Clear create error if present
+    setJoinError(null);
+    setCreateError(null);
 
     const codeToJoin = joinCode.trim().toUpperCase();
 
@@ -92,7 +92,7 @@ const WaveRoomPage: React.FC = () => { // Renamed component
       .single();
 
     if (findError || !data) {
-      console.error('Error finding room:', findError); // Log the full error
+      console.error('Error finding room:', findError);
       setJoinError(`Room with code "${codeToJoin}" not found.`);
     } else {
       navigate(`/waveroom/${data.code}`);
@@ -103,37 +103,37 @@ const WaveRoomPage: React.FC = () => { // Renamed component
   return (
     <BackgroundWrapper>
       <div className="text-center mb-12">
-        <Radio className="w-20 h-20 text-indigo-400 mx-auto mb-4" />
-        <h1 className="text-5xl font-bold tracking-tighter mb-2 text-white">Wave Room</h1>
-        <p className="text-lg text-gray-300 max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
+        <Radio className="w-20 h-20 text-primary mx-auto mb-4" />
+        <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
+        <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Card className="bg-white/10 border-gray-700 text-white flex flex-col">
+        <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
           <CardHeader className="text-center">
-            <Users className="w-12 h-12 text-indigo-400 mx-auto mb-4"/>
+            <Users className="w-12 h-12 text-primary mx-auto mb-4"/>
             <CardTitle>Create a New Room</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
                 Start a new listening party and invite others to join.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col flex-grow justify-end">
-            {createError && <p className="text-red-400 text-sm mb-2">{createError}</p>} {/* Display create error */}
+            {createError && <p className="text-destructive text-sm mb-2">{createError}</p>}
             <Button
               onClick={handleCreateRoom}
               disabled={!!loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-500"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading === 'create' ? 'Creating...' : 'Create Room'}
             </Button>
           </CardContent>
         </Card>
         
-        <Card className="bg-white/10 border-gray-700 text-white">
+        <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
           <CardHeader className="text-center">
-            <LogIn className="w-12 h-12 text-green-400 mx-auto mb-4"/>
+            <LogIn className="w-12 h-12 text-secondary mx-auto mb-4"/>
             <CardTitle>Join an Existing Room</CardTitle>
-            <CardDescription>Enter a room code below to join your friends.</CardDescription>
+            <CardDescription className="text-muted-foreground">Enter a room code below to join your friends.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleJoinRoom} className="flex flex-col gap-4">
@@ -142,14 +142,14 @@ const WaveRoomPage: React.FC = () => { // Renamed component
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="ENTER CODE"
-                className="text-center font-mono tracking-widest text-lg"
+                className="text-center font-mono tracking-widest text-lg bg-input/50 border-border/50 text-foreground focus:ring-primary"
                 maxLength={4}
               />
-              {joinError && <p className="text-red-400 text-sm mt-2">{joinError}</p>} {/* Display join error */}
+              {joinError && <p className="text-destructive text-sm mt-2">{joinError}</p>}
               <Button
                 type="submit"
                 disabled={!joinCode.trim() || !!loading}
-                className="bg-green-600 hover:bg-green-500"
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
               >
                 {loading === 'join' ? 'Joining...' : 'Join Room'}
               </Button>

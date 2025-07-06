@@ -4,89 +4,106 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%; /* White */
+    --foreground: 240 10% 3.9%; /* Dark Gray */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* White for cards */
+    --card-foreground: 240 10% 3.9%; /* Dark Gray */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 240 5.9% 10%; /* Dark Blue/Gray for primary actions */
+    --primary-foreground: 0 0% 98%; /* Off-white */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 4.8% 95.9%; /* Light Gray for secondary elements */
+    --secondary-foreground: 240 5.9% 10%; /* Dark Blue/Gray */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 5.9% 90%; /* Light Gray border */
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Slightly more rounded corners */
 
-    --sidebar-background: 0 0% 98%;
+    /* New/Updated Color Palette for Light Mode */
+    --background: 270 20% 98%; /* Very light lavender */
+    --foreground: 240 10% 15%; /* Darker text */
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --card: 0 0% 100%; /* White for cards */
+    --card-foreground: 240 10% 15%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --primary: 260 60% 60%; /* Soft Lavender */
+    --primary-foreground: 0 0% 100%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    --secondary: 330 60% 80%; /* Soft Peach */
+    --secondary-foreground: 240 10% 15%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    --accent: 200 70% 70%; /* Gentle Blue */
+    --accent-foreground: 240 10% 15%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --destructive: 0 80% 60%; /* Soft Red */
 
-    --sidebar-border: 220 13% 91%;
+    --border: 270 10% 90%; /* Light border */
+    --input: 270 10% 95%;
+    --ring: 260 60% 60%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar specific colors (Light Mode) */
+    --sidebar-background: 270 20% 95%; /* Slightly darker lavender for sidebar */
+    --sidebar-foreground: 240 10% 20%;
+    --sidebar-primary: 260 60% 50%; /* Deeper lavender for active items */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 15% 85%; /* Lighter accent for hover */
+    --sidebar-accent-foreground: 240 10% 20%;
+    --sidebar-border: 270 10% 80%;
+    --sidebar-ring: 260 60% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 10%; /* Deep charcoal */
+    --foreground: 240 20% 90%; /* Light gray text */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 15%; /* Darker charcoal for cards */
+    --card-foreground: 240 20% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 15%;
+    --popover-foreground: 240 20% 90%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 260 60% 70%; /* Brighter Lavender for dark mode primary */
+    --primary-foreground: 240 10% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 330 60% 70%; /* Brighter Peach for dark mode secondary */
+    --secondary-foreground: 240 20% 90%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 15% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 200 70% 60%; /* Deeper Blue for dark mode accent */
+    --accent-foreground: 240 20% 90%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%; /* Slightly darker red */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 260 60% 70%;
+
+    /* Sidebar specific colors (Dark Mode) */
+    --sidebar-background: 240 10% 12%; /* Slightly lighter charcoal for sidebar */
+    --sidebar-foreground: 240 20% 85%;
+    --sidebar-primary: 260 60% 60%; /* Deeper lavender for active items */
+    --sidebar-primary-foreground: 240 10% 10%;
+    --sidebar-accent: 240 10% 25%; /* Lighter accent for hover */
+    --sidebar-accent-foreground: 240 20% 85%;
+    --sidebar-border: 240 10% 20%;
+    --sidebar-ring: 260 60% 70%;
   }
 }
 

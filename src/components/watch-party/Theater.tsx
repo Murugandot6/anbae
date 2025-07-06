@@ -6,6 +6,8 @@ import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
 import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // Import shadcn Button
+import { toast } from 'sonner'; // Import sonner toast
 
 interface TheaterProps {
   room: Room;
@@ -21,6 +23,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(room.room_code);
     setCopyStatus('Copied!');
+    toast.success("Room code copied to clipboard!");
     setTimeout(() => setCopyStatus('Copy Code'), 2000);
   };
 
@@ -36,32 +39,32 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
         <div className="flex items-center gap-4">
-          <button
+          <Button
             onClick={onLeaveRoom}
-            className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full transition-colors"
+            className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md"
             aria-label="Leave room"
           >
             <ArrowLeft className="h-5 w-5" />
-          </button>
+          </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">{room.title}</h1>
+            <h1 className="text-3xl font-bold text-foreground">{room.title}</h1>
             <div className="flex items-center gap-2 mt-2">
-              <p className="text-gray-400">Share Code:</p>
-              <p className="text-blue-400 font-mono text-lg bg-gray-700 px-3 py-1 rounded-md">{room.room_code}</p>
-              <button onClick={handleCopyCode} className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition-colors">
+              <p className="text-muted-foreground">Share Code:</p>
+              <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
+              <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
                 <ClipboardCopyIcon className="h-4 w-4" />
                 {copyStatus}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSetVideo} className="mb-6 bg-gray-800 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3">
-        <label htmlFor="video-url-input" className="font-semibold text-white sr-only">Video URL</label>
+      <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg">
+        <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
         <div className="relative w-full">
             <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                <LinkIcon className="w-5 h-5 text-gray-400" />
+                <LinkIcon className="w-5 h-5 text-muted-foreground" />
             </div>
             <input
                 id="video-url-input"
@@ -69,13 +72,13 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                 value={newVideoUrl}
                 onChange={(e) => setNewVideoUrl(e.target.value)}
                 placeholder="Enter YouTube or video URL to start or change the video"
-                className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block ps-10 p-2.5"
+                className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
                 required
             />
         </div>
-        <button type="submit" className="w-full sm:w-auto text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+        <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
             Set Video
-        </button>
+        </Button>
       </form>
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />

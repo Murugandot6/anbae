@@ -57,7 +57,7 @@ const CreatePromposal = () => {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-950 text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
         <p className="text-xl">Loading...</p>
       </div>
     );
@@ -73,20 +73,20 @@ const CreatePromposal = () => {
       <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex items-center mb-6">
           <Link to="/dashboard">
-            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full mr-4">
+            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full mr-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Your Promposal</h1>
+          <h1 className="text-3xl font-bold text-foreground">Create Your Promposal</h1>
         </header>
 
-        <Card className="bg-white/80 dark:bg-gray-800/80 shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+        <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-              <Sparkles className="w-6 h-6 text-yellow-500" />
+            <CardTitle className="flex items-center gap-2 text-2xl font-bold text-foreground">
+              <Sparkles className="w-6 h-6 text-primary" />
               A Special Message
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Set up a video with synchronized lyrics to share with your partner.
             </CardDescription>
           </CardHeader>
@@ -98,9 +98,9 @@ const CreatePromposal = () => {
                   name="video_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2"><Video className="w-4 h-4" /> Video URL</FormLabel>
+                      <FormLabel className="flex items-center gap-2"><Video className="w-4 h-4 text-primary" /> Video URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://www.youtube.com/watch?v=..." {...field} />
+                        <Input placeholder="https://www.youtube.com/watch?v=..." {...field} className="bg-input/50 border-border/50 text-foreground" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -111,20 +111,20 @@ const CreatePromposal = () => {
                   name="lrc_content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-2"><Music className="w-4 h-4" /> Lyrics (LRC Format)</FormLabel>
+                      <FormLabel className="flex items-center gap-2"><Music className="w-4 h-4 text-primary" /> Lyrics (LRC Format)</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="[00:01.15]I love you still..."
                           {...field}
                           rows={10}
-                          className="font-mono text-sm"
+                          className="font-mono text-sm bg-input/50 border-border/50 text-foreground"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   Create & Get Link
                 </Button>
               </form>

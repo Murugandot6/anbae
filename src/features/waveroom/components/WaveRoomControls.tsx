@@ -36,17 +36,17 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-50">
-      <div className="bg-gray-800/80 backdrop-blur-lg border-t border-gray-700 shadow-2xl p-3">
+      <div className="bg-card/80 backdrop-blur-lg border-t border-border/50 shadow-2xl p-3">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <button
             onClick={() => onShowStation(station)}
-            className="flex items-center gap-4 flex-1 min-w-0 text-left rounded-md hover:bg-gray-700/50 p-2 -m-2 transition-colors"
+            className="flex items-center gap-4 flex-1 min-w-0 text-left rounded-md hover:bg-accent/20 p-2 -m-2 transition-colors"
             title="Find this station in the list"
           >
             <img
               src={station.favicon}
               alt={station.name}
-              className="w-14 h-14 rounded-md shadow-md bg-gray-700"
+              className="w-14 h-14 rounded-md shadow-md bg-input/50"
               onError={(e) => {
                 const img = e.currentTarget;
                 img.style.display = 'none';
@@ -56,25 +56,25 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
                 }
               }}
             />
-            <div className="hidden w-14 h-14 rounded-md shadow-md bg-gray-700 flex items-center justify-center">
-              <RadioIcon className="w-8 h-8 text-gray-500" />
+            <div className="hidden w-14 h-14 rounded-md shadow-md bg-input/50 flex items-center justify-center">
+              <RadioIcon className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-white truncate" title={station.name}>{station.name}</p>
+              <p className="font-bold text-foreground truncate" title={station.name}>{station.name}</p>
               <div className="space-y-0.5">
-                <p className="text-sm text-gray-400 truncate" title={country}>{country}</p>
-                {language && <p className="text-xs text-gray-500 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
+                <p className="text-sm text-muted-foreground truncate" title={country}>{country}</p>
+                {language && <p className="text-xs text-muted-foreground/80 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
               </div>
             </div>
           </button>
           <div className="flex items-center gap-4">
-             <button onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'} className="bg-gray-700 hover:bg-gray-600 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+             <button onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'} className="bg-input/50 hover:bg-accent/20 rounded-full p-3 text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-border/50">
               {isMuted ? <VolumeOffIcon className="w-6 h-6" /> : <VolumeUpIcon className="w-6 h-6" />}
             </button>
-            <button onClick={handlePlayPauseClick} title={isPlaying ? 'Pause' : 'Play'} className="bg-indigo-600 hover:bg-indigo-500 rounded-full p-3 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-gray-800">
+            <button onClick={handlePlayPauseClick} title={isPlaying ? 'Pause' : 'Play'} className="bg-primary hover:bg-primary/90 rounded-full p-3 text-primary-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
               {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
             </button>
-            <button onClick={handleClear} title="Stop and clear player" className="bg-gray-700 hover:bg-gray-600 rounded-full p-2 text-gray-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+            <button onClick={handleClear} title="Stop and clear player" className="bg-input/50 hover:bg-accent/20 rounded-full p-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-border/50">
               <XIcon className="w-5 h-5" />
             </button>
           </div>
