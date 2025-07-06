@@ -5,7 +5,7 @@ import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
 import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
 
@@ -37,30 +37,33 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-        {/* Ensure positioning is absolute for top-left corner */}
-        <div className="absolute top-4 left-4 z-10">
+      <div className="flex items-center justify-between mb-4">
+        {/* Back button on the left */}
+        <div className="flex-shrink-0">
           <Button
             onClick={onLeaveRoom}
-            className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md"
+            variant="outline"
+            size="icon"
+            className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
             aria-label="Leave room"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
         </div>
-        <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{room.title}</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <p className="text-muted-foreground">Share Code:</p>
-              <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
-              <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
-                <ClipboardCopyIcon className="h-4 w-4" />
-                {copyStatus}
-              </Button>
-            </div>
+        
+        {/* Room code and Leave button on the right */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <p className="text-muted-foreground">Share Code:</p>
+            <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
+            <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
+              <ClipboardCopyIcon className="h-4 w-4" />
+              {copyStatus}
+            </Button>
           </div>
+          <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-10 h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
+            <LogOut className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
