@@ -27,7 +27,7 @@ const StationListItem: React.FC<StationListItemProps> = ({ station, isPlaying, o
   return (
     <div
       onClick={onSelect}
-      className={`group relative flex flex-col p-2 sm:p-3 md:p-4 text-center bg-card/60 backdrop-blur-md rounded-2xl shadow-lg cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-primary/30 ${isPlaying ? 'ring-2 ring-offset-2 ring-offset-background ring-primary' : 'ring-1 ring-border/50'}`}
+      className={`group relative flex flex-col p-2 sm:p-3 md:p-4 text-center bg-card/60 backdrop-blur-md rounded-2xl shadow-lg cursor-pointer transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-primary/30 ${isPlaying ? 'ring-2 ring-offset-2 ring-offset-background ring-primary' : 'ring-1 ring-border/50'} items-center`}
     >
       {isPlaying && (
           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1.5 shadow-lg z-10">
