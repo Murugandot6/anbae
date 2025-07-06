@@ -86,20 +86,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     }
   }, [videoState, isPlayerReady, isSeeking]);
 
-  useEffect(() => {
-      setPlayerError(null);
-      setIsPlayerReady(false);
-      setSeekingTime(0);
-      setDisplayTime(0);
-  }, [videoState.source]);
-
   // No longer listening for fullscreenchange here, parent handles it.
   useEffect(() => {
-    // Check if document.fullscreenElement is null, meaning we exited fullscreen
-    if (!document.fullscreenElement) {
-      setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
-    }
-  }, []); // Removed isFullScreen from dependencies, relying on document.fullscreenElement
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -347,7 +344,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {/* Removed the chat toggle button from here */}
+                  {document.fullscreenElement && (
+                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                      <MessageSquare className="w-5 h-5" />
+                    </button>
+                  )}
                   <button onClick={handleFullscreen} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <MaximizeIcon className="w-5 h-5" />
                   </button>

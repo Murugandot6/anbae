@@ -170,13 +170,16 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               />
             </div>
           </div>
-          <div className="md:w-1/3 md:max-w-sm flex-shrink-0 h-full min-h-0">
-            <Chat 
-              messages={messages} 
-              sendMessage={sendMessage} 
-              currentUser={user}
-            />
-          </div>
+          {/* Conditionally render the Chat component as a side panel */}
+          {!isFullscreen && (
+            <div className="md:w-1/3 md:max-w-sm flex-shrink-0 h-full min-h-0">
+              <Chat 
+                messages={messages} 
+                sendMessage={sendMessage} 
+                currentUser={user}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
