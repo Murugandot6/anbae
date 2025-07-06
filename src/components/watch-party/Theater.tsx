@@ -108,7 +108,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             currentUser={user}
             sendVideoReaction={sendVideoReaction}
             activeReactions={activeReactions}
-            isConnectedToRealtime={isConnectedToRealtime} {/* Pass the new prop */}
+            isConnectedToRealtime={isConnectedToRealtime}
           />
         </div>
         <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-[75vh] lg:h-auto">
