@@ -101,16 +101,19 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <div className="flex flex-col lg:flex-row gap-6 items-stretch">
         <div className="lg:flex-grow lg:w-3/4 min-h-0">
-          <VideoPlayer 
-            videoState={videoState} 
-            sendVideoAction={sendVideoAction} 
-            messages={messages}
-            sendMessage={sendMessage}
-            currentUser={user}
-            sendVideoReaction={sendVideoReaction}
-            activeReactions={activeReactions}
-            isConnectedToRealtime={isConnectedToRealtime}
-          />
+          {/* New wrapper div to control the aspect ratio and height */}
+          <div className="relative aspect-video w-full">
+            <VideoPlayer 
+              videoState={videoState} 
+              sendVideoAction={sendVideoAction} 
+              messages={messages}
+              sendMessage={sendMessage}
+              currentUser={user}
+              sendVideoReaction={sendVideoReaction}
+              activeReactions={activeReactions}
+              isConnectedToRealtime={isConnectedToRealtime}
+            />
+          </div>
         </div>
         <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-full min-h-0">
           <Chat 
