@@ -47,8 +47,8 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
           </Button>
         )}
       </div>
-      {/* Added max-h-full to ensure this div respects the parent's height and scrolls */}
-      <div className="flex-grow p-4 overflow-y-auto space-y-4 max-h-full">
+      {/* Removed max-h-full from here */}
+      <div className="flex-grow p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
            <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
              {msg.isSystem ? (
