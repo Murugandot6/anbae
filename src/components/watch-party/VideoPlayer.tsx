@@ -216,8 +216,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   );
 
   const chatContainerClasses = cn(
-    "h-full bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    isFullScreen && showFullscreenChat ? "absolute inset-y-0 right-0 w-80 flex-shrink-0 pb-20" : "hidden" // Show/hide based on showFullscreenChat
+    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
+    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 flex-shrink-0 bottom-18" : "hidden" // Changed from inset-y-0 and removed pb-20
   );
 
   return (
