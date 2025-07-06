@@ -90,9 +90,25 @@ export const getTags = async (limit: number = 150): Promise<string[]> => {
     return tags.map(tag => tag.name).filter(name => name.trim() !== '');
 };
 
+const filterStations = (stations: Station[]): Station[] => {
+  const knownAudioCodecs = ['MP3', 'AAC', 'OGG', 'FLAC', 'OPUS', 'WMA', 'WAV'];
+  return stations.filter(station => {
+    if (station.hls === 1) {
+      return true; // HLS streams are generally safe
+    }
+    const codec = station.codec?.toUpperCase() || '';
+    if (codec === '') {
+      return true; // If codec is unknown, don't filter it out as it might work
+    }
+    // Check if any part of the codec string matches a known audio codec.
+    // This handles cases like "AAC,MP3" or "AAC+".
+    return knownAudioCodecs.some(knownCodec => codec.includes(knownCodec));
+  });
+};
 
 export const getTopClickedStations = async (limit: number = 100): Promise<Station[]> => {
-  return resilientFetch<Station[]>(`stations/topclick/${limit}?hidebroken=true`);
+  const stations = await resilientFetch<Station[]>(`stations/topclick/${limit}?hidebroken=true`);
+  return filterStations(stations);
 };
 
 export const searchStations = async (params: SearchParams, limit: number = 100): Promise<Station[]> => {
@@ -108,5 +124,6 @@ export const searchStations = async (params: SearchParams, limit: number = 100):
     if (params.country) query.set('country', params.country);
     if (params.tag) query.set('tag', params.tag);
 
-    return resilientFetch<Station[]>(`stations/search?${query.toString()}`);
+    const stations = await resilientFetch<Station[]>(`stations/search?${query.toString()}`);
+    return filterStations(stations);
 };
