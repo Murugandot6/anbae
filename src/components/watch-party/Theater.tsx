@@ -98,6 +98,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           <VideoPlayer 
             videoState={videoState} 
             sendVideoAction={sendVideoAction} 
+            messages={messages} // Pass messages
+            sendMessage={sendMessage} // Pass sendMessage
+            currentUser={user} // Pass currentUser
           />
         </div>
         <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-[75vh] lg:h-auto">

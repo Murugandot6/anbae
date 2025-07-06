@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, User } from '@/types/watchParty';
 import { SendIcon } from '@/components/watch-party/icons';
+import { cn } from '@/lib/utils'; // Ensure cn is imported
 
 interface ChatProps {
   messages: ChatMessage[];
   sendMessage: (text: string) => void;
   currentUser: User;
+  isOverlay?: boolean; // New prop
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser }) => {
+const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverlay }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -27,8 +29,8 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser }) => {
   };
 
   return (
-    <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg flex flex-col h-full">
-      <h3 className="text-xl font-bold p-4 border-b border-border/50 text-foreground">Live Chat</h3>
+    <div className={cn("flex flex-col h-full", isOverlay ? "bg-black/80" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
+      <h3 className={cn("text-xl font-bold p-4 border-b border-border/50 text-foreground", isOverlay ? "bg-black/50" : "")}>Live Chat</h3>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
            <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
@@ -47,7 +49,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser }) => {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="p-4 border-t border-border/50">
+      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-black/50" : "")}>
         <div className="flex items-center gap-2">
           <input
             type="text"

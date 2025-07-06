@@ -1,12 +1,17 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
-import { VideoState, VideoAction } from '@/types/watchParty';
+import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
+import Chat from '@/components/watch-party/Chat'; // Import Chat component
+import { MessageSquare } from 'lucide-react'; // Import MessageSquare icon
 
 interface VideoPlayerProps {
   videoState: VideoState;
   sendVideoAction: (action: VideoAction) => void;
+  messages: ChatMessage[]; // New
+  sendMessage: (text: string) => void; // New
+  currentUser: User; // New
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -16,7 +21,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser }) => {
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
@@ -35,6 +40,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
+
+  const [showFullscreenChat, setShowFullscreenChat] = useState(false); // New state for fullscreen chat
 
   const sliderTime = isSeeking ? seekingTime : displayTime;
   
@@ -139,6 +146,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
     if (playerContainerRef.current) {
         if (document.fullscreenElement) {
             document.exitFullscreen();
+            setShowFullscreenChat(false); // Reset chat visibility on exit
         } else {
             playerContainerRef.current.requestFullscreen();
         }
@@ -238,7 +246,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
             onMouseMove={handleMouseMove}
           ></div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || !videoState.isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || !videoState.isPlaying || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -275,13 +283,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction }
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                    <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <MaximizeIcon className="w-5 h-5" />
+                  {document.fullscreenElement && (
+                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                      <MessageSquare className="w-5 h-5" />
                     </button>
+                  )}
+                  <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <MaximizeIcon className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+          
+          {document.fullscreenElement && (
+            <div className={`absolute top-0 right-0 h-full transition-all duration-300 ease-in-out z-40 ${showFullscreenChat ? 'w-80' : 'w-0 overflow-hidden'}`}>
+              <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} />
+            </div>
+          )}
         </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
