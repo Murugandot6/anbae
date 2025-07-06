@@ -148,6 +148,12 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       }, 5000); 
     });
 
+    // --- LISTENER FOR SELF-BROADCAST TEST ---
+    channel.on('broadcast', { event: 'test_broadcast' }, (payload) => {
+      console.log(`[Realtime Debug] Self-broadcast test received! Payload:`, payload);
+    });
+    // --- END LISTENER FOR SELF-BROADCAST TEST ---
+
     channel.on('presence', { event: 'join' }, ({ newPresences }) => newPresences.forEach((p: any) => {
         if(p.user_name) addSystemMessage(`${p.user_name} joined.`)
     }));
@@ -162,6 +168,16 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current); // New log
         await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
+
+        // --- SELF-BROADCAST TEST ---
+        console.log("[Realtime Debug] Attempting self-broadcast test...");
+        channel.send({
+          type: 'broadcast',
+          event: 'test_broadcast',
+          payload: { message: 'Hello from self-broadcast test!', senderId: user.id }
+        });
+        // --- END SELF-BROADCAST TEST ---
+
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') { // Handle other error states
         setIsConnectedToRealtime(false); // Set connected to false
         console.error(`Realtime channel error or closed: ${status}`, err);
