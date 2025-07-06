@@ -53,7 +53,10 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   }
 
   return (
-    <div className={cn("relative flex items-center justify-center", className)}>
+    <div className={cn(
+      "relative flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg", // Added hover effects
+      className
+    )}>
       <svg
         className={cn(svgSizeClasses, "transform -rotate-90")}
         viewBox="0 0 100 100"
