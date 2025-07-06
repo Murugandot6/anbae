@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Test</title>
+    <style>
+        /* A hard reset to remove browser defaults */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #333;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+
+        /* ★★★ CORE LAYOUT RULES ★★★ */
+
+        .watch-party-container {
+            display: flex;
+            gap: 20px;
+            
+            /* The HARD LIMIT that creates the boundary */
+            height: 90vh; /* Takes up 90% of the browser window's height */
+            border: 2px solid limegreen; /* Visual aid */
+        }
+
+        .video-player-wrapper {
+            flex: 3; /* Takes up 3 parts of space */
+            background-color: black;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            overflow: hidden; /* Important for video content */
+        }
+
+        .live-chat-wrapper {
+            flex: 1; /* Takes up 1 part of space */
+            background-color: #f7f7f9;
+            border-radius: 12px;
+            padding: 20px;
+            color: #333;
+
+            /* This column is ALSO a flex container */
+            display: flex;
+            flex-direction: column;
+
+            /* This is the magic that allows the child to scroll instead of expanding the parent */
+            min-height: 0; /* Crucial for flex items containing scrollable content */
+            border: 2px solid dodgerblue; /* Visual aid */
+        }
+
+        .messages-list {
+            flex-grow: 1; /* ★ This tells the list to take ALL available vertical space */
+            overflow-y: auto; /* ★ And to scroll when it gets too full */
+            list-style: none;
+            background-color: #e0e0e0;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 1px dashed gray; /* Visual aid */
+        }
+
+        .messages-list li {
+            background-color: #9b59b6;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            word-wrap: break-word; /* Ensure long words break */
+        }
+        .messages-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-form {
+            padding-top: 15px;
+            flex-shrink: 0; /* Prevent form from shrinking */
+        }
+
+        .chat-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="watch-party-container">
+
+        <div class="video-player-wrapper">
+            <h1>Video Player</h1>
+        </div>
+
+        <div class="live-chat-wrapper">
+            <h2>Live Chat</h2>
+            <ul class="messages-list">
+                <!-- We will add many messages here to test scrolling -->
+                <li>Message 1: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                <li>Message 2: Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li>
+                <li>Message 3: Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</li>
+                <li>Message 4: Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</li>
+                <li>Message 5: Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</li>
+                <li>Message 6: Curabitur pretium tincidunt lacus. Nulla gravida orci a odio.</li>
+                <li>Message 7: Praesent dapibus, neque id cursus faucibus, tortor neque egestas augu.</li>
+                <li>Message 8: Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</li>
+                <li>Message 9: Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est.</li>
+                <li>Message 10: Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.</li>
+                <li>Message 11: Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</li>
+                <li>Message 12: Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est.</li>
+                <li>Message 13: Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.</li>
+                <li>Message 14: Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</li>
+                <li>Message 15: Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est.</li>
+                <li>Message 16: Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.</li>
+                <li>Message 17: Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</li>
+                <li>Message 18: Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est.</li>
+                <li>Message 19: Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.</li>
+                <li>Message 20: Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.</li>
+            </ul>
+            <form class="chat-form">
+                <input type="text" placeholder="Say something...">
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>
