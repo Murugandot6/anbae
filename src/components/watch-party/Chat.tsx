@@ -67,10 +67,9 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
         )}
       </div>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
-        {messages.map((msg) => {
-          const grouped = groupReactions(msg.reactions);
-          return (
-           <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
+        {messages.map((msg) => (
+          <React.Fragment key={msg.id}>
+           <div className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
              {msg.isSystem ? (
                 <span className="text-xs text-center text-muted-foreground italic px-2 py-1 bg-muted/20 rounded-full">{msg.text}</span>
              ) : (
@@ -80,13 +79,13 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
                        <span className="text-xs font-normal text-muted-foreground">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                    </div>
                    <p className="text-sm font-normal py-2 text-foreground">{msg.text}</p>
-                   <div className="flex flex-wrap gap-1 mt-2"> {/* This div always appears */}
+                   {!msg.isSystem && ( // This div should always appear for non-system messages
+                     <div className="flex flex-wrap gap-1 mt-2">
                        {Object.entries(grouped).map(([emoji, count]) => (
                          <span key={emoji} className="bg-muted/30 text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
                            {emoji} {count > 1 && <span className="font-bold">{count}</span>}
                          </span>
                        ))}
-                       {/* The button is now always present for non-system messages */}
                        <EmojiPickerPopover
                          isOpen={isEmojiPickerOpen === msg.id}
                          onOpenChange={(open) => setIsEmojiPickerOpen(open ? msg.id : null)}
@@ -103,9 +102,11 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
                          </Button>
                        </EmojiPickerPopover>
                      </div>
+                   )}
                 </div>
               )}
           </div>
+          </React.Fragment>
         ))}
         <div ref={messagesEndRef} />
       </div>
