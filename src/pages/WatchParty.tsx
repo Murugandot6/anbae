@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
 import { supabase } from '@/integrations/supabase/client'; // Import supabase
 import { Profile } from '@/types/supabase'; // Import Profile type
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const LoadingSpinner: React.FC = () => (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
@@ -118,28 +119,40 @@ const WatchParty: React.FC = () => {
 
   if (!user) {
     return (
-        <BackgroundWrapper>
-            <div className="w-full max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-8 rounded-xl shadow-lg text-center">
-                <h2 className="text-2xl font-bold mb-4 text-foreground">Authentication Error</h2>
-                <p className="text-muted-foreground">Could not find a valid user session. Please ensure you are logged in.</p>
-            </div>
-        </BackgroundWrapper>
+        <>
+            <Helmet>
+                <title>Watch Party - Anbae</title>
+                <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
+            </Helmet>
+            <BackgroundWrapper>
+                <div className="w-full max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-8 rounded-xl shadow-lg text-center">
+                    <h2 className="text-2xl font-bold mb-4 text-foreground">Authentication Error</h2>
+                    <p className="text-muted-foreground">Could not find a valid user session. Please ensure you are logged in.</p>
+                </div>
+            </BackgroundWrapper>
+        </>
     );
   }
 
   return (
-    <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
-      <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
-        {currentRoom ? (
-          <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
-        ) : (
-          <>
-            <h1 className="text-5xl font-bold tracking-tighter mb-8 text-foreground text-center">Watch Party</h1>
-            <Dashboard onJoinRoom={handleJoinRoom} />
-          </>
-        )}
-      </main>
-    </BackgroundWrapper>
+    <>
+      <Helmet>
+        <title>Watch Party - Anbae</title>
+        <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
+      </Helmet>
+      <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
+        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
+          {currentRoom ? (
+            <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
+          ) : (
+            <>
+              <h1 className="text-5xl font-bold tracking-tighter mb-8 text-foreground text-center">Watch Party</h1>
+              <Dashboard onJoinRoom={handleJoinRoom} />
+            </>
+          )}
+        </main>
+      </BackgroundWrapper>
+    </>
   );
 };
 

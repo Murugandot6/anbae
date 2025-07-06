@@ -14,6 +14,7 @@ import { formatMessageDate, cn, formatDateTimeForMessageView } from '@/lib/utils
 import { Badge } from '@/components/ui/badge';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -209,150 +210,156 @@ const Messages = () => {
   };
 
   return (
-    <BackgroundWrapper className="pt-0 md:pt-0">
-      <div className="w-full max-w-2xl mx-auto pt-8 mt-16 md:mt-8"> {/* Changed pt-8 to mt-16 md:mt-8 */}
-        <div className="flex justify-between items-center mb-6">
-          {/* Replaced Link with Button for consistent styling and positioning */}
-          <div className="absolute top-4 left-4 z-10">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-                  onClick={() => {
-                    navigate('/dashboard', { replace: true });
-                  }}
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Back to Dashboard
-              </TooltipContent>
-            </Tooltip>
+    <>
+      <Helmet>
+        <title>Messages - Anbae</title>
+        <meta name="description" content="View your sent and received messages with your partner on Anbae. Keep track of your conversations." />
+      </Helmet>
+      <BackgroundWrapper className="pt-0 md:pt-0">
+        <div className="w-full max-w-2xl mx-auto pt-8 mt-16 md:mt-8"> {/* Changed pt-8 to mt-16 md:mt-8 */}
+          <div className="flex justify-between items-center mb-6">
+            {/* Replaced Link with Button for consistent styling and positioning */}
+            <div className="absolute top-4 left-4 z-10">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                    onClick={() => {
+                      navigate('/dashboard', { replace: true });
+                    }}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Back to Dashboard
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mx-auto">Your Messages</h1>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mx-auto">Your Messages</h1>
-        </div>
 
-        <Tabs defaultValue="inbox" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/60 backdrop-blur-md border border-border/50 rounded-xl">
-            <TabsTrigger value="inbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
-              <Mail className="w-4 h-4 mr-2" /> Inbox ({receivedMessages.length})
-            </TabsTrigger>
-            <TabsTrigger value="outbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
-              <Send className="w-4 h-4 mr-2" /> Outbox ({sentMessages.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="inbox">
-            <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-foreground">Received Messages</CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground">
-                {receivedMessages.length > 0 ? (
-                  <ul className="space-y-4">
-                    {receivedMessages.map((message) => (
-                      <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
-                            getMessageTypeEmojiBackgroundClasses(message.message_type)
-                          )}>
-                            {getMessageTypeEmoji(message.message_type)}
-                          </span>
-                          <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
-                            <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
-                            <AvatarFallback className="bg-primary text-primary-foreground">{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
-                              <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5 text-primary" />
-                                {message.subject}
-                              </span>
-                              <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                                {message.is_read ? null : <Badge className="bg-accent text-accent-foreground text-xs font-bold">NEW!</Badge>}
-                                {message.status === 'closed' && (
-                                  <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
-                                )}
-                              </span>
-                            </p>
-                            <p className="text-sm text-foreground line-clamp-2">
-                              {message.content}
-                            </p>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {formatDateTimeForMessageView(message.created_at)}
+          <Tabs defaultValue="inbox" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/60 backdrop-blur-md border border-border/50 rounded-xl">
+              <TabsTrigger value="inbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
+                <Mail className="w-4 h-4 mr-2" /> Inbox ({receivedMessages.length})
+              </TabsTrigger>
+              <TabsTrigger value="outbox" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg transition-all duration-200">
+                <Send className="w-4 h-4 mr-2" /> Outbox ({sentMessages.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="inbox">
+              <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
+                <CardHeader>
+                  <CardTitle className="text-foreground">Received Messages</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground">
+                  {receivedMessages.length > 0 ? (
+                    <ul className="space-y-4">
+                      {receivedMessages.map((message) => (
+                        <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
+                          <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
+                            <span className={cn(
+                              "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                              getMessageTypeEmojiBackgroundClasses(message.message_type)
+                            )}>
+                              {getMessageTypeEmoji(message.message_type)}
+                            </span>
+                            <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
+                              <AvatarImage src={message.senderProfile?.avatar_url || ''} alt="Sender Avatar" />
+                              <AvatarFallback className="bg-primary text-primary-foreground">{message.senderProfile?.username?.charAt(0).toUpperCase() || message.senderProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  <MessageSquare className="w-5 h-5 text-primary" />
+                                  {message.subject}
+                                </span>
+                                <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                                  {message.is_read ? null : <Badge className="bg-accent text-accent-foreground text-xs font-bold">NEW!</Badge>}
+                                  {message.status === 'closed' && (
+                                    <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
+                                  )}
+                                </span>
+                              </p>
+                              <p className="text-sm text-foreground line-clamp-2">
+                                {message.content}
+                              </p>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {formatDateTimeForMessageView(message.created_at)}
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No messages received yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="outbox">
-            <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
-              <CardHeader>
-                <CardTitle className="text-foreground">Sent Messages</CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground">
-                {sentMessages.length > 0 ? (
-                  <ul className="space-y-4">
-                    {sentMessages.map((message) => (
-                      <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
-                        <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
-                          <span className={cn(
-                            "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
-                            getMessageTypeEmojiBackgroundClasses(message.message_type)
-                          )}>
-                            {getMessageTypeEmoji(message.message_type)}
-                          </span>
-                          <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
-                            <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
-                            <AvatarFallback className="bg-primary text-primary-foreground">{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
-                              <span className="flex items-center gap-2">
-                                <MessageSquare className="w-5 h-5 text-primary" />
-                                {message.subject}
-                              </span>
-                              <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                                {message.read_at && (
-                                  <Badge className="bg-accent text-accent-foreground text-xs font-bold flex items-center gap-1">
-                                    <CheckCheck className="w-4 h-4" /> Read
-                                  </Badge>
-                                )}
-                                {message.status === 'closed' && (
-                                  <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
-                                )}
-                              </span>
-                            </p>
-                            <p className="text-sm text-foreground line-clamp-2">
-                              {message.content}
-                            </p>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {formatDateTimeForMessageView(message.created_at)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No messages received yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="outbox">
+              <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">
+                <CardHeader>
+                  <CardTitle className="text-foreground">Sent Messages</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground">
+                  {sentMessages.length > 0 ? (
+                    <ul className="space-y-4">
+                      {sentMessages.map((message) => (
+                        <li key={message.id} className={cn("relative border-b border-border/30 pb-2 last:border-b-0 max-w-2xl mx-auto p-2 rounded-xl transition-all duration-300 hover:scale-[1.01] hover:shadow-md", getMessageTypeClasses(message.message_type))}>
+                          <Link to={`/messages/${message.id}`} className="block hover:bg-opacity-80 rounded-md transition-colors flex items-center gap-3">
+                            <span className={cn(
+                              "absolute -top-4 -left-4 text-2xl z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-md",
+                              getMessageTypeEmojiBackgroundClasses(message.message_type)
+                            )}>
+                              {getMessageTypeEmoji(message.message_type)}
+                            </span>
+                            <Avatar className="w-12 h-12 ml-8 border-2 border-primary">
+                              <AvatarImage src={message.receiverProfile?.avatar_url || ''} alt="Receiver Avatar" />
+                              <AvatarFallback className="bg-primary text-primary-foreground">{message.receiverProfile?.username?.charAt(0).toUpperCase() || message.receiverProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="font-semibold text-lg text-foreground mb-1 flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  <MessageSquare className="w-5 h-5 text-primary" />
+                                  {message.subject}
+                                </span>
+                                <span className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                                  {message.read_at && (
+                                    <Badge className="bg-accent text-accent-foreground text-xs font-bold flex items-center gap-1">
+                                      <CheckCheck className="w-4 h-4" /> Read
+                                    </Badge>
+                                  )}
+                                  {message.status === 'closed' && (
+                                    <Badge variant="secondary" className="bg-muted text-muted-foreground">Closed</Badge>
+                                  )}
+                                </span>
+                              </p>
+                              <p className="text-sm text-foreground line-clamp-2">
+                                {message.content}
+                              </p>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {formatDateTimeForMessageView(message.created_at)}
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No messages sent yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </BackgroundWrapper>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No messages sent yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </BackgroundWrapper>
+    </>
   );
 };
 

@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-// Removed ThemeToggle import
 import useEmblaCarousel from 'embla-carousel-react';
 import { EmblaOptionsType } from 'embla-carousel';
 import Autoplay from 'embla-carousel-autoplay';
 import Fade from 'embla-carousel-fade';
 import OnboardingSlide from '@/components/OnboardingSlide';
 import { cn } from '@/lib/utils';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 // Import Lottie JSON data with ?url suffix
 import pinkyPromiseLottie from '/lottie/Pinky Promise.json?url';
@@ -127,55 +127,61 @@ const OnboardingWelcome: React.FC = () => {
   };
 
   return (
-    <div className={cn("relative h-screen w-screen overflow-hidden flex flex-col", isExiting ? "animate-fade-out" : "animate-fade-in")}>
-      <div className="absolute top-4 right-4 z-20">
-        {/* Removed ThemeToggle */}
-      </div>
-      <div className="absolute top-4 left-4 z-20">
-        <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-          Skip
-        </Button>
-      </div>
+    <>
+      <Helmet>
+        <title>Welcome to Anbae - Onboarding</title>
+        <meta name="description" content="Learn about Anbae's features and how to use the app to enhance your relationship." />
+      </Helmet>
+      <div className={cn("relative h-screen w-screen overflow-hidden flex flex-col", isExiting ? "animate-fade-out" : "animate-fade-in")}>
+        <div className="absolute top-4 right-4 z-20">
+          {/* Removed ThemeToggle */}
+        </div>
+        <div className="absolute top-4 left-4 z-20">
+          <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            Skip
+          </Button>
+        </div>
 
-      <div className="embla flex-1 overflow-hidden">
-        <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}>
-          <div className="embla__container flex h-full">
-            {slidesData.map((slide, index) => (
-              <div
-                className="embla__slide h-full"
-                key={index}
-              >
-                <OnboardingSlide
-                  {...slide}
-                  onTypingComplete={() => handleSlideTypingComplete(index)} // Pass the callback
-                />
-              </div>
-            ))}
+        <div className="embla flex-1 overflow-hidden">
+          <div className="embla__viewport h-full bg-blue-100 dark:bg-blue-900" ref={emblaRef}>
+            <div className="embla__container flex h-full">
+              {slidesData.map((slide, index) => (
+                <div
+                  className="embla__slide h-full"
+                  key={index}
+                >
+                  <OnboardingSlide
+                    {...slide}
+                    onTypingComplete={() => handleSlideTypingComplete(index)} // Pass the callback
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
-        <Button
-          onClick={scrollPrev}
-          disabled={prevBtnDisabled}
-          variant="outline"
-          size="icon"
-          className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </Button>
-        <Button
-          onClick={scrollNext}
-          disabled={nextBtnDisabled}
-          variant="outline"
-          size="icon"
-          className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
-        >
-          <ArrowRight className="w-6 h-6" />
-        </Button>
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+          <Button
+            onClick={scrollPrev}
+            disabled={prevBtnDisabled}
+            variant="outline"
+            size="icon"
+            className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </Button>
+          <Button
+            onClick={scrollNext}
+            disabled={nextBtnDisabled}
+            variant="outline"
+            size="icon"
+            className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+          >
+            <ArrowRight className="w-6 h-6" />
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

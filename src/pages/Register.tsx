@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Mail, Lock, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
-// Removed ThemeToggle import
 import VideoBackground from '@/components/VideoBackground';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -72,6 +72,10 @@ const Register = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Register - Anbae</title>
+        <meta name="description" content="Create your Anbae account to start nurturing your relationship with personalized communication tools." />
+      </Helmet>
       <VideoBackground />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">

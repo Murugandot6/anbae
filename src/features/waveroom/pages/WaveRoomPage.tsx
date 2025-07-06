@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const generateRoomCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -111,79 +112,85 @@ const WaveRoomPage: React.FC = () => {
   };
 
   return (
-    <BackgroundWrapper className="pt-0 md:pt-0">
-      <div className="relative w-full max-w-4xl mx-auto mt-16 md:mt-8 mb-12">
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 z-10">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="/dashboard">
-                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Back to Dashboard</p>
-            </TooltipContent>
-          </Tooltip>
+    <>
+      <Helmet>
+        <title>Wave Room - Anbae</title>
+        <meta name="description" content="Create or join a Wave Room to listen to internet radio stations with your partner in real-time." />
+      </Helmet>
+      <BackgroundWrapper className="pt-0 md:pt-0">
+        <div className="relative w-full max-w-4xl mx-auto mt-16 md:mt-8 mb-12">
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 z-10">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/dashboard">
+                  <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Back to Dashboard</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="text-center">
+            <WaveIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Reverted to WaveIcon */}
+            <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
+          </div>
         </div>
-        <div className="text-center">
-          <WaveIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Reverted to WaveIcon */}
-          <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
-        </div>
-      </div>
-      
-      <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-          <CardHeader className="text-center">
-            <Users className="w-12 h-12 text-primary mx-auto mb-4"/>
-            <CardTitle>Create a New Room</CardTitle>
-            <CardDescription className="text-muted-foreground">
-                Start a new listening party and invite others to join.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col flex-grow justify-end">
-            {createError && <p className="text-destructive text-sm mb-2">{createError}</p>}
-            <Button
-              onClick={handleCreateRoom}
-              disabled={!!loading}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {loading === 'create' ? 'Creating...' : 'Create Room'}
-            </Button>
-          </CardContent>
-        </Card>
         
-        <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-          <CardHeader className="text-center">
-            <LogIn className="w-12 h-12 text-secondary mx-auto mb-4"/>
-            <CardTitle>Join an Existing Room</CardTitle>
-            <CardDescription className="text-muted-foreground">Enter a room code below to join your friends.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleJoinRoom} className="flex flex-col gap-4">
-              <Input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="ENTER CODE"
-                className="text-center font-mono tracking-widest text-lg bg-input/50 border-border/50 text-foreground focus:ring-primary"
-                maxLength={4}
-              />
-              {joinError && <p className="text-destructive text-sm mt-2">{joinError}</p>}
+        <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
+          <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <CardHeader className="text-center">
+              <Users className="w-12 h-12 text-primary mx-auto mb-4"/>
+              <CardTitle>Create a New Room</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                  Start a new listening party and invite others to join.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col flex-grow justify-end">
+              {createError && <p className="text-destructive text-sm mb-2">{createError}</p>}
               <Button
-                type="submit"
-                disabled={!joinCode.trim() || !!loading}
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                onClick={handleCreateRoom}
+                disabled={!!loading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {loading === 'join' ? 'Joining...' : 'Join Room'}
+                {loading === 'create' ? 'Creating...' : 'Create Room'}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </BackgroundWrapper>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card/60 backdrop-blur-md border border-border/50 text-foreground flex flex-col rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <CardHeader className="text-center">
+              <LogIn className="w-12 h-12 text-secondary mx-auto mb-4"/>
+              <CardTitle>Join an Existing Room</CardTitle>
+              <CardDescription className="text-muted-foreground">Enter a room code below to join your friends.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleJoinRoom} className="flex flex-col gap-4">
+                <Input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="ENTER CODE"
+                  className="text-center font-mono tracking-widest text-lg bg-input/50 border-border/50 text-foreground focus:ring-primary"
+                  maxLength={4}
+                />
+                {joinError && <p className="text-destructive text-sm mt-2">{joinError}</p>}
+                <Button
+                  type="submit"
+                  disabled={!joinCode.trim() || !!loading}
+                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                >
+                  {loading === 'join' ? 'Joining...' : 'Join Room'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </BackgroundWrapper>
+    </>
   );
 };
 

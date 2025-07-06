@@ -10,8 +10,8 @@ import { Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import ForgotPasswordDialog from '@/components/ForgotPasswordDialog';
 import { useState } from 'react';
-// Removed ThemeToggle import
 import VideoBackground from '@/components/VideoBackground';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -51,6 +51,10 @@ const Login = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Login - Anbae</title>
+        <meta name="description" content="Log in to your Anbae account to access your personalized relationship insights and communication tools." />
+      </Helmet>
       <VideoBackground />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="absolute top-4 right-4 z-10">

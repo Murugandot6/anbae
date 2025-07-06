@@ -20,6 +20,7 @@ import { Session } from '@supabase/supabase-js';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -331,15 +332,21 @@ const ViewMessage = () => {
 
   if (!message) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
-        <h2 className="text-2xl font-bold text-foreground mb-4">Message Not Found</h2>
-        <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
-        <Link to="/messages">
-          <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
-            <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
-          </Button>
-        </Link>
-      </div>
+      <>
+        <Helmet>
+          <title>Message Not Found - Anbae</title>
+          <meta name="description" content="The message you are looking for does not exist or you do not have permission to view it." />
+        </Helmet>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Message Not Found</h2>
+          <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
+          <Link to="/messages">
+            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
+              <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
+            </Button>
+          </Link>
+        </div>
+      </>
     );
   }
 
@@ -354,123 +361,129 @@ const ViewMessage = () => {
   const canReply = message.status === 'open';
 
   return (
-    <BackgroundWrapper className="pt-20">
-      <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
-        {/* Ensure positioning is absolute for top-left corner */}
-        <div className="absolute top-4 left-4 z-10">
-          <Link to="/messages">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-        <div className="flex items-center justify-between mb-8 flex-shrink-0">
-          {/* The back button is now outside this flex container */}
-          <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
-          <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 border-2 border-primary dark:border-primary-foreground">
-              <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
-              <AvatarFallback className="bg-primary text-primary-foreground">{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="text-right">
-              <h1 className="text-4xl font-bold text-foreground">
-                {conversationPartnerName}
-              </h1>
-              <p className="text-xl text-muted-foreground mt-1 flex items-center justify-end gap-2">
-                {message.message_type}
-                {message.status === 'closed' && (
-                  <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground">Closed</Badge>
-                )}
-              </p>
+    <>
+      <Helmet>
+        <title>{`Message with ${conversationPartnerName} - Anbae`}</title>
+        <meta name="description" content={`View your conversation with ${conversationPartnerName} about ${message.subject}.`} />
+      </Helmet>
+      <BackgroundWrapper className="pt-20">
+        <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
+          {/* Ensure positioning is absolute for top-left corner */}
+          <div className="absolute top-4 left-4 z-10">
+            <Link to="/messages">
+              <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+          <div className="flex items-center justify-between mb-8 flex-shrink-0">
+            {/* The back button is now outside this flex container */}
+            <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16 border-2 border-primary dark:border-primary-foreground">
+                <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
+                <AvatarFallback className="bg-primary text-primary-foreground">{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="text-right">
+                <h1 className="text-4xl font-bold text-foreground">
+                  {conversationPartnerName}
+                </h1>
+                <p className="text-xl text-muted-foreground mt-1 flex items-center justify-end gap-2">
+                  {message.message_type}
+                  {message.status === 'closed' && (
+                    <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground">Closed</Badge>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-28">
-          {message && renderMessageContent(message, user)}
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-28">
+            {message && renderMessageContent(message, user)}
 
-          {message && message.replies && message.replies.length > 0 && (
-            <div className="space-y-4">
-              {message.replies.map(reply => renderMessageContent(reply, user, true))}
+            {message && message.replies && message.replies.length > 0 && (
+              <div className="space-y-4">
+                {message.replies.map(reply => renderMessageContent(reply, user, true))}
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {message && canReply && (
+            <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
+              <Form {...replyForm}>
+                <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
+                  <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-card/80 dark:bg-card/80 shadow-lg border border-border/50 backdrop-blur-md">
+                    <EmojiPickerPopover
+                      isOpen={isEmojiPickerOpen}
+                      onOpenChange={setIsEmojiPickerOpen}
+                      onEmojiSelect={handleEmojiSelect}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 w-8 h-8 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        aria-label="Open emoji picker"
+                      >
+                        <Smile className="w-4 h-4" />
+                      </Button>
+                    </EmojiPickerPopover>
+                    <FormField
+                      control={replyForm.control}
+                      name="replyContent"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Textarea
+                              placeholder="Type a message..."
+                              {...field}
+                              rows={1}
+                              className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-foreground"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  replyForm.handleSubmit(handleReply)();
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage className="hidden" />
+                        </FormItem>
+                      )}
+                    />
+                    {canCloseMessage && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="flex-shrink-0 w-8 h-8 rounded-full text-destructive hover:bg-destructive/20"
+                        onClick={handleCloseMessage}
+                        aria-label="Close message"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      type="submit"
+                      variant="default"
+                      size="icon"
+                      className="rounded-full flex-shrink-0 w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="px-4 pt-1">
+                    <FormMessage className="text-xs text-destructive">{replyForm.formState.errors.replyContent?.message}</FormMessage>
+                  </div>
+                </form>
+              </Form>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
-
-        {message && canReply && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
-            <Form {...replyForm}>
-              <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
-                <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-card/80 dark:bg-card/80 shadow-lg border border-border/50 backdrop-blur-md">
-                  <EmojiPickerPopover
-                    isOpen={isEmojiPickerOpen}
-                    onOpenChange={setIsEmojiPickerOpen}
-                    onEmojiSelect={handleEmojiSelect}
-                  >
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 w-8 h-8 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      aria-label="Open emoji picker"
-                    >
-                      <Smile className="w-4 h-4" />
-                    </Button>
-                  </EmojiPickerPopover>
-                  <FormField
-                    control={replyForm.control}
-                    name="replyContent"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Textarea
-                            placeholder="Type a message..."
-                            {...field}
-                            rows={1}
-                            className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-foreground"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                replyForm.handleSubmit(handleReply)();
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage className="hidden" />
-                      </FormItem>
-                    )}
-                  />
-                  {canCloseMessage && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="flex-shrink-0 w-8 h-8 rounded-full text-destructive hover:bg-destructive/20"
-                      onClick={handleCloseMessage}
-                      aria-label="Close message"
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    variant="default"
-                    size="icon"
-                    className="rounded-full flex-shrink-0 w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
-                    disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="px-4 pt-1">
-                  <FormMessage className="text-xs text-destructive">{replyForm.formState.errors.replyContent?.message}</FormMessage>
-                </div>
-              </form>
-            </Form>
-          </div>
-        )}
-      </div>
-    </BackgroundWrapper>
+      </BackgroundWrapper>
+    </>
   );
 };
 

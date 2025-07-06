@@ -8,6 +8,7 @@ import KaraokeLyrics from '@/components/watch-party/KaraokeLyrics';
 import { parseLRC } from '@/lib/lrcParser';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Copy, Check, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 interface Proposal {
   id: string;
@@ -92,59 +93,65 @@ const ViewPromposal = () => {
   if (!proposal) return <ErrorDisplay message="Something went wrong." />;
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-center p-4 md:p-8 text-foreground overflow-hidden">
-      {/* Hidden ReactPlayer for audio playback */}
-      <div style={{ display: 'none' }}>
-        <ReactPlayer
-          ref={playerRef}
-          url={proposal.video_url}
-          playing={isPlaying}
-          muted={isMuted}
-          onProgress={handleProgress}
-          onDuration={handleDuration}
-          progressInterval={100}
-        />
-      </div>
+    <>
+      <Helmet>
+        <title>Promposal - Anbae</title>
+        <meta name="description" content="View a special video promposal with synchronized lyrics created on Anbae." />
+      </Helmet>
+      <div className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-center p-4 md:p-8 text-foreground overflow-hidden">
+        {/* Hidden ReactPlayer for audio playback */}
+        <div style={{ display: 'none' }}>
+          <ReactPlayer
+            ref={playerRef}
+            url={proposal.video_url}
+            playing={isPlaying}
+            muted={isMuted}
+            onProgress={handleProgress}
+            onDuration={handleDuration}
+            progressInterval={100}
+          />
+        </div>
 
-      {/* Top left and right controls */}
-      <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
-        <Link to="/dashboard">
-            <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-        </Link>
-      </div>
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-        <Button onClick={handleCopyLink} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-          {copyStatus ? <Check className="w-5 h-5 text-primary" /> : <Copy className="w-5 h-5" />}
-        </Button>
-      </div>
-      
-      {/* Main content area for lyrics */}
-      <div className="w-full h-full flex flex-col justify-center items-center">
-        <KaraokeLyrics lyrics={parsedLyrics} currentTime={currentTime} />
-      </div>
+        {/* Top left and right controls */}
+        <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
+          <Link to="/dashboard">
+              <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+          </Link>
+        </div>
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+          <Button onClick={handleCopyLink} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+            {copyStatus ? <Check className="w-5 h-5 text-primary" /> : <Copy className="w-5 h-5" />}
+          </Button>
+        </div>
+        
+        {/* Main content area for lyrics */}
+        <div className="w-full h-full flex flex-col justify-center items-center">
+          <KaraokeLyrics lyrics={parsedLyrics} currentTime={currentTime} />
+        </div>
 
-      {/* Bottom controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xl z-20">
-        <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-card/80 rounded-full shadow-lg backdrop-blur-md border border-border/50">
-            <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-            </Button>
-            <input
-              type="range"
-              min={0}
-              max={duration}
-              value={currentTime}
-              onChange={(e) => playerRef.current?.seekTo(parseFloat(e.target.value))}
-              className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary"
-            />
-            <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-              {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-            </Button>
+        {/* Bottom controls */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xl z-20">
+          <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-card/80 rounded-full shadow-lg backdrop-blur-md border border-border/50">
+              <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+              </Button>
+              <input
+                type="range"
+                min={0}
+                max={duration}
+                value={currentTime}
+                onChange={(e) => playerRef.current?.seekTo(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary"
+              />
+              <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
+                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

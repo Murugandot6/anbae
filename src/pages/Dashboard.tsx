@@ -19,6 +19,7 @@ import Sidebar from '@/components/Sidebar';
 import CalendarView from '@/components/CalendarView';
 import { format, isSameDay } from 'date-fns';
 import JournalEntryCard from '@/components/JournalEntryCard'; // Import the renamed component
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -227,99 +228,105 @@ const Dashboard = () => {
   }
 
   return (
-    <BackgroundWrapper className="pt-0 md:pt-0">
-      <div className="flex min-h-screen w-full">
-        <Sidebar
-          currentUserProfile={currentUserProfile}
-          partnerProfile={partnerProfile}
-          user={user}
-          handleLogout={handleLogout}
-          onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
-        />
+    <>
+      <Helmet>
+        <title>Dashboard - Anbae</title>
+        <meta name="description" content="Your Anbae dashboard: view relationship insights, recent messages, journal entries, and manage your profile." />
+      </Helmet>
+      <BackgroundWrapper className="pt-0 md:pt-0">
+        <div className="flex min-h-screen w-full">
+          <Sidebar
+            currentUserProfile={currentUserProfile}
+            partnerProfile={partnerProfile}
+            user={user}
+            handleLogout={handleLogout}
+            onMessagesCleared={() => setRefreshMessagesTrigger(prev => prev + 1)}
+          />
 
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
-          <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
-            </div>
+          <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
+            <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-8">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
+              </div>
 
-            <div className="grid grid-cols-3 items-center justify-center gap-x-4 mb-8">
-              {/* Current User Profile */}
-              <div className="relative flex flex-col items-center text-center">
-                <CircularProgressAvatar
-                  score={currentUserProfile?.lifetime_score ?? 100}
-                  avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
-                  fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
-                  altText="Your Avatar"
-                  size="md"
+              <div className="grid grid-cols-3 items-center justify-center gap-x-4 mb-8">
+                {/* Current User Profile */}
+                <div className="relative flex flex-col items-center text-center">
+                  <CircularProgressAvatar
+                    score={currentUserProfile?.lifetime_score ?? 100}
+                    avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
+                    fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
+                    altText="Your Avatar"
+                    size="md"
+                  />
+                  <p className="font-semibold text-lg text-foreground mt-2">
+                    {user.user_metadata.nickname || user.email}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
+                  </p>
+                </div>
+
+                {/* Heart Icon */}
+                <div className="flex items-center justify-center">
+                  <Heart className="w-12 h-12 text-primary dark:text-secondary" />
+                </div>
+
+                {/* Partner Profile */}
+                <div className="relative flex flex-col items-center text-center">
+                  {partnerProfile ? (
+                    <>
+                      <CircularProgressAvatar
+                        score={partnerProfile.lifetime_score ?? 100}
+                        avatarUrl={partnerProfile.avatar_url}
+                        fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
+                        altText="Partner Avatar"
+                        size="md"
+                      />
+                      <p className="font-semibold text-lg text-foreground mt-2">
+                        {partnerProfile.username || partnerProfile.email}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground text-base py-8">No partner profile linked or found.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Today's Journal Entry Card */}
+              <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
+
+              {/* Mood Calendar */}
+              <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
+
+              {/* Communication Insights Charts */}
+              <div className="mt-8">
+                <ScoreAndMessageCharts
+                  currentUserProfile={currentUserProfile}
+                  partnerProfile={partnerProfile}
+                  sentMessages={sentMessages}
+                  receivedMessages={receivedMessages}
                 />
-                <p className="font-semibold text-lg text-foreground mt-2">
-                  {user.user_metadata.nickname || user.email}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
-                </p>
               </div>
 
-              {/* Heart Icon */}
-              <div className="flex items-center justify-center">
-                <Heart className="w-12 h-12 text-primary dark:text-secondary" />
-              </div>
-
-              {/* Partner Profile */}
-              <div className="relative flex flex-col items-center text-center">
-                {partnerProfile ? (
-                  <>
-                    <CircularProgressAvatar
-                      score={partnerProfile.lifetime_score ?? 100}
-                      avatarUrl={partnerProfile.avatar_url}
-                      fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
-                      altText="Partner Avatar"
-                      size="md"
-                    />
-                    <p className="font-semibold text-lg text-foreground mt-2">
-                      {partnerProfile.username || partnerProfile.email}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground text-base py-8">No partner profile linked or found.</p>
-                )}
-              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 mt-8">Recent Messages</h2>
+              {user && (
+                <MessageTimeline
+                  sentMessages={sentMessages}
+                  receivedMessages={receivedMessages}
+                  currentUserId={user.id}
+                  currentUserProfile={currentUserProfile}
+                  partnerProfile={partnerProfile}
+                />
+              )}
             </div>
-
-            {/* Today's Journal Entry Card */}
-            <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
-
-            {/* Mood Calendar */}
-            <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
-
-            {/* Communication Insights Charts */}
-            <div className="mt-8">
-              <ScoreAndMessageCharts
-                currentUserProfile={currentUserProfile}
-                partnerProfile={partnerProfile}
-                sentMessages={sentMessages}
-                receivedMessages={receivedMessages}
-              />
-            </div>
-
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 mt-8">Recent Messages</h2>
-            {user && (
-              <MessageTimeline
-                sentMessages={sentMessages}
-                receivedMessages={receivedMessages}
-                currentUserId={user.id}
-                currentUserProfile={currentUserProfile}
-                partnerProfile={partnerProfile}
-              />
-            )}
           </div>
         </div>
-      </div>
-    </BackgroundWrapper>
+      </BackgroundWrapper>
+    </>
   );
 };
 

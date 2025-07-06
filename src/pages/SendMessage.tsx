@@ -15,6 +15,7 @@ import { Profile } from '@/types/supabase';
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { cn } from '@/lib/utils';
+import { Helmet } from 'react-helmet-async'; // Import Helmet
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -132,29 +133,35 @@ const SendMessage = () => {
 
   if (!partnerId) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
-        <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-foreground mb-4">Partner Not Found</h2>
-        <p className="text-muted-foreground mb-2">
-          It looks like your partner's profile isn't set up or linked.
-        </p>
-        <p className="text-muted-foreground mb-6">
-          Your current partner email is: <strong className="text-foreground">{currentPartnerEmail}</strong>.
-          Please ensure your partner has registered with this exact email, or update it in your profile.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link to="/edit-profile">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Users className="w-5 h-5 mr-2" /> Edit Partner Email
-            </Button>
-          </Link>
-          <Link to="/dashboard">
-            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
-              Back to Dashboard
-            </Button>
-          </Link>
+      <>
+        <Helmet>
+          <title>Send Message - Anbae</title>
+          <meta name="description" content="Send a message to your partner. Choose message type, content, priority, and mood." />
+        </Helmet>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
+          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-4">Partner Not Found</h2>
+          <p className="text-muted-foreground mb-2">
+            It looks like your partner's profile isn't set up or linked.
+          </p>
+          <p className="text-muted-foreground mb-6">
+            Your current partner email is: <strong className="text-foreground">{currentPartnerEmail}</strong>.
+            Please ensure your partner has registered with this exact email, or update it in your profile.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link to="/edit-profile">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Users className="w-5 h-5 mr-2" /> Edit Partner Email
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -174,116 +181,122 @@ const SendMessage = () => {
   };
 
   return (
-    <BackgroundWrapper>
-      <div className={cn(
-        "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-md transition-colors duration-300",
-        getCardClassesForMessageType(selectedMessageType)
-      )}>
-        <div className="text-center mb-6">
-          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-foreground mb-2">Send a Message</h2>
-          <p className="text-muted-foreground">Share your thoughts with {partnerNickname || 'your partner'}.</p>
-        </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="message_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Message Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <>
+      <Helmet>
+        <title>Send Message - Anbae</title>
+        <meta name="description" content="Send a message to your partner. Choose message type, content, priority, and mood." />
+      </Helmet>
+      <BackgroundWrapper>
+        <div className={cn(
+          "w-full max-w-md p-8 rounded-xl shadow-lg backdrop-blur-md transition-colors duration-300",
+          getCardClassesForMessageType(selectedMessageType)
+        )}>
+          <div className="text-center mb-6">
+            <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-foreground mb-2">Send a Message</h2>
+            <p className="text-muted-foreground">Share your thoughts with {partnerNickname || 'your partner'}.</p>
+          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="message_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Message Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
+                          <SelectValue placeholder="Select a message type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-card border-border text-foreground">
+                        <SelectItem value="Grievance">💔 Grievance</SelectItem>
+                        <SelectItem value="Compliment">💖 Compliment</SelectItem>
+                        <SelectItem value="Good Memory">✨ Good Memory</SelectItem>
+                        <SelectItem value="How I Feel">🤔 How I Feel</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Explanation</FormLabel>
                     <FormControl>
-                      <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
-                        <SelectValue placeholder="Select a message type" />
-                      </SelectTrigger>
+                      <Textarea placeholder="Explain the situation, how it makes you feel, and what you need." {...field} rows={5} className="bg-input/50 border-border/50 text-foreground" />
                     </FormControl>
-                    <SelectContent className="bg-card border-border text-foreground">
-                      <SelectItem value="Grievance">💔 Grievance</SelectItem>
-                      <SelectItem value="Compliment">💖 Compliment</SelectItem>
-                      <SelectItem value="Good Memory">✨ Good Memory</SelectItem>
-                      <SelectItem value="How I Feel">🤔 How I Feel</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Explanation</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Explain the situation, how it makes you feel, and what you need." {...field} rows={5} className="bg-input/50 border-border/50 text-foreground" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-card border-border text-foreground">
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="mood"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2">Your Mood</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
-                          <SelectValue placeholder="Select your mood" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-card border-border text-foreground">
-                        <SelectItem value="Happy">😊 Happy</SelectItem>
-                        <SelectItem value="Sad">😔 Sad</SelectItem>
-                        <SelectItem value="Angry">😠 Angry</SelectItem>
-                        <SelectItem value="Neutral">😐 Neutral</SelectItem>
-                        <SelectItem value="Anxious">😟 Anxious</SelectItem>
-                        <SelectItem value="Grateful">🙏 Grateful</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Send className="w-4 h-4 mr-2" /> Send Message
-            </Button>
-          </form>
-        </Form>
-        <div className="mt-6 text-center">
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="inline-block w-4 h-4 mr-1" /> Back to Dashboard
-          </Link>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">Priority</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-card border-border text-foreground">
+                          <SelectItem value="Low">Low</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="High">High</SelectItem>
+                          <SelectItem value="Urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mood"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">Your Mood</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
+                            <SelectValue placeholder="Select your mood" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-card border-border text-foreground">
+                          <SelectItem value="Happy">😊 Happy</SelectItem>
+                          <SelectItem value="Sad">😔 Sad</SelectItem>
+                          <SelectItem value="Angry">😠 Angry</SelectItem>
+                          <SelectItem value="Neutral">😐 Neutral</SelectItem>
+                          <SelectItem value="Anxious">😟 Anxious</SelectItem>
+                          <SelectItem value="Grateful">🙏 Grateful</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Send className="w-4 h-4 mr-2" /> Send Message
+              </Button>
+            </form>
+          </Form>
+          <div className="mt-6 text-center">
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="inline-block w-4 h-4 mr-1" /> Back to Dashboard
+            </Link>
+          </div>
         </div>
-      </div>
-    </BackgroundWrapper>
+      </BackgroundWrapper>
+    </>
   );
 };
 
