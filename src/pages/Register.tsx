@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Heart, Mail, Lock, User, Users } from 'lucide-react';
+import { Mail, Lock, User, Users } from 'lucide-react'; // Removed Heart import
 import { toast } from 'sonner';
 import { ThemeToggle } from "@/components/ThemeToggle";
 import VideoBackground from '@/components/VideoBackground';
@@ -82,7 +82,7 @@ const Register = () => {
           isExiting ? "animate-fade-out" : "animate-fade-in"
         )}>
           <div className="text-center mb-6">
-            <Heart className="w-12 h-12 text-pink-600 dark:text-purple-400 mx-auto mb-4" />
+            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" /> {/* Replaced Heart with img tag */}
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
             <p className="text-gray-700 dark:text-gray-300">Create your personalized space.</p>
           </div>
@@ -141,7 +141,7 @@ const Register = () => {
                 )}
               />
               <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
-                <Heart className="w-4 h-4 mr-2" /> Create Account
+                <img src="/favicon.ico" alt="Favicon" className="w-4 h-4 mr-2" /> Create Account
               </Button>
             </form>
           </Form>
