@@ -5,11 +5,19 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft, CalendarDays } from 'lucide-react'; // Import CalendarDays icon
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { JournalEntry } from '@/types/supabase'; // Import JournalEntry
+
+interface JournalEntry {
+  id: string;
+  created_at: string;
+  heading: string | null;
+  mood: string | null;
+  content: string;
+  emoji: string | null;
+}
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -70,6 +78,16 @@ const Journal = () => {
     return entries.filter(entry => isSameDay(new Date(entry.created_at), selectedDate));
   }, [entries, selectedDate]);
 
+  const isTodaySelected = useMemo(() => {
+    return selectedDate ? isSameDay(selectedDate, new Date()) : true;
+  }, [selectedDate]);
+
+  const handleGoToToday = () => {
+    setSelectedDate(new Date());
+    // Clear location state to ensure it defaults to today on subsequent direct navigations
+    navigate(location.pathname, { replace: true, state: {} });
+  };
+
   return (
     <BackgroundWrapper>
       <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
@@ -89,6 +107,20 @@ const Journal = () => {
             </Tooltip>
           </div>
           <h1 className="text-3xl font-bold text-foreground mx-auto">Journal</h1>
+          {!isTodaySelected && (
+            <div className="absolute top-4 right-4 z-10">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={handleGoToToday} className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                    <CalendarDays className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Go to Today</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </header>
 
         <div className="flex flex-col gap-8">
