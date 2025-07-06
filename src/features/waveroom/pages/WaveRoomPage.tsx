@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Users, LogIn, ArrowLeft } from 'lucide-react';
-import { WaveIcon, RadioIcon } from '../components/icons'; // Import RadioIcon
+import { WaveIcon, RadioIcon } from '../components/icons'; // Keep both imports, but use WaveIcon
 import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -128,7 +128,7 @@ const WaveRoomPage: React.FC = () => {
           </Tooltip>
         </div>
         <div className="text-center">
-          <RadioIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Changed to RadioIcon */}
+          <WaveIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Reverted to WaveIcon */}
           <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
         </div>
