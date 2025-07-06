@@ -153,6 +153,9 @@ const EditProfile = () => {
 
   return (
     <BackgroundWrapper>
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
         <div className="text-center mb-6">
           <User className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
