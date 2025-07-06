@@ -16,6 +16,8 @@ interface VideoPlayerProps {
   sendVideoReaction: (emoji: string) => void; // New prop for sending reactions
   activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
   isConnectedToRealtime: boolean; // New prop for real-time connection status
+  isFullScreen: boolean; // New prop: received from parent
+  onToggleFullscreen: () => void; // New prop: received from parent
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -25,9 +27,8 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, isFullScreen, onToggleFullscreen }) => {
   const playerRef = useRef<ReactPlayer>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
   
   const [isMuted, setIsMuted] = useState(true);
   const [volume, setVolume] = useState(0.8);
@@ -45,8 +46,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
 
-  const [isFullScreen, setIsFullScreen] = useState(false); // New state to track fullscreen
-  const [showFullscreenChat, setShowFullscreenChat] = useState(false);
+  const [showFullscreenChat, setShowFullscreenChat] = useState(false); // This state remains local for the chat overlay
 
   const sliderTime = isSeeking ? seekingTime : displayTime;
   
@@ -93,27 +93,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       setDisplayTime(0);
   }, [videoState.source]);
 
-  // New useEffect to handle fullscreen change events
+  // No longer listening for fullscreenchange here, parent handles it.
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-      if (!document.fullscreenElement) {
-        setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
-      }
-    };
+    if (!isFullScreen) {
+      setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
+    }
+  }, [isFullScreen]);
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
-  }, []);
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -169,14 +155,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setIsMuted(prev => !prev);
   };
 
+  // This now calls the parent's toggle fullscreen function
   const handleFullscreen = () => {
-    if (playerContainerRef.current) {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-        } else {
-            playerContainerRef.current.requestFullscreen();
-        }
-    }
+    onToggleFullscreen();
   };
 
   const handleMouseMove = useCallback(() => {
@@ -191,8 +172,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     }, 3000);
   }, [videoState.isPlaying, isFullScreen]);
 
+  // Attach mousemove listener to the main player container
+  const playerWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const container = playerContainerRef.current;
+    const container = playerWrapperRef.current;
     container?.addEventListener('mousemove', handleMouseMove);
     return () => container?.removeEventListener('mousemove', handleMouseMove);
   }, [handleMouseMove]);
@@ -204,29 +187,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setDisplayTime(seconds);
   };
 
-  // Determine player and chat container classes based on fullscreen and chat visibility
+  // Player wrapper classes now just fill its parent
   const playerWrapperClasses = cn(
-    "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg border-2 border-green-500", // Debug: Green border
-    isFullScreen ? "fixed top-0 left-0 w-screen h-screen z-50 rounded-none" : "h-full", // Use w-screen h-screen explicitly for fullscreen
-  );
-
-  const reactPlayerContainerClasses = cn(
-    "w-full h-full border-2 border-blue-500", // Debug: Blue border
+    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg border-2 border-blue-500", // Debug: Blue border
   );
 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
     "bg-card/90 backdrop-blur-md rounded-xl shadow-lg border-2 border-blue-500", // Debug: Blue border
-    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden" // Changed to max-h-[calc(100% - 4.5rem)]
+    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden"
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
 
   return (
-    <div ref={playerContainerRef} className={playerWrapperClasses}>
+    <div ref={playerWrapperRef} className={playerWrapperClasses}>
       {videoState.source ? (
         <>
-          <div className={reactPlayerContainerClasses}> {/* Wrap ReactPlayer in this div */}
+          <div className="w-full h-full"> {/* This div wraps ReactPlayer */}
             <ReactPlayer
               ref={playerRef}
               url={videoState.source}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
@@ -6,10 +6,11 @@ import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
 import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
-import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
+import { ArrowLeft, LogOut, Maximize } from 'lucide-react'; // Import LogOut and Maximize icons
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
+import clsx from 'clsx'; // Import clsx for conditional classes
 
 interface TheaterProps {
   room: Room;
@@ -22,6 +23,46 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
+
+  // Fullscreen state and ref for the entire theater container
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const theaterContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const handleToggleFullscreen = () => {
+    if (theaterContainerRef.current) {
+      if (!document.fullscreenElement) {
+        theaterContainerRef.current.requestFullscreen().catch(err => {
+          toast.error(`Error entering fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  // Test 1: The "Inline Style" Hammer
+  const dynamicStyle = {
+    height: isFullscreen ? '100vh' : undefined,
+    width: isFullscreen ? '100vw' : undefined,
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(room.room_code);
@@ -39,7 +80,18 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   };
 
   return (
-    <div className="flex flex-col h-full fullscreen:h-screen fullscreen:flex"> {/* Added fullscreen:h-screen and fullscreen:flex */}
+    // Main container for the Theater, now handling fullscreen
+    <div 
+      ref={theaterContainerRef}
+      style={dynamicStyle} // Apply the inline style for Test 1
+      className={clsx(
+        "flex flex-col h-full", // Normal state classes
+        "border-2 border-green-500", // Debug: Green border
+        {
+          "fixed top-0 left-0 z-50 rounded-none": isFullscreen // Apply fixed positioning when fullscreen
+        }
+      )}
+    >
       <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow min-h-0">
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
           {/* Back button on the left */}
@@ -112,6 +164,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                 sendVideoReaction={sendVideoReaction}
                 activeReactions={activeReactions}
                 isConnectedToRealtime={isConnectedToRealtime}
+                isFullScreen={isFullscreen} // Pass fullscreen state to VideoPlayer
+                onToggleFullscreen={handleToggleFullscreen} // Pass toggle function
               />
             </div>
           </div>
