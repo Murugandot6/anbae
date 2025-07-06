@@ -241,7 +241,7 @@ const Dashboard = () => {
                   altText="Your Avatar"
                   size="md"
                 />
-                <Badge className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-bold shadow-md">
+                <Badge className="absolute -top-1 -left-1 bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shadow-md">
                   I
                 </Badge>
                 <p className="font-semibold text-lg text-foreground mt-2">
@@ -268,7 +268,7 @@ const Dashboard = () => {
                       altText="Partner Avatar"
                       size="md"
                     />
-                    <Badge className="absolute top-0 right-0 bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs font-bold shadow-md">
+                    <Badge className="absolute -bottom-1 -right-1 bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shadow-md">
                       U
                     </Badge>
                     <p className="font-semibold text-lg text-foreground mt-2">
