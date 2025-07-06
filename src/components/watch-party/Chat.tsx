@@ -32,7 +32,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
   };
 
   return (
-    <div className={cn("flex flex-col h-full", isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
+    <div className={cn("flex flex-col h-full min-h-0", isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
       <div className={cn("flex items-center justify-between p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}>
         <h3 className="text-xl font-bold text-foreground">Live Chat</h3>
         {isOverlay && onClose && (
@@ -65,7 +65,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
+      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50 flex-shrink-0", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
         <div className="flex items-center gap-2">
           <input
             type="text"
