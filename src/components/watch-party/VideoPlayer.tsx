@@ -206,18 +206,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Determine player and chat container classes based on fullscreen and chat visibility
   const playerWrapperClasses = cn(
-    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg",
+    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg border-2 border-green-500", // Debug: Green border
     isFullScreen && "fixed inset-0 z-50 rounded-none",
   );
 
   const reactPlayerContainerClasses = cn(
-    "w-full h-full",
+    "w-full h-full border-2 border-blue-500", // Debug: Blue border
   );
 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
-    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100vh-4.5rem)]" : "hidden" // Changed to max-h-[calc(100vh-4.5rem)]
+    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg border-2 border-blue-500", // Debug: Blue border
+    isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100vh-4.5rem)]" : "hidden"
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
@@ -303,7 +303,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 style={{ 
                   animationDuration: '5s',
                   top: `${Math.random() * 80 + 10}%`, // Random vertical position
-                  left: `${Math.random() * 80 + 10}%` // Random horizontal position
+                  left: `${Math.random() * 8.0 + 10}%` // Random horizontal position
                 }}
               >
                 {reaction.emoji}

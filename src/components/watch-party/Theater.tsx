@@ -39,7 +39,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col h-full">
+    <div className="max-w-7xl mx-auto flex flex-col h-full border-2 border-green-500"> {/* Debug: Green border */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         {/* Back button on the left */}
         <div className="flex-shrink-0">
@@ -100,8 +100,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
       <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0">
-        <div className="lg:flex-grow lg:w-3/4 min-h-0">
-          <div className="relative w-full h-full"> {/* Changed aspect-video to h-full */}
+        <div className="lg:flex-grow lg:w-3/4 min-h-0 border-2 border-blue-500"> {/* Debug: Blue border */}
+          <div className="relative w-full h-full">
             <VideoPlayer 
               videoState={videoState} 
               sendVideoAction={sendVideoAction} 
@@ -114,7 +114,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             />
           </div>
         </div>
-        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-full min-h-0">
+        <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-full min-h-0 border-2 border-blue-500"> {/* Debug: Blue border */}
           <Chat 
             messages={messages} 
             sendMessage={sendMessage} 
