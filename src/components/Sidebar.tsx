@@ -3,7 +3,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu } from 'lucide-react'; // Removed LogOut from here
 import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
             </SheetTrigger>
             <SheetContent
                 side="left"
-                className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col [&>button]:hidden" // Added [&>button]:hidden to hide the default close button
+                className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4 flex flex-col [&>button]:hidden"
             >
                 {/* Container for Clear Messages and X button at the very top */}
                 <div className="flex justify-between items-center mb-4 px-2">
@@ -46,12 +46,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                 {/* SidebarContent now follows */}
                 <SidebarContent {...props} />
 
-                {/* Logout button is at the very bottom */}
-                <div className="mt-auto flex flex-col gap-2">
-                    <Button onClick={props.handleLogout} variant="destructive" className="w-full justify-start">
-                        <LogOut className="w-5 h-5 mr-2" /> Logout
-                    </Button>
-                </div>
+                {/* The actual Logout button is inside SidebarContent */}
             </SheetContent>
         </Sheet>
     );
