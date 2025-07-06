@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { VideoState, VideoAction, ChatMessage, User, VideoHistoryEntry } from '@/types/watchParty';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { toast } from 'sonner'; // Import toast for user feedback
 
 // Reducer function to calculate the next state based on an action.
 const videoStateReducer = (state: VideoState, action: VideoAction): VideoState => {
@@ -124,13 +125,14 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
 
     // New: Listener for video reactions
     channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
+      console.log(`[Reaction Debug] Listener triggered for video_reaction! Payload:`, payload); // New log
       const { emoji, senderId } = payload;
-      console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); // Added console log
-      const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; // Ensure unique ID for each reaction instance
+      console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); 
+      const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; 
       
       setActiveReactions(prev => {
         const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
-        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); // Added console log
+        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); 
         return newReactions;
       });
 
@@ -138,10 +140,10 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       setTimeout(() => {
         setActiveReactions(prev => {
           const filtered = prev.filter(r => r.id !== reactionId);
-          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); // Added console log
+          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); 
           return filtered;
         });
-      }, 5000); // 5 seconds
+      }, 5000); 
     });
 
     channel.on('presence', { event: 'join' }, ({ newPresences }) => newPresences.forEach((p: any) => {
@@ -197,7 +199,14 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   // New: Function to send a video reaction
   const sendVideoReaction = useCallback((emoji: string) => {
     if (channelRef.current) {
-      console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); // Added console log
+      // Ensure the channel is subscribed before sending a broadcast
+      if (!channelRef.current.isSubscribed()) {
+        console.warn("[Reaction Debug] Channel not subscribed, cannot send reaction.");
+        toast.error("Cannot send reaction: Not connected to room.");
+        return;
+      }
+
+      console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); 
       channelRef.current.send({
         type: 'broadcast',
         event: 'video_reaction',
