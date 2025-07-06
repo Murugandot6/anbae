@@ -7,10 +7,26 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const typingPhrases = [
-    "Discover how couples can use our website to resolve conflicts.",
-    "Discover how couples can use our website to share compliments.",
-    "Discover how couples can use our website to cherish good memories.",
-    "Discover how couples can use our website to express feelings.",
+    "A single glance at your connection.",
+    "See your relationship’s health in motion.",
+    "Your daily moods, a colorful calendar.",
+    "Insights show how your hearts answer.",
+    "Send messages structured from the heart.",
+    "A compliment, a cherished memory's art.",
+    "Address a conflict with gentle care.",
+    "Share how you feel, beyond compare.",
+    "A secret garden for your thoughts.",
+    "Your private journal connects the dots.",
+    "A video love letter, perfectly timed.",
+    "Your special Promposal for their mind.",
+    "Watch shows together, synced in time.",
+    "Share laughter with a chat sublime.",
+    "Find your shared rhythm, a soundtrack.",
+    "The Wave Room brings your moments back.",
+    "Customize your profile, make it yours.",
+    "A modern design that truly endures.",
+    "A mutual choice for a fresh start.",
+    "Nurturing your bond, a work of art.",
   ];
 
   const [placeholderText, setPlaceholderText] = useState('');
