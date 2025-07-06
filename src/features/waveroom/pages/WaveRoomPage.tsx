@@ -4,12 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, LogIn, ArrowLeft } from 'lucide-react'; // Removed Radio from lucide-react
-import { WaveIcon } from '../components/icons'; // Import WaveIcon from local icons
+import { Users, LogIn, ArrowLeft } from 'lucide-react';
+import { WaveIcon, RadioIcon } from '../components/icons'; // Import RadioIcon
 import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext'; // Import useWaveRoomPlayer
+import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
 
 const generateRoomCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -22,13 +22,12 @@ const generateRoomCode = (): string => {
 
 const WaveRoomPage: React.FC = () => {
   const navigate = useNavigate();
-  const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useWaveRoomPlayer(); // Get active room state
+  const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useWaveRoomPlayer();
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // Redirect if already in an active room
   useEffect(() => {
     if (activePlayerRoomCode && isConnectedToRoom) {
       navigate(`/waveroom/${activePlayerRoomCode}`);
@@ -129,7 +128,7 @@ const WaveRoomPage: React.FC = () => {
           </Tooltip>
         </div>
         <div className="text-center">
-          <WaveIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Use WaveIcon here */}
+          <RadioIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Changed to RadioIcon */}
           <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
         </div>
