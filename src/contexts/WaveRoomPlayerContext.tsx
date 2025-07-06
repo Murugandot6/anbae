@@ -182,18 +182,16 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         setLocalUserHasInteracted(true);
     }
 
-    // Determine the new play status based on the current state
-    const newPlayStatus = !isPlaying; // Use the current isPlaying state directly for this calculation
-
-    setIsPlaying(newPlayStatus); // Optimistically update local state
+    let newPlayStatus = !isPlaying; 
 
     if (audio) {
         try {
             if (newPlayStatus) {
-                await audio.play(); // Await the play promise
+                await audio.play(); 
             } else {
-                await audio.pause(); // Await the pause promise
+                await audio.pause(); 
             }
+            setIsPlaying(newPlayStatus); 
         } catch (e: any) {
             if (e.name === 'NotAllowedError') {
                 console.warn("Autoplay prevented. User interaction required.");
@@ -202,14 +200,15 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
                 console.error("Audio playback error:", e);
                 toast.error("Audio playback failed.");
             }
-            setIsPlaying(false); // Revert local state if playback failed
-            syncState(currentStation, false); // Sync the failed state
-            return; // Exit if audio operation failed
+            newPlayStatus = false; 
+            setIsPlaying(false); 
         }
+    } else {
+        setIsPlaying(newPlayStatus);
     }
-    // Only sync state if audio operation was successful or not applicable (e.g., no audio element)
+
     syncState(currentStation, newPlayStatus);
-  }, [currentStation, isPlaying, syncState, localUserHasInteracted]); // Add isPlaying to dependencies
+  }, [currentStation, isPlaying, syncState, localUserHasInteracted]); 
 
   // Action: Clear the player
   const clearStation = useCallback(() => {

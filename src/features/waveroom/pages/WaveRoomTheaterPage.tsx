@@ -47,17 +47,9 @@ const WaveRoomTheaterPage: React.FC = () => {
     if (roomCode) {
       setRoom(roomCode);
     }
-    // The cleanup function for this useEffect should set the room to null
-    // when the component unmounts (i.e., user navigates away from this page).
-    // This ensures the WaveRoomPlayerContext unsubscribes from the room.
-    return () => {
-      // Only clear the room if it's the one currently active in the player context
-      // This prevents clearing if the user navigates to another Wave Room
-      if (activePlayerRoomCode === roomCode) {
-        setRoom(null); 
-      }
-    };
-  }, [roomCode, setRoom, activePlayerRoomCode]); // Added activePlayerRoomCode to dependencies
+    // Removed the cleanup function that called setRoom(null)
+    // The room connection will now persist until explicitly left via handleLeaveRoom
+  }, [roomCode, setRoom]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
