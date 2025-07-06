@@ -194,7 +194,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
     "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    document.fullscreenElement && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden"
+    document.fullscreenElement && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)] border-4 border-red-500" : "hidden" // Added red border for debugging
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
@@ -347,7 +347,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
                   {document.fullscreenElement && ( // Chat toggle button moved here
-                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="p-1 rounded-full text-white hover:bg-white/20 disabled:text-gray-500">
                       <MessageSquare className="w-5 h-5" />
                     </button>
                   )}
