@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
-import { ThemeToggle } from "@/components/ThemeToggle"; // Re-import ThemeToggle
+// ThemeToggle is no longer needed here as it's being removed from this component.
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -21,7 +21,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="flex justify-between items-center mb-4"> {/* Changed to justify-between */}
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           {user && (
             <ClearMessagesDialog
@@ -32,7 +32,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
             />
           )}
         </div>
-        <ThemeToggle /> {/* Re-added ThemeToggle here */}
+        {/* ThemeToggle removed from here */}
       </div>
       <div className="flex items-center gap-3 mb-6">
         <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
