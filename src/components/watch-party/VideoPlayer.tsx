@@ -205,19 +205,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Determine player and chat container classes based on fullscreen and chat visibility
   const playerWrapperClasses = cn(
-    "relative aspect-video w-full bg-black rounded-xl overflow-hidden group shadow-lg",
-    isFullScreen && "fixed inset-0 z-50 rounded-none", // Make it truly full screen
-    isFullScreen && showFullscreenChat ? "flex" : "" // Use flexbox when chat is active in fullscreen
+    "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg",
+    !isFullScreen && "aspect-video", // Only apply aspect-video when not in fullscreen
+    isFullScreen && "fixed inset-0 z-50 rounded-none flex", // Always flex in fullscreen
   );
 
   const reactPlayerContainerClasses = cn(
     "w-full h-full",
-    isFullScreen && showFullscreenChat ? "flex-grow" : "" // Player takes remaining space
+    isFullScreen && showFullscreenChat ? "flex-grow" : "flex-1" // Use flex-1 if not showing chat, flex-grow if showing
   );
 
   const chatContainerClasses = cn(
-    "h-full bg-card/90 backdrop-blur-md rounded-xl shadow-lg", // Base chat styling
-    isFullScreen ? "w-80 flex-shrink-0" : "hidden" // Always 80px wide in fullscreen, hidden otherwise
+    "h-full bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
+    isFullScreen && showFullscreenChat ? "w-80 flex-shrink-0" : "hidden" // Show/hide based on showFullscreenChat
   );
 
   return (
