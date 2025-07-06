@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
@@ -99,7 +99,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow min-h-0"> {/* Added flex-grow min-h-0 */}
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0"> {/* Added h-full min-h-0 */}
         <div className="lg:flex-grow lg:w-3/4 min-h-0">
           {/* Removed h-full from here */}
           <div className="relative aspect-video w-full">
