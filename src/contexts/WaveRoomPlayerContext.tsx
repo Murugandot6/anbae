@@ -11,7 +11,7 @@ interface WaveRoomPlayerContextType {
   setStation: (station: Station, roomCode: string) => void;
   togglePlay: (roomCode: string) => void;
   clearStation: (roomCode: string) => void;
-  isConnectedToRoom: boolean; // To indicate if the current client is subscribed to the room's channel
+  isConnectedToRoom: boolean;
 }
 
 const WaveRoomPlayerContext = createContext<WaveRoomPlayerContextType | undefined>(undefined);
@@ -25,7 +25,85 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   const channelRef = useRef<RealtimeChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Function to update Supabase and broadcast state
+  // This effect manages the Supabase channel subscription
+  useEffect(() => {
+    // If there's no room code, we don't need a channel. Clean up any existing one.
+    if (!activeRoomCode) {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      setIsConnectedToRoom(false);
+      return; // Exit early
+    }
+
+    // A room code exists, so we set up a new channel.
+    const channel = supabase.channel(`room:${activeRoomCode}`, {
+      config: { broadcast: { self: false, ack: true } },
+    });
+    channelRef.current = channel;
+
+    channel.on('broadcast', { event: 'state_update' }, ({ payload }) => {
+      setCurrentStation(payload.current_station);
+      setIsPlaying(payload.is_playing);
+    }).subscribe(async (status) => {
+      setIsConnectedToRoom(status === 'SUBSCRIBED');
+      if (status === 'SUBSCRIBED') {
+        // Fetch initial state from DB on subscribe
+        const { data, error } = await supabase
+          .from('wave_rooms')
+          .select('current_station, is_playing')
+          .eq('code', activeRoomCode)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116: no rows found
+          console.error('Error fetching initial room state:', error.message);
+        } else if (data) {
+          setCurrentStation(data.current_station);
+          setIsPlaying(data.is_playing);
+        }
+      }
+    });
+
+    // The crucial cleanup function. This will run when the component unmounts
+    // or when `activeRoomCode` changes, BEFORE the effect runs again.
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [activeRoomCode]);
+
+  // Audio element control based on context state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (currentStation?.url_resolved) {
+      if (audio.src !== currentStation.url_resolved) {
+        audio.src = currentStation.url_resolved;
+        audio.load(); // Load the new source
+      }
+      if (isPlaying) {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            // Autoplay was prevented. User needs to interact.
+            console.warn("Autoplay prevented:", error);
+            toast.info("Please tap to play audio.");
+            setIsPlaying(false); // Reflect that it's not playing
+          });
+        }
+      } else {
+        audio.pause();
+      }
+    } else {
+      audio.pause();
+      audio.src = ''; // Clear source
+    }
+  }, [currentStation, isPlaying]);
+
   const syncStateToSupabase = useCallback(async (station: Station | null, playStatus: boolean, code: string) => {
     if (!supabase) {
       console.error('Supabase client not initialized.');
@@ -68,90 +146,6 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, []);
 
-  // Initialize or switch Supabase channel when activeRoomCode changes
-  useEffect(() => {
-    if (!activeRoomCode) {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-      setIsConnectedToRoom(false);
-      return;
-    }
-
-    // Remove existing channel if switching rooms
-    if (channelRef.current && channelRef.current.topic !== `room:${activeRoomCode}`) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-
-    if (!channelRef.current) {
-      const channel = supabase.channel(`room:${activeRoomCode}`, {
-        config: { broadcast: { self: false, ack: true } },
-      });
-
-      channel.on('broadcast', { event: 'state_update' }, ({ payload }) => {
-        // Only update if the incoming state is newer or if it's a clear command
-        if (payload.timestamp > (currentStation ? currentStation.timestamp || 0 : 0) || payload.current_station === null) {
-          setCurrentStation(payload.current_station);
-          setIsPlaying(payload.is_playing);
-        }
-      }).subscribe(async (status) => {
-        setIsConnectedToRoom(status === 'SUBSCRIBED');
-        if (status === 'SUBSCRIBED') {
-          // Fetch initial state from DB on subscribe
-          const { data, error } = await supabase
-            .from('wave_rooms')
-            .select('current_station, is_playing')
-            .eq('code', activeRoomCode)
-            .single();
-
-          if (error && error.code !== 'PGRST116') { // PGRST116: no rows found
-            console.error('Error fetching initial room state:', error.message);
-          } else if (data) {
-            setCurrentStation(data.current_station);
-            setIsPlaying(data.is_playing);
-          }
-        }
-      });
-      channelRef.current = channel;
-    }
-
-    return () => {
-      // No cleanup here, as the channel is managed by activeRoomCode changes
-      // and will be removed when activeRoomCode becomes null or changes.
-    };
-  }, [activeRoomCode]);
-
-  // Audio element control based on context state
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (currentStation?.url_resolved) {
-      if (audio.src !== currentStation.url_resolved) {
-        audio.src = currentStation.url_resolved;
-        audio.load(); // Load the new source
-      }
-      if (isPlaying) {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            // Autoplay was prevented. User needs to interact.
-            console.warn("Autoplay prevented:", error);
-            toast.info("Please tap to play audio.");
-            setIsPlaying(false); // Reflect that it's not playing
-          });
-        }
-      } else {
-        audio.pause();
-      }
-    } else {
-      audio.pause();
-      audio.src = ''; // Clear source
-    }
-  }, [currentStation, isPlaying]);
-
   const setStation = useCallback((station: Station, roomCode: string) => {
     setActiveRoomCode(roomCode);
     setCurrentStation(station);
@@ -160,7 +154,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   }, [syncStateToSupabase]);
 
   const togglePlay = useCallback((roomCode: string) => {
-    setActiveRoomCode(roomCode);
+    setActiveRoomCode(roomCode); // Ensure room code is set
     setIsPlaying(prev => {
       const newState = !prev;
       syncStateToSupabase(currentStation, newState, roomCode);
@@ -169,7 +163,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   }, [currentStation, syncStateToSupabase]);
 
   const clearStation = useCallback((roomCode: string) => {
-    setActiveRoomCode(roomCode);
+    setActiveRoomCode(roomCode); // Ensure room code is set
     setCurrentStation(null);
     setIsPlaying(false);
     syncStateToSupabase(null, false, roomCode);

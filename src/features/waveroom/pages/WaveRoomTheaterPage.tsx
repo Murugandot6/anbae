@@ -4,10 +4,9 @@ import { Station } from '../types';
 import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '../api/radioService';
 import SearchBar from '../components/SearchBar';
 import StationList from '../components/StationList';
-import WaveRoomControls from '../components/WaveRoomControls'; // Corrected import path
+import WaveRoomControls from '../components/WaveRoomControls';
 import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
-import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime';
 import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut, ArrowLeft } from 'lucide-react';
@@ -19,9 +18,14 @@ const WaveRoomTheaterPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   
-  const { setStation: setRealtimeStation, togglePlay: toggleRealtimePlay, clearStation: clearRealtimeStation } = useWaveRoomRealtime(roomCode!);
-  
-  const { currentStation, isPlaying, roomCode: activePlayerRoomCode } = useWaveRoomPlayer();
+  const { 
+    currentStation, 
+    isPlaying, 
+    roomCode: activePlayerRoomCode,
+    setStation,
+    togglePlay,
+    clearStation
+  } = useWaveRoomPlayer();
 
   const [stations, setStations] = useState<Station[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState<boolean>(true);
@@ -89,8 +93,8 @@ const WaveRoomTheaterPage: React.FC = () => {
   }, [searchQuery, selectedLanguage, selectedCountry, selectedTag]);
 
   const handleSelectStation = (station: Station) => {
-    if (station.url_resolved) {
-      setRealtimeStation(station);
+    if (station.url_resolved && roomCode) {
+      setStation(station, roomCode);
     } else {
       toast.error(`Station ${station.name} does not have a valid stream URL.`);
     }
@@ -213,8 +217,8 @@ const WaveRoomTheaterPage: React.FC = () => {
         <WaveRoomControls
           station={currentStation}
           isPlaying={isPlaying}
-          onSetPlaying={() => toggleRealtimePlay()}
-          onClear={() => clearRealtimeStation()}
+          onSetPlaying={() => togglePlay(roomCode)}
+          onClear={() => clearStation(roomCode)}
           onShowStation={handleShowStationInList}
         />
       )}
