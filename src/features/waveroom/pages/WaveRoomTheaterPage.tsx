@@ -211,7 +211,7 @@ const WaveRoomTheaterPage: React.FC = () => {
               tags={tags}
               selectedLanguage={selectedLanguage}
               selectedCountry={selectedCountry}
-              selectedTag={selectedTag} {/* Added this line */}
+              selectedTag={selectedTag}
               onFilterChange={(type, val) => {
                 if(type === 'language') setSelectedLanguage(val);
                 if(type === 'country') setSelectedCountry(val);
