@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
             <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4">
                 {/* ClearMessagesDialog positioned absolutely at top-left */}
                 {props.user && (
-                    <div className="absolute top-4 left-4 z-10"> {/* Added z-10 to ensure it's above other content */}
+                    <div className="absolute top-2 left-4 z-10"> {/* Changed top-4 to top-2 for vertical alignment */}
                         <ClearMessagesDialog
                             partnerId={props.partnerProfile?.id || null}
                             partnerNickname={props.partnerProfile?.username || props.currentUserProfile?.partner_nickname || null}
