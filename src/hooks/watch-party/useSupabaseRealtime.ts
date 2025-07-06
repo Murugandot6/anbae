@@ -105,6 +105,30 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       setVideoHistory(prev => [formattedItem, ...prev]);
     });
 
+    // New: Listener for video reactions via postgres_changes
+    console.log(`[Realtime Debug] Attaching 'reactions' postgres_changes listener.`);
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions', filter: `room_id=eq.${roomId}` }, (payload) => {
+      console.log(`[Reaction Debug] Postgres change for reaction received! Payload:`, payload.new);
+      const { emoji, id } = payload.new;
+      const reactionId = `${emoji}-${id}`; // Use DB ID for uniqueness
+      
+      setActiveReactions(prev => {
+        const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
+        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); 
+        return newReactions;
+      });
+
+      // Schedule removal of the reaction after 5 seconds
+      setTimeout(() => {
+        setActiveReactions(prev => {
+          const filtered = prev.filter(r => r.id !== reactionId);
+          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); 
+          return filtered;
+        });
+      }, 5000); 
+    });
+
+    // Existing broadcast listeners for video state (these remain as they are for sync)
     console.log(`[Realtime Debug] Attaching 'video_state_update' broadcast listener.`);
     channel.on('broadcast', { event: 'video_state_update' }, ({ payload }) => {
       if (payload.senderId !== user.id) {
@@ -128,37 +152,6 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       }
     });
 
-    // New: Listener for video reactions
-    console.log(`[Realtime Debug] Attaching 'video_reaction' broadcast listener.`);
-    channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
-      console.log(`[Reaction Debug] Listener triggered for video_reaction! Payload:`, payload);
-      const { emoji, senderId } = payload;
-      console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); 
-      const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; 
-      
-      setActiveReactions(prev => {
-        const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
-        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); 
-        return newReactions;
-      });
-
-      // Schedule removal of the reaction after 5 seconds
-      setTimeout(() => {
-        setActiveReactions(prev => {
-          const filtered = prev.filter(r => r.id !== reactionId);
-          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); 
-          return filtered;
-        });
-      }, 5000); 
-    });
-
-    // --- LISTENER FOR SELF-BROADCAST TEST ---
-    console.log(`[Realtime Debug] Attaching 'test_broadcast' listener.`);
-    channel.on('broadcast', { event: 'test_broadcast' }, (payload) => {
-      console.log(`[Realtime Debug] Self-broadcast test received! Payload:`, payload);
-    });
-    // --- END LISTENER FOR SELF-BROADCAST TEST ---
-
     channel.on('presence', { event: 'join' }, ({ newPresences }) => newPresences.forEach((p: any) => {
         if(p.user_name) addSystemMessage(`${p.user_name} joined.`)
     }));
@@ -173,22 +166,6 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current);
         await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
-
-        // --- SELF-BROADCAST TEST ---
-        console.log("[Realtime Debug] Attempting self-broadcast test...");
-        // Add a small delay before sending the self-broadcast test
-        setTimeout(() => {
-          if (channelRef.current && isConnectedToRealtime) {
-            channelRef.current.send({
-              type: 'broadcast',
-              event: 'test_broadcast',
-              payload: { message: 'Hello from self-broadcast test!', senderId: user.id }
-            });
-          } else {
-            console.warn("[Realtime Debug] Self-broadcast test skipped: Channel not ready.");
-          }
-        }, 100); // 100ms delay
-        // --- END SELF-BROADCAST TEST ---
 
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
         setIsConnectedToRealtime(false);
@@ -241,25 +218,23 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     }
   }, [roomId, user.id, user.name, addSystemMessage, isConnectedToRealtime]);
 
-  // New: Function to send a video reaction
-  const sendVideoReaction = useCallback((emoji: string) => {
-    if (channelRef.current && isConnectedToRealtime) {
-      console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); 
-      console.log(`[Reaction Debug] Channel ref current before send:`, channelRef.current);
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'video_reaction',
-        payload: { emoji, senderId: user.id },
-      });
-      // Optionally, log to database for history/analytics
-      supabase.from('reactions').insert({ room_id: roomId, emoji, created_at: new Date().toISOString() }).then(({ error }) => {
-        if (error) console.error('Error logging reaction to DB:', error.message);
-      });
-    } else {
-      console.warn("[Reaction Debug] Channel not connected, cannot send reaction.");
+  // Updated: Function to send a video reaction by inserting into the 'reactions' table
+  const sendVideoReaction = useCallback(async (emoji: string) => {
+    if (!isConnectedToRealtime) {
       toast.error("Cannot send reaction: Not connected to room.");
+      return;
     }
-  }, [roomId, user.id, isConnectedToRealtime]);
+    console.log(`[Reaction Debug] Inserting reaction: ${emoji} for room: ${roomId}`);
+    const { error } = await supabase.from('reactions').insert({
+      room_id: roomId,
+      emoji: emoji,
+      // user_id is automatically set by RLS policy and default value
+    });
+    if (error) {
+      console.error('Error sending reaction to DB:', error.message);
+      toast.error(`Failed to send reaction: ${error.message}`);
+    }
+  }, [roomId, isConnectedToRealtime]);
 
   const changeVideoSource = useCallback(async (newUrl: string) => {
     if (!newUrl.trim()) return;
