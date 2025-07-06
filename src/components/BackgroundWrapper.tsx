@@ -21,7 +21,8 @@ function BackgroundWrapper({ children, className }: BackgroundImageWrapperProps)
       <div className="absolute inset-0 bg-black opacity-10 dark:opacity-30 z-10"></div>
 
       {/* Content wrapper (on top of overlay and backgrounds) */}
-      <div className={cn("relative z-20 min-h-screen flex flex-col items-center justify-start p-4 pt-20", className)}>
+      {/* Changed min-h-screen to h-screen to enforce fixed height */}
+      <div className={cn("relative z-20 h-screen flex flex-col items-center justify-start p-4 pt-20", className)}>
         {children}
       </div>
     </div>
