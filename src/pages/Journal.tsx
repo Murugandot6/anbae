@@ -138,19 +138,22 @@ const Journal = () => {
     <BackgroundWrapper>
       <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex justify-between items-center mb-6">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="/dashboard">
-                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Back to Dashboard</p>
-            </TooltipContent>
-          </Tooltip>
-          <h1 className="text-3xl font-bold text-foreground">Journal</h1>
+          {/* Replaced Link with Button for consistent styling and positioning */}
+          <div className="absolute top-4 left-4 z-10">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/dashboard">
+                  <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Back to Dashboard</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mx-auto">Journal</h1>
         </header>
 
         <div className="flex flex-col gap-8">

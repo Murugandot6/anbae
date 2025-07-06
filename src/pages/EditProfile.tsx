@@ -247,9 +247,14 @@ const EditProfile = () => {
           </form>
         </Form>
         <div className="mt-6 text-center">
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="inline-block w-4 h-4 mr-1" /> Back to Dashboard
-          </Link>
+          {/* Replaced Link with Button for consistent styling and positioning */}
+          <div className="absolute top-4 left-4 z-10">
+            <Link to="/dashboard">
+              <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </BackgroundWrapper>

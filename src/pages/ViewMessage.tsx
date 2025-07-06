@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
 import { Reply, User, Mail, MessageSquare, Tag, Zap, Smile, ArrowLeft, CheckCheck, Plus, XCircle, Send } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Separator } => '@/components/ui/separator';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { cn, formatDateTimeForMessageView } from '@/lib/utils';
@@ -354,12 +354,17 @@ const ViewMessage = () => {
   return (
     <BackgroundWrapper className="pt-20">
       <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
-        <div className="flex items-center justify-between mb-8 flex-shrink-0">
+        {/* Ensure positioning is absolute for top-left corner */}
+        <div className="absolute top-4 left-4 z-10">
           <Link to="/messages">
             <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
+        </div>
+        <div className="flex items-center justify-between mb-8 flex-shrink-0">
+          {/* The back button is now outside this flex container */}
+          <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 border-2 border-primary dark:border-primary-foreground">
               <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />

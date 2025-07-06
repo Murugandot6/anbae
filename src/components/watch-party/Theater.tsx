@@ -38,7 +38,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-        <div className="flex items-center gap-4">
+        {/* Ensure positioning is absolute for top-left corner */}
+        <div className="absolute top-4 left-4 z-10">
           <Button
             onClick={onLeaveRoom}
             className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md"
@@ -46,6 +47,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+        </div>
+        <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
+        <div className="flex items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{room.title}</h1>
             <div className="flex items-center gap-2 mt-2">

@@ -164,25 +164,28 @@ const WaveRoomTheaterPage: React.FC = () => {
     <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
       <header className="bg-card/60 backdrop-blur-md border-b border-border/50 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          {/* Ensure positioning is absolute for top-left corner */}
+          <div className="absolute top-1/2 -translate-y-1/2 left-4 z-10">
             <Button
               onClick={handleBackToDashboard}
               variant="ghost"
               size="icon"
-              className="w-9 h-9 text-foreground hover:bg-accent/20 hover:text-accent-foreground"
+              className="w-9 h-9 text-foreground hover:bg-accent/20 hover:text-accent-foreground rounded-full"
               aria-label="Back to Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
+          </div>
+          <div className="flex items-center gap-3 mx-auto"> {/* Centered title */}
             <WaveIcon className="w-8 h-8 text-primary" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground hidden sm:block">Wave Room</h1>
           </div>
 
-          <div className="flex-1 max-w-lg">
+          <div className="flex-1 max-w-lg hidden md:block"> {/* Search bar for larger screens */}
             <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto"> {/* Controls on the right */}
             <div className="flex items-center gap-2 bg-input/50 rounded-md p-2 border border-border/50">
                 <span className="text-sm text-muted-foreground hidden md:inline">CODE:</span>
                 <span className="font-bold tracking-widest text-foreground">{roomCode}</span>

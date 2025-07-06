@@ -72,12 +72,15 @@ const CreatePromposal = () => {
     <BackgroundWrapper>
       <div className="w-full max-w-2xl mx-auto p-4 md:p-8 mt-16 md:mt-8">
         <header className="flex items-center mb-6">
-          <Link to="/dashboard">
-            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full mr-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold text-foreground">Create Your Promposal</h1>
+          {/* Replaced Link with Button for consistent styling and positioning */}
+          <div className="absolute top-4 left-4 z-10">
+            <Link to="/dashboard">
+              <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mx-auto">Create Your Promposal</h1>
         </header>
 
         <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl">

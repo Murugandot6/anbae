@@ -7,7 +7,7 @@ import { OnProgressProps } from 'react-player/base';
 import KaraokeLyrics from '@/components/watch-party/KaraokeLyrics';
 import { parseLRC } from '@/lib/lrcParser';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, VolumeX, Copy, Check } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Copy, Check, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 
 interface Proposal {
   id: string;
@@ -106,14 +106,18 @@ const ViewPromposal = () => {
         />
       </div>
 
-      {/* Top right controls */}
+      {/* Top left and right controls */}
+      <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
+        <Link to="/dashboard">
+            <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+        </Link>
+      </div>
       <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
         <Button onClick={handleCopyLink} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
           {copyStatus ? <Check className="w-5 h-5 text-primary" /> : <Copy className="w-5 h-5" />}
         </Button>
-        <Link to="/dashboard">
-            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">Dashboard</Button>
-        </Link>
       </div>
       
       {/* Main content area for lyrics */}

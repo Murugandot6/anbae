@@ -105,9 +105,12 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
   return (
     <div className="max-w-4xl mx-auto">
       <div className="relative mb-8 text-center">
-        <Link to="/dashboard" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md" aria-label="Back to Dashboard">
-            <ArrowLeft className="h-5 w-5" />
-        </Link>
+        {/* Ensure positioning is absolute for top-left corner */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 z-10">
+          <Link to="/dashboard" className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md" aria-label="Back to Dashboard">
+              <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </div>
         <h1 className="text-3xl font-bold text-foreground">Your Watch Parties</h1>
       </div>
       

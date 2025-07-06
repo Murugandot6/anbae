@@ -212,24 +212,27 @@ const Messages = () => {
     <BackgroundWrapper className="justify-start items-start">
       <div className="w-full max-w-2xl mx-auto pt-8">
         <div className="flex justify-between items-center mb-6">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-                onClick={() => {
-                  navigate('/dashboard', { replace: true });
-                }}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Back to Dashboard
-            </TooltipContent>
-          </Tooltip>
-          <h1 className="text-3xl font-bold text-foreground">Your Messages</h1>
+          {/* Replaced Link with Button for consistent styling and positioning */}
+          <div className="absolute top-4 left-4 z-10">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                  onClick={() => {
+                    navigate('/dashboard', { replace: true });
+                  }}
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Back to Dashboard
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mx-auto">Your Messages</h1>
         </div>
 
         <Tabs defaultValue="inbox" className="w-full">
