@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -21,7 +20,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-center items-center mb-4">
         <div className="flex items-center gap-2">
           {user && (
             <ClearMessagesDialog
