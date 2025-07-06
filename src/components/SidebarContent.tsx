@@ -54,7 +54,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
               className={cn(
                 "w-full justify-start transition-colors duration-200",
                 "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                location.pathname === item.to && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+                location.pathname === item.to && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground rounded-md"
               )}
             >
               <item.icon className="w-5 h-5 mr-2" /> {item.label}
