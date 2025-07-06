@@ -131,9 +131,9 @@ const CreatePromposal = () => {
                   Create & Get Link
                 </Button>
               </form>
-            </CardContent>
-          </Card>
-        </div>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     </BackgroundWrapper>
   );
