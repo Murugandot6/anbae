@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon, Sun, Moon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,12 +10,14 @@ import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ThemeToggle } from "@/components/ThemeToggle";
-import AvatarSelectionDialog from '@/components/AvatarSelectionDialog'; // Import the new dialog component
+import { ThemeToggle } from "@/components/ThemeToggle"; // Keep import for now, will remove if not needed elsewhere
+import AvatarSelectionDialog from '@/components/AvatarSelectionDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { fetchProfileByEmail } from '@/lib/supabaseHelpers';
 import { Profile } from '@/types/supabase';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTheme } from 'next-themes'; // Import useTheme
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
@@ -34,10 +36,11 @@ const formSchema = z.object({
 const EditProfile = () => {
   const navigate = useNavigate();
   const { user, loading: sessionLoading } = useSession();
+  const { theme, setTheme } = useTheme(); // Use the theme hook
   const [loading, setLoading] = useState(true);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
-  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false); // State for dialog open/close
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -91,7 +94,6 @@ const EditProfile = () => {
   const handleAvatarSelect = (url: string) => {
     setSelectedAvatar(url);
     form.setValue('avatar_url', url, { shouldValidate: true });
-    // Dialog closing is handled within AvatarSelectionDialog's onSelect prop
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -153,9 +155,7 @@ const EditProfile = () => {
 
   return (
     <BackgroundWrapper>
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
+      {/* Removed ThemeToggle from here */}
       <div className="w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
         <div className="text-center mb-6">
           <User className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
@@ -223,6 +223,25 @@ const EditProfile = () => {
                 onSelect={handleAvatarSelect}
               />
               <FormMessage>{form.formState.errors.avatar_url?.message}</FormMessage>
+            </FormItem>
+
+            {/* Theme Selection */}
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />} Theme
+              </FormLabel>
+              <Select onValueChange={(value) => setTheme(value)} value={theme}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select theme" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
 
             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700">
