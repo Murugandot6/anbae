@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Radio, Users, LogIn } from 'lucide-react';
+import { Radio, Users, LogIn, ArrowLeft } from 'lucide-react'; // Import ArrowLeft
 import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
 const generateRoomCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -102,6 +103,20 @@ const WaveRoomPage: React.FC = () => {
 
   return (
     <BackgroundWrapper>
+      <div className="absolute top-4 left-4 z-10">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link to="/dashboard">
+              <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Back to Dashboard</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <div className="text-center mb-12">
         <Radio className="w-20 h-20 text-primary mx-auto mb-4" />
         <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
