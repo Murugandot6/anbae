@@ -42,3 +42,13 @@ export interface ClearRequest {
   senderProfile?: Profile | null;
   receiverProfile?: Profile | null;
 }
+
+export interface JournalEntry {
+  id: string;
+  created_at: string;
+  heading: string | null;
+  mood: string | null;
+  content: string;
+  emoji: string | null;
+  user_id: string; // Added user_id for consistency with DB schema
+}

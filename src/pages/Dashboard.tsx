@@ -9,25 +9,16 @@ import ClearMessagesDialog from '@/components/ClearMessagesDialog';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatMessageDate } from '@/lib/utils';
-import { Profile, Message } from '@/types/supabase';
+import { Profile, Message, JournalEntry } from '@/types/supabase'; // Import JournalEntry
 import CircularProgressAvatar from '@/components/CircularProgressAvatar';
 import { Button } from '@/components/ui/button';
 import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
 import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts';
 import Sidebar from '@/components/Sidebar';
-import CalendarView from '@/components/CalendarView'; // Import the new CalendarView
-import { format } from 'date-fns'; // Import format for date keys
-import TodayJournalCard from '@/components/TodayJournalCard'; // Import the new TodayJournalCard
-
-interface JournalEntry {
-  id: string;
-  created_at: string;
-  heading: string | null;
-  mood: string | null;
-  content: string;
-  emoji: string | null;
-}
+import CalendarView from '@/components/CalendarView';
+import { format, isSameDay } from 'date-fns';
+import JournalEntryCard from '@/components/JournalEntryCard'; // Import the renamed component
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -39,8 +30,9 @@ const Dashboard = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
-  const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({}); // State for journal entries
-  const [refreshJournalTrigger, setRefreshJournalTrigger] = useState(0); // New trigger for journal refresh
+  const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({});
+  const [todayJournalEntry, setTodayJournalEntry] = useState<JournalEntry | null>(null); // State for today's entry
+  const [refreshJournalTrigger, setRefreshJournalTrigger] = useState(0);
 
   const handleLogout = async () => {
     try {
@@ -177,20 +169,29 @@ const Dashboard = () => {
       if (!user) return;
       const { data, error } = await supabase
         .from('journal_entries')
-        .select('id, created_at, emoji, heading, content, mood')
+        .select('id, created_at, emoji, heading, content, mood, user_id') // Select user_id
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false }); // Order by created_at for consistent fetching
+        .order('created_at', { ascending: false });
 
       if (error) {
         toast.error('Failed to load journal entries for calendar.');
         console.error(error);
       } else {
         const entriesMap: Record<string, JournalEntry> = {};
+        let latestTodayEntry: JournalEntry | null = null;
+        const today = new Date();
+
         data.forEach(entry => {
-          const dateKey = format(new Date(entry.created_at), 'yyyy-MM-dd');
-          entriesMap[dateKey] = entry;
+          const entryDate = new Date(entry.created_at);
+          const dateKey = format(entryDate, 'yyyy-MM-dd');
+          entriesMap[dateKey] = entry; // Store the latest entry for each day
+
+          if (isSameDay(entryDate, today) && (!latestTodayEntry || entryDate > new Date(latestTodayEntry.created_at))) {
+            latestTodayEntry = entry;
+          }
         });
         setJournalEntriesMap(entriesMap);
+        setTodayJournalEntry(latestTodayEntry); // Set today's specific entry
       }
     };
 
@@ -198,14 +199,18 @@ const Dashboard = () => {
       fetchMessagesAndProfiles();
       fetchJournalData();
     }
-  }, [user, sessionLoading, refreshMessagesTrigger, refreshJournalTrigger]); // Added refreshJournalTrigger
+  }, [user, sessionLoading, refreshMessagesTrigger, refreshJournalTrigger]);
 
   const handleDayClick = (date: Date) => {
     navigate('/journal', { state: { selectedDate: date.toISOString() } });
   };
 
-  const handleJournalEntrySaved = () => {
-    setRefreshJournalTrigger(prev => prev + 1); // Increment to trigger re-fetch
+  const handleJournalEntryUpdated = (entry: JournalEntry) => {
+    // Update today's entry if it's for today
+    if (isSameDay(new Date(entry.created_at), new Date())) {
+      setTodayJournalEntry(entry);
+    }
+    setRefreshJournalTrigger(prev => prev + 1); // Trigger re-fetch for calendar
   };
 
   if (sessionLoading || fetchingProfiles || messagesLoading) {
@@ -286,13 +291,13 @@ const Dashboard = () => {
             </div>
 
             {/* Today's Journal Entry Card */}
-            <TodayJournalCard user={user} onEntrySaved={handleJournalEntrySaved} />
+            <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
 
             {/* Mood Calendar */}
             <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
 
             {/* Communication Insights Charts */}
-            <div className="mt-8"> {/* Added mt-8 here */}
+            <div className="mt-8">
               <ScoreAndMessageCharts
                 currentUserProfile={currentUserProfile}
                 partnerProfile={partnerProfile}

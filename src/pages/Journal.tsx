@@ -9,15 +9,7 @@ import { Trash2, ArrowLeft } from 'lucide-react';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-interface JournalEntry {
-  id: string;
-  created_at: string;
-  heading: string | null;
-  mood: string | null;
-  content: string;
-  emoji: string | null;
-}
+import { JournalEntry } from '@/types/supabase'; // Import JournalEntry
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
