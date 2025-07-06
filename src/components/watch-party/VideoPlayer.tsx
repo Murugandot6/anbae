@@ -6,6 +6,7 @@ import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIco
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
 import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
 import { cn } from '@/lib/utils'; // Ensure cn is imported
+import { AspectRatio } from '@/components/ui/aspect-ratio'; // Import AspectRatio
 
 interface VideoPlayerProps {
   videoState: VideoState;
@@ -203,7 +204,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     <div ref={playerWrapperRef} className={playerWrapperClasses}>
       {videoState.source ? (
         <>
-          <div className="w-full h-full"> {/* This div wraps ReactPlayer */}
+          <AspectRatio ratio={16 / 9} className="w-full h-full"> {/* Wrap with AspectRatio */}
             <ReactPlayer
               ref={playerRef}
               url={videoState.source}
@@ -247,7 +248,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                   }
               }}
             />
-          </div>
+          </AspectRatio>
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
