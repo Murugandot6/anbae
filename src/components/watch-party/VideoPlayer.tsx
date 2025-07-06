@@ -216,8 +216,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   );
 
   const chatContainerClasses = cn(
-    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    isFullScreen && showFullscreenChat ? "absolute inset-y-0 right-0 w-80 flex-shrink-0 pb-20" : "hidden" // Added pb-20 here
+    "h-full bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
+    isFullScreen && showFullscreenChat ? "absolute inset-y-0 right-0 w-80 flex-shrink-0 pb-20" : "hidden" // Show/hide based on showFullscreenChat
   );
 
   return (
@@ -290,15 +290,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onMouseMove={handleMouseMove}
           ></div>
 
-          {/* Chat Toggle Button (Top-Right, only in Fullscreen) */}
-          {isFullScreen && (
-            <div className="absolute top-4 right-4 z-30">
-              <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed text-white">
-                <MessageSquare className="w-6 h-6" />
-              </button>
-            </div>
-          )}
-
           {/* Video Reactions Overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             {activeReactions.map(reaction => (
@@ -367,6 +358,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
+                  {isFullScreen && ( // Chat toggle button moved here
+                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                      <MessageSquare className="w-5 h-5" />
+                    </button>
+                  )}
                   <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <MaximizeIcon className="w-5 h-5" />
                   </button>
