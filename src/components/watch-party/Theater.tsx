@@ -9,7 +9,7 @@ import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
 
 interface TheaterProps {
   room: Room;
@@ -18,7 +18,7 @@ interface TheaterProps {
 }
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useReactRouterNavigate(); // Initialize useNavigate with alias
   const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
@@ -99,7 +99,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
       <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} />
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0"> {/* Added h-full min-h-0 */}
+      {/* Blue Border Debugging: Container for video and chat */}
+      <div className="flex flex-col lg:flex-row gap-6 items-stretch flex-grow h-full min-h-0 border-4 border-blue-500"> {/* Added h-full min-h-0 */}
         <div className="lg:flex-grow lg:w-3/4 min-h-0">
           {/* Removed h-full from here */}
           <div className="relative aspect-video w-full">

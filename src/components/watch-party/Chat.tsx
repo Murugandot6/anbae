@@ -32,8 +32,14 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
   };
 
   return (
-    <div className={cn("flex flex-col h-full min-h-0", isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg")}>
-      <div className={cn("flex items-center justify-between p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}>
+    // The key is that this component ITSELF is a flex column and takes full height
+    <div className={cn(
+      "flex flex-col h-full min-h-0", // h-full and min-h-0 are crucial here
+      isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg"
+    )}>
+      
+      {/* 1. Header (Does not grow) */}
+      <div className={cn("flex-shrink-0 flex items-center justify-between p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}>
         <h3 className="text-xl font-bold text-foreground">Live Chat</h3>
         {isOverlay && onClose && (
           <Button
@@ -47,8 +53,9 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
           </Button>
         )}
       </div>
-      {/* Removed max-h-full from here */}
-      <div className="flex-grow p-4 overflow-y-auto space-y-4">
+
+      {/* 2. Messages List (This is the part that grows and scrolls) */}
+      <div className="flex-grow p-4 overflow-y-auto space-y-4"> {/* flex-grow and overflow-y-auto are key */}
         {messages.map((msg) => (
            <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
              {msg.isSystem ? (
@@ -66,7 +73,9 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50 flex-shrink-0", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
+
+      {/* 3. Input Form (Does not grow) */}
+      <form onSubmit={handleSubmit} className={cn("flex-shrink-0 p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -80,6 +89,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
           </button>
         </div>
       </form>
+
     </div>
   );
 };

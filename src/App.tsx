@@ -42,38 +42,41 @@ const App = () => {
             <Sonner />
             <SessionContextProvider>
               <WaveRoomPlayerProvider>
-                <Suspense fallback={
-                  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-                    <p className="text-xl">Loading application...</p>
-                  </div>
-                }>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
-                    <Route path="/promposal/:id" element={<ViewPromposal />} />
+                {/* Red Border Debugging: Top-level container */}
+                <div className="flex flex-col h-screen border-4 border-red-500">
+                  <Suspense fallback={
+                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+                      <p className="text-xl">Loading application...</p>
+                    </div>
+                  }>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
+                      <Route path="/promposal/:id" element={<ViewPromposal />} />
 
-                    {/* Protected Routes */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/journal" element={<Journal />} />
-                      <Route path="/send-message" element={<SendMessage />} />
-                      <Route path="/edit-profile" element={<EditProfile />} />
-                      <Route path="/messages" element={<Messages />} />
-                      <Route path="/messages/:id" element={<ViewMessage />} />
-                      <Route path="/watch-party" element={<WatchParty />} />
-                      <Route path="/promposal/create" element={<CreatePromposal />} />
-                      <Route path="/waveroom" element={<WaveRoomPage />} />
-                      <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
-                      <Route path="/manual" element={<UserManual />} />
-                    </Route>
+                      {/* Protected Routes */}
+                      <Route element={<ProtectedRoute />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/journal" element={<Journal />} />
+                        <Route path="/send-message" element={<SendMessage />} />
+                        <Route path="/edit-profile" element={<EditProfile />} />
+                        <Route path="/messages" element={<Messages />} />
+                        <Route path="/messages/:id" element={<ViewMessage />} />
+                        <Route path="/watch-party" element={<WatchParty />} />
+                        <Route path="/promposal/create" element={<CreatePromposal />} />
+                        <Route path="/waveroom" element={<WaveRoomPage />} />
+                        <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
+                        <Route path="/manual" element={<UserManual />} />
+                      </Route>
 
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-                <GlobalWaveRoomPlayer />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                  <GlobalWaveRoomPlayer />
+                </div>
               </WaveRoomPlayerProvider>
             </SessionContextProvider>
           </TooltipProvider>
