@@ -18,6 +18,7 @@ import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts';
 import Sidebar from '@/components/Sidebar';
 import CalendarView from '@/components/CalendarView'; // Import the new CalendarView
 import { format } from 'date-fns'; // Import format for date keys
+import TodayJournalCard from '@/components/TodayJournalCard'; // Import the new TodayJournalCard
 
 interface JournalEntry {
   id: string;
@@ -39,6 +40,7 @@ const Dashboard = () => {
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
   const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({}); // State for journal entries
+  const [refreshJournalTrigger, setRefreshJournalTrigger] = useState(0); // New trigger for journal refresh
 
   const handleLogout = async () => {
     try {
@@ -176,7 +178,8 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from('journal_entries')
         .select('id, created_at, emoji, heading, content, mood')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false }); // Order by created_at for consistent fetching
 
       if (error) {
         toast.error('Failed to load journal entries for calendar.');
@@ -195,10 +198,14 @@ const Dashboard = () => {
       fetchMessagesAndProfiles();
       fetchJournalData();
     }
-  }, [user, sessionLoading, refreshMessagesTrigger]);
+  }, [user, sessionLoading, refreshMessagesTrigger, refreshJournalTrigger]); // Added refreshJournalTrigger
 
   const handleDayClick = (date: Date) => {
     navigate('/journal', { state: { selectedDate: date.toISOString() } });
+  };
+
+  const handleJournalEntrySaved = () => {
+    setRefreshJournalTrigger(prev => prev + 1); // Increment to trigger re-fetch
   };
 
   if (sessionLoading || fetchingProfiles || messagesLoading) {
@@ -277,6 +284,9 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+
+            {/* Today's Journal Entry Card */}
+            <TodayJournalCard user={user} onEntrySaved={handleJournalEntrySaved} />
 
             {/* Mood Calendar */}
             <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
