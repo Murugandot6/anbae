@@ -37,6 +37,41 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     userIdRef.current = user?.id || null;
   }, [user]);
 
+  // Function to update the database AND broadcast the state
+  const syncState = useCallback(async (station: Station | null, playStatus: boolean) => {
+    if (!activeRoomCode || !user) return;
+
+    // Clean the station object before saving to DB and broadcasting
+    const stationToSave = station ? {
+        stationuuid: station.stationuuid,
+        name: station.name,
+        url_resolved: station.url_resolved,
+        favicon: station.favicon,
+        country: station.country,
+        language: station.language,
+        tags: station.tags,
+    } : null;
+
+    // Update database for persistence
+    const { error: dbError } = await supabase
+      .from('wave_rooms')
+      .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
+      .eq('code', activeRoomCode);
+    
+    if (dbError) {
+        toast.error(`Failed to save room state: ${dbError.message}`);
+    }
+
+    // Broadcast state to other clients
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'wave_room_state_update',
+        payload: { newState: stationToSave, isPlaying: playStatus, senderId: user.id },
+      });
+    }
+  }, [activeRoomCode, user]);
+
   // Effect to setup and teardown the real-time subscription
   useEffect(() => {
     const setupRoom = async (code: string) => {
@@ -133,41 +168,6 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
       audio.src = '';
     }
   }, [currentStation, isPlaying, syncState]); // Added syncState to dependencies
-
-  // Function to update the database AND broadcast the state
-  const syncState = useCallback(async (station: Station | null, playStatus: boolean) => {
-    if (!activeRoomCode || !user) return;
-
-    // Clean the station object before saving to DB and broadcasting
-    const stationToSave = station ? {
-        stationuuid: station.stationuuid,
-        name: station.name,
-        url_resolved: station.url_resolved,
-        favicon: station.favicon,
-        country: station.country,
-        language: station.language,
-        tags: station.tags,
-    } : null;
-
-    // Update database for persistence
-    const { error: dbError } = await supabase
-      .from('wave_rooms')
-      .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
-      .eq('code', activeRoomCode);
-    
-    if (dbError) {
-        toast.error(`Failed to save room state: ${dbError.message}`);
-    }
-
-    // Broadcast state to other clients
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'wave_room_state_update',
-        payload: { newState: stationToSave, isPlaying: playStatus, senderId: user.id },
-      });
-    }
-  }, [activeRoomCode, user]);
 
   // Action: Set a new station
   const setStation = useCallback((station: Station) => {
