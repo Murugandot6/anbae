@@ -35,6 +35,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [videoHistory, setVideoHistory] = useState<VideoHistoryEntry[]>([]);
+  const [activeReactions, setActiveReactions] = useState<{ id: string; emoji: string; timestamp: number; }[]>([]); // New state for video reactions
   const channelRef = useRef<RealtimeChannel | null>(null);
   
   const videoStateRef = useRef(videoState);
@@ -62,7 +63,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         addSystemMessage(`Failed to load chat history: ${msgError.message}`);
       } else {
         const formattedMessages = msgData.map((msg: any) => ({
-          id: msg.id, author: msg.author_name, text: msg.text, timestamp: new Date(msg.created_at).getTime(), reactions: msg.reactions || [],
+          id: msg.id, author: msg.author_name, text: msg.text, timestamp: new Date(msg.created_at).getTime(),
         }));
         setMessages(formattedMessages);
       }
@@ -88,18 +89,8 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'watch_party_chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
       const newMessage: any = payload.new;
       setMessages(prev => [...prev, {
-        id: newMessage.id, author: newMessage.author_name, text: newMessage.text, timestamp: new Date(newMessage.created_at).getTime(), reactions: newMessage.reactions || [],
+        id: newMessage.id, author: newMessage.author_name, text: newMessage.text, timestamp: new Date(newMessage.created_at).getTime(),
       }]);
-    });
-
-    // Subscription for updated chat messages (e.g., reactions)
-    channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'watch_party_chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
-      const updatedMessage: any = payload.new;
-      setMessages(prev => prev.map(msg => 
-        msg.id === updatedMessage.id 
-          ? { ...msg, reactions: updatedMessage.reactions || [] } 
-          : msg
-      ));
     });
 
     // Subscription for new video history entries
@@ -128,6 +119,15 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     channel.on('broadcast', { event: 'SYNC_VIDEO_STATE' }, ({ payload }) => {
       if (payload.senderId !== user.id) {
         setVideoState(payload.videoState);
+      }
+    });
+
+    // New: Listener for video reactions
+    channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
+      const { emoji, senderId } = payload;
+      // Only add if not from self, or if it's from self and we want to see our own reactions
+      if (senderId !== user.id || senderId === user.id) { 
+        setActiveReactions(prev => [...prev, { id: `${emoji}-${Date.now()}`, emoji, timestamp: Date.now() }]);
       }
     });
 
@@ -181,32 +181,16 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     }
   }, [roomId, user.id, user.name, addSystemMessage]);
 
-  const addReaction = useCallback(async (messageId: string, emoji: string) => {
-    // Fetch current reactions to append
-    const { data: currentMessage, error: fetchError } = await supabase
-      .from('watch_party_chat_messages')
-      .select('reactions')
-      .eq('id', messageId)
-      .single();
-
-    if (fetchError) {
-      console.error('Error fetching message for reaction:', fetchError.message);
-      return;
+  // New: Function to send a video reaction
+  const sendVideoReaction = useCallback((emoji: string) => {
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'video_reaction',
+        payload: { emoji, senderId: user.id },
+      });
     }
-
-    const currentReactions = currentMessage?.reactions || [];
-    const newReactions = [...currentReactions, emoji];
-
-    const { error: updateError } = await supabase
-      .from('watch_party_chat_messages')
-      .update({ reactions: newReactions })
-      .eq('id', messageId);
-
-    if (updateError) {
-      console.error('Error adding reaction:', updateError.message);
-      addSystemMessage(`Could not add reaction: ${updateError.message}`);
-    }
-  }, [addSystemMessage]);
+  }, [user.id]);
 
   const changeVideoSource = useCallback(async (newUrl: string) => {
     if (!newUrl.trim()) return;
@@ -233,5 +217,5 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     sendVideoAction({ type: 'source', payload: newUrl });
   }, [roomId, user.id, user.name, sendVideoAction, addSystemMessage]);
 
-  return { videoState, sendVideoAction, messages, sendMessage, addReaction, changeVideoSource, videoHistory };
+  return { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions };
 };

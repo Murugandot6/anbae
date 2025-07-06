@@ -2,24 +2,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, User } from '@/types/watchParty';
 import { SendIcon } from '@/components/watch-party/icons';
 import { cn } from '@/lib/utils'; // Ensure cn is imported
-import { X, SmilePlus } from 'lucide-react'; // Import X and SmilePlus icons
+import { X } from 'lucide-react'; // Import X icon
 import { Button } from '@/components/ui/button'; // Import Button for the close icon
-import EmojiPickerPopover from '@/components/EmojiPickerPopover'; // Import EmojiPickerPopover
-import { EmojiClickData } from 'emoji-picker-react'; // Import EmojiClickData
 
 interface ChatProps {
   messages: ChatMessage[];
   sendMessage: (text: string) => void;
-  addReaction: (messageId: string, emoji: string) => void; // New prop
   currentUser: User;
   isOverlay?: boolean; // New prop
   onClose?: () => void; // New prop for closing the overlay
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, currentUser, isOverlay, onClose }) => {
+const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverlay, onClose }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState<string | null>(null); // Stores message ID for active picker
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,21 +29,6 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
       sendMessage(newMessage.trim());
       setNewMessage('');
     }
-  };
-
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    if (isEmojiPickerOpen) {
-      addReaction(isEmojiPickerOpen, emojiData.emoji);
-      setIsEmojiPickerOpen(null); // Close popover
-    }
-  };
-
-  const groupReactions = (reactions: string[] | undefined) => {
-    if (!reactions || reactions.length === 0) return {};
-    return reactions.reduce((acc, emoji) => {
-      acc[emoji] = (acc[emoji] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
   };
 
   return (
@@ -67,10 +48,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
         )}
       </div>
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
-        {messages.map((msg) => {
-          const grouped = groupReactions(msg.reactions); // Define grouped here
-
-          return (
+        {messages.map((msg) => (
            <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
              {msg.isSystem ? (
                 <span className="text-xs text-center text-muted-foreground italic px-2 py-1 bg-muted/20 rounded-full">{msg.text}</span>
@@ -81,33 +59,10 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, addReaction, current
                        <span className="text-xs font-normal text-muted-foreground">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                    </div>
                    <p className="text-sm font-normal py-2 text-foreground">{msg.text}</p>
-                   <div className="flex flex-wrap gap-1 mt-2"> {/* This div always appears */}
-                       {Object.entries(grouped).map(([emoji, count]) => (
-                         <span key={emoji} className="bg-muted/30 text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                           {emoji} {count > 1 && <span className="font-bold">{count}</span>}
-                         </span>
-                       ))}
-                       <EmojiPickerPopover
-                         isOpen={isEmojiPickerOpen === msg.id}
-                         onOpenChange={(open) => setIsEmojiPickerOpen(open ? msg.id : null)}
-                         onEmojiSelect={handleEmojiSelect}
-                       >
-                         <Button
-                           type="button"
-                           variant="ghost"
-                           size="icon"
-                           className="w-6 h-6 rounded-full text-muted-foreground hover:bg-accent/20"
-                           aria-label="Add reaction"
-                         >
-                           <SmilePlus className="w-3 h-3" />
-                         </Button>
-                       </EmojiPickerPopover>
-                     </div>
                 </div>
               )}
            </div>
-          );
-        })}
+        ))}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className={cn("p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>

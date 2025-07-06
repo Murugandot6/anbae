@@ -4,14 +4,17 @@ import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
-import { MessageSquare } from 'lucide-react'; // Import MessageSquare icon
+import { MessageSquare, Smile, Heart, Frown } from 'lucide-react'; // Import MessageSquare, Smile, Heart, Frown icons
+import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 interface VideoPlayerProps {
   videoState: VideoState;
   sendVideoAction: (action: VideoAction) => void;
-  messages: ChatMessage[]; // New
-  sendMessage: (text: string) => void; // New
-  currentUser: User; // New
+  messages: ChatMessage[];
+  sendMessage: (text: string) => void;
+  currentUser: User;
+  sendVideoReaction: (emoji: string) => void; // New prop for sending reactions
+  activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -21,7 +24,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions }) => {
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
@@ -41,7 +44,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
 
-  const [showFullscreenChat, setShowFullscreenChat] = useState(false); // New state for fullscreen chat
+  const [showFullscreenChat, setShowFullscreenChat] = useState(false);
 
   const sliderTime = isSeeking ? seekingTime : displayTime;
   
@@ -206,7 +209,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                     switch (errorCode) {
                         case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
                         case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
-                        case 100: errorMessage = 'The video was not found. It might be private or have been deleted.'; break;
+                        case 100: 
                         case 101: 
                         case 150: 
                             errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
@@ -246,6 +249,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onMouseMove={handleMouseMove}
           ></div>
 
+          {/* Video Reactions Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            {activeReactions.map(reaction => (
+              <span 
+                key={reaction.id} 
+                className={cn(
+                  "absolute text-6xl md:text-8xl animate-fade-in-out",
+                  `top-[${Math.random() * 80 + 10}%] left-[${Math.random() * 80 + 10}%]` // Random position
+                )}
+                style={{ animationDuration: '5s' }} // Ensure animation duration is 5s
+              >
+                {reaction.emoji}
+              </span>
+            ))}
+          </div>
+
           <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
@@ -280,6 +299,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                           className="w-20 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                         />
                   </div>
+                </div>
+                {/* Reaction Buttons */}
+                <div className="flex items-center gap-2">
+                  <button onClick={() => sendVideoReaction('❤️')} disabled={!isPlayerReady || !!playerError} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <Heart className="w-6 h-6" />
+                  </button>
+                  <button onClick={() => sendVideoReaction('😂')} disabled={!isPlayerReady || !!playerError} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <Smile className="w-6 h-6" />
+                  </button>
+                  <button onClick={() => sendVideoReaction('😢')} disabled={!isPlayerReady || !!playerError} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <Frown className="w-6 h-6" />
+                  </button>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
