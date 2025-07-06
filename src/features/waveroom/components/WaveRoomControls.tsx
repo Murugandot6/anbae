@@ -7,31 +7,27 @@ import { XIcon } from './icons/XIcon';
 import { VolumeUpIcon } from './icons/VolumeUpIcon';
 import { VolumeOffIcon } from './icons/VolumeOffIcon';
 
-interface WaveRoomControlsProps { // Renamed interface
+interface WaveRoomControlsProps {
   station: Station;
   isPlaying: boolean;
-  onSetPlaying: (shouldPlay: boolean) => void; // Simplified to just toggle
+  onSetPlaying: (shouldPlay: boolean) => void;
   onClear: () => void;
   onShowStation: (station: Station) => void;
-  // audioRef is no longer needed here as audio is managed globally
 }
 
 const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying, onSetPlaying, onClear, onShowStation }) => {
-  const [isMuted, setIsMuted] = useState(false); // Mute state is local to this UI component
+  const [isMuted, setIsMuted] = useState(false);
 
-  // Handler for direct user interaction to comply with browser policies
   const handlePlayPauseClick = () => {
-    onSetPlaying(!isPlaying); // Call the passed toggle function
+    onSetPlaying(!isPlaying);
   };
 
   const handleClear = () => {
-    onClear(); // Call the passed clear function
+    onClear();
   };
   
   const toggleMute = () => {
     setIsMuted(prev => !prev);
-    // Note: Actual audio muting is handled by the GlobalWaveRoomPlayer component
-    // which has access to the audioRef. This component only controls its local UI state.
   };
 
   const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
@@ -69,7 +65,6 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
                 <p className="text-sm text-gray-400 truncate" title={country}>{country}</p>
                 {language && <p className="text-xs text-gray-500 truncate" title={capitalize(language)}>{capitalize(language)}</p>}
               </div>
-              {/* Error display removed as it's handled by the global player now */}
             </div>
           </button>
           <div className="flex items-center gap-4">
@@ -89,4 +84,4 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
   );
 };
 
-export default WaveRoomControls; // Export with new name
+export default WaveRoomControls;

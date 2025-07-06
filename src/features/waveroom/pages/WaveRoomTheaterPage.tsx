@@ -4,11 +4,11 @@ import { Station } from '../types';
 import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '../api/radioService';
 import SearchBar from '../components/SearchBar';
 import StationList from '../components/StationList';
-import WaveRoomControls from '../components/WaveRoomControls'; // Renamed from AudioPlayer
+import WaveRoomControls from '../components/WaveRoomControls'; // Corrected import path
 import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
 import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime';
-import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext'; // Import the new context
+import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,10 +19,8 @@ const WaveRoomTheaterPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
   
-  // Use the WaveRoomRealtime hook to manage Supabase sync
   const { setStation: setRealtimeStation, togglePlay: toggleRealtimePlay, clearStation: clearRealtimeStation } = useWaveRoomRealtime(roomCode!);
   
-  // Use the WaveRoomPlayer context to get the current playback state
   const { currentStation, isPlaying, roomCode: activePlayerRoomCode } = useWaveRoomPlayer();
 
   const [stations, setStations] = useState<Station[]>([]);
@@ -92,7 +90,7 @@ const WaveRoomTheaterPage: React.FC = () => {
 
   const handleSelectStation = (station: Station) => {
     if (station.url_resolved) {
-      setRealtimeStation(station); // Use the realtime hook to set station
+      setRealtimeStation(station);
     } else {
       toast.error(`Station ${station.name} does not have a valid stream URL.`);
     }
@@ -114,7 +112,6 @@ const WaveRoomTheaterPage: React.FC = () => {
   };
 
   const handleBackToWaveRoom = () => {
-    // No need to clearStation here, as the global player will persist
     navigate('/waveroom');
   };
 
@@ -125,7 +122,11 @@ const WaveRoomTheaterPage: React.FC = () => {
   };
 
   if (sessionLoading) {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading Session...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+        <p className="text-xl">Loading Session...</p>
+      </div>
+    );
   }
 
   if (!authUser) {
@@ -135,16 +136,14 @@ const WaveRoomTheaterPage: React.FC = () => {
   }
 
   if (!roomCode) {
-    navigate('/waveroom'); // Redirect if no room code
+    navigate('/waveroom');
     return null;
   }
 
-  // Check if the global player is currently playing a station from THIS room
   const isCurrentRoomActive = activePlayerRoomCode === roomCode;
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-gray-200 flex flex-col antialiased">
-      {/* Audio element is now in GlobalWaveRoomPlayer */}
       <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -203,14 +202,13 @@ const WaveRoomTheaterPage: React.FC = () => {
           <StationList
             stations={stations}
             onSelectStation={handleSelectStation}
-            currentStation={isCurrentRoomActive ? currentStation : null} // Only highlight if it's the active room's station
+            currentStation={isCurrentRoomActive ? currentStation : null}
             isLoading={isStationsLoading}
             error={stationsError}
           />
         </div>
       </main>
 
-      {/* WaveRoomControls now receives props from the global context */}
       {isCurrentRoomActive && currentStation && (
         <WaveRoomControls
           station={currentStation}
