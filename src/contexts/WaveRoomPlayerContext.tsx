@@ -70,7 +70,8 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
                 setIsConnectedToRoom(true);
             }
             if (status === 'CHANNEL_ERROR' || err) {
-                toast.error(`Connection to room lost: ${err?.message}`);
+                const errorMessage = (err as Error)?.message || 'An unknown error occurred. Please refresh.';
+                toast.error(`Connection to room lost: ${errorMessage}`);
                 setIsConnectedToRoom(false);
             }
         });
@@ -126,10 +127,25 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   // Function to update the database
   const updateDatabaseState = useCallback(async (station: Station | null, playStatus: boolean) => {
     if (!activeRoomCode) return;
-    await supabase
+
+    const stationToSave = station ? {
+        stationuuid: station.stationuuid,
+        name: station.name,
+        url_resolved: station.url_resolved,
+        favicon: station.favicon,
+        country: station.country,
+        language: station.language,
+        tags: station.tags,
+    } : null;
+
+    const { error } = await supabase
       .from('wave_rooms')
-      .update({ current_station: station, is_playing: playStatus, updated_at: new Date().toISOString() })
+      .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
       .eq('code', activeRoomCode);
+    
+    if (error) {
+        toast.error(`Failed to update room state: ${error.message}`);
+    }
   }, [activeRoomCode]);
 
   // Action: Set a new station
