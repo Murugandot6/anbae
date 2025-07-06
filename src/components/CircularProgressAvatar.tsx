@@ -26,8 +26,8 @@ const CircularProgressAvatar: React.FC<CircularProgressAvatarProps> = ({
   const progressOffset = circumference - (score / 100) * circumference;
 
   // Using new color variables for progress and remaining parts
-  const progressColorClasses = 'stroke-primary dark:stroke-primary'; // Primary color for the score
-  const remainingColorClasses = 'stroke-muted dark:stroke-muted'; // Muted color for the remaining part
+  const progressColorClasses = 'stroke-score-positive'; // Green for the score
+  const remainingColorClasses = 'stroke-score-negative'; // Red for the remaining part
   const currentStrokeWidth = 12; // Keeping it at 12px for better visibility
 
   let svgSizeClasses = 'w-24 h-24';

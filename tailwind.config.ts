@@ -63,6 +63,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // New Score Colors
+        'score-positive': 'hsl(var(--score-positive))',
+        'score-negative': 'hsl(var(--score-negative))',
       },
       borderRadius: {
         lg: "var(--radius)",

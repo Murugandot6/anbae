@@ -4,35 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* White */
-    --foreground: 240 10% 3.9%; /* Dark Gray */
+    --background: 270 20% 98%; /* Very light lavender */
+    --foreground: 240 10% 15%; /* Darker text */
 
     --card: 0 0% 100%; /* White for cards */
-    --card-foreground: 240 10% 3.9%; /* Dark Gray */
+    --card-foreground: 240 10% 15%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 240 5.9% 10%; /* Dark Blue/Gray for primary actions */
-    --primary-foreground: 0 0% 98%; /* Off-white */
+    --primary: 260 60% 60%; /* Soft Lavender */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4.8% 95.9%; /* Light Gray for secondary elements */
-    --secondary-foreground: 240 5.9% 10%; /* Dark Blue/Gray */
+    --secondary: 330 60% 80%; /* Soft Peach */
+    --secondary-foreground: 240 10% 15%;
 
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 200 70% 70%; /* Gentle Blue */
+    --accent-foreground: 240 10% 15%;
 
-    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive: 0 80% 60%; /* Soft Red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5.9% 90%; /* Light Gray border */
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-
-    --radius: 0.75rem; /* Slightly more rounded corners */
+    --border: 270 10% 90%; /* Light border */
+    --input: 270 10% 95%;
+    --ring: 260 60% 60%;
 
     /* New/Updated Color Palette for Light Mode */
     --background: 270 20% 98%; /* Very light lavender */
@@ -65,6 +63,10 @@
     --sidebar-accent-foreground: 240 10% 20%;
     --sidebar-border: 270 10% 80%;
     --sidebar-ring: 260 60% 60%;
+
+    /* New Score Colors */
+    --score-positive: 142 76% 36%; /* A nice green */
+    --score-negative: 0 80% 60%; /* Destructive red */
   }
 
   .dark {
@@ -104,6 +106,10 @@
     --sidebar-accent-foreground: 240 20% 85%;
     --sidebar-border: 240 10% 20%;
     --sidebar-ring: 260 60% 70%;
+
+    /* New Score Colors */
+    --score-positive: 142 76% 46%; /* A brighter green for dark mode */
+    --score-negative: 0 70% 50%; /* Destructive red */
   }
 }
 
