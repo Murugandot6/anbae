@@ -9,7 +9,7 @@ import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
 import { useWaveRoomRealtime } from '../hooks/useWaveRoomRealtime'; // Updated hook import
 import { Button } from '@/components/ui/button';
-import { Copy, LogOut } from 'lucide-react';
+import { Copy, LogOut, ArrowLeft } from 'lucide-react'; // Import ArrowLeft icon
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 
@@ -114,6 +114,11 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
     setSelectedTag('');
   };
 
+  const handleBackToWaveRoom = () => {
+    clearStation(); // Stop the audio playback
+    navigate('/waveroom'); // Navigate back to the room selection page
+  };
+
   const buildTitle = (): string => {
     if (searchQuery) return `Results for "${searchQuery}"`;
     if (selectedTag) return `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Stations`;
@@ -143,6 +148,15 @@ const WaveRoomTheaterPage: React.FC = () => { // Renamed component
       <header className="bg-gray-800/70 backdrop-blur-md border-b border-gray-700 p-4 shadow-lg z-20 sticky top-0">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleBackToWaveRoom}
+              variant="ghost"
+              size="icon"
+              className="w-9 h-9 text-gray-400 hover:text-white"
+              aria-label="Back to Wave Room selection"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <WaveIcon className="w-8 h-8 text-indigo-400" />
             <h1 className="text-2xl font-bold tracking-tight text-white hidden sm:block">Wave Room</h1>
           </div>
