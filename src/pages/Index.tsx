@@ -84,12 +84,12 @@ const Index = () => {
 
       <div className="flex gap-4 mb-8 animate-fade-in delay-400">
         <Link to="/login">
-          <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md">
+          <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
             Login
           </Button>
         </Link>
         <Link to="/register">
-          <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md">
+          <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
             Register
           </Button>
         </Link>
