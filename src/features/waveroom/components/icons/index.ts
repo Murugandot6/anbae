@@ -9,3 +9,5 @@ export * from './VolumeUpIcon';
 export * from './WaveIcon';
 export * from './XIcon';
 export * from './VolumeOffIcon';
+export * from '@/components/icons/ChevronLeftIcon'; // Added new icon
+export * from '@/components/icons/ChevronRightIcon'; // Added new icon

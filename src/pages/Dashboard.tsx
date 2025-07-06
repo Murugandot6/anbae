@@ -16,7 +16,17 @@ import MessageTimeline from '@/components/MessageTimeline';
 import { Badge } from '@/components/ui/badge';
 import ScoreAndMessageCharts from '@/components/ScoreAndMessageCharts';
 import Sidebar from '@/components/Sidebar';
-import MoodCalendar from '@/components/MoodCalendar';
+import CalendarView from '@/components/CalendarView'; // Import the new CalendarView
+import { format } from 'date-fns'; // Import format for date keys
+
+interface JournalEntry {
+  id: string;
+  created_at: string;
+  heading: string | null;
+  mood: string | null;
+  content: string;
+  emoji: string | null;
+}
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -28,6 +38,7 @@ const Dashboard = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [fetchingProfiles, setFetchingProfiles] = useState(true);
   const [refreshMessagesTrigger, setRefreshMessagesTrigger] = useState(0);
+  const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({}); // State for journal entries
 
   const handleLogout = async () => {
     try {
@@ -160,10 +171,35 @@ const Dashboard = () => {
       }
     };
 
+    const fetchJournalData = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('journal_entries')
+        .select('id, created_at, emoji, heading, content, mood')
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast.error('Failed to load journal entries for calendar.');
+        console.error(error);
+      } else {
+        const entriesMap: Record<string, JournalEntry> = {};
+        data.forEach(entry => {
+          const dateKey = format(new Date(entry.created_at), 'yyyy-MM-dd');
+          entriesMap[dateKey] = entry;
+        });
+        setJournalEntriesMap(entriesMap);
+      }
+    };
+
     if (!sessionLoading && user) {
       fetchMessagesAndProfiles();
+      fetchJournalData();
     }
   }, [user, sessionLoading, refreshMessagesTrigger]);
+
+  const handleDayClick = (date: Date) => {
+    navigate('/journal', { state: { selectedDate: date.toISOString() } });
+  };
 
   if (sessionLoading || fetchingProfiles || messagesLoading) {
     return (
@@ -249,7 +285,7 @@ const Dashboard = () => {
             </div>
 
             {/* Mood Calendar */}
-            <MoodCalendar />
+            <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
 
             {/* Communication Insights Charts */}
             <ScoreAndMessageCharts
