@@ -20,7 +20,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full w-full pt-20"> {/* Adjusted pt-4 to pt-20 to make space for absolute positioned buttons */}
+    <div className="flex flex-col h-full w-full pt-24"> {/* Adjusted pt-20 to pt-24 */}
       {/* ClearMessagesDialog was here, now moved to Sidebar.tsx */}
       <div className="flex items-center gap-3 mb-6">
         <Avatar className="w-12 h-12 border-2 border-blue-500 dark:border-purple-400">
