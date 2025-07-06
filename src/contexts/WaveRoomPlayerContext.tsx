@@ -104,8 +104,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
         if (playPromise !== undefined) {
           playPromise.catch(error => {
             console.warn("Autoplay prevented:", error);
-            toast.info("Please tap to play audio.");
-            setIsPlaying(false);
+            toast.info("Audio paused. Click play to start.");
           });
         }
       } else {
@@ -168,13 +167,25 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   }, [syncStateToSupabase]);
 
   const togglePlay = useCallback((roomCode: string) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // If audio is paused but room state is 'playing', this is a local "catch up" play.
+    // No need to broadcast, as the room is already in the 'playing' state.
+    if (audio.paused && isPlaying) {
+        audio.play().catch(e => {
+            console.error("Failed to play on toggle", e);
+            toast.error("Could not start playback.");
+        });
+        return;
+    }
+
+    // Otherwise, it's a genuine state change for the whole room.
     setActiveRoomCode(roomCode);
-    setIsPlaying(prev => {
-      const newState = !prev;
-      syncStateToSupabase(currentStation, newState, roomCode);
-      return newState;
-    });
-  }, [currentStation, syncStateToSupabase]);
+    const newState = !isPlaying;
+    setIsPlaying(newState);
+    syncStateToSupabase(currentStation, newState, roomCode);
+  }, [currentStation, isPlaying, syncStateToSupabase]);
 
   const clearStation = useCallback((roomCode: string) => {
     setActiveRoomCode(roomCode);
