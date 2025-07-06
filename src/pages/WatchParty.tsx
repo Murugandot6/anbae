@@ -3,6 +3,7 @@ import { User, Room } from '@/types/watchParty';
 import Dashboard from '@/components/watch-party/Dashboard';
 import Theater from '@/components/watch-party/Theater';
 import { useSession } from '@/contexts/SessionContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const LoadingSpinner: React.FC = () => (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -12,6 +13,7 @@ const LoadingSpinner: React.FC = () => (
 
 const WatchParty: React.FC = () => {
   const { session, user: authUser, loading: sessionLoading } = useSession();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [user, setUser] = useState<User | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 
@@ -32,9 +34,11 @@ const WatchParty: React.FC = () => {
     setCurrentRoom(room);
   }, []);
 
+  // Modified to navigate to the main dashboard
   const handleLeaveRoom = useCallback(() => {
-    setCurrentRoom(null);
-  }, []);
+    setCurrentRoom(null); // Clear the room state within WatchParty
+    navigate('/dashboard'); // Navigate to the main dashboard
+  }, [navigate]);
 
   if (sessionLoading) {
     return <LoadingSpinner />;

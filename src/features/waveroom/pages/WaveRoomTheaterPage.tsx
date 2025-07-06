@@ -47,10 +47,8 @@ const WaveRoomTheaterPage: React.FC = () => {
     if (roomCode) {
       setRoom(roomCode);
     }
-    // On component unmount, leave the room context
-    return () => {
-      setRoom(null);
-    };
+    // REMOVED: The cleanup function that sets room to null.
+    // The WaveRoomPlayerContext now manages roomCode persistence.
   }, [roomCode, setRoom]);
 
   useEffect(() => {
@@ -126,8 +124,9 @@ const WaveRoomTheaterPage: React.FC = () => {
     setSelectedTag('');
   };
 
+  // Changed to navigate to dashboard
   const handleBackToWaveRoom = () => {
-    navigate('/waveroom');
+    navigate('/dashboard');
   };
 
   const buildTitle = (): string => {
@@ -167,7 +166,7 @@ const WaveRoomTheaterPage: React.FC = () => {
               variant="ghost"
               size="icon"
               className="w-9 h-9 text-gray-400 hover:text-white"
-              aria-label="Back to Wave Room selection"
+              aria-label="Back to Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
