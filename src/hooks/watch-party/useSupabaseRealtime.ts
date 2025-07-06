@@ -125,16 +125,22 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     // New: Listener for video reactions
     channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
       const { emoji, senderId } = payload;
+      console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); // Added console log
       const reactionId = `${emoji}-${Date.now()}-${Math.random()}`; // Ensure unique ID for each reaction instance
       
       setActiveReactions(prev => {
         const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
+        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); // Added console log
         return newReactions;
       });
 
       // Schedule removal of the reaction after 5 seconds
       setTimeout(() => {
-        setActiveReactions(prev => prev.filter(r => r.id !== reactionId));
+        setActiveReactions(prev => {
+          const filtered = prev.filter(r => r.id !== reactionId);
+          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); // Added console log
+          return filtered;
+        });
       }, 5000); // 5 seconds
     });
 
@@ -191,6 +197,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   // New: Function to send a video reaction
   const sendVideoReaction = useCallback((emoji: string) => {
     if (channelRef.current) {
+      console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); // Added console log
       channelRef.current.send({
         type: 'broadcast',
         event: 'video_reaction',
