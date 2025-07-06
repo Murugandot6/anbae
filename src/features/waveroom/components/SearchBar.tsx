@@ -6,9 +6,10 @@ interface SearchBarProps {
   onClear: () => void;
   isLoading: boolean;
   initialQuery: string;
+  className?: string; // Added className prop
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, isLoading, initialQuery }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, isLoading, initialQuery, className }) => {
   const [query, setQuery] = useState(initialQuery);
 
   const handleSubmit = (e: FormEvent) => {
@@ -22,7 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, isLoading, ini
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full">
+    <form onSubmit={handleSubmit} className={`relative w-full ${className || ''}`}> {/* Apply className here */}
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
         <SearchIcon className="h-5 w-5 text-muted-foreground" />
       </div>
