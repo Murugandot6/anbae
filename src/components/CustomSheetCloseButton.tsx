@@ -16,7 +16,7 @@ const CustomSheetCloseButton: React.FC<CustomSheetCloseButtonProps> = ({ onClick
         variant="ghost"
         size="icon"
         className="w-10 h-10 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-        onClick={onClick} // Pass onClick if needed for additional actions
+        // Removed onClick={onClick} as SheetClose handles the click for closing
         aria-label="Close sidebar"
       >
         <X className="w-5 h-5" />
