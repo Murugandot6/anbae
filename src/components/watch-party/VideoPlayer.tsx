@@ -310,6 +310,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           </div>
 
           <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || isFullScreen ? 'opacity-100' : 'opacity-0'}`}>
+            {isFullScreen && ( // New container for chat toggle, above the main controls
+              <div className="flex justify-end mb-2">
+                <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <MessageSquare className="w-5 h-5" />
+                </button>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -358,11 +365,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {isFullScreen && ( // Only show chat toggle in fullscreen
-                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <MessageSquare className="w-5 h-5" />
-                    </button>
-                  )}
+                  {/* Removed chat toggle from here */}
                   <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <MaximizeIcon className="w-5 h-5" />
                   </button>
