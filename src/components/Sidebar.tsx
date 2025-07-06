@@ -6,6 +6,8 @@ import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 import ClearMessagesDialog from '@/components/ClearMessagesDialog';
+import CustomSheetCloseButton from './CustomSheetCloseButton'; // Import the new component
+import { ThemeToggle } from './ThemeToggle'; // Import ThemeToggle
 
 interface SidebarProps {
   currentUserProfile: Profile | null;
@@ -24,18 +26,20 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border-r border-white/30 dark:border-gray-600/30 p-4">
-                {/* ClearMessagesDialog positioned absolutely at top-left */}
-                {props.user && (
-                    <div className="absolute top-6 left-4 z-10"> {/* Changed top-4 to top-6 */}
+                {/* New header for icons */}
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                    {props.user && (
                         <ClearMessagesDialog
                             partnerId={props.partnerProfile?.id || null}
                             partnerNickname={props.partnerProfile?.username || props.currentUserProfile?.partner_nickname || null}
                             currentUserId={props.user.id}
                             onMessagesCleared={props.onMessagesCleared}
                         />
-                    </div>
-                )}
-                {/* SidebarContent now starts lower to avoid overlap */}
+                    )}
+                    <ThemeToggle /> {/* Add ThemeToggle here */}
+                    <CustomSheetCloseButton /> {/* Use the custom close button */}
+                </div>
+                {/* SidebarContent now starts lower to avoid overlap with the new header */}
                 <SidebarContent {...props} />
             </SheetContent>
         </Sheet>
