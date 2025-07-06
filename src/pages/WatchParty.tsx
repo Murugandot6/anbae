@@ -141,7 +141,7 @@ const WatchParty: React.FC = () => {
         <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
       </Helmet>
       <BackgroundWrapper> {/* Use BackgroundWrapper for consistent styling */}
-        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
+        <main className="p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto flex-grow"> {/* Added flex-grow here */}
           {currentRoom ? (
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
           ) : (
