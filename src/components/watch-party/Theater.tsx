@@ -18,7 +18,7 @@ interface TheaterProps {
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const navigate = useNavigate(); // Initialize useNavigate
-  const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions } = useSupabaseRealtime(room.id, room.videoUrl, user);
+  const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
@@ -82,7 +82,10 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                 id="video-url-input"
                 type="url"
                 value={newVideoUrl}
-                onChange={(e) => setNewVideoUrl(e.target.value)}
+                onChange={(e) => {
+                    setNewVideoUrl(e.target.value);
+                    // Optionally clear error if user starts typing
+                }}
                 placeholder="Enter YouTube or video URL to start or change the video"
                 className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
                 required
@@ -103,8 +106,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             messages={messages}
             sendMessage={sendMessage}
             currentUser={user}
-            sendVideoReaction={sendVideoReaction} // Pass new prop
-            activeReactions={activeReactions} // Pass new prop
+            sendVideoReaction={sendVideoReaction}
+            activeReactions={activeReactions}
+            isConnectedToRealtime={isConnectedToRealtime} {/* Pass the new prop */}
           />
         </div>
         <div className="lg:w-1/4 lg:max-w-sm flex-shrink-0 h-[75vh] lg:h-auto">

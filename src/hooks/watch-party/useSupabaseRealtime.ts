@@ -37,6 +37,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [videoHistory, setVideoHistory] = useState<VideoHistoryEntry[]>([]);
   const [activeReactions, setActiveReactions] = useState<{ id: string; emoji: string; timestamp: number; }[]>([]); // New state for video reactions
+  const [isConnectedToRealtime, setIsConnectedToRealtime] = useState(false); // New state for connection status
   const channelRef = useRef<RealtimeChannel | null>(null);
   
   const videoStateRef = useRef(videoState);
@@ -153,10 +154,15 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         if(p.user_name) addSystemMessage(`${p.user_name} left.`)
     }));
 
-    channel.subscribe(async (status) => {
+    channel.subscribe(async (status, err) => { // Added err parameter
       if (status === 'SUBSCRIBED') {
+        setIsConnectedToRealtime(true); // Set connected to true
         await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') { // Handle other error states
+        setIsConnectedToRealtime(false); // Set connected to false
+        console.error(`Realtime channel error or closed: ${status}`, err);
+        toast.error(`Realtime connection lost: ${err?.message || 'Please refresh.'}`);
       }
     });
 
@@ -164,6 +170,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+        setIsConnectedToRealtime(false); // Ensure state is reset on unmount
       }
     };
   }, [roomId, user.id, user.name, addSystemMessage]);
@@ -175,18 +182,24 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         return currentState;
       }
       const newStateWithTimestamp: VideoState = { ...newState, timestamp: Date.now() };
-      if (channelRef.current) {
+      if (channelRef.current && isConnectedToRealtime) { // Only send if connected
         channelRef.current.send({
           type: 'broadcast',
           event: 'video_state_update',
           payload: { newState: newStateWithTimestamp, senderId: user.id },
         });
+      } else {
+        console.warn("[Realtime Debug] Not connected to send video state update.");
       }
       return newStateWithTimestamp;
     });
-  }, [user.id]);
+  }, [user.id, isConnectedToRealtime]);
 
   const sendMessage = useCallback(async (text: string) => {
+    if (!isConnectedToRealtime) { // Only send if connected
+      toast.error("Cannot send message: Not connected to room.");
+      return;
+    }
     const { error } = await supabase.from('watch_party_chat_messages').insert({
       room_id: roomId, user_id: user.id, author_name: user.name, text: text,
     });
@@ -194,18 +207,11 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       console.error('Error sending message:', error.message);
       addSystemMessage(`Could not send message: ${error.message}`);
     }
-  }, [roomId, user.id, user.name, addSystemMessage]);
+  }, [roomId, user.id, user.name, addSystemMessage, isConnectedToRealtime]);
 
   // New: Function to send a video reaction
   const sendVideoReaction = useCallback((emoji: string) => {
-    if (channelRef.current) {
-      // Ensure the channel is subscribed before sending a broadcast
-      if (!channelRef.current.isSubscribed()) {
-        console.warn("[Reaction Debug] Channel not subscribed, cannot send reaction.");
-        toast.error("Cannot send reaction: Not connected to room.");
-        return;
-      }
-
+    if (channelRef.current && isConnectedToRealtime) { // Only send if connected
       console.log(`[Reaction Debug] Sending reaction: ${emoji} from user: ${user.id}`); 
       channelRef.current.send({
         type: 'broadcast',
@@ -216,8 +222,11 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       supabase.from('reactions').insert({ room_id: roomId, emoji, created_at: new Date().toISOString() }).then(({ error }) => {
         if (error) console.error('Error logging reaction to DB:', error.message);
       });
+    } else {
+      console.warn("[Reaction Debug] Channel not connected, cannot send reaction.");
+      toast.error("Cannot send reaction: Not connected to room.");
     }
-  }, [roomId, user.id]);
+  }, [roomId, user.id, isConnectedToRealtime]);
 
   const changeVideoSource = useCallback(async (newUrl: string) => {
     if (!newUrl.trim()) return;
@@ -244,5 +253,5 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     sendVideoAction({ type: 'source', payload: newUrl });
   }, [roomId, user.id, user.name, sendVideoAction, addSystemMessage]);
 
-  return { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions };
+  return { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime };
 };

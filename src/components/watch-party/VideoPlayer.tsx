@@ -15,6 +15,7 @@ interface VideoPlayerProps {
   currentUser: User;
   sendVideoReaction: (emoji: string) => void; // New prop for sending reactions
   activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
+  isConnectedToRealtime: boolean; // New prop for real-time connection status
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -24,7 +25,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime }) => {
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   
@@ -220,6 +221,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     isFullScreen && showFullscreenChat ? "absolute top-0 right-0 w-80 flex-shrink-0 bottom-18 z-30" : "hidden" // Added z-30 here
   );
 
+  const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
+
   return (
     <div ref={playerContainerRef} className={playerWrapperClasses}>
       {videoState.source ? (
@@ -285,7 +288,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           )}
 
           <div 
-            className={`absolute inset-0 w-full h-full z-10 ${!isPlayerReady || !!playerError ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            className={`absolute inset-0 w-full h-full z-10 ${isPlayerActionDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             onClick={handlePlayPause}
             onMouseMove={handleMouseMove}
           ></div>
@@ -320,16 +323,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                   onMouseDown={handleSeekMouseDown}
                   onChange={handleSeekChange}
                   onMouseUp={handleSeekMouseUp}
-                  disabled={!isPlayerReady || !!playerError}
+                  disabled={isPlayerActionDisabled}
                   className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                 />
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-4">
-                  <button onClick={handlePlayPause} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <button onClick={handlePlayPause} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     {videoState.isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
                   </button>
                   <div className="flex items-center gap-2">
-                      <button onClick={toggleMute} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                      <button onClick={toggleMute} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                           {isMuted ? <VolumeOffIcon className="w-6 h-6"/> : <VolumeUpIcon className="w-6 h-6"/>}
                       </button>
                       <input
@@ -339,31 +342,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                           step="0.05"
                           value={isMuted ? 0 : volume}
                           onChange={handleVolumeChange}
-                          disabled={!isPlayerReady || !!playerError}
+                          disabled={isPlayerActionDisabled}
                           className="w-20 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                         />
                   </div>
                 </div>
                 {/* Reaction Buttons */}
                 <div className="flex items-center gap-2">
-                  <button onClick={() => sendVideoReaction('❤️')} disabled={!isPlayerReady || !!playerError} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <button onClick={() => sendVideoReaction('❤️')} disabled={isPlayerActionDisabled} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Heart className="w-6 h-6" />
                   </button>
-                  <button onClick={() => sendVideoReaction('😂')} disabled={!isPlayerReady || !!playerError} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <button onClick={() => sendVideoReaction('😂')} disabled={isPlayerActionDisabled} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Smile className="w-6 h-6" />
                   </button>
-                  <button onClick={() => sendVideoReaction('😢')} disabled={!isPlayerReady || !!playerError} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <button onClick={() => sendVideoReaction('😢')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Frown className="w-6 h-6" />
                   </button>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
                   {isFullScreen && ( // Chat toggle button moved here
-                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                       <MessageSquare className="w-5 h-5" />
                     </button>
                   )}
-                  <button onClick={handleFullscreen} disabled={!isPlayerReady || !!playerError} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                  <button onClick={handleFullscreen} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <MaximizeIcon className="w-5 h-5" />
                   </button>
                 </div>
