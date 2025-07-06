@@ -3,7 +3,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import SidebarContent from './SidebarContent';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
@@ -43,12 +43,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
                 {/* SidebarContent now follows */}
                 <SidebarContent {...props} />
 
-                {/* Logout button is at the very bottom */}
-                <div className="mt-auto flex flex-col gap-2"> {/* Added mt-auto to push it to the bottom */}
-                    <Button onClick={props.handleLogout} variant="destructive" className="w-full justify-start">
-                        <LogOut className="w-5 h-5 mr-2" /> Logout
-                    </Button>
-                </div>
+                {/* Removed the duplicate Logout button from here */}
             </SheetContent>
         </Sheet>
     );
