@@ -4,7 +4,7 @@ import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
-import { MessageSquare, Smile, Heart, Frown, ThumbsUp, Clap, Angry, PartyPopper } from 'lucide-react'; // Import MessageSquare, Smile, Heart, Frown icons, and new ones
+import { MessageSquare, Heart, Clap, Angry, PartyPopper, Flame } from 'lucide-react'; // Removed Smile, Frown, ThumbsUp; Added Flame
 import { cn } from '@/lib/utils'; // Import cn for conditional classes
 
 interface VideoPlayerProps {
@@ -353,19 +353,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                     <Heart className="w-6 h-6" />
                   </button>
                   <button onClick={() => sendVideoReaction('😂')} disabled={isPlayerActionDisabled} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Smile className="w-6 h-6" />
+                    😂
                   </button>
-                  <button onClick={() => sendVideoReaction('😢')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Frown className="w-6 h-6" />
-                  </button>
-                  <button onClick={() => sendVideoReaction('👍')} disabled={isPlayerActionDisabled} className="hover:text-green-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <ThumbsUp className="w-6 h-6" />
+                  <button onClick={() => sendVideoReaction('😭')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    😭
                   </button>
                   <button onClick={() => sendVideoReaction('👏')} disabled={isPlayerActionDisabled} className="hover:text-orange-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Clap className="w-6 h-6" />
                   </button>
                   <button onClick={() => sendVideoReaction('😡')} disabled={isPlayerActionDisabled} className="hover:text-red-600 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <Angry className="w-6 h-6" />
+                  </button>
+                  <button onClick={() => sendVideoReaction('🔥')} disabled={isPlayerActionDisabled} className="hover:text-orange-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
+                    <Flame className="w-6 h-6" />
                   </button>
                   <button onClick={() => sendVideoReaction('🎉')} disabled={isPlayerActionDisabled} className="hover:text-purple-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                     <PartyPopper className="w-6 h-6" />
