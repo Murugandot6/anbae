@@ -85,8 +85,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     };
     fetchInitialData();
 
-    // Re-added presence config
-    const channel = supabase.channel(`room:${roomId}`, { config: { presence: { key: user.id } } }); 
+    const channel = supabase.channel(`room:${roomId}_v1`, { config: { presence: { key: user.id } } }); 
     channelRef.current = channel;
 
     // Subscription for new chat messages
@@ -106,13 +105,15 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       setVideoHistory(prev => [formattedItem, ...prev]);
     });
 
-    channel.on('broadcast', { event: 'video_state_update' }, ({ payload }) => {
+    console.log(`[Realtime Debug] Attaching 'video_state_update' broadcast listener.`);
+    channel.on('broadcast', { event: 'video_state_update', schema: 'public' }, ({ payload }) => { // Added schema: 'public'
       if (payload.senderId !== user.id) {
         setVideoState(payload.newState);
       }
     });
     
-    channel.on('broadcast', { event: 'REQUEST_VIDEO_STATE' }, ({ payload }) => {
+    console.log(`[Realtime Debug] Attaching 'REQUEST_VIDEO_STATE' broadcast listener.`);
+    channel.on('broadcast', { event: 'REQUEST_VIDEO_STATE', schema: 'public' }, ({ payload }) => { // Added schema: 'public'
       if (payload.senderId !== user.id && videoStateRef.current) {
         channel.send({
           type: 'broadcast', event: 'SYNC_VIDEO_STATE', payload: { videoState: videoStateRef.current, senderId: user.id },
@@ -120,14 +121,16 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       }
     });
 
-    channel.on('broadcast', { event: 'SYNC_VIDEO_STATE' }, ({ payload }) => {
+    console.log(`[Realtime Debug] Attaching 'SYNC_VIDEO_STATE' broadcast listener.`);
+    channel.on('broadcast', { event: 'SYNC_VIDEO_STATE', schema: 'public' }, ({ payload }) => { // Added schema: 'public'
       if (payload.senderId !== user.id) {
         setVideoState(payload.videoState);
       }
     });
 
     // New: Listener for video reactions
-    channel.on('broadcast', { event: 'video_reaction' }, ({ payload }) => {
+    console.log(`[Realtime Debug] Attaching 'video_reaction' broadcast listener.`);
+    channel.on('broadcast', { event: 'video_reaction', schema: 'public' }, ({ payload }) => { // Added schema: 'public'
       console.log(`[Reaction Debug] Listener triggered for video_reaction! Payload:`, payload);
       const { emoji, senderId } = payload;
       console.log(`[Reaction Debug] Received reaction: ${emoji} from sender: ${senderId}`); 
@@ -150,7 +153,8 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     });
 
     // --- LISTENER FOR SELF-BROADCAST TEST ---
-    channel.on('broadcast', { event: 'test_broadcast' }, (payload) => {
+    console.log(`[Realtime Debug] Attaching 'test_broadcast' listener.`);
+    channel.on('broadcast', { event: 'test_broadcast', schema: 'public' }, (payload) => { // Added schema: 'public'
       console.log(`[Realtime Debug] Self-broadcast test received! Payload:`, payload);
     });
     // --- END LISTENER FOR SELF-BROADCAST TEST ---
@@ -187,14 +191,14 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     });
 
     return () => {
-      console.log(`[Realtime Debug] Cleaning up channel for room: ${roomId}`); // New cleanup log
+      console.log(`[Realtime Debug] Cleaning up channel for room: ${roomId}`);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
         setIsConnectedToRealtime(false);
       }
     };
-  }, [roomId, addSystemMessage, user.name, user.id]); // Removed user.id and user.name from dependencies
+  }, [roomId, addSystemMessage, user.name, user.id]);
 
   const sendVideoAction = useCallback((action: VideoAction) => {
     setVideoState(currentState => {
