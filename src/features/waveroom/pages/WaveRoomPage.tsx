@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Radio, Users, LogIn, ArrowLeft } from 'lucide-react'; // Import ArrowLeft
+import { Users, LogIn, ArrowLeft } from 'lucide-react'; // Removed Radio from lucide-react
+import { WaveIcon } from '../components/icons'; // Import WaveIcon from local icons
 import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext'; // Import useWaveRoomPlayer
 
 const generateRoomCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -20,10 +22,18 @@ const generateRoomCode = (): string => {
 
 const WaveRoomPage: React.FC = () => {
   const navigate = useNavigate();
+  const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useWaveRoomPlayer(); // Get active room state
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
+
+  // Redirect if already in an active room
+  useEffect(() => {
+    if (activePlayerRoomCode && isConnectedToRoom) {
+      navigate(`/waveroom/${activePlayerRoomCode}`);
+    }
+  }, [activePlayerRoomCode, isConnectedToRoom, navigate]);
 
   const handleCreateRoom = async () => {
     setLoading('create');
@@ -119,7 +129,7 @@ const WaveRoomPage: React.FC = () => {
           </Tooltip>
         </div>
         <div className="text-center">
-          <Radio className="w-20 h-20 text-primary mx-auto mb-4" />
+          <WaveIcon className="w-20 h-20 text-primary mx-auto mb-4" /> {/* Use WaveIcon here */}
           <h1 className="text-5xl font-bold tracking-tighter mb-2 text-foreground">Wave Room</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p>
         </div>
