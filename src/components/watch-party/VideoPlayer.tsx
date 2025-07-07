@@ -6,7 +6,6 @@ import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIco
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
 import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
 import { cn } from '@/lib/utils'; // Ensure cn is imported
-// Removed AspectRatio import
 
 interface VideoPlayerProps {
   videoState: VideoState;
@@ -188,7 +187,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     )}>
       {videoState.source ? (
         <>
-          {/* Removed AspectRatio */}
           <ReactPlayer
             ref={playerRef}
             url={videoState.source}
@@ -248,7 +246,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           )}
 
           <div 
-            className={`absolute inset-0 w-full h-full z-10 ${isPlayerActionDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+            className={cn("absolute inset-0 w-full h-full z-10", isPlayerActionDisabled ? 'cursor-not-allowed' : 'cursor-pointer')}
             onClick={handlePlayPause}
             onMouseMove={handleMouseMove}
           ></div>
@@ -272,7 +270,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={cn("absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -341,7 +339,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
               </div>
             </div>
-          </>
+          </div>
+        </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
             <FilmIcon className="w-16 h-16 text-muted-foreground mb-4" />
