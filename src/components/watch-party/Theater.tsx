@@ -79,11 +79,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       ref={theaterContainerRef}
       className="flex flex-col h-full fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none"
     >
-      {/* This inner div now conditionally adjusts its max-w and margin based on fullscreen state */}
+      {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
         "w-full flex flex-col flex-grow min-h-0", // Added flex-col here
         {
-          "max-w-7xl mx-auto": !isFullscreen, // Apply max-w only when NOT fullscreen
+          "max-w-7xl mx-auto": !isFullscreen, // Apply max-width only when NOT fullscreen
           "max-w-full mx-0": isFullscreen // Take full width when fullscreen
         }
       )}>
@@ -154,25 +154,25 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />} {/* Added flex-shrink-0 */}
 
         {/* Video Player and Chat Container */}
-        <div className="flex flex-col md:flex-row gap-6 items-stretch min-h-0"> {/* Removed flex-grow and h-full */}
-          <div className="md:w-2/3 min-h-0">
-            <div className="relative w-full"> {/* Removed h-full */}
-              <VideoPlayer 
-                videoState={videoState} 
-                sendVideoAction={sendVideoAction} 
-                messages={messages}
-                sendMessage={sendMessage}
-                currentUser={user}
-                sendVideoReaction={sendVideoReaction}
-                activeReactions={activeReactions}
-                isConnectedToRealtime={isConnectedToRealtime}
-                onToggleFullscreen={handleToggleFullscreen} // Pass toggle function
-              />
-            </div>
+        {/* This container now uses items-start to align children at the top */}
+        <div className="flex flex-col md:flex-row gap-6 items-start min-h-0">
+          {/* Video Player Wrapper - now has aspect-video */}
+          <div className="md:w-2/3 aspect-video relative">
+            <VideoPlayer 
+              videoState={videoState} 
+              sendVideoAction={sendVideoAction} 
+              messages={messages}
+              sendMessage={sendMessage}
+              currentUser={user}
+              sendVideoReaction={sendVideoReaction}
+              activeReactions={activeReactions}
+              isConnectedToRealtime={isConnectedToRealtime}
+              onToggleFullscreen={handleToggleFullscreen}
+            />
           </div>
-          {/* Conditionally render the Chat component as a side panel */}
+          {/* Conditionally render the Chat component as a side panel - now has aspect-video, flex-col, and overflow-hidden */}
           {!isFullscreen && (
-            <div className="md:w-1/3 md:max-w-sm flex-shrink-0 h-full min-h-0">
+            <div className="md:w-1/3 md:max-w-sm flex-shrink-0 aspect-video flex flex-col overflow-hidden">
               <Chat 
                 messages={messages} 
                 sendMessage={sendMessage} 
