@@ -89,9 +89,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   // No longer listening for fullscreenchange here, parent handles it.
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setShowFullscreenChat(false); // Exit chat overlay when exiting fullscreen
-      }
+      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      setShowFullscreenChat(isCurrentlyFullscreen); // Automatically show chat when entering fullscreen
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
