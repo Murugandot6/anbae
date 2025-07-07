@@ -43,7 +43,7 @@ const App = () => {
             <SessionContextProvider>
               <WaveRoomPlayerProvider>
                 {/* Removed Red Border Debugging */}
-                <div className="flex flex-col h-screen">
+                <div className="flex flex-col"> {/* Removed h-screen here */}
                   <Suspense fallback={
                     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
                       <p className="text-xl">Loading application...</p>
