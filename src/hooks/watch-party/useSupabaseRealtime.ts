@@ -80,7 +80,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
         const formattedHistory = historyData.map((item: any) => ({
           id: item.id, videoUrl: item.video_url, addedBy: item.user_name, timestamp: new Date(item.created_at).getTime(),
         }));
-        setVideoHistory(prev => [formattedHistory, ...prev]);
+        setVideoHistory(prev => [...formattedHistory, ...prev]);
       }
     };
     fetchInitialData();
