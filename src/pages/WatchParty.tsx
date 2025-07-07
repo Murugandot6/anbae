@@ -124,7 +124,7 @@ const WatchParty: React.FC = () => {
                 <title>Watch Party - Anbae</title>
                 <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
             </Helmet>
-            <BackgroundWrapper>
+            <BackgroundWrapper solid>
                 <div className="w-full max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-8 rounded-xl shadow-lg text-center">
                     <h2 className="text-2xl font-bold mb-4 text-foreground">Authentication Error</h2>
                     <p className="text-muted-foreground">Could not find a valid user session. Please ensure you are logged in.</p>
@@ -140,8 +140,8 @@ const WatchParty: React.FC = () => {
         <title>Watch Party - Anbae</title>
         <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
       </Helmet>
-      <BackgroundWrapper className="pt-0 md:pt-0"> {/* Added pt-0 to BackgroundWrapper */}
-        <main className="flex-grow min-h-0 w-full p-0"> {/* Removed max-w-7xl mx-auto and adjusted padding */}
+      <BackgroundWrapper className="pt-0 md:pt-0" solid>
+        <main className="flex-grow min-h-0 w-full p-0">
           {currentRoom ? (
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
           ) : (
