@@ -140,10 +140,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col space-y-4", // flex-col and space-y-4 for its children
-            "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for equal height and scrolling
+            "relative w-full flex flex-col space-y-4",
+            "flex-1 min-h-0",
             {
               "md:w-2/3": !isTheaterFullscreen,
+              "pb-4": !isTheaterFullscreen, // Add padding only when not fullscreen
             }
           )}>
             {/* Video Player Wrapper with Aspect Ratio Hack */}
