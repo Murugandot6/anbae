@@ -185,7 +185,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
-    "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
+    "backdrop-blur-md rounded-xl shadow-lg", // Removed bg-card/90
     // When in fullscreen and chat is shown:
     isTheaterFullscreen && showFullscreenChat
       ? "absolute top-0 right-0 w-80 h-full z-30 flex flex-col" // Added h-full and flex flex-col
