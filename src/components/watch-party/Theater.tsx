@@ -155,74 +155,82 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           </div>
         )}
 
-        {/* Form - conditionally hide when fullscreen */}
-        {!isTheaterFullscreen && (
-          <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"> {/* Added flex-shrink-0 */}
-            <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
-            <div className="relative w-full">
-                <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                    <LinkIcon className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <input
-                    id="video-url-input"
-                    type="url"
-                    value={newVideoUrl}
-                    onChange={(e) => {
-                        setNewVideoUrl(e.target.value);
-                        // Optionally clear error if user starts typing
-                    }}
-                    placeholder="Enter YouTube or video URL to start or change the video"
-                    className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
-                    required
-                />
-            </div>
-            <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                Set Video
-            </Button>
-          </form>
-        )}
-
-        {/* Video History - conditionally hide when fullscreen */}
-        {!isTheaterFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />}
-
-        {/* Video Player and Chat Container */}
+        {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex items-start min-h-0", // Base for video and chat layout
+          "flex flex-col md:flex-row items-start min-h-0 flex-grow gap-6", // Added flex-grow, flex-col md:flex-row, gap-6
           {
-            "flex-col md:flex-row gap-6": !isTheaterFullscreen, // Stack on mobile, row on desktop when not fullscreen
-            "flex-row flex-grow": isTheaterFullscreen // Side-by-side and grow when fullscreen
+            "h-full": isTheaterFullscreen // When fullscreen, this container takes full height
           }
         )}>
-          {/* Video Player Wrapper */}
-          <div ref={videoRef} className={clsx(
-            "relative w-full", // Always w-full
+          {/* Left Column: Video Player, Input Form, Video History */}
+          <div className={clsx(
+            "relative w-full flex flex-col space-y-4", // Added flex-col and space-y-4
             {
-              "h-64 md:h-auto": !isTheaterFullscreen, // Fixed height on mobile, auto on desktop when not fullscreen
               "md:w-2/3": !isTheaterFullscreen, // Desktop width when not fullscreen
-              "h-full": isTheaterFullscreen // Full height when fullscreen
+              "flex-grow": isTheaterFullscreen // Take full width when fullscreen
             }
           )}>
-            <VideoPlayer 
-              videoState={videoState} 
-              sendVideoAction={sendVideoAction} 
-              messages={messages}
-              sendMessage={sendMessage}
-              currentUser={user}
-              sendVideoReaction={sendVideoReaction}
-              activeReactions={activeReactions}
-              isConnectedToRealtime={isConnectedToRealtime}
-              onToggleFullscreen={handleToggleFullscreen}
-              isTheaterFullscreen={isTheaterFullscreen} // Pass the new prop
-            />
+            {/* Input Form - always visible here */}
+            <form onSubmit={handleSetVideo} className={clsx(
+              "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0",
+              { "hidden": isTheaterFullscreen } // Hide when fullscreen
+            )}>
+              <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
+              <div className="relative w-full">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                      <LinkIcon className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <input
+                      id="video-url-input"
+                      type="url"
+                      value={newVideoUrl}
+                      onChange={(e) => { setNewVideoUrl(e.target.value); }}
+                      placeholder="Enter YouTube or video URL to start or change the video"
+                      className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
+                      required
+                  />
+              </div>
+              <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  Set Video
+              </Button>
+            </form>
+
+            {/* Video History - always visible here */}
+            <div className={clsx({ "hidden": isTheaterFullscreen })}> {/* Hide when fullscreen */}
+              <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
+            </div>
+
+            {/* Video Player Wrapper - now has aspect-ratio */}
+            <div ref={videoRef} className={clsx(
+              "relative w-full rounded-xl overflow-hidden", // Removed h-64 md:h-auto
+              {
+                "aspect-video": !isTheaterFullscreen, // Maintain aspect ratio when not fullscreen
+                "flex-grow": isTheaterFullscreen // Take full height when fullscreen
+              }
+            )}>
+              <VideoPlayer 
+                videoState={videoState} 
+                sendVideoAction={sendVideoAction} 
+                messages={messages}
+                sendMessage={sendMessage}
+                currentUser={user}
+                sendVideoReaction={sendVideoReaction}
+                activeReactions={activeReactions}
+                isConnectedToRealtime={isConnectedToRealtime}
+                onToggleFullscreen={handleToggleFullscreen}
+                isTheaterFullscreen={isTheaterFullscreen}
+              />
+            </div>
           </div>
-          {/* Conditionally render the Chat component as a side panel */}
-          {!isTheaterFullscreen && ( // Hide this chat when theater is fullscreen
+
+          {/* Right Column: Chat Panel */}
+          {!isTheaterFullscreen && (
             <div 
               className={clsx(
                 "w-full md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col",
                 "h-[400px] md:h-auto", // Fixed height on mobile, auto on desktop
               )}
-              style={{ height: videoHeight > 0 && !isTheaterFullscreen ? videoHeight : undefined }} // Only apply videoHeight if not fullscreen
+              style={{ height: videoHeight > 0 && !isTheaterFullscreen ? videoHeight : undefined }}
             >
               <Chat 
                 messages={messages} 
