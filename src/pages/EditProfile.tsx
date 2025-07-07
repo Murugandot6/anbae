@@ -43,6 +43,16 @@ const EditProfile = () => {
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      nickname: '',
+      partner_email: '',
+      partner_nickname: '',
+      avatar_url: '',
+    },
+  });
+
   useEffect(() => {
     (window as any).dyadSessionContext = { user, loading: sessionLoading };
   }, [user, sessionLoading]);
