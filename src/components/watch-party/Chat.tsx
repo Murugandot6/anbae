@@ -35,7 +35,8 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
     // The key is that this component ITSELF is a flex column and takes full height
     <div className={cn(
       "flex flex-col h-full min-h-0", // h-full and min-h-0 are crucial here
-      isOverlay ? "bg-card/90 backdrop-blur-md rounded-xl shadow-lg" : "bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg"
+      // Removed bg-card/90 and bg-card/60 from here to make the main chat body transparent
+      isOverlay ? "backdrop-blur-md rounded-xl shadow-lg" : "backdrop-blur-md border border-border/50 rounded-xl shadow-lg"
     )}>
       
       {/* 1. Header (Does not grow) */}

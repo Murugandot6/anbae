@@ -114,10 +114,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     >
       {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0", // Inner container for header/form/history + video/chat
+        "w-full flex flex-col flex-grow min-h-0 p-4 md:p-6", // Added padding and ensured w-full
         {
-          "max-w-7xl mx-auto": !isTheaterFullscreen,
-          "max-w-full mx-0": isTheaterFullscreen
+          "max-w-full mx-0": isTheaterFullscreen // Take full width when fullscreen
         }
       )}>
         {/* Header elements - conditionally hide when fullscreen */}

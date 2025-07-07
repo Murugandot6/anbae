@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { User, Room } from '@/types/watchParty';
 import Dashboard from '@/components/watch-party/Dashboard';
 import Theater from '@/components/watch-party/Theater';
@@ -141,8 +141,7 @@ const WatchParty: React.FC = () => {
         <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
       </Helmet>
       <BackgroundWrapper className="pt-0 md:pt-0"> {/* Added pt-0 to BackgroundWrapper */}
-        {/* Removed Green Border Debugging */}
-        <main className="pt-2 px-4 sm:pt-4 sm:px-6 lg:pt-6 lg:px-8 w-full max-w-7xl mx-auto flex-grow min-h-0">
+        <main className="flex-grow min-h-0 w-full p-0"> {/* Removed max-w-7xl mx-auto and adjusted padding */}
           {currentRoom ? (
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
           ) : (
