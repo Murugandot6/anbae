@@ -191,7 +191,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   // Explicitly set max-height for fullscreen chat
   const chatContainerClasses = cn(
     "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
-    document.fullscreenElement && showFullscreenChat ? "absolute top-0 right-0 w-80 z-30 max-h-[calc(100% - 4.5rem)]" : "hidden"
+    // When in fullscreen and chat is shown:
+    document.fullscreenElement && showFullscreenChat
+      ? "absolute top-0 right-0 w-80 h-full z-30 flex flex-col" // Added h-full and flex flex-col
+      : "hidden"
   );
 
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
