@@ -28,6 +28,10 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
 
+  // Refs and state for dynamic height matching
+  const videoRef = useRef<HTMLDivElement>(null);
+  const [videoHeight, setVideoHeight] = useState(0);
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -45,6 +49,28 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
+
+  // Effect to observe video player height and update state
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target === videoRef.current) {
+          setVideoHeight(entry.contentRect.height);
+        }
+      }
+    });
+
+    resizeObserver.observe(videoRef.current);
+
+    // Set initial height
+    setVideoHeight(videoRef.current.offsetHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   const handleToggleFullscreen = useCallback(() => {
     if (theaterContainerRef.current) {
@@ -156,7 +182,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         {/* Video Player and Chat Container */}
         <div className="flex flex-col md:flex-row gap-6 items-start min-h-0">
           {/* Video Player Wrapper - now has aspect-video */}
-          <div className="md:w-2/3 aspect-video relative">
+          <div ref={videoRef} className="md:w-2/3 aspect-video relative">
             <VideoPlayer 
               videoState={videoState} 
               sendVideoAction={sendVideoAction} 
@@ -169,9 +195,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               onToggleFullscreen={handleToggleFullscreen}
             />
           </div>
-          {/* Conditionally render the Chat component as a side panel - now has aspect-video, flex-col, and overflow-hidden */}
+          {/* Conditionally render the Chat component as a side panel - now has dynamic height */}
           {!isFullscreen && (
-            <div className="md:w-1/3 md:max-w-sm flex-shrink-0 aspect-video flex flex-col overflow-hidden">
+            <div 
+              className="md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col" 
+              style={{ height: videoHeight > 0 ? videoHeight : 'auto' }} // Apply dynamic height
+            >
               <Chat 
                 messages={messages} 
                 sendMessage={sendMessage} 
