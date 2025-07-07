@@ -146,6 +146,34 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               "md:w-2/3": !isTheaterFullscreen,
             }
           )}>
+            {/* Video Player Wrapper with Aspect Ratio Hack */}
+            <div className={clsx(
+              "relative w-full rounded-xl overflow-hidden",
+              "flex-1 min-h-0", // This div should take up the remaining height in its column
+              {
+                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Apply aspect ratio hack when not fullscreen
+                "flex-grow": isTheaterFullscreen, // Allow it to grow in fullscreen
+                "h-full": isTheaterFullscreen // Take full height in fullscreen
+              }
+            )}>
+              <VideoPlayer
+                videoState={videoState}
+                sendVideoAction={sendVideoAction}
+                messages={messages}
+                sendMessage={sendMessage}
+                currentUser={user}
+                sendVideoReaction={sendVideoReaction}
+                activeReactions={activeReactions}
+                isConnectedToRealtime={isConnectedToRealtime}
+                onToggleFullscreen={handleToggleFullscreen}
+                isTheaterFullscreen={isTheaterFullscreen}
+                className={clsx({
+                  "absolute top-0 left-0 w-full h-full": !isTheaterFullscreen, // Position absolutely within aspect ratio parent
+                  "w-full h-full": isTheaterFullscreen // Fill parent when fullscreen
+                })}
+              />
+            </div>
+
             {/* Input Form - moved inside video column */}
             <form onSubmit={handleSetVideo} className={clsx(
               "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0",
@@ -174,34 +202,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             {/* Video History - moved inside video column */}
             <div className={clsx({ "hidden": isTheaterFullscreen })}>
               <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
-            </div>
-
-            {/* Video Player Wrapper with Aspect Ratio Hack */}
-            <div className={clsx(
-              "relative w-full rounded-xl overflow-hidden",
-              "flex-1 min-h-0", // This div should take up the remaining height in its column
-              {
-                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Apply aspect ratio hack when not fullscreen
-                "flex-grow": isTheaterFullscreen, // Allow it to grow in fullscreen
-                "h-full": isTheaterFullscreen // Take full height in fullscreen
-              }
-            )}>
-              <VideoPlayer
-                videoState={videoState}
-                sendVideoAction={sendVideoAction}
-                messages={messages}
-                sendMessage={sendMessage}
-                currentUser={user}
-                sendVideoReaction={sendVideoReaction}
-                activeReactions={activeReactions}
-                isConnectedToRealtime={isConnectedToRealtime}
-                onToggleFullscreen={handleToggleFullscreen}
-                isTheaterFullscreen={isTheaterFullscreen}
-                className={clsx({
-                  "absolute top-0 left-0 w-full h-full": !isTheaterFullscreen, // Position absolutely within aspect ratio parent
-                  "w-full h-full": isTheaterFullscreen // Fill parent when fullscreen
-                })}
-              />
             </div>
           </div>
 

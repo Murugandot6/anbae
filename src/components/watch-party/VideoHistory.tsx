@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { VideoHistoryEntry } from '@/types/watchParty';
 import { HistoryIcon } from '@/components/watch-party/icons';
 import { Button } from '@/components/ui/button'; // Import shadcn Button
+import { cn } from '@/lib/utils';
 
 interface VideoHistoryProps {
   history: VideoHistoryEntry[];
   onSelectVideo: (url: string) => void;
+  className?: string;
 }
 
-const VideoHistory: React.FC<VideoHistoryProps> = ({ history, onSelectVideo }) => {
+const VideoHistory: React.FC<VideoHistoryProps> = ({ history, onSelectVideo, className }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (history.length === 0) {
@@ -16,7 +18,7 @@ const VideoHistory: React.FC<VideoHistoryProps> = ({ history, onSelectVideo }) =
   }
 
   return (
-    <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl mb-6 shadow-lg">
+    <div className={cn("bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg", className)}>
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex justify-between items-center p-4 text-left font-semibold text-foreground bg-transparent hover:bg-accent/20 rounded-xl"
