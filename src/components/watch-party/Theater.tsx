@@ -25,7 +25,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
   // Fullscreen state and ref for the entire theater container
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
 
   // Refs and state for dynamic height matching
@@ -34,7 +34,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      setIsTheaterFullscreen(!!document.fullscreenElement);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -103,18 +103,25 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     // Main container for the Theater, now handling fullscreen
     <div 
       ref={theaterContainerRef}
-      className="flex flex-col h-full fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none"
+      className={clsx(
+        "flex flex-col h-full",
+        {
+          "fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none": true, // Always apply fullscreen styles to the container itself
+          "bg-background text-foreground": !isTheaterFullscreen, // Apply background only when not fullscreen
+          "bg-black": isTheaterFullscreen // Black background when fullscreen
+        }
+      )}
     >
       {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
         "w-full flex flex-col flex-grow min-h-0", // Added flex-col here
         {
-          "max-w-7xl mx-auto": !isFullscreen, // Apply max-w only when NOT fullscreen
-          "max-w-full mx-0": isFullscreen // Take full width when fullscreen
+          "max-w-7xl mx-auto": !isTheaterFullscreen, // Apply max-w only when NOT fullscreen
+          "max-w-full mx-0": isTheaterFullscreen // Take full width when fullscreen
         }
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
-        {!isFullscreen && (
+        {!isTheaterFullscreen && (
           <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* Added flex-shrink-0 */}
             {/* Back button on the left */}
             <div className="flex-shrink-0">
@@ -150,7 +157,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}
 
         {/* Form - conditionally hide when fullscreen */}
-        {!isFullscreen && (
+        {!isTheaterFullscreen && (
           <form onSubmit={handleSetVideo} className="mb-6 bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"> {/* Added flex-shrink-0 */}
             <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
             <div className="relative w-full">
@@ -177,12 +184,24 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}
 
         {/* Video History - conditionally hide when fullscreen */}
-        {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />} {/* Added flex-shrink-0 */}
+        {!isTheaterFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />} {/* Added flex-shrink-0 */}
 
         {/* Video Player and Chat Container */}
-        <div className="flex flex-col md:flex-row gap-6 items-start min-h-0">
-          {/* Video Player Wrapper - now has aspect-video */}
-          <div ref={videoRef} className="md:w-2/3 aspect-video relative">
+        <div className={clsx(
+          "flex items-start min-h-0",
+          {
+            "flex-col md:flex-row gap-6": !isTheaterFullscreen, // Normal layout
+            "flex-row flex-grow": isTheaterFullscreen // Fullscreen layout: video and chat side-by-side
+          }
+        )}>
+          {/* Video Player Wrapper */}
+          <div ref={videoRef} className={clsx(
+            "relative aspect-video",
+            {
+              "md:w-2/3": !isTheaterFullscreen, // Normal width
+              "w-full h-full": isTheaterFullscreen // Full width/height when fullscreen
+            }
+          )}>
             <VideoPlayer 
               videoState={videoState} 
               sendVideoAction={sendVideoAction} 
@@ -193,13 +212,14 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               activeReactions={activeReactions}
               isConnectedToRealtime={isConnectedToRealtime}
               onToggleFullscreen={handleToggleFullscreen}
+              isTheaterFullscreen={isTheaterFullscreen} // Pass the new prop
             />
           </div>
-          {/* Conditionally render the Chat component as a side panel - now has dynamic height */}
-          {!isFullscreen && (
+          {/* Conditionally render the Chat component as a side panel */}
+          {!isTheaterFullscreen && ( // Hide this chat when theater is fullscreen
             <div 
               className="md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col" 
-              style={{ height: videoHeight > 0 ? videoHeight : 'auto' }} // Apply dynamic height
+              style={{ height: videoHeight > 0 ? videoHeight : 'auto' }}
             >
               <Chat 
                 messages={messages} 

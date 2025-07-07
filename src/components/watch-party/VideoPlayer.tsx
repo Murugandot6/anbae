@@ -18,6 +18,7 @@ interface VideoPlayerProps {
   activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
   isConnectedToRealtime: boolean; // New prop for real-time connection status
   onToggleFullscreen: () => void; // New prop: received from parent
+  isTheaterFullscreen: boolean; // New prop: indicates if the parent Theater is in fullscreen
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -27,7 +28,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen, isTheaterFullscreen }) => {
   const playerRef = useRef<ReactPlayer>(null);
   
   const [isMuted, setIsMuted] = useState(true);
@@ -86,16 +87,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     }
   }, [videoState, isPlayerReady, isSeeking]);
 
-  // No longer listening for fullscreenchange here, parent handles it.
+  // Control showFullscreenChat based on isTheaterFullscreen prop
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      const isCurrentlyFullscreen = !!document.fullscreenElement;
-      setShowFullscreenChat(isCurrentlyFullscreen); // Automatically show chat when entering fullscreen
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+    setShowFullscreenChat(isTheaterFullscreen);
+  }, [isTheaterFullscreen]);
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -162,11 +157,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       window.clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (videoState.isPlaying && !document.fullscreenElement) { // Only hide controls if not in fullscreen
+      if (videoState.isPlaying && !isTheaterFullscreen) { // Only hide controls if not in fullscreen
         setShowControls(false);
       }
     }, 3000);
-  }, [videoState.isPlaying]); // Removed isFullScreen from dependencies
+  }, [videoState.isPlaying, isTheaterFullscreen]);
 
   // Attach mousemove listener to the main player container
   const playerWrapperRef = useRef<HTMLDivElement>(null);
@@ -192,7 +187,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const chatContainerClasses = cn(
     "bg-card/90 backdrop-blur-md rounded-xl shadow-lg",
     // When in fullscreen and chat is shown:
-    document.fullscreenElement && showFullscreenChat
+    isTheaterFullscreen && showFullscreenChat
       ? "absolute top-0 right-0 w-80 h-full z-30 flex flex-col" // Added h-full and flex flex-col
       : "hidden"
   );
@@ -288,7 +283,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || document.fullscreenElement ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20 ${showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -346,7 +341,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {document.fullscreenElement && (
+                  {isTheaterFullscreen && ( // Use the prop here
                     <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
                       <MessageSquare className="w-5 h-5" />
                     </button>
@@ -360,7 +355,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           </div>
           
           {/* Fullscreen Chat - now part of the flex container */}
-          {document.fullscreenElement && showFullscreenChat && (
+          {isTheaterFullscreen && showFullscreenChat && ( // Use the prop here
             <div className={chatContainerClasses}>
               <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} onClose={() => setShowFullscreenChat(false)} />
             </div>
