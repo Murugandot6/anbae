@@ -86,7 +86,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         }
       )}
     >
-      {/* This div is the main content area within Theater, it should grow to fill remaining space */}
+      {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
         "w-full flex flex-col flex-grow min-h-0 p-4 md:p-6", // flex-grow here is key
         {
@@ -129,7 +129,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           </div>
         )}
 
-        {/* Main content area for video and chat - this needs the fixed height */}
+        {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
           "flex items-stretch min-h-0 gap-6", // flex-grow removed from here
           {
@@ -176,12 +176,14 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
             </div>
 
-            {/* Video Player Wrapper */}
+            {/* Video Player Wrapper with Aspect Ratio Hack */}
             <div className={clsx(
               "relative w-full rounded-xl overflow-hidden",
-              "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for video player to fill its space
+              "flex-1 min-h-0", // This div should take up the remaining height in its column
               {
-                "aspect-video": !isTheaterFullscreen, // Only apply aspect-video when not fullscreen
+                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Apply aspect ratio hack when not fullscreen
+                "flex-grow": isTheaterFullscreen, // Allow it to grow in fullscreen
+                "h-full": isTheaterFullscreen // Take full height in fullscreen
               }
             )}>
               <VideoPlayer
@@ -195,6 +197,10 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                 isConnectedToRealtime={isConnectedToRealtime}
                 onToggleFullscreen={handleToggleFullscreen}
                 isTheaterFullscreen={isTheaterFullscreen}
+                className={clsx({
+                  "absolute top-0 left-0 w-full h-full": !isTheaterFullscreen, // Position absolutely within aspect ratio parent
+                  "w-full h-full": isTheaterFullscreen // Fill parent when fullscreen
+                })}
               />
             </div>
           </div>
@@ -204,7 +210,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             <div
               className={clsx(
                 "w-full md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col",
-                "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for equal height and scrolling
+                "flex-1 min-h-0", // This column grows to match video height
               )}
             >
               <Chat

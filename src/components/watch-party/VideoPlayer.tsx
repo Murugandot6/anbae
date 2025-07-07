@@ -6,7 +6,7 @@ import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIco
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
 import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
 import { cn } from '@/lib/utils'; // Ensure cn is imported
-import { AspectRatio } from '@/components/ui/aspect-ratio'; // Import AspectRatio
+// Removed AspectRatio import
 
 interface VideoPlayerProps {
   videoState: VideoState;
@@ -19,6 +19,7 @@ interface VideoPlayerProps {
   isConnectedToRealtime: boolean; // New prop for real-time connection status
   onToggleFullscreen: () => void; // New prop: received from parent
   isTheaterFullscreen: boolean; // New prop: indicates if the parent Theater is in fullscreen
+  className?: string; // New prop to pass additional classes to the root div
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -28,7 +29,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen, isTheaterFullscreen }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen, isTheaterFullscreen, className }) => {
   const playerRef = useRef<ReactPlayer>(null);
   
   const [isMuted, setIsMuted] = useState(true);
@@ -178,71 +179,59 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setDisplayTime(seconds);
   };
 
-  // Player wrapper classes now just fill its parent
-  const playerWrapperClasses = cn(
-    "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg",
-  );
-
-  // Explicitly set max-height for fullscreen chat
-  const chatContainerClasses = cn(
-    "backdrop-blur-md rounded-xl shadow-lg", // Removed bg-card/90
-    // When in fullscreen and chat is shown:
-    isTheaterFullscreen && showFullscreenChat
-      ? "absolute top-0 right-0 w-80 h-full z-30 flex flex-col" // Added h-full and flex flex-col
-      : "hidden"
-  );
-
   const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
 
   return (
-    <div ref={playerWrapperRef} className={playerWrapperClasses}>
+    <div ref={playerWrapperRef} className={cn(
+      "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg", // Base styles for the player itself
+      className // Apply any additional classes passed from parent
+    )}>
       {videoState.source ? (
         <>
-          <AspectRatio ratio={16 / 9} className="w-full h-full"> {/* Wrap with AspectRatio */}
-            <ReactPlayer
-              ref={playerRef}
-              url={videoState.source}
-              width="100%"
-              height="100%"
-              playing={videoState.isPlaying}
-              volume={volume}
-              muted={isMuted}
-              controls={false}
-              onReady={() => setIsPlayerReady(true)}
-              onDuration={(duration: number) => sendVideoAction({ type: 'durationchange', payload: duration })}
-              onProgress={handleProgress}
-              onSeek={handlePlayerSeek}
-              progressInterval={500}
-              onError={(e: any, data?: any) => {
-                  console.error('Player Error:', e, data);
-                  let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
-                  
-                  const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
+          {/* Removed AspectRatio */}
+          <ReactPlayer
+            ref={playerRef}
+            url={videoState.source}
+            width="100%"
+            height="100%"
+            playing={videoState.isPlaying}
+            volume={volume}
+            muted={isMuted}
+            controls={false}
+            onReady={() => setIsPlayerReady(true)}
+            onDuration={(duration: number) => sendVideoAction({ type: 'durationchange', payload: duration })}
+            onProgress={handleProgress}
+            onSeek={handlePlayerSeek}
+            progressInterval={500}
+            onError={(e: any, data?: any) => {
+                console.error('Player Error:', e, data);
+                let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
+                
+                const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
 
-                  if (errorCode !== null) {
-                      switch (errorCode) {
-                          case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
-                          case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
-                          case 100: 
-                          case 101: 
-                          case 150: 
-                              errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
-                          default:
-                              break;
-                      }
-                  } else if (e instanceof Error) {
-                      errorMessage = e.message;
-                  } else if (typeof e === 'string' && e.length > 0) {
-                      errorMessage = e;
-                  }
+                if (errorCode !== null) {
+                    switch (errorCode) {
+                        case 2: errorMessage = 'The video request contains an invalid parameter. Please check the URL.'; break;
+                        case 5: errorMessage = 'An HTML5 player error occurred. The video may not be compatible.'; break;
+                        case 100: 
+                        case 101: 
+                        case 150: 
+                            errorMessage = 'The video owner has disabled playback on other websites. Please choose another video.'; break;
+                        default:
+                            break;
+                    }
+                } else if (e instanceof Error) {
+                    errorMessage = e.message;
+                } else if (typeof e === 'string' && e.length > 0) {
+                    errorMessage = e;
+                }
 
-                  setPlayerError(errorMessage);
-                  if (videoState.isPlaying) {
-                      sendVideoAction({ type: 'pause', payload: playerRef.current?.getCurrentTime() });
-                  }
-              }}
-            />
-          </AspectRatio>
+                setPlayerError(errorMessage);
+                if (videoState.isPlaying) {
+                    sendVideoAction({ type: 'pause', payload: playerRef.current?.getCurrentTime() });
+                }
+            }}
+          />
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
@@ -352,15 +341,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Fullscreen Chat - now part of the flex container */}
-          {isTheaterFullscreen && showFullscreenChat && ( // Use the prop here
-            <div className={chatContainerClasses}>
-              <Chat messages={messages} sendMessage={sendMessage} currentUser={currentUser} isOverlay={true} onClose={() => setShowFullscreenChat(false)} />
-            </div>
-          )}
-        </>
+          </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
             <FilmIcon className="w-16 h-16 text-muted-foreground mb-4" />
