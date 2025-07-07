@@ -144,7 +144,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             "flex-1 min-h-0",
             {
               "md:w-2/3": !isTheaterFullscreen,
-              "pb-4": !isTheaterFullscreen, // Add padding only when not fullscreen
+              "pb-8": !isTheaterFullscreen, // Increased padding
             }
           )}>
             {/* Video Player Wrapper with Aspect Ratio Hack */}
