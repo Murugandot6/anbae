@@ -78,7 +78,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     <div 
       ref={theaterContainerRef}
       className={clsx(
-        "flex flex-col h-full", // Base styling for the main theater container
+        "flex flex-col h-full", // This is the root of Theater, should take full height of its parent (main)
         {
           "fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none": true, // Always apply fullscreen styles to the container itself
           "bg-background text-foreground": !isTheaterFullscreen, // Apply background only when not fullscreen
@@ -86,16 +86,16 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         }
       )}
     >
-      {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
+      {/* This div is the main content area within Theater, it should grow to fill remaining space */}
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0 p-4 md:p-6", // Added padding and ensured w-full
+        "w-full flex flex-col flex-grow min-h-0 p-4 md:p-6", // flex-grow here is key
         {
-          "max-w-full mx-0": isTheaterFullscreen // Take full width when fullscreen
+          "max-w-full mx-0": isTheaterFullscreen
         }
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
         {!isTheaterFullscreen && (
-          <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* Added flex-shrink-0 */}
+          <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* flex-shrink-0 is important */}
             {/* Back button on the left */}
             <div className="flex-shrink-0">
               <Button
@@ -129,24 +129,24 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           </div>
         )}
 
-        {/* Video Player and Chat Container - This is the main flex container for the two columns */}
+        {/* Main content area for video and chat - this needs the fixed height */}
         <div className={clsx(
-          "flex items-stretch min-h-0 flex-grow gap-6", // Changed items-start to items-stretch, flex-grow to take remaining vertical space
+          "flex items-stretch min-h-0 gap-6", // flex-grow removed from here
           {
             "flex-col md:flex-row": !isTheaterFullscreen, // Stack on mobile, row on desktop when not fullscreen
-            "flex-row h-full": isTheaterFullscreen // Row and full height when fullscreen
+            "flex-row h-full": isTheaterFullscreen, // Row and full height when fullscreen
+            "h-[calc(100vh-176px)]": !isTheaterFullscreen, // Fixed height for non-fullscreen, adjust as needed
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col space-y-4", // flex-col for its children
-            "flex-1", // Make this column grow to fill available height
+            "relative w-full flex flex-col space-y-4", // flex-col and space-y-4 for its children
+            "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for equal height and scrolling
             {
-              "md:w-2/3": !isTheaterFullscreen, // Desktop width when not fullscreen
-              "flex-grow": isTheaterFullscreen, // Take full width when fullscreen
+              "md:w-2/3": !isTheaterFullscreen,
             }
           )}>
-            {/* Input Form - always visible here */}
+            {/* Input Form - moved inside video column */}
             <form onSubmit={handleSetVideo} className={clsx(
               "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0",
               { "hidden": isTheaterFullscreen } // Hide when fullscreen
@@ -171,22 +171,22 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               </Button>
             </form>
 
-            {/* Video History - always visible here */}
-            <div className={clsx({ "hidden": isTheaterFullscreen })}> {/* Hide when fullscreen */}
+            {/* Video History - moved inside video column */}
+            <div className={clsx({ "hidden": isTheaterFullscreen })}>
               <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
             </div>
 
-            {/* Video Player Wrapper - now has aspect-ratio */}
+            {/* Video Player Wrapper */}
             <div className={clsx(
               "relative w-full rounded-xl overflow-hidden",
-              "flex-1", // Make the video player wrapper take remaining height in its column
+              "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for video player to fill its space
               {
-                "aspect-video": !isTheaterFullscreen, // Maintain aspect ratio when not fullscreen
+                "aspect-video": !isTheaterFullscreen, // Only apply aspect-video when not fullscreen
               }
             )}>
-              <VideoPlayer 
-                videoState={videoState} 
-                sendVideoAction={sendVideoAction} 
+              <VideoPlayer
+                videoState={videoState}
+                sendVideoAction={sendVideoAction}
                 messages={messages}
                 sendMessage={sendMessage}
                 currentUser={user}
@@ -201,15 +201,15 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
           {/* Right Column: Chat Panel */}
           {!isTheaterFullscreen && (
-            <div 
+            <div
               className={clsx(
                 "w-full md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col",
-                "flex-1", // Make this column grow to match video height
+                "flex-1 min-h-0", // flex-1 and min-h-0 are crucial for equal height and scrolling
               )}
             >
-              <Chat 
-                messages={messages} 
-                sendMessage={sendMessage} 
+              <Chat
+                messages={messages}
+                sendMessage={sendMessage}
                 currentUser={user}
               />
             </div>
