@@ -83,7 +83,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       <div className={clsx(
         "w-full flex flex-col flex-grow min-h-0", // Added flex-col here
         {
-          "max-w-7xl mx-auto": !isFullscreen, // Apply max-width only when NOT fullscreen
+          "max-w-7xl mx-auto": !isFullscreen, // Apply max-w only when NOT fullscreen
           "max-w-full mx-0": isFullscreen // Take full width when fullscreen
         }
       )}>
@@ -154,7 +154,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         {!isFullscreen && <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />} {/* Added flex-shrink-0 */}
 
         {/* Video Player and Chat Container */}
-        {/* This container now uses items-start to align children at the top */}
         <div className="flex flex-col md:flex-row gap-6 items-start min-h-0">
           {/* Video Player Wrapper - now has aspect-video */}
           <div className="md:w-2/3 aspect-video relative">
