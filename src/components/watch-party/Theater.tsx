@@ -140,13 +140,13 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col justify-between", // Use justify-between to create space
+            "relative w-full flex flex-col gap-4", // Use gap for spacing
             "flex-1 min-h-0",
             {
               "md:w-2/3": !isTheaterFullscreen,
             }
           )}>
-            {/* Top Group: Video Player */}
+            {/* Video Player */}
             <div className="flex-shrink-0">
               <div className={clsx(
                 "relative w-full rounded-xl overflow-hidden",
@@ -174,35 +174,37 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               </div>
             </div>
 
-            {/* Bottom Group: Form and History */}
-            <div className={clsx("space-y-4", { "hidden": isTheaterFullscreen })}>
-              <form onSubmit={handleSetVideo} className={clsx(
-                "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"
-              )}>
-                <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
-                <div className="relative w-full">
-                    <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                        <LinkIcon className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <input
-                        id="video-url-input"
-                        type="url"
-                        value={newVideoUrl}
-                        onChange={(e) => { setNewVideoUrl(e.target.value); }}
-                        placeholder="Enter YouTube or video URL to start or change the video"
-                        className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
-                        required
-                    />
-                </div>
-                <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                    Set Video
-                </Button>
-              </form>
+            {/* Form and History - only shown when not fullscreen */}
+            {!isTheaterFullscreen && (
+              <>
+                <form onSubmit={handleSetVideo} className={clsx(
+                  "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"
+                )}>
+                  <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
+                  <div className="relative w-full">
+                      <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                          <LinkIcon className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <input
+                          id="video-url-input"
+                          type="url"
+                          value={newVideoUrl}
+                          onChange={(e) => { setNewVideoUrl(e.target.value); }}
+                          placeholder="Enter YouTube or video URL to start or change the video"
+                          className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
+                          required
+                      />
+                  </div>
+                  <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                      Set Video
+                  </Button>
+                </form>
 
-              <div className="mb-6">
-                <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
-              </div>
-            </div>
+                <div>
+                  <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right Column: Chat Panel */}
