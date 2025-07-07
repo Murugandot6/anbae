@@ -200,7 +200,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   </Button>
                 </form>
 
-                <div>
+                <div className="pb-6">
                   <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
                 </div>
               </>
