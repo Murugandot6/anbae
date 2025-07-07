@@ -28,10 +28,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
 
-  // Refs and state for dynamic height matching
-  const videoRef = useRef<HTMLDivElement>(null);
-  const [videoHeight, setVideoHeight] = useState(0);
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsTheaterFullscreen(!!document.fullscreenElement);
@@ -49,28 +45,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
-
-  // Effect to observe video player height and update state
-  useEffect(() => {
-    if (!videoRef.current || isTheaterFullscreen) return; // Only observe if not fullscreen
-
-    const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        if (entry.target === videoRef.current) {
-          setVideoHeight(entry.contentRect.height);
-        }
-      }
-    });
-
-    resizeObserver.observe(videoRef.current);
-
-    // Set initial height
-    setVideoHeight(videoRef.current.offsetHeight);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [isTheaterFullscreen]); // Re-run when fullscreen state changes
 
   const handleToggleFullscreen = useCallback(() => {
     if (theaterContainerRef.current) {
@@ -157,17 +131,19 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex flex-col md:flex-row items-start min-h-0 flex-grow gap-6", // Added flex-grow, flex-col md:flex-row, gap-6
+          "flex items-stretch min-h-0 flex-grow gap-6", // Changed items-start to items-stretch, flex-grow to take remaining vertical space
           {
-            "h-full": isTheaterFullscreen // When fullscreen, this container takes full height
+            "flex-col md:flex-row": !isTheaterFullscreen, // Stack on mobile, row on desktop when not fullscreen
+            "flex-row h-full": isTheaterFullscreen // Row and full height when fullscreen
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col space-y-4", // Added flex-col and space-y-4
+            "relative w-full flex flex-col space-y-4", // flex-col for its children
+            "flex-1", // Make this column grow to fill available height
             {
               "md:w-2/3": !isTheaterFullscreen, // Desktop width when not fullscreen
-              "flex-grow": isTheaterFullscreen // Take full width when fullscreen
+              "flex-grow": isTheaterFullscreen, // Take full width when fullscreen
             }
           )}>
             {/* Input Form - always visible here */}
@@ -201,11 +177,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             </div>
 
             {/* Video Player Wrapper - now has aspect-ratio */}
-            <div ref={videoRef} className={clsx(
-              "relative w-full rounded-xl overflow-hidden", // Removed h-64 md:h-auto
+            <div className={clsx(
+              "relative w-full rounded-xl overflow-hidden",
+              "flex-1", // Make the video player wrapper take remaining height in its column
               {
                 "aspect-video": !isTheaterFullscreen, // Maintain aspect ratio when not fullscreen
-                "flex-grow": isTheaterFullscreen // Take full height when fullscreen
               }
             )}>
               <VideoPlayer 
@@ -228,9 +204,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             <div 
               className={clsx(
                 "w-full md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col",
-                "h-[400px] md:h-auto", // Fixed height on mobile, auto on desktop
+                "flex-1", // Make this column grow to match video height
               )}
-              style={{ height: videoHeight > 0 && !isTheaterFullscreen ? videoHeight : undefined }}
             >
               <Chat 
                 messages={messages} 
