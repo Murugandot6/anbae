@@ -8,7 +8,7 @@ import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
-import { toast } from 'sonner'; // Import sonner toast
+import { toast }nner'; // Import sonner toast
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
 import clsx from 'clsx'; // Import clsx for conditional classes
 
@@ -134,26 +134,23 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8", // Increased gap here
+          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8 flex-grow", // flex-grow to fill remaining vertical space
           {
-            "flex-grow": !isTheaterFullscreen, // Allow this to grow to fill remaining space
             "h-full": isTheaterFullscreen, // Take full height in fullscreen
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col gap-4 sm:gap-6", // Increased gap here
-            "flex-1 min-h-0",
+            "relative w-full flex flex-col gap-4 sm:gap-6 flex-1 min-h-0", // flex-1 to take available horizontal space
             {
               "sm:w-2/3": !isTheaterFullscreen, // Apply width on sm and up
             }
           )}>
-            {/* Video Player Container - This needs to grow to match chat */}
+            {/* Video Player Container - Now flex-shrink-0 to respect aspect ratio */}
             <div className={clsx(
-              "relative w-full rounded-xl overflow-hidden",
-              "flex-grow", // Make this grow
+              "relative w-full rounded-xl overflow-hidden flex-shrink-0", // Crucial: flex-shrink-0
               {
-                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Aspect ratio for non-fullscreen
+                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Aspect ratio hack
                 "h-full": isTheaterFullscreen // Full height for fullscreen
               }
             )}>
@@ -175,7 +172,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               />
             </div>
 
-            {/* Form and History - these should shrink */}
+            {/* Form and History - these should remain flex-shrink-0 */}
             {!isTheaterFullscreen && (
               <>
                 <form onSubmit={handleSetVideo} className={clsx(
@@ -201,19 +198,18 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   </Button>
                 </form>
 
-                <div> {/* Removed pb-4 sm:pb-6 from here */}
+                <div>
                   <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
                 </div>
               </>
             )}
           </div>
 
-          {/* Right Column: Chat Panel */}
+          {/* Right Column: Chat Panel - Now flex-1 to match height */}
           {!isTheaterFullscreen && (
             <div
               className={clsx(
-                "w-full sm:w-1/3 sm:max-w-sm flex-shrink-0 flex flex-col", // Adjusted width for sm and up
-                "flex-1 min-h-[300px] sm:min-h-0", // Added min-height for mobile chat, flex-grow removed
+                "w-full sm:w-1/3 sm:max-w-sm flex-1 flex flex-col min-h-[300px] sm:min-h-0", // flex-1 to take available horizontal space and match height
               )}
             >
               <Chat
