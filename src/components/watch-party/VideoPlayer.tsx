@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
@@ -183,7 +185,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   return (
     <div ref={playerWrapperRef} className={cn(
-      "relative w-full h-full bg-black rounded-xl overflow-hidden group shadow-lg", // Base styles for the player itself
+      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg", // Base styles for the player itself
+      "aspect-video", // Added aspect-video for 16:9 ratio
       className // Apply any additional classes passed from parent
     )}>
       {videoState.source ? (
@@ -203,7 +206,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onSeek={handlePlayerSeek}
             progressInterval={500}
             onError={(e: any, data?: any) => {
-                // console.error('Player Error:', e, data); // Removed debug log
                 let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
                 
                 const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;
