@@ -79,7 +79,7 @@ const Index = () => {
           {/* Removed ThemeToggle */}
         </div>
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 leading-none">
+          <h1 className="text-4xl md:text-7xl font-extrabold mb-4 leading-none">
             <span className="text-blue-600">a</span>
             <span className="text-red-600">n</span>
             <span className="text-yellow-600">b</span>
@@ -94,7 +94,7 @@ const Index = () => {
             <Input
               type="text"
               placeholder={placeholderText}
-              className="w-full pl-10 pr-20 py-3 text-lg rounded-full shadow-md transition-all duration-300 h-auto"
+              className="w-full pl-10 pr-20 py-2 text-base rounded-full shadow-md transition-all duration-300 h-auto"
             />
             <div className="absolute right-3 flex space-x-2">
               <Mic className="text-muted-foreground w-5 h-5 cursor-pointer hover:text-foreground" />
@@ -105,12 +105,12 @@ const Index = () => {
 
         <div className="flex gap-4 mb-8 animate-fade-in delay-400">
           <Link to="/login">
-            <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+            <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 px-4 py-2 text-sm">
               Login
             </Button>
           </Link>
           <Link to="/register">
-            <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+            <Button className="w-full sm:w-auto shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 px-4 py-2 text-sm">
               Register
             </Button>
           </Link>
