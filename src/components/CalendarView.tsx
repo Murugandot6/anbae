@@ -57,7 +57,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
       <CardContent className={`${isMobile ? 'p-3' : 'p-6'}`}> {/* Reduced padding */}
         <div className="grid grid-cols-7 text-center font-semibold mb-2">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className={isMobile ? 'text-xs' : 'text-sm'}>{day}</div> {/* Reduced font size */}
+            <div key={day} className={isMobile ? 'text-xs' : 'text-sm'}>{day}</div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1"> {/* Reduced gap */}
