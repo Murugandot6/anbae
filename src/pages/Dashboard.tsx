@@ -300,11 +300,15 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Today's Journal Entry Card */}
-              <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
-
-              {/* Mood Calendar */}
-              <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
+              {/* Journal Entry Card and Mood Calendar - Forced 2-column layout on all screens */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div>
+                  <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
+                </div>
+                <div>
+                  <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
+                </div>
+              </div>
 
               {/* Communication Insights Charts */}
               <div className="mt-8">

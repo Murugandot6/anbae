@@ -1,89 +1,95 @@
 import React, { useState } from 'react';
-import { JournalEntry } from '@/types/supabase'; // Assuming JournalEntry is in supabase types
-import { MOOD_OPTIONS } from '@/constants/journal'; // Import from new constants file
-import { ChevronLeftIcon } from '@/components/icons/ChevronLeftIcon'; // Corrected import path
-import { ChevronRightIcon } from '@/components/icons/ChevronRightIcon'; // Corrected import path
-import { format, isSameDay } from 'date-fns'; // Import format and isSameDay
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { JournalEntry } from '@/types/supabase';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 interface CalendarViewProps {
   entries: Record<string, JournalEntry>;
-  onDayClick: (date: Date) => void; // New prop for handling day clicks
+  onDayClick: (date: Date) => void;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+const moodEmojis = {
+  'Excellent': '😊',
+  'Good': '🙂',
+  'Neutral': '😐',
+  'Bad': '🙁',
+  'Terrible': '😞',
+};
 
-  const changeMonth = (amount: number) => {
-    setCurrentDate(prevDate => {
-      const newDate = new Date(prevDate);
-      newDate.setMonth(newDate.getMonth() + amount);
-      return newDate;
-    });
+const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const isMobile = useIsMobile(); // Use the hook
+
+  const daysInMonth = eachDayOfInterval({
+    start: startOfMonth(currentMonth),
+    end: endOfMonth(currentMonth),
+  });
+
+  const firstDayOfMonth = startOfMonth(currentMonth).getDay(); // 0 for Sunday, 1 for Monday, etc.
+  const emptyCellsBefore = Array.from({ length: firstDayOfMonth }, (_, i) => i);
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(subMonths(currentMonth, 1));
   };
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  const handleNextMonth = () => {
+    setCurrentMonth(addMonths(currentMonth, 1));
+  };
 
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  const calendarDays = [];
-  
-  // Fill leading empty days
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="border-r border-b border-border"></div>);
-  }
-
-  // Fill days of the month
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const dateId = format(date, 'yyyy-MM-dd'); // Format to YYYY-MM-DD
-    const entry = entries[dateId];
-    const moodInfo = entry?.mood ? MOOD_OPTIONS[entry.mood] : null;
-    const isToday = isSameDay(date, new Date());
-
-    calendarDays.push(
-      <div 
-        key={day} 
-        className={`relative p-2 border-r border-b border-border h-24 flex flex-col items-start cursor-pointer transition-colors duration-200 hover:bg-accent/20 ${isToday ? 'bg-secondary/20' : ''}`}
-        title={entry?.heading || `No entry for ${format(date, 'MMM d')}`}
-        onClick={() => onDayClick(date)}
-      >
-        <span className="font-medium text-muted-foreground">{day}</span>
-        {moodInfo && (
-          <div className="absolute inset-0 flex items-center justify-center">
-             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-3xl ${moodInfo.color} transform transition hover:scale-110`}>
-                {moodInfo.emoji}
-             </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
   return (
-    <div className="bg-card/60 p-6 sm:p-8 rounded-xl shadow-md border border-border animate-fade-in backdrop-blur-md">
-        <div className="flex justify-between items-center mb-6">
-            <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-accent/20 transition-colors">
-                <ChevronLeftIcon className="w-6 h-6 text-muted-foreground" />
-            </button>
-            <h2 className="text-xl font-bold text-foreground">
-                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-            </h2>
-            <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-accent/20 transition-colors">
-                <ChevronRightIcon className="w-6 h-6 text-muted-foreground" />
-            </button>
+    <Card className="w-full shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handlePrevMonth}>
+            <ChevronLeft className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
+          </Button>
+          <span className="flex-grow text-center">
+            {format(currentMonth, 'MMMM yyyy')}
+          </span>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handleNextMonth}>
+            <ChevronRight className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
+          </Button>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className={`${isMobile ? 'p-3' : 'p-6'}`}> {/* Reduced padding */}
+        <div className="grid grid-cols-7 text-center font-semibold mb-2">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className={isMobile ? 'text-xs' : 'text-sm'}>{day}</div> {/* Reduced font size */}
+          ))}
         </div>
+        <div className="grid grid-cols-7 gap-1"> {/* Reduced gap */}
+          {emptyCellsBefore.map((_, index) => (
+            <div key={`empty-${index}`} className="h-8 w-8"></div> // Adjust size if needed
+          ))}
+          {daysInMonth.map(day => {
+            const dateKey = format(day, 'yyyy-MM-dd');
+            const entry = entries[dateKey];
+            const isCurrentDay = isToday(day);
+            const isSelectedMonth = isSameMonth(day, currentMonth);
 
-        <div className="grid grid-cols-7 text-center font-semibold text-muted-foreground border-t border-l border-border">
-            {daysOfWeek.map(day => (
-                <div key={day} className="py-3 border-r border-b border-border">{day}</div>
-            ))}
-            {calendarDays}
+            return (
+              <Button
+                key={format(day, 'yyyy-MM-dd')}
+                variant="ghost"
+                className={`relative flex flex-col items-center justify-center rounded-md p-0 h-8 w-8 ${isCurrentDay ? 'bg-primary/10 text-primary' : ''} ${!isSelectedMonth ? 'text-muted-foreground opacity-50' : ''}`}
+                onClick={() => onDayClick(day)}
+                size={isMobile ? 'sm' : 'default'} // Adjust button size
+              >
+                <span className={isMobile ? 'text-xs' : 'text-sm'}>{format(day, 'd')}</span> {/* Reduced font size */}
+                {entry && (
+                  <span className={`absolute bottom-0 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {entry.emoji || moodEmojis[entry.mood as keyof typeof moodEmojis]}
+                  </span>
+                )}
+              </Button>
+            );
+          })}
         </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
