@@ -155,7 +155,7 @@ const WaveRoomPage: React.FC = () => {
               <Button
                 onClick={handleCreateRoom}
                 disabled={!!loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:text-base py-2.5 sm:py-3" {/* Adjusted font size and padding */}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:text-base py-2.5 sm:py-3" // Adjusted font size and padding
               >
                 {loading === 'create' ? 'Creating...' : 'Create Room'}
               </Button>
@@ -182,7 +182,7 @@ const WaveRoomPage: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={!joinCode.trim() || !!loading}
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground text-sm sm:text-base py-2.5 sm:py-3" {/* Adjusted font size and padding */}
+                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground text-sm sm:text-base py-2.5 sm:py-3" // Adjusted font size and padding
                 >
                   {loading === 'join' ? 'Joining...' : 'Join Room'}
                 </Button>
