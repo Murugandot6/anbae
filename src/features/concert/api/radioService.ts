@@ -82,7 +82,7 @@ export const getLanguages = async (): Promise<string[]> => {
 
 export const getCountries = async (): Promise<string[]> => {
     const countries = await resilientFetch<ApiFilterOption[]>('countries?hidebroken=true&order=stationcount&reverse=true');
-    return countries.map(country => country.name).filter(name => country.trim() !== '');
+    return countries.map(country => country.name).filter(name => name.trim() !== '');
 };
 
 export const getTags = async (limit: number = 150): Promise<string[]> => {
