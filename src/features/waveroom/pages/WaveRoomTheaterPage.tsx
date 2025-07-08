@@ -170,8 +170,8 @@ const WaveRoomTheaterPage: React.FC = () => {
         <meta name="description" content={`Listen to internet radio with your partner in Wave Room ${roomCode}.`} />
       </Helmet>
       <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
-        <header className="bg-transparent backdrop-blur-md p-3 sm:p-4 z-20 sticky top-0"> {/* Adjusted padding */}
-          <div className="container mx-auto flex items-center justify-between gap-2 sm:gap-4"> {/* Adjusted gap */}
+        <header className="bg-transparent backdrop-blur-md p-3 sm:p-4 z-20 sticky top-0">
+          <div className="container mx-auto flex items-start justify-between gap-2 sm:gap-4">
             {/* Back button on the left */}
             <div className="flex-shrink-0">
               <Button
@@ -185,29 +185,32 @@ const WaveRoomTheaterPage: React.FC = () => {
               </Button>
             </div>
             
-            {/* Page Title */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mx-auto">Wave Room</h1> {/* Adjusted font size */}
+            {/* Right side content */}
+            <div className="flex flex-col items-end gap-2">
+                {/* Page Title */}
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Wave Room</h1>
 
-            {/* Room code and Leave button on the right */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"> {/* Adjusted gap */}
-              <div className="flex items-center gap-1 sm:gap-2 bg-input/50 rounded-md p-1.5 sm:p-2 border border-border/50"> {/* Adjusted padding and gap */}
-                  <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline">CODE:</span> {/* Adjusted font size */}
-                  <span className="font-bold tracking-widest text-sm sm:text-base text-foreground">{roomCode}</span> {/* Adjusted font size */}
-                  <Button onClick={handleCopyCode} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-accent/20"> {/* Adjusted size */}
-                      <Copy className="w-4 h-4"/>
-                  </Button>
-              </div>
-              <Button onClick={handleLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
-                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5"/>
-              </Button>
+                {/* Room code and Leave button */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-2 bg-input/50 rounded-md p-1.5 sm:p-2 border border-border/50">
+                        <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline">CODE:</span>
+                        <span className="font-bold tracking-widest text-sm sm:text-base text-foreground">{roomCode}</span>
+                        <Button onClick={handleCopyCode} variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:text-foreground hover:bg-accent/20">
+                            <Copy className="w-4 h-4"/>
+                        </Button>
+                    </div>
+                    <Button onClick={handleLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
+                        <LogOut className="w-4 h-4 sm:w-5 sm:h-5"/>
+                    </Button>
+                </div>
             </div>
           </div>
         </header>
 
-        <main className="flex-grow overflow-y-auto pb-28 sm:pb-32"> {/* Adjusted padding-bottom */}
-          <div className="container mx-auto p-3 sm:p-4 md:p-6"> {/* Adjusted padding */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 sm:mb-4 gap-3 sm:gap-4"> {/* Adjusted gap and margin-bottom */}
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground flex-shrink-0 order-1 md:order-none"> {/* Adjusted font size */}
+        <main className="flex-grow overflow-y-auto pb-28 sm:pb-32">
+          <div className="container mx-auto p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 sm:mb-4 gap-3 sm:gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground flex-shrink-0 order-1 md:order-none">
                 {buildTitle()}
               </h2>
               <FilterBar
@@ -225,7 +228,7 @@ const WaveRoomTheaterPage: React.FC = () => {
                 isLoading={isStationsLoading}
               />
             </div>
-            <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} className="mb-6 sm:mb-8" /> {/* Adjusted margin-bottom */}
+            <SearchBar onSearch={setSearchQuery} isLoading={isStationsLoading} initialQuery={searchQuery} onClear={() => setSearchQuery('')} className="mb-6 sm:mb-8" />
             <StationList
               stations={stations}
               onSelectStation={handleSelectStation}
