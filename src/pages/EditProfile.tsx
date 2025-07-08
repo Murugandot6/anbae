@@ -19,6 +19,7 @@ import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
@@ -144,8 +145,9 @@ const EditProfile = () => {
 
   if (sessionLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading profile...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading profile...</p>
       </div>
     );
   }

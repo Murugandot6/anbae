@@ -21,6 +21,7 @@ import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Badge } from '@/components/ui/badge';
 import EmojiPickerPopover from '@/components/EmojiPickerPopover';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const replyFormSchema = z.object({
   replyContent: z.string().min(1, { message: 'Reply cannot be empty.' }).max(1000, { message: 'Reply is too long.' }),
@@ -319,8 +320,9 @@ const ViewMessage = () => {
 
   if (sessionLoading || loadingMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading message...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading message...</p>
       </div>
     );
   }

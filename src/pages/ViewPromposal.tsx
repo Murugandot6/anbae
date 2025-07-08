@@ -9,6 +9,7 @@ import { parseLRC } from '@/lib/lrcParser';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Volume2, VolumeX, Copy, Check, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 interface Proposal {
   id: string;
@@ -18,7 +19,7 @@ interface Proposal {
 
 const LoadingSpinner = () => (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <LoadingPulsar />
         <p className="mt-4 text-xl">Loading Your Special Message...</p>
     </div>
 );

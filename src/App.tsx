@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { WaveRoomPlayerProvider } from "./contexts/WaveRoomPlayerContext";
 import GlobalWaveRoomPlayer from "./components/GlobalWaveRoomPlayer";
 import { HelmetProvider } from "react-helmet-async"; // Import HelmetProvider
+import LoadingPulsar from "./components/LoadingPulsar";
 
 // Lazy load all page components
 const Index = lazy(() => import("./pages/Index"));
@@ -45,8 +46,9 @@ const App = () => {
                 {/* Removed Red Border Debugging */}
                 <div className="flex flex-col"> {/* Removed h-screen here */}
                   <Suspense fallback={
-                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-                      <p className="text-xl">Loading application...</p>
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+                      <LoadingPulsar />
+                      <p className="text-xl mt-4">Loading application...</p>
                     </div>
                   }>
                     <Routes>

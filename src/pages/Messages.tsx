@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const Messages = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -164,8 +165,9 @@ const Messages = () => {
 
   if (sessionLoading || messagesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading messages...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading messages...</p>
       </div>
     );
   }

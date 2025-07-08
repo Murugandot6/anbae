@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Music, Video, Sparkles } from 'lucide-react';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const promposalFormSchema = z.object({
   video_url: z.string().url({ message: "Please enter a valid video URL." }),
@@ -58,8 +59,9 @@ const CreatePromposal = () => {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading...</p>
       </div>
     );
   }

@@ -16,6 +16,7 @@ import { fetchProfileByEmail } from '@/lib/supabaseHelpers';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { cn } from '@/lib/utils';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const formSchema = z.object({
   message_type: z.enum(['Grievance', 'Compliment', 'Good Memory', 'How I Feel'], {
@@ -118,8 +119,9 @@ const SendMessage = () => {
 
   if (sessionLoading || fetchingPartner) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading...</p>
       </div>
     );
   }

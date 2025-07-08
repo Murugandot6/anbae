@@ -13,6 +13,7 @@ import { Copy, LogOut, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from '@/contexts/SessionContext';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const WaveRoomTheaterPage: React.FC = () => {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -142,8 +143,9 @@ const WaveRoomTheaterPage: React.FC = () => {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-foreground">
-        <p className="text-xl">Loading Session...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading Session...</p>
       </div>
     );
   }

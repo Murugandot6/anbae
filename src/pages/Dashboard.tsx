@@ -20,6 +20,7 @@ import CalendarView from '@/components/CalendarView';
 import { format, isSameDay } from 'date-fns';
 import JournalEntryCard from '@/components/JournalEntryCard'; // Import the renamed component
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -216,8 +217,9 @@ const Dashboard = () => {
 
   if (sessionLoading || fetchingProfiles || messagesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
-        <p className="text-xl">Loading user session and profiles...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading user session and profiles...</p>
       </div>
     );
   }

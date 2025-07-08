@@ -8,10 +8,11 @@ import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import Backgr
 import { supabase } from '@/integrations/supabase/client'; // Import supabase
 import { Profile } from '@/types/supabase'; // Import Profile type
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import LoadingPulsar from '@/components/LoadingPulsar';
 
 const LoadingSpinner: React.FC = () => (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <LoadingPulsar />
     </div>
 );
 
