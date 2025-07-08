@@ -12,7 +12,8 @@ interface StationListProps {
 
 const SkeletonGrid: React.FC = () => (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"> {/* Adjusted gap */}
-    {Array.from({ length: 10 }).map((_, index) => ( {/* Reduced skeleton count for mobile */}
+    {Array.from({ length: 10 }).map((_, index) => (
+      {/* Reduced skeleton count for mobile */}
       <div key={index} className="flex flex-col p-2 sm:p-3 md:p-4 bg-card/60 backdrop-blur-md rounded-xl sm:rounded-2xl animate-pulse aspect-square items-center justify-center shadow-lg"> {/* Adjusted padding and border-radius */}
         <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-full bg-muted/50 mb-2 sm:mb-3 md:mb-4"></div> {/* Adjusted size and margin */}
         <div className="h-2.5 md:h-4 bg-muted/50 rounded w-3/4 mb-1.5 sm:mb-2"></div> {/* Adjusted height and margin */}
