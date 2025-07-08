@@ -122,7 +122,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
             <div className="bg-primary/20 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
                 <PlusIcon className="h-8 w-8 sm:h-10 sm:w-10 text-primary"/>
             </div>
-            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Start a New Party</h2>
+            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Start a New Theater</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
             <div className="w-full flex flex-col gap-3 sm:gap-4">
                  {error && <p className="text-destructive text-xs sm:text-sm mt-2">{error}</p>}
@@ -142,7 +142,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
             <div className="bg-secondary/20 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
                 <JoinIcon className="h-8 w-8 sm:h-10 sm:w-10 text-secondary"/>
             </div>
-            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Join an Existing Party</h2>
+            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Join an Existing Theater</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">Enter the 6-character code your friend gave you.</p>
             <form onSubmit={handleJoinRoom} className="w-full flex flex-col gap-3 sm:gap-4">
                  <input
