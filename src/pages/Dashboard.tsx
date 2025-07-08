@@ -300,8 +300,8 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Journal Entry Card and Mood Calendar - Forced 2-column layout on all screens */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              {/* Journal Entry Card and Mood Calendar - Now stacked vertically */}
+              <div className="flex flex-col gap-4 mb-8">
                 <div>
                   <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
                 </div>
