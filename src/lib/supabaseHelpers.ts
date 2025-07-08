@@ -16,7 +16,7 @@ export const fetchProfileById = async (profileId: string): Promise<Profile | nul
 
   if (error) {
     if (error.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error('Supabase Error fetching profile by ID:', error.message);
+      // console.error('Supabase Error fetching profile by ID:', error.message); // Removed debug log
     }
     return null;
   }
@@ -37,7 +37,7 @@ export const fetchProfileByEmail = async (email: string): Promise<Profile | null
 
   if (error) {
     if (error.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error('Supabase Error fetching profile by email:', error.message);
+      // console.error('Supabase Error fetching profile by email:', error.message); // Removed debug log
     }
     return null;
   }

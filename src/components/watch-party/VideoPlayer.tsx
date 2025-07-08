@@ -202,7 +202,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onSeek={handlePlayerSeek}
             progressInterval={500}
             onError={(e: any, data?: any) => {
-                console.error('Player Error:', e, data);
+                // console.error('Player Error:', e, data); // Removed debug log
                 let errorMessage = 'Could not load video. The URL may be invalid, the video is private, or the format is not supported.';
                 
                 const errorCode = typeof data === 'number' ? data : typeof e === 'number' ? e : null;

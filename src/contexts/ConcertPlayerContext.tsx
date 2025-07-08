@@ -147,14 +147,14 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       if (isPlaying) {
         audio.play().catch(error => {
           if (error.name === 'NotAllowedError') {
-            console.warn("Autoplay prevented. User interaction required.");
+            // console.warn("Autoplay prevented. User interaction required."); // Removed debug log
             toast.info("Audio paused. Click play to start.");
             setIsPlaying(false); 
             // IMPORTANT: If autoplay fails, we need to sync this back to the room
             // so other users know this client is not playing.
             syncState(currentStation, false); // Sync the actual state (paused)
           } else {
-            console.error("Audio playback error:", error);
+            // console.error("Audio playback error:", error); // Removed debug log
             toast.error("Audio playback failed.");
             setIsPlaying(false); 
             syncState(currentStation, false); // Sync the actual state (paused)
@@ -198,10 +198,10 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
             setIsPlaying(newPlayStatus); 
         } catch (e: any) {
             if (e.name === 'NotAllowedError') {
-                console.warn("Autoplay prevented. User interaction required.");
+                // console.warn("Autoplay prevented. User interaction required."); // Removed debug log
                 toast.info("Audio paused. Click play to start.");
             } else {
-                console.error("Audio playback error:", e);
+                // console.error("Audio playback error:", e); // Removed debug log
                 toast.error("Audio playback failed.");
             }
             newPlayStatus = false; 

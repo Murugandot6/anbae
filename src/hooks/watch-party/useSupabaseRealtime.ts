@@ -57,12 +57,12 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
   }, []);
 
   useEffect(() => {
-    console.log(`[Realtime Debug] Setting up channel for room: ${roomId}`);
+    // console.log(`[Realtime Debug] Setting up channel for room: ${roomId}`); // Removed debug log
     const fetchInitialData = async () => {
       // Fetch chat messages
       const { data: msgData, error: msgError } = await supabase.from('watch_party_chat_messages').select('*').eq('room_id', roomId).order('created_at', { ascending: true });
       if (msgError) {
-        console.error('Error fetching messages:', msgError.message);
+        // console.error('Error fetching messages:', msgError.message); // Removed debug log
         addSystemMessage(`Failed to load chat history: ${msgError.message}`);
       } else {
         const formattedMessages = msgData.map((msg: any) => ({
@@ -74,7 +74,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       // Fetch video history
       const { data: historyData, error: historyError } = await supabase.from('watch_party_video_history').select('*').eq('room_id', roomId).order('created_at', { ascending: false });
       if (historyError) {
-        console.error('Error fetching video history:', historyError.message);
+        // console.error('Error fetching video history:', historyError.message); // Removed debug log
         addSystemMessage(`Failed to load video history: ${historyError.message}`);
       } else {
         const formattedHistory = historyData.map((item: any) => ({
@@ -106,15 +106,15 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     });
 
     // New: Listener for video reactions via postgres_changes
-    console.log(`[Realtime Debug] Attaching 'reactions' postgres_changes listener.`);
+    // console.log(`[Realtime Debug] Attaching 'reactions' postgres_changes listener.`); // Removed debug log
     channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions', filter: `room_id=eq.${roomId}` }, (payload) => {
-      console.log(`[Reaction Debug] Postgres change for reaction received! Payload:`, payload.new);
+      // console.log(`[Reaction Debug] Postgres change for reaction received! Payload:`, payload.new); // Removed debug log
       const { emoji, id } = payload.new;
       const reactionId = `${emoji}-${id}`; // Use DB ID for uniqueness
       
       setActiveReactions(prev => {
         const newReactions = [...prev, { id: reactionId, emoji, timestamp: Date.now() }];
-        console.log(`[Reaction Debug] Active reactions updated:`, newReactions); 
+        // console.log(`[Reaction Debug] Active reactions updated:`, newReactions); // Removed debug log
         return newReactions;
       });
 
@@ -122,21 +122,21 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       setTimeout(() => {
         setActiveReactions(prev => {
           const filtered = prev.filter(r => r.id !== reactionId);
-          console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); 
+          // console.log(`[Reaction Debug] Reaction removed. Remaining:`, filtered); // Removed debug log
           return filtered;
         });
       }, 5000); 
     });
 
     // Existing broadcast listeners for video state (these remain as they are for sync)
-    console.log(`[Realtime Debug] Attaching 'video_state_update' broadcast listener.`);
+    // console.log(`[Realtime Debug] Attaching 'video_state_update' broadcast listener.`); // Removed debug log
     channel.on('broadcast', { event: 'video_state_update' }, ({ payload }) => {
       if (payload.senderId !== user.id) {
         setVideoState(payload.newState);
       }
     });
     
-    console.log(`[Realtime Debug] Attaching 'REQUEST_VIDEO_STATE' broadcast listener.`);
+    // console.log(`[Realtime Debug] Attaching 'REQUEST_VIDEO_STATE' broadcast listener.`); // Removed debug log
     channel.on('broadcast', { event: 'REQUEST_VIDEO_STATE' }, ({ payload }) => {
       if (payload.senderId !== user.id && videoStateRef.current) {
         channel.send({
@@ -145,7 +145,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       }
     });
 
-    console.log(`[Realtime Debug] Attaching 'SYNC_VIDEO_STATE' broadcast listener.`);
+    // console.log(`[Realtime Debug] Attaching 'SYNC_VIDEO_STATE' broadcast listener.`); // Removed debug log
     channel.on('broadcast', { event: 'SYNC_VIDEO_STATE' }, ({ payload }) => {
       if (payload.senderId !== user.id) {
         setVideoState(payload.videoState);
@@ -160,22 +160,22 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
     }));
 
     channel.subscribe(async (status, err) => {
-      console.log(`[Realtime Debug] Channel subscription status: ${status}`);
+      // console.log(`[Realtime Debug] Channel subscription status: ${status}`); // Removed debug log
       if (status === 'SUBSCRIBED') {
         setIsConnectedToRealtime(true);
-        console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current);
+        // console.log(`[Realtime Debug] Channel ref after subscribe:`, channelRef.current); // Removed debug log
         await channel.track({ user_name: user.name, joined_at: new Date().toISOString() });
         channel.send({ type: 'broadcast', event: 'REQUEST_VIDEO_STATE', payload: { senderId: user.id } });
 
       } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
         setIsConnectedToRealtime(false);
-        console.error(`Realtime channel error or closed: ${status}`, err);
+        // console.error(`Realtime channel error or closed: ${status}`, err); // Removed debug log
         toast.error(`Realtime connection lost: ${err?.message || 'Please refresh.'}`);
       }
     });
 
     return () => {
-      console.log(`[Realtime Debug] Cleaning up channel for room: ${roomId}`);
+      // console.log(`[Realtime Debug] Cleaning up channel for room: ${roomId}`); // Removed debug log
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -198,7 +198,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
           payload: { newState: newStateWithTimestamp, senderId: user.id },
         });
       } else {
-        console.warn("[Realtime Debug] Not connected to send video state update.");
+        // console.warn("[Realtime Debug] Not connected to send video state update."); // Removed debug log
       }
       return newStateWithTimestamp;
     });
@@ -213,7 +213,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       room_id: roomId, user_id: user.id, author_name: user.name, text: text,
     });
     if (error) {
-      console.error('Error sending message:', error.message);
+      // console.error('Error sending message:', error.message); // Removed debug log
       addSystemMessage(`Could not send message: ${error.message}`);
     }
   }, [roomId, user.id, user.name, addSystemMessage, isConnectedToRealtime]);
@@ -224,14 +224,14 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       toast.error("Cannot send reaction: Not connected to room.");
       return;
     }
-    console.log(`[Reaction Debug] Inserting reaction: ${emoji} for room: ${roomId}`);
+    // console.log(`[Reaction Debug] Inserting reaction: ${emoji} for room: ${roomId}`); // Removed debug log
     const { error } = await supabase.from('reactions').insert({
       room_id: roomId,
       emoji: emoji,
       // user_id is automatically set by RLS policy and default value
     });
     if (error) {
-      console.error('Error sending reaction to DB:', error.message);
+      // console.error('Error sending reaction to DB:', error.message); // Removed debug log
       toast.error(`Failed to send reaction: ${error.message}`);
     }
   }, [roomId, isConnectedToRealtime]);
@@ -245,7 +245,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       .eq('id', roomId);
 
     if (updateError) {
-      console.error('Error updating video source:', updateError);
+      // console.error('Error updating video source:', updateError); // Removed debug log
       addSystemMessage(`Error: Could not change video. ${updateError.message}`);
       return;
     }
@@ -255,7 +255,7 @@ export const useSupabaseRealtime = (roomId: string, initialVideoUrl: string | nu
       .insert({ room_id: roomId, user_id: user.id, user_name: user.name, video_url: newUrl });
 
     if (historyError) {
-      console.error('Error adding to video history:', historyError.message);
+      // console.error('Error adding to video history:', historyError.message); // Removed debug log
     }
     
     sendVideoAction({ type: 'source', payload: newUrl });
