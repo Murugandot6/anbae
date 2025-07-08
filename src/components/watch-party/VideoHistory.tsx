@@ -29,7 +29,7 @@ const VideoHistory: React.FC<VideoHistoryProps> = ({ history, onSelectVideo, cla
           <span className="text-sm sm:text-base">Video History ({history.length})</span> {/* Adjusted font size */}
         </div>
         <svg
-          className={`w-4 h-4 sm:w-5 h-5 transform transition-transform text-foreground ${isOpen ? 'rotate-180' : ''}`} {/* Adjusted icon size */}
+          className={`w-4 h-4 sm:w-5 h-5 transform transition-transform text-foreground ${isOpen ? 'rotate-180' : ''}`} /* Adjusted icon size */
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
