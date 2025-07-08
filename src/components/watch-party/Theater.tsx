@@ -112,7 +112,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               </div>
               
               {/* Page Title */}
-              <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground ml-auto sm:ml-4">Watch Party</h1>
+              <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground ml-auto sm:ml-4">Theater</h1>
             </div>
 
             {/* Bottom row (mobile) / Right side (desktop): Room code, Copy, Leave */}
