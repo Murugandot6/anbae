@@ -122,8 +122,8 @@ const WatchParty: React.FC = () => {
     return (
         <>
             <Helmet>
-                <title>Watch Party - Anbae</title>
-                <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
+                <title>Theater - Anbae</title>
+                <meta name="description" content="Join or create a theater to watch videos with your partner in real-time." />
             </Helmet>
             <BackgroundWrapper solid>
                 <div className="w-full max-w-sm sm:max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-6 sm:p-8 rounded-xl shadow-lg text-center">
@@ -138,8 +138,8 @@ const WatchParty: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Watch Party - Anbae</title>
-        <meta name="description" content="Join or create a watch party to watch videos with your partner in real-time." />
+        <title>Theater - Anbae</title>
+        <meta name="description" content="Join or create a theater to watch videos with your partner in real-time." />
       </Helmet>
       <BackgroundWrapper className="pt-0 md:pt-0" solid>
         <main className="flex-grow min-h-0 w-full p-0">
@@ -147,7 +147,7 @@ const WatchParty: React.FC = () => {
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
           ) : (
             <>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-6 sm:mb-8 text-foreground text-center">Watch Party</h1>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-6 sm:mb-8 text-foreground text-center">Theater</h1>
               <Dashboard onJoinRoom={handleJoinRoom} />
             </>
           )}

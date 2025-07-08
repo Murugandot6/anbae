@@ -1,16 +1,16 @@
 import React from 'react';
-import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
+import { useConcertPlayer } from '@/contexts/ConcertPlayerContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { PlayIcon, PauseIcon, XIcon, RadioIcon } from '@/features/waveroom/components/icons';
+import { PlayIcon, PauseIcon, XIcon, RadioIcon } from '@/features/concert/components/icons'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const GlobalWaveRoomPlayer: React.FC = () => {
-  const { currentStation, isPlaying, togglePlay, clearStation, roomCode } = useWaveRoomPlayer();
+const GlobalConcertPlayer: React.FC = () => {
+  const { currentStation, isPlaying, togglePlay, clearStation, roomCode } = useConcertPlayer();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const showMiniPlayer = currentStation && (location.pathname !== `/waveroom/${roomCode}`);
+  const showMiniPlayer = currentStation && (location.pathname !== `/concert/${roomCode}`); // Updated route
 
   if (!showMiniPlayer) {
     return null;
@@ -26,7 +26,7 @@ const GlobalWaveRoomPlayer: React.FC = () => {
 
   const handleGoToRoom = () => {
     if (roomCode) {
-      navigate(`/waveroom/${roomCode}`);
+      navigate(`/concert/${roomCode}`); // Updated route
     }
   };
 
@@ -88,4 +88,4 @@ const GlobalWaveRoomPlayer: React.FC = () => {
   );
 };
 
-export default GlobalWaveRoomPlayer;
+export default GlobalConcertPlayer;

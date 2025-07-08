@@ -112,7 +112,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
           </Link>
         </div>
         {/* Title for the dashboard */}
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tighter text-foreground mx-auto">Theater</h1>
         <div className="flex-shrink-0 w-9 sm:w-10"></div> {/* Spacer for alignment */}
       </div>
       

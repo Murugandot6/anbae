@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Station } from '@/features/waveroom/types';
+import { Station } from '@/features/concert/types'; // Updated import path
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useSession } from '@/contexts/SessionContext';
 
-interface WaveRoomPlayerContextType {
+interface ConcertPlayerContextType { // Renamed context type
   currentStation: Station | null;
   isPlaying: boolean;
   roomCode: string | null;
@@ -17,9 +17,9 @@ interface WaveRoomPlayerContextType {
   isConnectedToRoom: boolean;
 }
 
-const WaveRoomPlayerContext = createContext<WaveRoomPlayerContextType | undefined>(undefined);
+const ConcertPlayerContext = createContext<ConcertPlayerContextType | undefined>(undefined); // Renamed context
 
-export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { // Renamed provider
   const { user } = useSession();
   const navigate = useNavigate();
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
@@ -54,7 +54,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
 
     // Update database for persistence
     const { error: dbError } = await supabase
-      .from('wave_rooms')
+      .from('wave_rooms') // Table name remains 'wave_rooms' in DB
       .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
       .eq('code', activeRoomCode);
     
@@ -66,7 +66,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     if (channelRef.current) {
       channelRef.current.send({
         type: 'broadcast',
-        event: 'wave_room_state_update',
+        event: 'concert_state_update', // Renamed event
         payload: { newState: stationToSave, isPlaying: playStatus, senderId: user.id },
       });
     }
@@ -77,14 +77,14 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
     const setupRoom = async (code: string) => {
       // 1. Fetch initial state from DB for new joiners
       const { data, error } = await supabase
-        .from('wave_rooms')
+        .from('wave_rooms') // Table name remains 'wave_rooms' in DB
         .select('current_station, is_playing')
         .eq('code', code)
         .single();
 
       if (error || !data) {
         toast.error(`Could not join room ${code}. It may not exist.`);
-        navigate('/waveroom');
+        navigate('/concert'); // Updated route
         return;
       }
 
@@ -94,7 +94,7 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
 
       // 2. Subscribe to BROADCAST messages for real-time updates
       const channel = supabase.channel(`room:${code}`) // Using a simpler channel name for broadcast
-        .on('broadcast', { event: 'wave_room_state_update' }, (payload) => {
+        .on('broadcast', { event: 'concert_state_update' }, (payload) => { // Renamed event
           // Only update if the broadcast came from another user
           if (payload.payload.senderId !== userIdRef.current) {
             setCurrentStation(payload.payload.newState);
@@ -239,17 +239,17 @@ export const WaveRoomPlayerProvider: React.FC<{ children: React.ReactNode }> = (
   };
 
   return (
-    <WaveRoomPlayerContext.Provider value={value}>
+    <ConcertPlayerContext.Provider value={value}> {/* Renamed context */}
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
       {children}
-    </WaveRoomPlayerContext.Provider>
+    </ConcertPlayerContext.Provider>
   );
 };
 
-export const useWaveRoomPlayer = () => {
-  const context = useContext(WaveRoomPlayerContext);
+export const useConcertPlayer = () => { // Renamed hook
+  const context = useContext(ConcertPlayerContext); // Renamed context
   if (context === undefined) {
-    throw new Error('useWaveRoomPlayer must be used within a WaveRoomPlayerProvider');
+    throw new Error('useConcertPlayer must be used within a ConcertPlayerProvider'); // Renamed error message
   }
   return context;
 };

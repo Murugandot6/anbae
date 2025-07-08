@@ -9,7 +9,7 @@ import { WaveIcon, RadioIcon } from '../components/icons'; // Keep both imports,
 import { toast } from 'sonner';
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
+import { useConcertPlayer } from '@/contexts/ConcertPlayerContext'; // Updated import
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
 
@@ -22,9 +22,9 @@ const generateRoomCode = (): string => {
     return result;
 }
 
-const WaveRoomPage: React.FC = () => {
+const ConcertPage: React.FC = () => { // Renamed component
   const navigate = useNavigate();
-  const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useWaveRoomPlayer();
+  const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useConcertPlayer(); // Updated hook
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ const WaveRoomPage: React.FC = () => {
 
   useEffect(() => {
     if (activePlayerRoomCode && isConnectedToRoom) {
-      navigate(`/waveroom/${activePlayerRoomCode}`);
+      navigate(`/concert/${activePlayerRoomCode}`); // Updated route
     }
   }, [activePlayerRoomCode, isConnectedToRoom, navigate]);
 
@@ -48,7 +48,7 @@ const WaveRoomPage: React.FC = () => {
     while (!isCodeUnique && attempts < 10) {
         roomCode = generateRoomCode();
         const { error: checkError } = await supabase
-            .from('wave_rooms')
+            .from('wave_rooms') // Table name remains 'wave_rooms' in DB
             .select('code')
             .eq('code', roomCode)
             .single();
@@ -71,7 +71,7 @@ const WaveRoomPage: React.FC = () => {
     }
 
     const { data: newRoom, error: insertError } = await supabase
-      .from('wave_rooms')
+      .from('wave_rooms') // Table name remains 'wave_rooms' in DB
       .insert({ code: roomCode, is_playing: false })
       .select()
       .single();
@@ -80,7 +80,7 @@ const WaveRoomPage: React.FC = () => {
       console.error('Error creating room:', insertError);
       setCreateError(`Could not create a room: ${insertError.message}. Please try again.`);
     } else if (newRoom) {
-      navigate(`/waveroom/${newRoom.code}`);
+      navigate(`/concert/${newRoom.code}`); // Updated route
     }
     setLoading(null);
   };
@@ -98,7 +98,7 @@ const WaveRoomPage: React.FC = () => {
     const codeToJoin = joinCode.trim().toUpperCase();
 
     const { data, error: findError } = await supabase
-      .from('wave_rooms')
+      .from('wave_rooms') // Table name remains 'wave_rooms' in DB
       .select('code')
       .eq('code', codeToJoin)
       .single();
@@ -107,7 +107,7 @@ const WaveRoomPage: React.FC = () => {
       console.error('Error finding room:', findError);
       setJoinError(`Room with code "${codeToJoin}" not found.`);
     } else {
-      navigate(`/waveroom/${data.code}`);
+      navigate(`/concert/${data.code}`); // Updated route
     }
     setLoading(null);
   };
@@ -115,8 +115,8 @@ const WaveRoomPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Wave Room - Anbae</title>
-        <meta name="description" content="Create or join a Wave Room to listen to internet radio stations with your partner in real-time." />
+        <title>Concert - Anbae</title>
+        <meta name="description" content="Create or join a Concert to listen to internet radio stations with your partner in real-time." />
       </Helmet>
       <BackgroundWrapper className="pt-0 md:pt-0">
         <div className="relative w-full max-w-xl sm:max-w-4xl mx-auto mt-16 md:mt-8 mb-8 sm:mb-12 px-4"> {/* Adjusted max-width and padding */}
@@ -136,8 +136,8 @@ const WaveRoomPage: React.FC = () => {
           </div>
           <div className="text-center">
             <WaveIcon className="w-16 h-16 sm:w-20 h-20 text-primary mx-auto mb-3 sm:mb-4" /> {/* Adjusted icon size */}
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-1 sm:mb-2 text-foreground">Wave Room</h1> {/* Adjusted font size */}
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p> {/* Adjusted font size */}
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tighter mb-1 sm:mb-2 text-foreground">Concert</h1> {/* Updated text */}
+            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">Listen to internet radio with friends, in real-time.</p> {/* Updated text */}
           </div>
         </div>
         
@@ -195,4 +195,4 @@ const WaveRoomPage: React.FC = () => {
   );
 };
 
-export default WaveRoomPage;
+export default ConcertPage;

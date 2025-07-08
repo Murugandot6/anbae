@@ -7,7 +7,7 @@ import { XIcon } from './icons/XIcon';
 import { VolumeUpIcon } from './icons/VolumeUpIcon';
 import { VolumeOffIcon } from './icons/VolumeOffIcon';
 
-interface WaveRoomControlsProps {
+interface ConcertControlsProps { // Renamed interface
   station: Station;
   isPlaying: boolean;
   onSetPlaying: () => void;
@@ -15,7 +15,7 @@ interface WaveRoomControlsProps {
   onShowStation: (station: Station) => void;
 }
 
-const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying, onSetPlaying, onClear, onShowStation }) => {
+const ConcertControls: React.FC<ConcertControlsProps> = ({ station, isPlaying, onSetPlaying, onClear, onShowStation }) => { // Renamed component
   const [isMuted, setIsMuted] = useState(false);
 
   const handlePlayPauseClick = () => {
@@ -84,4 +84,4 @@ const WaveRoomControls: React.FC<WaveRoomControlsProps> = ({ station, isPlaying,
   );
 };
 
-export default WaveRoomControls;
+export default ConcertControls;

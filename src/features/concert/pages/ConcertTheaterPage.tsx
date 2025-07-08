@@ -4,10 +4,10 @@ import { Station } from '../types';
 import { getTopClickedStations, searchStations, getLanguages, getCountries, getTags } from '../api/radioService';
 import SearchBar from '../components/SearchBar';
 import StationList from '../components/StationList';
-import WaveRoomControls from '../components/WaveRoomControls';
+import ConcertControls from '../components/ConcertControls'; // Updated import
 import { WaveIcon } from '../components/icons';
 import FilterBar from '../components/FilterBar';
-import { useWaveRoomPlayer } from '@/contexts/WaveRoomPlayerContext';
+import { useConcertPlayer } from '@/contexts/ConcertPlayerContext'; // Updated import
 import { Button } from '@/components/ui/button';
 import { Copy, LogOut, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
 
-const WaveRoomTheaterPage: React.FC = () => {
+const ConcertTheaterPage: React.FC = () => { // Renamed component
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const { user: authUser, loading: sessionLoading } = useSession();
@@ -28,7 +28,7 @@ const WaveRoomTheaterPage: React.FC = () => {
     setStation,
     togglePlay,
     clearStation
-  } = useWaveRoomPlayer();
+  } = useConcertPlayer(); // Updated hook
 
   const [stations, setStations] = useState<Station[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState<boolean>(true);
@@ -132,7 +132,7 @@ const WaveRoomTheaterPage: React.FC = () => {
     clearStation();
     setRoom(null);
     navigate('/dashboard');
-    toast.info("You have left the Wave Room.");
+    toast.info("You have left the Concert."); // Updated text
   };
 
   const buildTitle = (): string => {
@@ -151,13 +151,13 @@ const WaveRoomTheaterPage: React.FC = () => {
   }
 
   if (!authUser) {
-    toast.error("You must be logged in to enter a Wave Room.");
+    toast.error("You must be logged in to enter a Concert."); // Updated text
     navigate('/login');
     return null;
   }
 
   if (!roomCode) {
-    navigate('/waveroom');
+    navigate('/concert'); // Updated route
     return null;
   }
 
@@ -166,8 +166,8 @@ const WaveRoomTheaterPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>{`Wave Room ${roomCode} - Anbae`}</title>
-        <meta name="description" content={`Listen to internet radio with your partner in Wave Room ${roomCode}.`} />
+        <title>{`Concert ${roomCode} - Anbae`}</title> {/* Updated text */}
+        <meta name="description" content={`Listen to internet radio with your partner in Concert ${roomCode}.`} /> {/* Updated text */}
       </Helmet>
       <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
         <main className="flex-grow overflow-y-auto pb-28 sm:pb-32"> {/* Main content is now scrollable */}
@@ -189,7 +189,7 @@ const WaveRoomTheaterPage: React.FC = () => {
               {/* Right side content */}
               <div className="flex flex-col items-end gap-2">
                   {/* Page Title */}
-                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Wave Room</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Concert</h1> {/* Updated text */}
 
                   {/* Room code and Leave button */}
                   <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
@@ -240,7 +240,7 @@ const WaveRoomTheaterPage: React.FC = () => {
         </main>
 
         {isCurrentRoomActive && currentStation && (
-          <WaveRoomControls
+          <ConcertControls // Updated component
             station={currentStation}
             isPlaying={isPlaying}
             onSetPlaying={togglePlay}
@@ -253,4 +253,4 @@ const WaveRoomTheaterPage: React.FC = () => {
   );
 };
 
-export default WaveRoomTheaterPage;
+export default ConcertTheaterPage;

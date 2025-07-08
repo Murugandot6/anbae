@@ -7,8 +7,8 @@ import { Routes, Route } from "react-router-dom";
 import { SessionContextProvider } from "./contexts/SessionContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { WaveRoomPlayerProvider } from "./contexts/WaveRoomPlayerContext";
-import GlobalWaveRoomPlayer from "./components/GlobalWaveRoomPlayer";
+import { ConcertPlayerProvider } from "./contexts/ConcertPlayerContext";
+import GlobalConcertPlayer from "./components/GlobalConcertPlayer";
 import { HelmetProvider } from "react-helmet-async"; // Import HelmetProvider
 import LoadingPulsar from "./components/LoadingPulsar";
 
@@ -24,11 +24,11 @@ const Messages = lazy(() => import("./pages/Messages"));
 const ViewMessage = lazy(() => import("./pages/ViewMessage"));
 const OnboardingWelcome = lazy(() => import("./pages/OnboardingWelcome"));
 const Journal = lazy(() => import("./pages/Journal"));
-const WatchParty = lazy(() => import("./pages/WatchParty"));
+const Theater = lazy(() => import("./pages/WatchParty")); // Renamed from WatchParty
 const CreatePromposal = lazy(() => import("./pages/CreatePromposal"));
 const ViewPromposal = lazy(() => import("./pages/ViewPromposal"));
-const WaveRoomPage = lazy(() => import("./features/waveroom/pages/WaveRoomPage"));
-const WaveRoomTheaterPage = lazy(() => import("./features/waveroom/pages/WaveRoomTheaterPage"));
+const ConcertPage = lazy(() => import("./features/concert/pages/ConcertPage")); // Renamed from WaveRoomPage
+const ConcertTheaterPage = lazy(() => import("./features/concert/pages/ConcertTheaterPage")); // Renamed from WaveRoomTheaterPage
 const UserManual = lazy(() => import("./pages/UserManual"));
 
 const queryClient = new QueryClient();
@@ -42,7 +42,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <SessionContextProvider>
-              <WaveRoomPlayerProvider>
+              <ConcertPlayerProvider>
                 {/* Removed Red Border Debugging */}
                 <div className="flex flex-col"> {/* Removed h-screen here */}
                   <Suspense fallback={
@@ -66,10 +66,10 @@ const App = () => {
                         <Route path="/edit-profile" element={<EditProfile />} />
                         <Route path="/messages" element={<Messages />} />
                         <Route path="/messages/:id" element={<ViewMessage />} />
-                        <Route path="/watch-party" element={<WatchParty />} />
+                        <Route path="/theater" element={<Theater />} /> {/* Renamed route */}
                         <Route path="/promposal/create" element={<CreatePromposal />} />
-                        <Route path="/waveroom" element={<WaveRoomPage />} />
-                        <Route path="/waveroom/:roomCode" element={<WaveRoomTheaterPage />} />
+                        <Route path="/concert" element={<ConcertPage />} /> {/* Renamed route */}
+                        <Route path="/concert/:roomCode" element={<ConcertTheaterPage />} /> {/* Renamed route */}
                         <Route path="/manual" element={<UserManual />} />
                       </Route>
 
@@ -77,9 +77,9 @@ const App = () => {
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
-                  <GlobalWaveRoomPlayer />
+                  <GlobalConcertPlayer />
                 </div>
-              </WaveRoomPlayerProvider>
+              </ConcertPlayerProvider>
             </SessionContextProvider>
           </TooltipProvider>
         </ThemeProvider>

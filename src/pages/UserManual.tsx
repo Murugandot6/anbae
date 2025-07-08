@@ -99,7 +99,7 @@ const UserManual: React.FC = () => {
             <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl p-3 sm:p-4">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-foreground">
-                  <Film className="w-5 h-5 sm:w-6 h-6 text-primary" /> Watch Party
+                  <Film className="w-5 h-5 sm:w-6 h-6 text-primary" /> Theater
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 text-sm sm:text-base">
@@ -117,7 +117,7 @@ const UserManual: React.FC = () => {
             <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl p-3 sm:p-4">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-foreground">
-                  <Radio className="w-5 h-5 sm:w-6 h-6 text-primary" /> Wave Room
+                  <Radio className="w-5 h-5 sm:w-6 h-6 text-primary" /> Concert
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0 text-sm sm:text-base">
