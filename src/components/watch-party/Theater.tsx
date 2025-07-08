@@ -134,7 +134,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex flex-col sm:flex-row items-stretch min-h-0 gap-4 sm:gap-6", // Changed to flex-col on mobile, flex-row on sm and up, adjusted gap
+          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8", // Increased gap here
           {
             "h-full": isTheaterFullscreen, // Row and full height when fullscreen
             "h-[calc(100vh-140px)] sm:h-[calc(100vh-176px)]": !isTheaterFullscreen, // Adjusted fixed height for mobile and desktop
@@ -142,7 +142,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col gap-3 sm:gap-4", // Use gap for spacing, adjusted gap
+            "relative w-full flex flex-col gap-4 sm:gap-6", // Increased gap here
             "flex-1 min-h-0",
             {
               "sm:w-2/3": !isTheaterFullscreen, // Apply width on sm and up
