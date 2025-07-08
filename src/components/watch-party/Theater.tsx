@@ -95,30 +95,33 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
         {!isTheaterFullscreen && (
-          <div className="flex items-center justify-between mb-3 sm:mb-4 flex-shrink-0"> {/* flex-shrink-0 is important, adjusted margin-bottom */}
-            {/* Back button on the left */}
-            <div className="flex-shrink-0">
-              <Button
-                onClick={() => navigate('/dashboard')}
-                variant="outline"
-                size="icon"
-                className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-                aria-label="Back to Dashboard"
-              >
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
+            {/* Top row: Back button and Title */}
+            <div className="flex items-center justify-between w-full sm:w-auto mb-3 sm:mb-0">
+              {/* Back button */}
+              <div className="flex-shrink-0">
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  variant="outline"
+                  size="icon"
+                  className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                  aria-label="Back to Dashboard"
+                >
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              </div>
+              
+              {/* Page Title */}
+              <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground ml-auto sm:ml-4">Watch Party</h1>
             </div>
-            
-            {/* Page Title */}
-            <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1> {/* Adjusted font size */}
 
-            {/* Room code and Leave button on the right */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0"> {/* Adjusted gap */}
-              <div className="flex items-center gap-1 sm:gap-2"> {/* Adjusted gap */}
-                <p className="text-xs sm:text-sm text-muted-foreground">Share Code:</p> {/* Adjusted font size */}
-                <p className="text-sm sm:text-lg font-mono text-primary bg-input/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-border/50">{room.room_code}</p> {/* Adjusted font size and padding */}
-                <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors h-auto"> {/* Adjusted font size, padding, and height */}
-                  <ClipboardCopyIcon className="h-3 w-3 sm:h-4 sm:w-4" /> {/* Adjusted icon size */}
+            {/* Bottom row (mobile) / Right side (desktop): Room code, Copy, Leave */}
+            <div className="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-4">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">Share Code:</p>
+                <p className="text-sm sm:text-lg font-mono text-primary bg-input/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-border/50">{room.room_code}</p>
+                <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors h-auto">
+                  <ClipboardCopyIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                   {copyStatus}
                 </Button>
               </div>
