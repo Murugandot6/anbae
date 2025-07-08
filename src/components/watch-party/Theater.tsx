@@ -8,7 +8,7 @@ import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
 import VideoHistory from '@/components/watch-party/VideoHistory';
 import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
-import { toast }nner'; // Import sonner toast
+import { toast } from 'sonner'; // Import sonner toast
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
 import clsx from 'clsx'; // Import clsx for conditional classes
 
