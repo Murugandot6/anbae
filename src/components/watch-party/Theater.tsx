@@ -148,35 +148,34 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               "sm:w-2/3": !isTheaterFullscreen, // Apply width on sm and up
             }
           )}>
-            {/* Video Player */}
-            <div className="flex-shrink-0">
-              <div className={clsx(
-                "relative w-full rounded-xl overflow-hidden",
-                {
-                  "h-0 pb-[56.25%]": !isTheaterFullscreen, // Apply aspect ratio hack when not fullscreen
-                  "h-full": isTheaterFullscreen // Take full height in fullscreen
-                }
-              )}>
-                <VideoPlayer
-                  videoState={videoState}
-                  sendVideoAction={sendVideoAction}
-                  messages={messages}
-                  sendMessage={sendMessage}
-                  currentUser={user}
-                  sendVideoReaction={sendVideoReaction}
-                  activeReactions={activeReactions}
-                  isConnectedToRealtime={isConnectedToRealtime}
-                  onToggleFullscreen={handleToggleFullscreen}
-                  isTheaterFullscreen={isTheaterFullscreen}
-                  className={clsx({
-                    "absolute top-0 left-0 w-full h-full": !isTheaterFullscreen, // Position absolutely within aspect ratio parent
-                    "w-full h-full": isTheaterFullscreen // Fill parent when fullscreen
-                  })}
-                />
-              </div>
+            {/* Video Player Container - This needs to grow to match chat */}
+            <div className={clsx(
+              "relative w-full rounded-xl overflow-hidden",
+              "flex-grow", // Make this grow
+              {
+                "h-0 pb-[56.25%]": !isTheaterFullscreen, // Aspect ratio for non-fullscreen
+                "h-full": isTheaterFullscreen // Full height for fullscreen
+              }
+            )}>
+              <VideoPlayer
+                videoState={videoState}
+                sendVideoAction={sendVideoAction}
+                messages={messages}
+                sendMessage={sendMessage}
+                currentUser={user}
+                sendVideoReaction={sendVideoReaction}
+                activeReactions={activeReactions}
+                isConnectedToRealtime={isConnectedToRealtime}
+                onToggleFullscreen={handleToggleFullscreen}
+                isTheaterFullscreen={isTheaterFullscreen}
+                className={clsx({
+                  "absolute top-0 left-0 w-full h-full": !isTheaterFullscreen, // Position absolutely within aspect ratio parent
+                  "w-full h-full": isTheaterFullscreen // Fill parent when fullscreen
+                })}
+              />
             </div>
 
-            {/* Form and History - only shown when not fullscreen */}
+            {/* Form and History - these should shrink */}
             {!isTheaterFullscreen && (
               <>
                 <form onSubmit={handleSetVideo} className={clsx(
