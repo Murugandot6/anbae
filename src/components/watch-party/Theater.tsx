@@ -134,15 +134,15 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8", // Removed flex-grow here
+          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8 flex-grow", // flex-grow to fill remaining vertical space
           {
             "h-full": isTheaterFullscreen, // Take full height in fullscreen
-            "h-[calc(100vh-120px)]": !isTheaterFullscreen // Fixed height when not fullscreen
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
             "relative w-full flex flex-col gap-4 sm:gap-6 flex-1 min-h-0", // flex-1 to take available horizontal space
+            // Removed "sm:w-2/3" as flex-1 will take remaining space
           )}>
             {/* Video Player Container - Now flex-shrink-0 to respect aspect ratio */}
             <div className={clsx(
@@ -203,11 +203,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             )}
           </div>
 
-          {/* Right Column: Chat Panel - Now flex-1 to match height */}
+          {/* Right Column: Chat Panel - Now with a fixed max-width */}
           {!isTheaterFullscreen && (
             <div
               className={clsx(
-                "w-full flex-1 flex flex-col min-h-[300px] sm:min-h-0", // flex-1 for equal width, min-h for mobile stacking
+                "w-full flex flex-col min-h-[300px] sm:min-h-0", // Removed flex-1 for flexible width
+                "sm:w-auto sm:max-w-[320px]" // Set a max-width for chat on sm and up
               )}
             >
               <Chat
