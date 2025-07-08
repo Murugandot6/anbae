@@ -253,7 +253,7 @@ const Dashboard = () => {
                 <h1 className="text-2xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 items-center justify-center gap-y-6 sm:gap-x-4 mb-8">
+              <div className="grid grid-cols-3 items-center justify-center gap-4 mb-8">
                 {/* Current User Profile */}
                 <div className="relative flex flex-col items-center text-center">
                   <CircularProgressAvatar
