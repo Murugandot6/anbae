@@ -4,7 +4,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } => 'sonner';
+import { toast } from 'sonner';
 import { Trash2, ArrowLeft, CalendarDays } from 'lucide-react'; // Import CalendarDays icon
 import BackgroundWrapper from '@/components/BackgroundWrapper';
 import { format, isSameDay } from 'date-fns';
