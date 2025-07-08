@@ -136,12 +136,13 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         <div className={clsx(
           "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8 flex-grow", // This row takes all available height
           {
-            "h-full": isTheaterFullscreen,
+            "h-full": isTheaterFullscreen, // Take full height in fullscreen
+            "h-[calc(100vh-120px)]": !isTheaterFullscreen // Fixed height when not fullscreen
           }
         )}>
-          {/* Video Player Container (now the primary flex item for height) */}
+          {/* Left Column: Video Player */}
           <div className={clsx(
-            "relative w-full rounded-xl overflow-hidden flex-1", // flex-1 for width, takes full height of parent
+            "relative w-full rounded-xl overflow-hidden flex-grow", // flex-grow to take all available horizontal space
             "h-full" // Explicitly make it fill height
           )}>
             <VideoPlayer
@@ -159,12 +160,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             />
           </div>
 
-          {/* Right Column: Chat Panel */}
+          {/* Right Column: Chat Panel - Now with a fixed width */}
           {!isTheaterFullscreen && (
             <div
               className={clsx(
                 "w-full flex flex-col min-h-[300px] sm:min-h-0",
-                "sm:w-auto sm:max-w-[320px]", // Fixed max-width for chat
+                "sm:w-[320px] sm:flex-shrink-0", // Set a fixed width for chat on sm and up, and prevent shrinking
                 "h-full" // Make chat take full height of its parent (main row)
               )}
             >
