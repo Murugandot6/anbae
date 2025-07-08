@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } => 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { JournalEntry } from '@/types/supabase';
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
@@ -62,7 +62,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
         </div>
         <div className="grid grid-cols-7 gap-0.5 sm:gap-1"> {/* Reduced gap */}
           {emptyCellsBefore.map((_, index) => (
-            <div key={`empty-${index}`} className="h-7 w-7 sm:h-8 sm:w-8"></div> {/* Adjust size if needed */}
+            // Adjust size if needed
+            <div key={`empty-${index}`} className="h-7 w-7 sm:h-8 sm:w-8"></div>
           ))}
           {daysInMonth.map(day => {
             const dateKey = format(day, 'yyyy-MM-dd');
