@@ -21,6 +21,7 @@ import { format, isSameDay } from 'date-fns';
 import JournalEntryCard from '@/components/JournalEntryCard'; // Import the renamed component
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -35,6 +36,7 @@ const Dashboard = () => {
   const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({});
   const [todayJournalEntry, setTodayJournalEntry] = useState<JournalEntry | null>(null); // State for today's entry
   const [refreshJournalTrigger, setRefreshJournalTrigger] = useState(0);
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     try {
@@ -259,7 +261,7 @@ const Dashboard = () => {
                     avatarUrl={currentUserProfile?.avatar_url || user.user_metadata.avatar_url || ''}
                     fallbackText={user.user_metadata.nickname?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'Y'}
                     altText="Your Avatar"
-                    size="md"
+                    size={isMobile ? 'sm' : 'md'}
                   />
                   <p className="font-semibold text-lg text-foreground mt-2">
                     {user.user_metadata.nickname || user.email}
@@ -283,7 +285,7 @@ const Dashboard = () => {
                         avatarUrl={partnerProfile.avatar_url}
                         fallbackText={partnerProfile.username?.charAt(0).toUpperCase() || partnerProfile.email?.charAt(0).toUpperCase() || 'P'}
                         altText="Partner Avatar"
-                        size="md"
+                        size={isMobile ? 'sm' : 'md'}
                       />
                       <p className="font-semibold text-lg text-foreground mt-2">
                         {partnerProfile.username || partnerProfile.email}
