@@ -170,7 +170,7 @@ const WaveRoomTheaterPage: React.FC = () => {
         <meta name="description" content={`Listen to internet radio with your partner in Wave Room ${roomCode}.`} />
       </Helmet>
       <div className="h-screen w-screen bg-background text-foreground flex flex-col antialiased">
-        <header className="bg-transparent backdrop-blur-md p-3 sm:p-4 z-20 sticky top-0">
+        <header className="bg-background p-3 sm:p-4">
           <div className="container mx-auto flex items-start justify-between gap-2 sm:gap-4">
             {/* Back button on the left */}
             <div className="flex-shrink-0">
