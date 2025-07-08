@@ -89,6 +89,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   // Control showFullscreenChat based on isTheaterFullscreen prop
   useEffect(() => {
+    // When entering fullscreen, show chat by default. When exiting, hide it.
     setShowFullscreenChat(isTheaterFullscreen);
   }, [isTheaterFullscreen]);
 
@@ -269,6 +270,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               </span>
             ))}
           </div>
+
+          {/* Fullscreen Chat Overlay */}
+          {isTheaterFullscreen && showFullscreenChat && (
+            <div className="absolute inset-y-0 right-0 w-full sm:w-[320px] z-40"> {/* Position to the right, fixed width */}
+              <Chat
+                messages={messages}
+                sendMessage={sendMessage}
+                currentUser={currentUser}
+                isOverlay={true}
+                onClose={() => setShowFullscreenChat(false)}
+              />
+            </div>
+          )}
 
           <div className={cn("absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}> {/* Adjusted padding */}
             <div className="flex flex-col gap-2">
