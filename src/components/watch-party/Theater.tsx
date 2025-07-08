@@ -136,8 +136,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         <div className={clsx(
           "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8", // Increased gap here
           {
-            "h-full": isTheaterFullscreen, // Row and full height when fullscreen
-            "h-[calc(100vh-140px)] sm:h-[calc(100vh-176px)]": !isTheaterFullscreen, // Adjusted fixed height for mobile and desktop
+            "flex-grow": !isTheaterFullscreen, // Allow this to grow to fill remaining space
+            "h-full": isTheaterFullscreen, // Take full height in fullscreen
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
@@ -202,7 +202,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   </Button>
                 </form>
 
-                <div className="pb-4 sm:pb-6"> {/* Adjusted padding */}
+                <div> {/* Removed pb-4 sm:pb-6 from here */}
                   <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
                 </div>
               </>
