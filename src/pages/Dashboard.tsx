@@ -249,11 +249,11 @@ const Dashboard = () => {
 
           <div className="flex-1 flex flex-col items-center p-4 md:p-8 relative">
             <div className="w-full max-w-4xl mx-auto animate-fade-in mt-16 md:mt-8">
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 sm:gap-0">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8 gap-4 sm:gap-0">
+                <h1 className="text-2xl md:text-4xl font-bold text-foreground text-center sm:text-left">Welcome, {user.user_metadata.nickname || user.email}!</h1>
               </div>
 
-              <div className="grid grid-cols-3 items-center justify-center gap-x-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 items-center justify-center gap-y-6 sm:gap-x-4 mb-8">
                 {/* Current User Profile */}
                 <div className="relative flex flex-col items-center text-center">
                   <CircularProgressAvatar
@@ -263,17 +263,17 @@ const Dashboard = () => {
                     altText="Your Avatar"
                     size={isMobile ? 'sm' : 'md'}
                   />
-                  <p className="font-semibold text-lg text-foreground mt-2">
+                  <p className="font-semibold text-base sm:text-lg text-foreground mt-2">
                     {user.user_metadata.nickname || user.email}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Lifetime Score: {currentUserProfile?.lifetime_score !== undefined && currentUserProfile?.lifetime_score !== null ? currentUserProfile.lifetime_score : 'N/A'}
                   </p>
                 </div>
 
                 {/* Heart Icon */}
                 <div className="flex items-center justify-center">
-                  <Heart className="w-12 h-12 text-primary dark:text-secondary" />
+                  <Heart className="w-10 h-10 sm:w-12 sm:h-12 text-primary dark:text-secondary" />
                 </div>
 
                 {/* Partner Profile */}
@@ -287,15 +287,15 @@ const Dashboard = () => {
                         altText="Partner Avatar"
                         size={isMobile ? 'sm' : 'md'}
                       />
-                      <p className="font-semibold text-lg text-foreground mt-2">
+                      <p className="font-semibold text-base sm:text-lg text-foreground mt-2">
                         {partnerProfile.username || partnerProfile.email}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Lifetime Score: {partnerProfile.lifetime_score !== undefined && partnerProfile.lifetime_score !== null ? partnerProfile.lifetime_score : 'N/A'}
                       </p>
                     </>
                   ) : (
-                    <p className="text-muted-foreground text-base py-8">No partner profile linked or found.</p>
+                    <p className="text-muted-foreground text-sm sm:text-base py-8">No partner profile linked or found.</p>
                   )}
                 </div>
               </div>
@@ -320,7 +320,7 @@ const Dashboard = () => {
                 />
               </div>
 
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 mt-8">Recent Messages</h2>
+              <h2 className="text-xl md:text-3xl font-bold text-foreground mb-6 mt-8">Recent Messages</h2>
               {user && (
                 <MessageTimeline
                   sentMessages={sentMessages}

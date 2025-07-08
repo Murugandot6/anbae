@@ -41,15 +41,15 @@ const renderMessageContent = (msg: Message, currentUser: Session['user'] | null,
     >
       <div
         className={cn(
-          "max-w-[70%] p-4 rounded-xl shadow-md",
+          "max-w-[85%] sm:max-w-[70%] p-3 sm:p-4 rounded-xl shadow-md",
           isSentByCurrentUser
             ? "bg-primary text-primary-foreground rounded-br-none"
             : "bg-secondary text-secondary-foreground dark:bg-muted-foreground/20 rounded-bl-none",
           isReply ? "mt-2" : ""
         )}
       >
-        <p className={cn("whitespace-pre-wrap text-base text-left", isSentByCurrentUser ? "text-primary-foreground" : "text-secondary-foreground dark:text-foreground")}>{msg.content}</p>
-        <div className={cn("text-xs mt-2", isSentByCurrentUser ? "text-primary-foreground/80 text-right" : "text-secondary-foreground/80 dark:text-muted-foreground text-left")}>
+        <p className={cn("whitespace-pre-wrap text-sm sm:text-base text-left", isSentByCurrentUser ? "text-primary-foreground" : "text-secondary-foreground dark:text-foreground")}>{msg.content}</p>
+        <div className={cn("text-xs mt-1 sm:mt-2", isSentByCurrentUser ? "text-primary-foreground/80 text-right" : "text-secondary-foreground/80 dark:text-muted-foreground text-left")}>
           {formattedDateTime}
           {msg.read_at && isSentByCurrentUser && (
             <span className="ml-2 flex items-center justify-end gap-1">
@@ -340,11 +340,11 @@ const ViewMessage = () => {
           <meta name="description" content="The message you are looking for does not exist or you do not have permission to view it." />
         </Helmet>
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 p-4 text-center pt-20">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Message Not Found</h2>
-          <p className="text-muted-foreground mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3 sm:mb-4">Message Not Found</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">The message you are looking for does not exist or you do not have permission to view it.</p>
           <Link to="/messages">
-            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
-              <ArrowLeft className="w-5 h-5 mr-2" /> Back to Messages
+            <Button variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-3">
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> Back to Messages
             </Button>
           </Link>
         </div>
@@ -368,43 +368,43 @@ const ViewMessage = () => {
         <title>{`Message with ${conversationPartnerName} - Anbae`}</title>
         <meta name="description" content={`View your conversation with ${conversationPartnerName} about ${message.subject}.`} />
       </Helmet>
-      <BackgroundWrapper className="pt-20">
-        <div className="w-full max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)]">
+      <BackgroundWrapper className="pt-16 sm:pt-20"> {/* Adjusted top padding */}
+        <div className="w-full max-w-xl sm:max-w-3xl mx-auto flex flex-col h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] px-4"> {/* Adjusted height and added horizontal padding */}
           {/* Ensure positioning is absolute for top-left corner */}
-          <div className="absolute top-4 left-4 z-10">
+          <div className="absolute top-3 left-3 z-10">
             <Link to="/messages">
-              <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
-                <ArrowLeft className="w-5 h-5" />
+              <Button variant="outline" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
           </div>
-          <div className="flex items-center justify-between mb-8 flex-shrink-0">
+          <div className="flex items-center justify-end mb-6 sm:mb-8 flex-shrink-0"> {/* Adjusted margin-bottom */}
             {/* The back button is now outside this flex container */}
             <div className="flex-grow"></div> {/* Spacer to push content to center/right */}
-            <div className="flex items-center gap-4">
-              <Avatar className="w-16 h-16 border-2 border-primary dark:border-primary-foreground">
+            <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
+              <Avatar className="w-12 h-12 sm:w-16 h-16 border-2 border-primary dark:border-primary-foreground"> {/* Adjusted avatar size */}
                 <AvatarImage src={conversationPartnerProfile?.avatar_url || ''} alt="Partner Avatar" />
-                <AvatarFallback className="bg-primary text-primary-foreground">{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-base sm:text-xl">{conversationPartnerName.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="text-right">
-                <h1 className="text-4xl font-bold text-foreground">
+                <h1 className="text-2xl sm:text-4xl font-bold text-foreground"> {/* Adjusted font size */}
                   {conversationPartnerName}
                 </h1>
-                <p className="text-xl text-muted-foreground mt-1 flex items-center justify-end gap-2">
+                <p className="text-base sm:text-xl text-muted-foreground mt-0.5 sm:mt-1 flex items-center justify-end gap-1 sm:gap-2"> {/* Adjusted font size and gap */}
                   {message.message_type}
                   {message.status === 'closed' && (
-                    <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground">Closed</Badge>
+                    <Badge variant="secondary" className="ml-1 sm:ml-2 bg-muted text-muted-foreground text-xs sm:text-sm px-2 py-0.5">Closed</Badge>
                   )}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-y-4 pb-28">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 flex flex-col gap-y-3 sm:gap-y-4 pb-24 sm:pb-28"> {/* Adjusted padding and gap */}
             {message && renderMessageContent(message, user)}
 
             {message && message.replies && message.replies.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4"> {/* Adjusted gap */}
                 {message.replies.map(reply => renderMessageContent(reply, user, true))}
               </div>
             )}
@@ -412,10 +412,10 @@ const ViewMessage = () => {
           </div>
 
           {message && canReply && (
-            <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-3xl mx-auto p-2 bg-transparent">
+            <div className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-xl sm:max-w-3xl mx-auto p-2 bg-transparent"> {/* Adjusted max-width and padding */}
               <Form {...replyForm}>
                 <form onSubmit={replyForm.handleSubmit(handleReply)} className="w-full">
-                  <div className="flex items-center gap-2 rounded-full px-2 py-1 bg-card/80 dark:bg-card/80 shadow-lg border border-border/50 backdrop-blur-md">
+                  <div className="flex items-center gap-1 sm:gap-2 rounded-full px-2 py-1 bg-card/80 dark:bg-card/80 shadow-lg border border-border/50 backdrop-blur-md"> {/* Adjusted gap and padding */}
                     <EmojiPickerPopover
                       isOpen={isEmojiPickerOpen}
                       onOpenChange={setIsEmojiPickerOpen}
@@ -425,7 +425,7 @@ const ViewMessage = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="flex-shrink-0 w-8 h-8 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         aria-label="Open emoji picker"
                       >
                         <Smile className="w-4 h-4" />
@@ -441,7 +441,7 @@ const ViewMessage = () => {
                               placeholder="Type a message..."
                               {...field}
                               rows={1}
-                              className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-foreground"
+                              className="w-full min-h-0 resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent shadow-none p-0 py-1 h-auto text-foreground text-sm sm:text-base"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   e.preventDefault();
@@ -459,7 +459,7 @@ const ViewMessage = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="flex-shrink-0 w-8 h-8 rounded-full text-destructive hover:bg-destructive/20"
+                        className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full text-destructive hover:bg-destructive/20"
                         onClick={handleCloseMessage}
                         aria-label="Close message"
                       >
@@ -470,7 +470,7 @@ const ViewMessage = () => {
                       type="submit"
                       variant="default"
                       size="icon"
-                      className="rounded-full flex-shrink-0 w-8 h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="rounded-full flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
                       disabled={!replyForm.formState.isValid || replyForm.formState.isSubmitting}
                     >
                       <Send className="w-4 h-4" />

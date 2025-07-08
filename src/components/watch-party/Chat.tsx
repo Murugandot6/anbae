@@ -40,8 +40,8 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
     )}>
       
       {/* 1. Header (Does not grow) */}
-      <div className={cn("flex-shrink-0 flex items-center justify-between p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}>
-        <h3 className="text-xl font-bold text-foreground">Live Chat</h3>
+      <div className={cn("flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}> {/* Adjusted padding */}
+        <h3 className="text-lg sm:text-xl font-bold text-foreground">Live Chat</h3> {/* Adjusted font size */}
         {isOverlay && onClose && (
           <Button
             variant="ghost"
@@ -56,18 +56,18 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
       </div>
 
       {/* 2. Messages List (This is the part that grows and scrolls) */}
-      <div className="flex-grow p-4 overflow-y-auto space-y-4"> {/* flex-grow and overflow-y-auto are key */}
+      <div className="flex-grow p-3 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4"> {/* flex-grow and overflow-y-auto are key, adjusted padding and gap */}
         {messages.map((msg) => (
-           <div key={msg.id} className={`flex items-start gap-2.5 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}>
+           <div key={msg.id} className={`flex items-start gap-2 ${msg.isSystem ? 'justify-center' : ''} ${msg.author === currentUser.name ? 'justify-end' : ''}`}> {/* Adjusted gap */}
              {msg.isSystem ? (
                 <span className="text-xs text-center text-muted-foreground italic px-2 py-1 bg-muted/20 rounded-full">{msg.text}</span>
              ) : (
-                <div className={`flex flex-col w-full max-w-[320px] leading-1.5 p-3 border-border/50 rounded-xl shadow-sm ${msg.author === currentUser.name ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted/20 text-foreground rounded-bl-none'}`}>
-                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                       <span className="text-sm font-semibold text-foreground">{msg.author}</span>
+                <div className={`flex flex-col w-full max-w-[280px] sm:max-w-[320px] leading-1.5 p-2.5 sm:p-3 border-border/50 rounded-xl shadow-sm ${msg.author === currentUser.name ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted/20 text-foreground rounded-bl-none'}`}> {/* Adjusted max-width and padding */}
+                   <div className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse"> {/* Adjusted gap */}
+                       <span className="text-xs sm:text-sm font-semibold text-foreground">{msg.author}</span> {/* Adjusted font size */}
                        <span className="text-xs font-normal text-muted-foreground">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                    </div>
-                   <p className="text-sm font-normal py-2 text-foreground">{msg.text}</p>
+                   <p className="text-sm font-normal py-1.5 sm:py-2 text-foreground">{msg.text}</p> {/* Adjusted padding and font size */}
                 </div>
               )}
            </div>
@@ -76,17 +76,17 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
       </div>
 
       {/* 3. Input Form (Does not grow) */}
-      <form onSubmit={handleSubmit} className={cn("flex-shrink-0 p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}>
+      <form onSubmit={handleSubmit} className={cn("flex-shrink-0 p-3 sm:p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}> {/* Adjusted padding */}
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Say something..."
-            className="flex-grow px-4 py-2 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="flex-grow px-3 py-2 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition text-sm sm:text-base" // Adjusted padding and font size
           />
-          <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground p-3 rounded-lg transition-colors">
-            <SendIcon className="w-5 h-5" />
+          <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground p-2.5 sm:p-3 rounded-lg transition-colors"> {/* Adjusted padding */}
+            <SendIcon className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
           </button>
         </div>
       </form>

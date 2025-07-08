@@ -88,42 +88,42 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     >
       {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0 p-4 md:p-6", // flex-grow here is key
+        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6", // flex-grow here is key, adjusted padding
         {
           "max-w-full mx-0": isTheaterFullscreen
         }
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
         {!isTheaterFullscreen && (
-          <div className="flex items-center justify-between mb-4 flex-shrink-0"> {/* flex-shrink-0 is important */}
+          <div className="flex items-center justify-between mb-3 sm:mb-4 flex-shrink-0"> {/* flex-shrink-0 is important, adjusted margin-bottom */}
             {/* Back button on the left */}
             <div className="flex-shrink-0">
               <Button
                 onClick={() => navigate('/dashboard')}
                 variant="outline"
                 size="icon"
-                className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
                 aria-label="Back to Dashboard"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
             
             {/* Page Title */}
-            <h1 className="text-3xl font-bold text-foreground mx-auto">Watch Party</h1>
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1> {/* Adjusted font size */}
 
             {/* Room code and Leave button on the right */}
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <p className="text-muted-foreground">Share Code:</p>
-                <p className="text-primary font-mono text-lg bg-input/50 px-3 py-1 rounded-md border border-border/50">{room.room_code}</p>
-                <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-3 py-1 rounded-md transition-colors">
-                  <ClipboardCopyIcon className="h-4 w-4" />
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0"> {/* Adjusted gap */}
+              <div className="flex items-center gap-1 sm:gap-2"> {/* Adjusted gap */}
+                <p className="text-xs sm:text-sm text-muted-foreground">Share Code:</p> {/* Adjusted font size */}
+                <p className="text-sm sm:text-lg font-mono text-primary bg-input/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-border/50">{room.room_code}</p> {/* Adjusted font size and padding */}
+                <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors h-auto"> {/* Adjusted font size, padding, and height */}
+                  <ClipboardCopyIcon className="h-3 w-3 sm:h-4 sm:w-4" /> {/* Adjusted icon size */}
                   {copyStatus}
                 </Button>
               </div>
-              <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-10 h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
-                <LogOut className="w-5 h-5" />
+              <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
           </div>
@@ -131,19 +131,18 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Video Player and Chat Container - This is the main flex container for the two columns */}
         <div className={clsx(
-          "flex items-stretch min-h-0 gap-6", // flex-grow removed from here
+          "flex flex-col sm:flex-row items-stretch min-h-0 gap-4 sm:gap-6", // Changed to flex-col on mobile, flex-row on sm and up, adjusted gap
           {
-            "flex-col md:flex-row": !isTheaterFullscreen, // Stack on mobile, row on desktop when not fullscreen
-            "flex-row h-full": isTheaterFullscreen, // Row and full height when fullscreen
-            "h-[calc(100vh-176px)]": !isTheaterFullscreen, // Fixed height for non-fullscreen, adjust as needed
+            "h-full": isTheaterFullscreen, // Row and full height when fullscreen
+            "h-[calc(100vh-140px)] sm:h-[calc(100vh-176px)]": !isTheaterFullscreen, // Adjusted fixed height for mobile and desktop
           }
         )}>
           {/* Left Column: Video Player, Input Form, Video History */}
           <div className={clsx(
-            "relative w-full flex flex-col gap-4", // Use gap for spacing
+            "relative w-full flex flex-col gap-3 sm:gap-4", // Use gap for spacing, adjusted gap
             "flex-1 min-h-0",
             {
-              "md:w-2/3": !isTheaterFullscreen,
+              "sm:w-2/3": !isTheaterFullscreen, // Apply width on sm and up
             }
           )}>
             {/* Video Player */}
@@ -178,12 +177,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             {!isTheaterFullscreen && (
               <>
                 <form onSubmit={handleSetVideo} className={clsx(
-                  "bg-card/60 backdrop-blur-md border border-border/50 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 shadow-lg flex-shrink-0"
+                  "bg-card/60 backdrop-blur-md border border-border/50 p-3 sm:p-4 rounded-xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3 shadow-lg flex-shrink-0" // Adjusted padding and gap
                 )}>
                   <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
                   <div className="relative w-full">
-                      <div className="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                          <LinkIcon className="w-5 h-5 text-muted-foreground" />
+                      <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"> {/* Adjusted padding */}
+                          <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" /> {/* Adjusted icon size */}
                       </div>
                       <input
                           id="video-url-input"
@@ -191,16 +190,16 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                           value={newVideoUrl}
                           onChange={(e) => { setNewVideoUrl(e.target.value); }}
                           placeholder="Enter YouTube or video URL to start or change the video"
-                          className="w-full bg-input/50 border border-border/50 text-foreground text-sm rounded-lg focus:ring-primary focus:border-primary block ps-10 p-2.5"
+                          className="w-full bg-input/50 border border-border/50 text-foreground text-xs sm:text-sm rounded-lg focus:ring-primary focus:border-primary block ps-9 p-2 sm:ps-10 sm:p-2.5" // Adjusted font size and padding
                           required
                       />
                   </div>
-                  <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center h-auto"> {/* Adjusted font size, padding, and height */}
                       Set Video
                   </Button>
                 </form>
 
-                <div className="pb-6">
+                <div className="pb-4 sm:pb-6"> {/* Adjusted padding */}
                   <VideoHistory history={videoHistory} onSelectVideo={changeVideoSource} className="flex-shrink-0" />
                 </div>
               </>
@@ -211,8 +210,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           {!isTheaterFullscreen && (
             <div
               className={clsx(
-                "w-full md:w-1/3 md:max-w-sm flex-shrink-0 flex flex-col",
-                "flex-1 min-h-0", // This column grows to match video height
+                "w-full sm:w-1/3 sm:max-w-sm flex-shrink-0 flex flex-col", // Adjusted width for sm and up
+                "flex-1 min-h-[300px] sm:min-h-0", // Added min-height for mobile chat, flex-grow removed
               )}
             >
               <Chat

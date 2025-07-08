@@ -101,48 +101,48 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="pb-2">
-        <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-lg' : 'text-xl'}`}>
+        <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-base' : 'text-xl'}`}>
           <span>
             {isToday ? "Today's Journal" : `Journal for ${format(selectedDate, 'MMM dd, yyyy')}`}
             {initialEntry && !isEditing && (
-              <span className="ml-2 text-2xl">{initialEntry.emoji || moodEmojis[initialEntry.mood as keyof typeof moodEmojis]}</span>
+              <span className="ml-2 text-xl sm:text-2xl">{initialEntry.emoji || moodEmojis[initialEntry.mood as keyof typeof moodEmojis]}</span>
             )}
           </span>
           {!isEditing && isToday && (
-            <Button variant="ghost" size={isMobile ? 'sm' : 'default'} onClick={handleEdit}>Edit</Button>
+            <Button variant="ghost" size={isMobile ? 'sm' : 'default'} onClick={handleEdit} className="h-8 px-3 text-sm">Edit</Button>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className={`${isMobile ? 'p-3' : 'p-6'} space-y-4`}> {/* Reduced padding */}
+      <CardContent className={`${isMobile ? 'p-3' : 'p-6'} space-y-3 sm:space-y-4`}> {/* Reduced padding and gap */}
         {isEditing ? (
           <>
             <Input
               placeholder="Heading (e.g., A great day!)"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
-              className={isMobile ? 'text-sm' : ''} // Reduced font size for input
+              className={isMobile ? 'text-sm h-9' : 'text-base h-10'} // Reduced font size and height for input
             />
             <Textarea
               placeholder="What's on your mind today?"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className={isMobile ? 'text-sm min-h-[80px]' : 'min-h-[120px]'} // Reduced font size and min-height
+              className={isMobile ? 'text-sm min-h-[70px]' : 'min-h-[120px]'} // Reduced font size and min-height
             />
             <Select value={mood} onValueChange={setMood}>
-              <SelectTrigger className={isMobile ? 'text-sm' : ''}> {/* Reduced font size for select */}
+              <SelectTrigger className={isMobile ? 'text-sm h-9' : 'text-base h-10'}> {/* Reduced font size and height for select */}
                 <SelectValue placeholder="How are you feeling?" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(moodEmojis).map(([moodText, emoji]) => (
-                  <SelectItem key={moodText} value={moodText}>
+                  <SelectItem key={moodText} value={moodText} className={isMobile ? 'text-sm' : 'text-base'}>
                     {emoji} {moodText}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" size={isMobile ? 'sm' : 'default'} onClick={handleCancel} disabled={isLoading}>Cancel</Button>
-              <Button onClick={handleSave} disabled={isLoading}>
+              <Button variant="outline" size={isMobile ? 'sm' : 'default'} onClick={handleCancel} disabled={isLoading} className="h-8 px-3 text-sm">Cancel</Button>
+              <Button onClick={handleSave} disabled={isLoading} className="h-8 px-3 text-sm">
                 {isLoading ? 'Saving...' : 'Save'}
               </Button>
             </div>

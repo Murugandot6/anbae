@@ -79,18 +79,18 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
   };
 
   return (
-    <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 p-4 rounded-xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-foreground text-center">Communication Insights</CardTitle>
+    <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 p-3 sm:p-4 rounded-xl">
+      <CardHeader className="pb-3 sm:pb-4">
+        <CardTitle className="text-foreground text-center text-lg sm:text-xl">Communication Insights</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
           <Button
             variant={selectedChart === 'scores' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedChart('scores')}
             className={cn(
-              "rounded-full",
+              "rounded-full text-xs sm:text-sm px-3 py-1.5 h-auto",
               selectedChart === 'scores' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
@@ -101,7 +101,7 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             size="sm"
             onClick={() => setSelectedChart('sent')}
             className={cn(
-              "rounded-full",
+              "rounded-full text-xs sm:text-sm px-3 py-1.5 h-auto",
               selectedChart === 'sent' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
@@ -112,7 +112,7 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             size="sm"
             onClick={() => setSelectedChart('received')}
             className={cn(
-              "rounded-full",
+              "rounded-full text-xs sm:text-sm px-3 py-1.5 h-auto",
               selectedChart === 'received' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
@@ -123,7 +123,7 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             size="sm"
             onClick={() => setSelectedChart('mood')}
             className={cn(
-              "rounded-full",
+              "rounded-full text-xs sm:text-sm px-3 py-1.5 h-auto",
               selectedChart === 'mood' ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'text-foreground border-border hover:bg-accent hover:text-accent-foreground'
             )}
           >
@@ -131,20 +131,21 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
           </Button>
         </div>
 
-        <div className="h-[250px] w-full">
+        <div className="h-[200px] sm:h-[250px] w-full">
           {selectedChart === 'scores' && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={scoreData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                <YAxis stroke="hsl(var(--foreground))" domain={[0, 100]} />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
+                <YAxis stroke="hsl(var(--foreground))" domain={[0, 100]} tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     borderColor: 'hsl(var(--border))',
                     color: 'hsl(var(--foreground))',
+                    fontSize: '12px',
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px' }}
                 />
                 <Bar dataKey="score" shape={renderCustomBar} />
               </BarChart>
@@ -155,15 +156,16 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sentMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     borderColor: 'hsl(var(--border))',
                     color: 'hsl(var(--foreground))',
+                    fontSize: '12px',
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px' }}
                 />
                 <Bar dataKey="count" fill="hsl(var(--primary))" />
               </BarChart>
@@ -174,15 +176,16 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={receivedMessageTypeData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     borderColor: 'hsl(var(--border))',
                     color: 'hsl(var(--foreground))',
+                    fontSize: '12px',
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px' }}
                 />
                 <Bar dataKey="count" fill="hsl(var(--secondary))" />
               </BarChart>
@@ -193,15 +196,16 @@ const ScoreAndMessageCharts: React.FC<ScoreAndMessageChartsProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={moodData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" />
+                <XAxis dataKey="name" stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} stroke="hsl(var(--foreground))" tick={{ fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     borderColor: 'hsl(var(--border))',
                     color: 'hsl(var(--foreground))',
+                    fontSize: '12px',
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px' }}
                 />
                 <Bar dataKey="count" fill="hsl(var(--accent))" />
               </BarChart>

@@ -33,17 +33,17 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 justify-items-center">
+      <div className="grid grid-cols-3 gap-3 p-2 justify-items-center">
         {avatarPaths.map((path) => (
           <div
             key={path}
             className={cn(
-              "relative cursor-pointer transition-all duration-200 p-1 rounded-full shadow-md",
-              activeAvatarPath === path ? "ring-4 ring-primary dark:ring-primary" : "hover:ring-2 hover:ring-accent dark:hover:ring-accent",
+              "relative cursor-pointer transition-all duration-200 p-0.5 rounded-full shadow-md",
+              activeAvatarPath === path ? "ring-3 ring-primary dark:ring-primary" : "hover:ring-1 hover:ring-accent dark:hover:ring-accent",
             )}
             onClick={() => handleAvatarClick(path)}
           >
-            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 aspect-square overflow-hidden block flex-shrink-0 rounded-full border-2 border-transparent">
+            <Avatar className="w-16 h-16 sm:w-20 sm:h-20 aspect-square overflow-hidden block flex-shrink-0 rounded-full border-2 border-transparent">
               <AvatarImage src={path} alt={`Avatar ${path.split('/').pop()?.split('.')[0]}`} className="object-cover" />
               <AvatarFallback className="bg-muted text-muted-foreground">
                 AV
@@ -51,7 +51,7 @@ const AvatarCarousel: React.FC<AvatarCarouselProps> = ({ selectedAvatar, onSelec
             </Avatar>
             {activeAvatarPath === path && (
               <div className="absolute inset-0 flex items-center justify-center bg-primary/30 rounded-full">
-                <span className="text-primary-foreground text-2xl">✓</span>
+                <span className="text-primary-foreground text-xl sm:text-2xl">✓</span>
               </div>
             )}
           </div>

@@ -40,7 +40,7 @@ const KaraokeLyrics: React.FC<KaraokeLyricsProps> = ({ lyrics, currentTime }) =>
 
   if (!lyrics.length) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-2xl">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-xl sm:text-2xl">
         <p>Waiting for the song to start...</p>
       </div>
     );
@@ -50,7 +50,7 @@ const KaraokeLyrics: React.FC<KaraokeLyricsProps> = ({ lyrics, currentTime }) =>
     <div className="flex items-center justify-center h-full text-center p-4">
       <p
         className={cn(
-          "text-4xl md:text-6xl font-bold text-foreground drop-shadow-lg", // Added drop-shadow for better readability
+          "text-3xl sm:text-4xl md:text-6xl font-bold text-foreground drop-shadow-lg", // Adjusted font sizes
           animationClass
         )}
       >

@@ -20,16 +20,16 @@ interface Proposal {
 const LoadingSpinner = () => (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
         <LoadingPulsar />
-        <p className="mt-4 text-xl">Loading Your Special Message...</p>
+        <p className="mt-4 text-base sm:text-xl">Loading Your Special Message...</p>
     </div>
 );
 
 const ErrorDisplay = ({ message }: { message: string }) => (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground text-center p-4">
-        <h2 className="text-2xl font-bold text-destructive mb-4">Oops!</h2>
-        <p>{message}</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-destructive mb-3 sm:mb-4">Oops!</h2>
+        <p className="text-sm sm:text-base">{message}</p>
         <Link to="/dashboard">
-            <Button variant="outline" className="mt-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground">Back to Dashboard</Button>
+            <Button variant="outline" className="mt-4 text-foreground border-border hover:bg-accent hover:text-accent-foreground text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-3">Back to Dashboard</Button>
         </Link>
     </div>
 );
@@ -114,16 +114,16 @@ const ViewPromposal = () => {
         </div>
 
         {/* Top left and right controls */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
+        <div className="absolute top-3 left-3 flex items-center gap-2 z-20">
           <Link to="/dashboard">
-              <Button variant="outline" size="icon" className="w-10 h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
-                <ArrowLeft className="w-5 h-5" />
+              <Button variant="outline" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md">
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
           </Link>
         </div>
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-          <Button onClick={handleCopyLink} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-            {copyStatus ? <Check className="w-5 h-5 text-primary" /> : <Copy className="w-5 h-5" />}
+        <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
+          <Button onClick={handleCopyLink} variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 text-foreground hover:bg-accent hover:text-accent-foreground">
+            {copyStatus ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}
           </Button>
         </div>
         
@@ -133,10 +133,10 @@ const ViewPromposal = () => {
         </div>
 
         {/* Bottom controls */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-xl z-20">
-          <div className="flex items-center justify-center gap-4 mt-4 p-2 bg-card/80 rounded-full shadow-lg backdrop-blur-md border border-border/50">
-              <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-xl z-20"> {/* Adjusted max-width */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mt-4 p-2 bg-card/80 rounded-full shadow-lg backdrop-blur-md border border-border/50"> {/* Adjusted padding and gap */}
+              <Button onClick={() => setIsPlaying(!isPlaying)} variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 text-foreground hover:bg-accent hover:text-accent-foreground">
+                {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />}
               </Button>
               <input
                 type="range"
@@ -146,8 +146,8 @@ const ViewPromposal = () => {
                 onChange={(e) => playerRef.current?.seekTo(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary"
               />
-              <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-foreground hover:bg-accent hover:text-accent-foreground">
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 text-foreground hover:bg-accent hover:text-accent-foreground">
+                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
               </Button>
           </div>
         </div>

@@ -133,11 +133,11 @@ const OnboardingWelcome: React.FC = () => {
         <meta name="description" content="Learn about Anbae's features and how to use the app to enhance your relationship." />
       </Helmet>
       <div className={cn("relative h-screen w-screen overflow-hidden flex flex-col", isExiting ? "animate-fade-out" : "animate-fade-in")}>
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute top-3 right-3 z-20">
           {/* Removed ThemeToggle */}
         </div>
-        <div className="absolute top-4 left-4 z-20">
-          <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <div className="absolute top-3 left-3 z-20">
+          <Button variant="ghost" onClick={handleSkip} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-3 py-1.5 h-auto">
             Skip
           </Button>
         </div>
@@ -160,24 +160,24 @@ const OnboardingWelcome: React.FC = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
           <Button
             onClick={scrollPrev}
             disabled={prevBtnDisabled}
             variant="outline"
             size="icon"
-            className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+            className="rounded-full w-10 h-10 sm:w-12 sm:h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
           <Button
             onClick={scrollNext}
             disabled={nextBtnDisabled}
             variant="outline"
             size="icon"
-            className="rounded-full w-12 h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
+            className="rounded-full w-10 h-10 sm:w-12 sm:h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 text-gray-800 dark:text-white hover:bg-white dark:hover:bg-gray-700"
           >
-            <ArrowRight className="w-6 h-6" />
+            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
         </div>
       </div>

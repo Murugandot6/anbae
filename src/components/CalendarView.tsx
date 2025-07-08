@@ -42,14 +42,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="pb-2">
-        <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-lg' : 'text-xl'}`}>
-          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handlePrevMonth}>
+        <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-base' : 'text-xl'}`}>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handlePrevMonth} className="h-8 w-8">
             <ChevronLeft className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
           </Button>
           <span className="flex-grow text-center">
             {format(currentMonth, 'MMMM yyyy')}
           </span>
-          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handleNextMonth}>
+          <Button variant="ghost" size={isMobile ? 'sm' : 'icon'} onClick={handleNextMonth} className="h-8 w-8">
             <ChevronRight className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
           </Button>
         </CardTitle>
@@ -60,9 +60,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
             <div key={day} className={isMobile ? 'text-xs' : 'text-sm'}>{day}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1"> {/* Reduced gap */}
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1"> {/* Reduced gap */}
           {emptyCellsBefore.map((_, index) => (
-            <div key={`empty-${index}`} className="h-8 w-8"></div> // Adjust size if needed
+            <div key={`empty-${index}`} className="h-7 w-7 sm:h-8 sm:w-8"></div> {/* Adjust size if needed */}
           ))}
           {daysInMonth.map(day => {
             const dateKey = format(day, 'yyyy-MM-dd');
@@ -74,7 +74,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onDayClick }) => {
               <Button
                 key={format(day, 'yyyy-MM-dd')}
                 variant="ghost"
-                className={`relative flex flex-col items-center justify-center rounded-md p-0 h-8 w-8 ${isCurrentDay ? 'bg-primary/10 text-primary' : ''} ${!isSelectedMonth ? 'text-muted-foreground opacity-50' : ''}`}
+                className={`relative flex flex-col items-center justify-center rounded-md p-0 h-7 w-7 sm:h-8 sm:w-8 ${isCurrentDay ? 'bg-primary/10 text-primary' : ''} ${!isSelectedMonth ? 'text-muted-foreground opacity-50' : ''}`}
                 onClick={() => onDayClick(day)}
                 size={isMobile ? 'sm' : 'default'} // Adjust button size
               >

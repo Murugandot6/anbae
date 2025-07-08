@@ -233,15 +233,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-white">Loading Player...</p>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div> {/* Adjusted size */}
+                <p className="mt-3 sm:mt-4 text-white text-sm sm:text-base">Loading Player...</p> {/* Adjusted font size */}
             </div>
           )}
 
           {playerError && (
             <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-30 p-4 text-center">
-                <p className="text-destructive text-lg font-semibold">Video Error</p>
-                <p className="text-muted-foreground mt-2">{playerError}</p>
+                <p className="text-destructive text-base sm:text-lg font-semibold">Video Error</p> {/* Adjusted font size */}
+                <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{playerError}</p> {/* Adjusted font size */}
             </div>
           )}
 
@@ -257,7 +257,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               <span 
                 key={reaction.id} 
                 className={cn(
-                  "absolute text-6xl md:text-8xl animate-fade-in-out"
+                  "absolute text-5xl sm:text-6xl md:text-8xl animate-fade-in-out" // Adjusted font sizes
                 )}
                 style={{ 
                   animationDuration: '5s',
@@ -270,7 +270,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          <div className={cn("absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}>
+          <div className={cn("absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}> {/* Adjusted padding */}
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -282,16 +282,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                   onChange={handleSeekChange}
                   onMouseUp={handleSeekMouseUp}
                   disabled={isPlayerActionDisabled}
-                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
+                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed" // Adjusted height
                 />
               <div className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
                   <button onClick={handlePlayPause} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    {videoState.isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
+                    {videoState.isPlaying ? <PauseIcon className="w-5 h-5 sm:w-6 sm:h-6" /> : <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6" />} {/* Adjusted icon size */}
                   </button>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
                       <button onClick={toggleMute} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                          {isMuted ? <VolumeOffIcon className="w-6 h-6"/> : <VolumeUpIcon className="w-6 h-6"/>}
+                          {isMuted ? <VolumeOffIcon className="w-5 h-5 sm:w-6 sm:h-6"/> : <VolumeUpIcon className="w-5 h-5 sm:w-6 sm:h-6"/>} {/* Adjusted icon size */}
                       </button>
                       <input
                           type="range"
@@ -301,40 +301,40 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                           value={isMuted ? 0 : volume}
                           onChange={handleVolumeChange}
                           disabled={isPlayerActionDisabled}
-                          className="w-20 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
+                          className="w-16 sm:w-20 h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed" // Adjusted width and height
                         />
                   </div>
                 </div>
                 {/* Reaction Buttons */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
                   <button onClick={() => sendVideoReaction('❤️')} disabled={isPlayerActionDisabled} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Heart className="w-6 h-6" />
+                    <Heart className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😂')} disabled={isPlayerActionDisabled} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Laugh className="w-6 h-6" />
+                    <Laugh className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😭')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Frown className="w-6 h-6" />
+                    <Frown className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😡')} disabled={isPlayerActionDisabled} className="hover:text-red-600 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Angry className="w-6 h-6" />
+                    <Angry className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('🔥')} disabled={isPlayerActionDisabled} className="hover:text-orange-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Flame className="w-6 h-6" />
+                    <Flame className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('🎉')} disabled={isPlayerActionDisabled} className="hover:text-purple-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <PartyPopper className="w-6 h-6" />
+                    <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
                   </button>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
+                <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
+                  <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span> {/* Adjusted font size */}
                   {isTheaterFullscreen && ( // Use the prop here
                     <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <MessageSquare className="w-5 h-5" />
+                      <MessageSquare className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
                     </button>
                   )}
                   <button onClick={handleFullscreen} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <MaximizeIcon className="w-5 h-5" />
+                    <MaximizeIcon className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
                   </button>
                 </div>
               </div>
@@ -343,9 +343,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
         </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
-            <FilmIcon className="w-16 h-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-bold text-foreground">No Video Selected</h3>
-            <p className="text-muted-foreground mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p>
+            <FilmIcon className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-3 sm:mb-4" /> {/* Adjusted icon size */}
+            <h3 className="text-base sm:text-xl font-bold text-foreground">No Video Selected</h3> {/* Adjusted font size */}
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p> {/* Adjusted font size */}
         </div>
       )}
     </div>

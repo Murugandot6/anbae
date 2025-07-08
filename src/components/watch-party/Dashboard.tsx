@@ -103,48 +103,48 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="max-w-md sm:max-w-4xl mx-auto px-4"> {/* Added px-4 for mobile padding */}
+      <div className="flex justify-between items-center mb-6 sm:mb-8">
         {/* Back button on the left */}
         <div className="flex-shrink-0">
-          <Link to="/dashboard" className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-3 rounded-full transition-colors shadow-md" aria-label="Back to Dashboard">
-              <ArrowLeft className="h-5 w-5" />
+          <Link to="/dashboard" className="flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 hover:bg-accent/60 text-foreground p-2.5 sm:p-3 rounded-full transition-colors shadow-md" aria-label="Back to Dashboard">
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Link>
         </div>
         {/* Title for the dashboard */}
-        <h1 className="text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1>
-        <div className="flex-shrink-0 w-10"></div> {/* Spacer for alignment */}
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tighter text-foreground mx-auto">Watch Party</h1>
+        <div className="flex-shrink-0 w-9 sm:w-10"></div> {/* Spacer for alignment */}
       </div>
       
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8"> {/* Changed to grid-cols-1 for mobile, md:grid-cols-2 for larger */}
         {/* Create Room Card */}
-        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-            <div className="bg-primary/20 p-4 rounded-full mb-4">
-                <PlusIcon className="h-10 w-10 text-primary"/>
+        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <div className="bg-primary/20 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
+                <PlusIcon className="h-8 w-8 sm:h-10 sm:w-10 text-primary"/>
             </div>
-            <h2 className="text-2xl text-foreground font-semibold mb-2">Start a New Party</h2>
-            <p className="text-muted-foreground mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
-            <div className="w-full flex flex-col gap-4">
-                 {error && <p className="text-destructive text-sm mt-2">{error}</p>}
+            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Start a New Party</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
+            <div className="w-full flex flex-col gap-3 sm:gap-4">
+                 {error && <p className="text-destructive text-xs sm:text-sm mt-2">{error}</p>}
                 <Button
                     onClick={handleCreateRoom}
                     disabled={!!loading}
-                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-primary/50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-primary/50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
-                    <PlusIcon className="h-6 w-6"/>
+                    <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6"/>
                     {loading === 'create' ? 'Creating...' : 'Create Private Room'}
                 </Button>
             </div>
         </div>
 
         {/* Join Room Card */}
-        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-            <div className="bg-secondary/20 p-4 rounded-full mb-4">
-                <JoinIcon className="h-10 w-10 text-secondary"/>
+        <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+            <div className="bg-secondary/20 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
+                <JoinIcon className="h-8 w-8 sm:h-10 sm:w-10 text-secondary"/>
             </div>
-            <h2 className="text-2xl text-foreground font-semibold mb-2">Join an Existing Party</h2>
-            <p className="text-muted-foreground mb-6">Enter the 6-character code your friend gave you.</p>
-            <form onSubmit={handleJoinRoom} className="w-full flex flex-col gap-4">
+            <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Join an Existing Party</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">Enter the 6-character code your friend gave you.</p>
+            <form onSubmit={handleJoinRoom} className="w-full flex flex-col gap-3 sm:gap-4">
                  <input
                     type="text"
                     value={joinCode}
@@ -154,17 +154,17 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
                     }}
                     placeholder="ABC-123"
                     maxLength={7}
-                    className="w-full text-center text-xl tracking-widest font-mono px-4 py-3 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
+                    className="w-full text-center text-lg sm:text-xl tracking-widest font-mono px-3 py-2.5 sm:px-4 sm:py-3 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
                     required
                     disabled={!!loading}
                 />
-                {error && <p className="text-destructive text-sm">{error}</p>}
+                {error && <p className="text-destructive text-xs sm:text-sm">{error}</p>}
                 <Button
                     type="submit"
                     disabled={!!loading}
-                    className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold px-6 py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-secondary/50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-secondary/50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
-                    <JoinIcon className="h-6 w-6"/>
+                    <JoinIcon className="h-5 w-5 sm:h-6 sm:w-6"/>
                     {loading === 'join' ? 'Joining...' : 'Join With Code'}
                 </Button>
             </form>

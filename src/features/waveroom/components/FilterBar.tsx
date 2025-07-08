@@ -10,7 +10,7 @@ interface FilterSelectProps {
 }
 
 const FilterSelect: React.FC<FilterSelectProps> = ({ label, id, options, value, onChange, disabled }) => (
-  <div className="flex-1 min-w-[140px]">
+  <div className="flex-1 min-w-[120px] sm:min-w-[140px]"> {/* Adjusted min-width */}
     <label htmlFor={id} className="sr-only">{label}</label>
     <select
       id={id}
@@ -18,7 +18,7 @@ const FilterSelect: React.FC<FilterSelectProps> = ({ label, id, options, value, 
       value={value}
       onChange={(e) => onChange(id, e.target.value)}
       disabled={disabled || options.length === 0}
-      className="block w-full rounded-md border-0 bg-input/50 py-2 pl-3 pr-8 text-foreground shadow-sm ring-1 ring-inset ring-border/50 placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="block w-full rounded-md border-0 bg-input/50 py-1.5 pl-2.5 pr-6 sm:py-2 sm:pl-3 sm:pr-8 text-foreground shadow-sm ring-1 ring-inset ring-border/50 placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-primary text-sm sm:text-base sm:leading-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed" // Adjusted padding, font size
     >
       <option value="">All {label}s</option>
       {options.map((option) => (

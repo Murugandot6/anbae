@@ -163,24 +163,24 @@ const EditProfile = () => {
         <meta name="description" content="Update your Anbae profile, including nickname, partner details, avatar, and theme preferences." />
       </Helmet>
       <BackgroundWrapper className="pt-0 md:pt-0">
-        <div className="w-full max-w-md bg-card/60 dark:bg-card/60 p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50 mt-16 md:mt-8">
+        <div className="w-full max-w-sm sm:max-w-md bg-card/60 dark:bg-card/60 p-6 sm:p-8 rounded-xl shadow-lg backdrop-blur-md border border-border/50 mt-16 md:mt-8">
           <div className="text-center mb-6">
-            <User className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-foreground mb-2">Edit Your Profile</h2>
-            <p className="text-muted-foreground">Update your personal and partner details.</p>
+            <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">Edit Your Profile</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">Update your personal and partner details.</p>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
               <FormField
                 control={form.control}
                 name="nickname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Nickname</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><User className="w-4 h-4 text-primary" /> Nickname</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground" />
+                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
@@ -189,11 +189,11 @@ const EditProfile = () => {
                 name="partner_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary" /> Partner's Email</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4 text-primary" /> Partner's Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground" />
+                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
@@ -202,25 +202,25 @@ const EditProfile = () => {
                 name="partner_nickname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Partner's Nickname</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4 text-primary" /> Partner's Nickname</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground" />
+                      <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
               <FormItem>
-                <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-primary" /> Select Your Avatar</FormLabel>
+                <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><ImageIcon className="w-4 h-4 text-primary" /> Select Your Avatar</FormLabel>
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar
-                    className="w-20 h-20 border-2 border-primary mx-auto rounded-full cursor-pointer shadow-md"
+                    className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-primary mx-auto rounded-full cursor-pointer shadow-md"
                     onClick={() => setIsAvatarDialogOpen(true)}
                   >
                     <AvatarImage src={selectedAvatar || ''} alt="Your Avatar" />
                     <AvatarFallback className="bg-primary text-primary-foreground">AV</AvatarFallback>
                   </Avatar>
-                  <p className="text-sm text-muted-foreground mt-1">Click your avatar to change it</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Click your avatar to change it</p>
                 </div>
                 <AvatarSelectionDialog
                   isOpen={isAvatarDialogOpen}
@@ -228,20 +228,20 @@ const EditProfile = () => {
                   selectedAvatar={selectedAvatar}
                   onSelect={handleAvatarSelect}
                 />
-                <FormMessage>{form.formState.errors.avatar_url?.message}</FormMessage>
+                <FormMessage className="text-xs sm:text-sm">{form.formState.errors.avatar_url?.message}</FormMessage>
               </FormItem>
 
               <FormItem>
-                <FormLabel className="flex items-center gap-2">
+                <FormLabel className="flex items-center gap-2 text-sm sm:text-base">
                   {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />} Theme
                 </FormLabel>
                 <Select onValueChange={(value) => setTheme(value)} value={theme}>
                   <FormControl>
-                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground">
+                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
                       <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-card border-border text-foreground">
+                  <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="dark">Dark</SelectItem>
                     <SelectItem value="system">System</SelectItem>
@@ -249,17 +249,17 @@ const EditProfile = () => {
                 </Select>
               </FormItem>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm sm:text-base py-2 sm:py-2.5">
                 Save Changes
               </Button>
             </form>
           </Form>
-          <div className="mt-6 text-center">
+          <div className="mt-5 sm:mt-6 text-center">
             {/* Replaced Link with Button for consistent styling and positioning */}
-            <div className="absolute top-4 left-4 z-10">
+            <div className="absolute top-3 left-3 z-10">
               <Link to="/dashboard">
-                <Button variant="outline" size="icon" className="w-10 h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-                  <ArrowLeft className="w-5 h-5" />
+                <Button variant="outline" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </Link>
             </div>

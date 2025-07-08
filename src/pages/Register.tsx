@@ -82,26 +82,26 @@ const Register = () => {
           {/* Removed ThemeToggle */}
         </div>
         <div className={cn(
-          "w-full max-w-md bg-white/30 dark:bg-gray-800/30 p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
+          "w-full max-w-sm sm:max-w-md bg-white/30 dark:bg-gray-800/30 p-6 sm:p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
           isExiting ? "animate-fade-out" : "animate-fade-in"
         )}>
           <div className="text-center mb-6">
-            <img src="/favicon.ico" alt="App Favicon" className="w-12 h-12 mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Join Anbae</h2>
-            <p className="text-gray-700 dark:text-gray-300">Create your personalized space.</p>
+            <img src="/favicon.ico" alt="App Favicon" className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Join Anbae</h2>
+            <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">Create your personalized space.</p>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4" /> Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} />
+                      <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
@@ -110,11 +110,11 @@ const Register = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Lock className="w-4 h-4" /> Password</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Lock className="w-4 h-4" /> Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your password" {...field} type="password" value={field.value || ''} />
+                      <Input placeholder="Your password" {...field} type="password" value={field.value || ''} className="text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
@@ -123,11 +123,11 @@ const Register = () => {
                 name="nickname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><User className="w-4 h-4" /> Nickname</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><User className="w-4 h-4" /> Nickname</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} />
+                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} className="text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
@@ -136,26 +136,26 @@ const Register = () => {
                 name="partner_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} />
+                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700">
+              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 text-sm sm:text-base py-2 sm:py-2.5">
                 <img src="/favicon.ico" alt="Favicon" className="w-4 h-4 mr-2" /> Create Account
               </Button>
             </form>
           </Form>
-          <div className="mt-6 text-center">
-            <Link to="/login" className="text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors">
+          <div className="mt-5 sm:mt-6 text-center">
+            <Link to="/login" className="text-xs sm:text-sm text-pink-600 hover:text-pink-700 dark:text-purple-400 dark:hover:text-purple-500 transition-colors">
               Already have an account? Login here
             </Link>
           </div>
-          <div className="mt-4 text-center">
-            <Link to="/" className="text-sm text-gray-800 hover:text-gray-900 dark:text-gray-200 dark:hover:text-gray-100 transition-colors">
+          <div className="mt-3 sm:mt-4 text-center">
+            <Link to="/" className="text-xs sm:text-sm text-gray-800 hover:text-gray-900 dark:text-gray-200 dark:hover:text-gray-100 transition-colors">
               ← Back to Home
             </Link>
           </div>

@@ -66,22 +66,22 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ title, description, l
   }, [description, typingSpeed, onTypingComplete]); // Added onTypingComplete to dependencies
 
   return (
-    <div className={cn("flex flex-col items-center justify-center h-full w-full p-8 text-center", bgColorClass)}>
+    <div className={cn("flex flex-col items-center justify-center h-full w-full p-6 sm:p-8 text-center", bgColorClass)}>
       {lottieUrl && (
-        <div className="w-64 h-64 mb-8">
+        <div className="w-48 h-48 sm:w-64 sm:h-64 mb-6 sm:mb-8">
           {loadingLottie ? (
             <div className="flex items-center justify-center h-full text-gray-600">Loading animation...</div>
           ) : errorLottie ? (
-            <div className="flex items-center justify-center h-full text-red-600">{errorLottie}</div>
+            <div className="flex items-center justify-center h-full text-red-600 text-sm sm:text-base">{errorLottie}</div>
           ) : animationData ? (
             <Lottie animationData={animationData} loop={true} autoplay={true} />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-600">No animation data.</div>
+            <div className="flex items-center justify-center h-full text-gray-600 text-sm sm:text-base">No animation data.</div>
           )}
         </div>
       )}
-      <h2 className="text-4xl font-bold text-gray-900 mb-4">{title}</h2>
-      <p className="text-lg text-gray-700 max-w-md">
+      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">{title}</h2>
+      <p className="text-base sm:text-lg text-gray-700 max-w-md">
         {displayedDescription}
         {!isTypingComplete && <span className="animate-pulse">|</span>} {/* Typing cursor */}
       </p>
