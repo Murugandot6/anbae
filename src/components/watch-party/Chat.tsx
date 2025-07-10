@@ -2,18 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, User } from '@/types/watchParty';
 import { Send } from 'lucide-react'; // Updated import
 import { cn } from '@/lib/utils'; // Ensure cn is imported
-import { X } from 'lucide-react'; // Import X icon
-import { Button } from '@/components/ui/button'; // Import Button for the close icon
+// Removed X icon import
+// Removed Button import for the close icon
 
 interface ChatProps {
   messages: ChatMessage[];
   sendMessage: (text: string) => void;
   currentUser: User;
-  isOverlay?: boolean; // New prop
-  onClose?: () => void; // New prop for closing the overlay
+  isTheaterFullscreen?: boolean; // New prop
+  isMobile?: boolean; // New prop
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverlay, onClose }) => {
+const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isTheaterFullscreen, isMobile }) => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -35,24 +35,16 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
     // The key is that this component ITSELF is a flex column and takes full height
     <div className={cn(
       "flex flex-col h-full min-h-0", // h-full and min-h-0 are crucial here
-      // Removed bg-card/90 and bg-card/60 from here to make the main chat body transparent
-      isOverlay ? "backdrop-blur-md rounded-xl shadow-lg" : "backdrop-blur-md border border-border/50 rounded-xl shadow-lg"
+      // Conditional styling based on fullscreen and mobile
+      isTheaterFullscreen && isMobile
+        ? "bg-black text-white rounded-none shadow-none border-none" // Fullscreen mobile landscape
+        : "backdrop-blur-md border border-border/50 rounded-xl shadow-lg" // Default non-fullscreen
     )}>
       
       {/* 1. Header (Does not grow) */}
-      <div className={cn("flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-border/50", isOverlay ? "bg-card/50 rounded-t-xl" : "")}> {/* Adjusted padding */}
+      <div className={cn("flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-border/50", isTheaterFullscreen && isMobile ? "bg-black/50 border-white/20" : "bg-card/50 rounded-t-xl")}> {/* Adjusted padding */}
         <h3 className="text-lg sm:text-xl font-bold text-foreground">Live Chat</h3> {/* Adjusted font size */}
-        {isOverlay && onClose && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-accent/20"
-            aria-label="Close chat"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        {/* Removed close button as it's no longer an overlay */}
       </div>
 
       {/* 2. Messages List (This is the part that grows and scrolls) */}
@@ -76,7 +68,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
       </div>
 
       {/* 3. Input Form (Does not grow) */}
-      <form onSubmit={handleSubmit} className={cn("flex-shrink-0 p-3 sm:p-4 border-t border-border/50", isOverlay ? "bg-card/50 rounded-b-xl" : "")}> {/* Adjusted padding */}
+      <form onSubmit={handleSubmit} className={cn("flex-shrink-0 p-3 sm:p-4 border-t border-border/50", isTheaterFullscreen && isMobile ? "bg-black/50 border-white/20" : "bg-card/50 rounded-b-xl")}> {/* Adjusted padding */}
         <div className="flex items-center gap-2">
           <input
             type="text"

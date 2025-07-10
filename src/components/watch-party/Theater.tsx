@@ -80,11 +80,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
       ref={theaterContainerRef}
       className={clsx(
         "flex flex-col h-full",
-        {
-          "fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none": true,
-          "bg-background text-foreground": !isTheaterFullscreen,
-          "bg-black": isTheaterFullscreen
-        }
+        // Apply fullscreen styles directly based on state
+        isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "bg-background text-foreground"
       )}
     >
       <div className={clsx(
@@ -130,9 +127,6 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
         <div className={clsx(
           "flex min-h-0 gap-6 sm:gap-8 flex-grow",
           {
-            "h-full": isTheaterFullscreen, // Take full height in fullscreen
-            "h-[calc(100vh-120px)]": !isTheaterFullscreen, // Fixed height when not fullscreen
-            // Conditional flex direction based on fullscreen and mobile
             "flex-col": isTheaterFullscreen && isMobile, // Mobile fullscreen: column layout
             "sm:flex-row": !isTheaterFullscreen || !isMobile, // Default or desktop fullscreen: row layout
           }
@@ -175,8 +169,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               messages={messages}
               sendMessage={sendMessage}
               currentUser={user}
-              // isOverlay={false} // No longer an overlay in this context
-              // onClose is not needed here as it's part of the main layout
+              isTheaterFullscreen={isTheaterFullscreen} // Pass new prop
+              isMobile={isMobile} // Pass new prop
             />
           </div>
         </div>
