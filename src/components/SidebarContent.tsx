@@ -19,7 +19,13 @@ interface SidebarContentProps {
 const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, partnerProfile, user, handleLogout, onMessagesCleared }) => {
   const location = useLocation(); // Get current location
 
-  if (!user) return null;
+  console.log("SidebarContent rendering. User:", user);
+  console.log("currentUserProfile:", currentUserProfile);
+
+  if (!user) {
+    console.log("SidebarContent: User is null, returning null.");
+    return null;
+  }
 
   const navItems = [
     { to: "/dashboard", icon: Heart, label: "Dashboard" },
