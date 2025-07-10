@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Mic } from "lucide-react"; // Removed Image import
+import { Search, Info } from "lucide-react"; // Changed Mic to Info
 import { Helmet } from 'react-helmet-async';
-import { ThemeToggle } from '@/components/theme-toggle'; // Import ThemeToggle
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const Index = () => {
   const typingPhrases = [
@@ -39,6 +39,8 @@ const Index = () => {
   const deletingSpeed = 50;
   const pauseTime = 1500;
 
+  const navigate = useNavigate(); // Initialize useNavigate
+
   useEffect(() => {
     const currentPhrase = typingPhrases[phraseIndex];
     let timer: NodeJS.Timeout;
@@ -69,6 +71,10 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
+  const handleInfoClick = () => {
+    navigate('/manual'); // Navigate to the manual page
+  };
+
   return (
     <>
       <Helmet>
@@ -76,7 +82,6 @@ const Index = () => {
         <meta name="description" content="Anbae is a personalized app designed to help couples nurture their relationship through structured communication, shared experiences, and emotional insights." />
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 relative">
-        {/* Removed ThemeToggle from here */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-7xl font-extrabold mb-4 leading-none">
             <span className="text-blue-600">a</span>
@@ -96,8 +101,10 @@ const Index = () => {
               className="w-full pl-10 pr-20 py-2 text-base rounded-full shadow-md transition-all duration-300 h-auto"
             />
             <div className="absolute right-3 flex space-x-2">
-              <Mic className="text-muted-foreground w-5 h-5 cursor-pointer hover:text-foreground" />
-              <ThemeToggle /> {/* Placed ThemeToggle here */}
+              <Button variant="ghost" size="icon" onClick={handleInfoClick} className="text-muted-foreground hover:text-foreground">
+                <Info className="w-5 h-5" />
+              </Button>
+              <ThemeToggle />
             </div>
           </div>
         </div>
