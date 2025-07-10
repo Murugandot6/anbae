@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Mic, Image } from "lucide-react";
-import { Helmet } from 'react-helmet-async'; // Import Helmet
+import { Helmet } from 'react-helmet-async';
+import { ThemeToggle } from '@/components/theme-toggle'; // Import ThemeToggle
 
 const Index = () => {
   const typingPhrases = [
@@ -76,7 +77,7 @@ const Index = () => {
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 relative">
         <div className="absolute top-4 right-4 z-10">
-          {/* Removed ThemeToggle */}
+          <ThemeToggle /> {/* Added ThemeToggle here */}
         </div>
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-7xl font-extrabold mb-4 leading-none">
