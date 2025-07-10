@@ -43,8 +43,7 @@ const App = () => {
             <Sonner />
             <SessionContextProvider>
               <ConcertPlayerProvider>
-                {/* Removed Red Border Debugging */}
-                <div className="flex flex-col"> {/* Removed h-screen here */}
+                <div className="flex flex-col h-screen"> {/* Added h-screen here */}
                   <Suspense fallback={
                     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
                       <LoadingPulsar />
