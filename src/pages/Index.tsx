@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Info } from "lucide-react"; // Changed Mic to Info
+import { Search, Info } from "lucide-react";
 import { Helmet } from 'react-helmet-async';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/ThemeToggle'; // Corrected import path to the functional ThemeToggle
 
 const Index = () => {
   const typingPhrases = [
@@ -39,7 +39,7 @@ const Index = () => {
   const deletingSpeed = 50;
   const pauseTime = 1500;
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const currentPhrase = typingPhrases[phraseIndex];
@@ -72,7 +72,7 @@ const Index = () => {
   }, [placeholderText, charIndex, isDeleting, phraseIndex, typingPhrases, typingSpeed, deletingSpeed, pauseTime]);
 
   const handleInfoClick = () => {
-    navigate('/manual'); // Navigate to the manual page
+    navigate('/manual');
   };
 
   return (
