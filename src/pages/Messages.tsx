@@ -247,7 +247,7 @@ const Messages = () => {
           {/* New, prominent Send New Message button */}
           <Link to="/send-message" className="block w-full mb-6 sm:mb-8">
             <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg py-2.5 sm:py-3 rounded-lg shadow-md">
-              <Plus className="w-5 h-5 mr-2" /> Send New Message
+              <Plus className="w-5 h-5 mr-2" /> Express
             </Button>
           </Link>
 
