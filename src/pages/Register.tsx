@@ -99,7 +99,7 @@ const Register = () => {
           {/* Removed ThemeToggle */}
         </div>
         <div className={cn(
-          "w-full max-w-sm sm:max-w-md bg-white/30 dark:bg-gray-800/30 p-6 sm:p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
+          "w-full max-w-xs sm:max-w-sm bg-white/30 dark:bg-gray-800/30 p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
           isExiting ? "animate-fade-out" : "animate-fade-in"
         )}>
           <div className="text-center mb-6">

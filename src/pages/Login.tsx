@@ -60,7 +60,7 @@ const Login = () => {
         <div className="absolute top-4 right-4 z-10">
           {/* Removed ThemeToggle */}
         </div>
-        <div className="w-full max-w-sm sm:max-w-md bg-white/30 dark:bg-gray-800/30 p-6 sm:p-8 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
+        <div className="w-full max-w-xs sm:max-w-sm bg-white/30 dark:bg-gray-800/30 p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30">
           <div className="text-center mb-6">
             <img src="/favicon.ico" alt="App Favicon" className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4" />
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Welcome Back!</h2>
