@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { JournalEntry } from '@/types/supabase';
 import { format, isSameDay } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
+import { MOOD_OPTIONS } from '@/constants/journal'; // Import MOOD_OPTIONS
 
 interface JournalEntryCardProps {
   user: User;
@@ -17,14 +18,6 @@ interface JournalEntryCardProps {
   onEntryUpdated: (entry: JournalEntry) => void;
   selectedDate: Date;
 }
-
-const moodEmojis = {
-  'Excellent': '😊',
-  'Good': '🙂',
-  'Neutral': '😐',
-  'Bad': '🙁',
-  'Terrible': '😞',
-};
 
 const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry, onEntryUpdated, selectedDate }) => {
   const [heading, setHeading] = useState(initialEntry?.heading || '');
@@ -50,6 +43,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
         heading,
         content,
         mood,
+        emoji: mood ? MOOD_OPTIONS[mood as keyof typeof MOOD_OPTIONS]?.emoji : null, // Save emoji based on selected mood
       };
 
       let data, error;
@@ -105,7 +99,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
           <span>
             {isToday ? "Today's Journal" : `Journal for ${format(selectedDate, 'MMM dd, yyyy')}`}
             {initialEntry && !isEditing && (
-              <span className="ml-2 text-xl sm:text-2xl">{initialEntry.emoji || moodEmojis[initialEntry.mood as keyof typeof moodEmojis]}</span>
+              <span className="ml-2 text-xl sm:text-2xl">{initialEntry.emoji || MOOD_OPTIONS[initialEntry.mood as keyof typeof MOOD_OPTIONS]?.emoji}</span>
             )}
           </span>
           {!isEditing && isToday && (
@@ -133,7 +127,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
                 <SelectValue placeholder="How are you feeling?" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(moodEmojis).map(([moodText, emoji]) => (
+                {Object.entries(MOOD_OPTIONS).map(([moodText, { emoji }]) => (
                   <SelectItem key={moodText} value={moodText} className={isMobile ? 'text-sm' : 'text-base'}>
                     {emoji} {moodText}
                   </SelectItem>
