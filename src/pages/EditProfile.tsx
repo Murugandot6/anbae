@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users, Image as ImageIcon, Sun, Moon } from 'lucide-react';
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon, Sun, Moon, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,6 +20,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTheme } from 'next-themes';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }).optional().or(z.literal('')),
@@ -43,6 +54,7 @@ const EditProfile = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete dialog
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -140,6 +152,35 @@ const EditProfile = () => {
       toast.error('Failed to update profile: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) {
+      toast.error('User not authenticated.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user-data', {
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else if (data && data.success) {
+        toast.success('Account and all associated data deleted successfully.');
+        await supabase.auth.signOut(); // Ensure user is signed out
+        navigate('/'); // Redirect to home page
+      } else {
+        toast.error(data?.message || 'Failed to delete account.');
+      }
+    } catch (error: any) {
+      toast.error('An unexpected error occurred during account deletion.');
+    } finally {
+      setLoading(false);
+      setIsDeleteDialogOpen(false); // Close dialog
     }
   };
 
@@ -263,6 +304,39 @@ const EditProfile = () => {
                 </Button>
               </Link>
             </div>
+          </div>
+
+          {/* Delete Account Section */}
+          <div className="mt-8 pt-6 border-t border-border/50">
+            <h3 className="text-lg sm:text-xl font-bold text-destructive mb-4 flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-destructive" /> Danger Zone
+            </h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm sm:text-base py-2 sm:py-2.5">
+                  Delete My Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-card/80 backdrop-blur-md border border-border/50 rounded-xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                    <Trash2 className="w-6 h-6" /> Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-muted-foreground">
+                    This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including messages, journal entries, and any other associated content.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="text-foreground border-border hover:bg-accent/20 hover:text-accent-foreground">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                    Yes, Delete My Account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </BackgroundWrapper>
