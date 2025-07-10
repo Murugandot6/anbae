@@ -22,7 +22,7 @@ const Journal = () => {
   const location = useLocation();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+  const [selectedDate, setSelectedDate] = useState<Date>( // Corrected type here
     location.state?.selectedDate ? new Date(location.state.selectedDate) : new Date()
   );
   const [viewMode, setViewMode] = useState<'all' | 'daily'>('daily'); // New state for view mode
