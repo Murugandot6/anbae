@@ -22,6 +22,7 @@ import JournalEntryCard from '@/components/JournalEntryCard'; // Import the rena
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import QuickActions from '@/components/QuickActions'; // Import QuickActions
 
 const Dashboard = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -333,6 +334,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        <QuickActions /> {/* Add the QuickActions component here */}
       </BackgroundWrapper>
     </>
   );
