@@ -333,7 +333,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
                   <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {!isMobile && !isTheaterFullscreen && (
+                  {!isMobile && ( // Removed !isTheaterFullscreen condition
                     <Button
                       onClick={onToggleChat}
                       variant="ghost"
