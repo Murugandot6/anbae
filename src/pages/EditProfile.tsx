@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Mail, Users, Image as ImageIcon, Sun, Moon, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Mail, Users, Image as ImageIcon, Sun, Moon, Trash2, Heart } from 'lucide-react'; // Added Heart icon
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -37,12 +37,24 @@ const formSchema = z.object({
   partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
   partner_nickname: z.string().min(2, { message: 'Partner nickname must be at least 2 characters.' }).optional().or(z.literal('')),
   avatar_url: z.string().optional().or(z.literal('')),
+  relationship_status: z.enum(['Single', 'In a Relationship', 'Married', 'One-sided'], {
+    required_error: 'Please select your relationship status.',
+  }).optional().or(z.literal('')), // Make optional for existing users who might not have it
 }).refine((data) => {
   const sessionContext = (window as any).dyadSessionContext;
   const currentUserEmail = sessionContext?.user?.email;
   return data.partner_email === '' || data.partner_email !== currentUserEmail;
 }, {
   message: "Your partner's email cannot be the same as your own email.",
+  path: ["partner_email"],
+}).refine((data) => {
+  if (data.relationship_status === 'Single' || data.relationship_status === 'One-sided' || !data.relationship_status) {
+    return true; // partner_email is optional for these statuses or if status is not set
+  }
+  // For 'In a Relationship' or 'Married', partner_email must be provided and valid
+  return data.partner_email && z.string().email().safeParse(data.partner_email).success;
+}, {
+  message: "Partner's email is required for this relationship status.",
   path: ["partner_email"],
 });
 
@@ -63,6 +75,7 @@ const EditProfile = () => {
       partner_email: '',
       partner_nickname: '',
       avatar_url: '',
+      relationship_status: '', // Initialize with empty string for select
     },
   });
 
@@ -80,6 +93,7 @@ const EditProfile = () => {
           partner_email: user.user_metadata.partner_email || '',
           partner_nickname: user.user_metadata.partner_nickname || '',
           avatar_url: currentAvatar,
+          relationship_status: user.user_metadata.relationship_status || '',
         });
 
         const currentUsersPartnerEmail = user.user_metadata.partner_email;
@@ -122,9 +136,10 @@ const EditProfile = () => {
       const { data: authUpdateData, error: authError } = await supabase.auth.updateUser({
         data: {
           nickname: values.nickname,
-          partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url,
+          partner_email: values.partner_email || null, // Ensure null is sent if empty
+          partner_nickname: values.partner_nickname || null, // Ensure null is sent if empty
+          avatar_url: values.avatar_url || null, // Ensure null is sent if empty
+          relationship_status: values.relationship_status || null, // Ensure null is sent if empty
         },
       });
 
@@ -136,9 +151,10 @@ const EditProfile = () => {
         .from('profiles')
         .update({
           username: values.nickname,
-          partner_email: values.partner_email,
-          partner_nickname: values.partner_nickname,
-          avatar_url: values.avatar_url,
+          partner_email: values.partner_email || null,
+          partner_nickname: values.partner_nickname || null,
+          avatar_url: values.avatar_url || null,
+          relationship_status: values.relationship_status || null,
         })
         .eq('id', user.id);
 
@@ -184,6 +200,8 @@ const EditProfile = () => {
     }
   };
 
+  const selectedRelationshipStatus = form.watch('relationship_status');
+
   if (sessionLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
@@ -227,30 +245,57 @@ const EditProfile = () => {
               />
               <FormField
                 control={form.control}
-                name="partner_email"
+                name="relationship_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4 text-primary" /> Partner's Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
-                    </FormControl>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Heart className="w-4 h-4" /> Relationship Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
+                          <SelectValue placeholder="Select your status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">
+                        <SelectItem value="Single">Single</SelectItem>
+                        <SelectItem value="In a Relationship">In a Relationship</SelectItem>
+                        <SelectItem value="Married">Married</SelectItem>
+                        <SelectItem value="One-sided">One-sided</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="partner_nickname"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4 text-primary" /> Partner's Nickname</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
-                    </FormControl>
-                    <FormMessage className="text-xs sm:text-sm" />
-                  </FormItem>
-                )}
-              />
+              {!(selectedRelationshipStatus === 'Single' || selectedRelationshipStatus === 'One-sided' || !selectedRelationshipStatus) && (
+                <FormField
+                  control={form.control}
+                  name="partner_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4 text-primary" /> Partner's Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
+                      </FormControl>
+                      <FormMessage className="text-xs sm:text-sm" />
+                    </FormItem>
+                  )}
+                />
+              )}
+              {!(selectedRelationshipStatus === 'Single' || selectedRelationshipStatus === 'One-sided' || !selectedRelationshipStatus) && (
+                <FormField
+                  control={form.control}
+                  name="partner_nickname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4 text-primary" /> Partner's Nickname</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
+                      </FormControl>
+                      <FormMessage className="text-xs sm:text-sm" />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><ImageIcon className="w-4 h-4 text-primary" /> Select Your Avatar</FormLabel>
                 <div className="flex items-center gap-4 mb-4">

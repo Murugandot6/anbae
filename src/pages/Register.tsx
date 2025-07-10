@@ -6,12 +6,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Mail, Lock, User, Users } from 'lucide-react';
+import { Mail, Lock, User, Users, Heart } from 'lucide-react'; // Added Heart icon for relationship status
 import { toast } from 'sonner';
 import VideoBackground from '@/components/VideoBackground';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Helmet } from 'react-helmet-async'; // Import Helmet
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -22,9 +23,21 @@ const formSchema = z.object({
     .regex(/[0-9]/, { message: 'Password must contain at least one number.' })
     .regex(/[^a-zA-Z0-9]/, { message: 'Password must contain at least one special character.' }),
   nickname: z.string().min(2, { message: 'Nickname must be at least 2 characters.' }),
-  partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }),
+  relationship_status: z.enum(['Single', 'In a Relationship', 'Married', 'One-sided'], {
+    required_error: 'Please select your relationship status.',
+  }),
+  partner_email: z.string().email({ message: 'Please enter a valid partner email address.' }).optional().or(z.literal('')),
 }).refine((data) => data.email !== data.partner_email, {
   message: "Your partner's email cannot be the same as your own email.",
+  path: ["partner_email"],
+}).refine((data) => {
+  if (data.relationship_status === 'Single' || data.relationship_status === 'One-sided') {
+    return true; // partner_email is optional for these statuses
+  }
+  // For 'In a Relationship' or 'Married', partner_email must be provided and valid
+  return data.partner_email && z.string().email().safeParse(data.partner_email).success;
+}, {
+  message: "Partner's email is required for this relationship status.",
   path: ["partner_email"],
 });
 
@@ -38,12 +51,15 @@ const Register = () => {
       email: '',
       password: '',
       nickname: '',
+      relationship_status: undefined, // Set initial value to undefined for select
       partner_email: '',
     },
   });
 
+  const selectedRelationshipStatus = form.watch('relationship_status');
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const { email, password, nickname, partner_email } = values;
+    const { email, password, nickname, partner_email, relationship_status } = values;
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,7 +67,8 @@ const Register = () => {
         options: {
           data: {
             nickname,
-            partner_email,
+            partner_email: partner_email || null, // Send null if optional and empty
+            relationship_status,
           },
         },
       });
@@ -133,17 +150,42 @@ const Register = () => {
               />
               <FormField
                 control={form.control}
-                name="partner_email"
+                name="relationship_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base" />
-                    </FormControl>
+                    <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Heart className="w-4 h-4" /> Relationship Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
+                          <SelectValue placeholder="Select your status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">
+                        <SelectItem value="Single">Single</SelectItem>
+                        <SelectItem value="In a Relationship">In a Relationship</SelectItem>
+                        <SelectItem value="Married">Married</SelectItem>
+                        <SelectItem value="One-sided">One-sided</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
                 )}
               />
+              {!(selectedRelationshipStatus === 'Single' || selectedRelationshipStatus === 'One-sided') && (
+                <FormField
+                  control={form.control}
+                  name="partner_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4" /> Partner's Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base" />
+                      </FormControl>
+                      <FormMessage className="text-xs sm:text-sm" />
+                    </FormItem>
+                  )}
+                />
+              )}
               <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white dark:bg-purple-600 dark:hover:bg-purple-700 text-sm sm:text-base py-2 sm:py-2.5">
                 <img src="/favicon.ico" alt="Favicon" className="w-4 h-4 mr-2" /> Create Account
               </Button>
