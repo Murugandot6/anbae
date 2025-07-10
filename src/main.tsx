@@ -4,12 +4,15 @@ import App from './App.tsx';
 import './globals.css'; // Corrected import path
 import { ThemeProvider } from './components/theme-provider.tsx';
 import { Toaster } from 'sonner';
+import { BrowserRouter } from 'react-router-dom'; // Import BrowserRouter
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <App />
-      <Toaster />
-    </ThemeProvider>
+    <BrowserRouter> {/* Wrap App with BrowserRouter */}
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <App />
+        <Toaster />
+      </ThemeProvider>
+    </BrowserRouter>
   </React.StrictMode>,
 );
