@@ -27,6 +27,7 @@ const Journal = () => {
   );
   const [viewMode, setViewMode] = useState<'all' | 'daily'>('daily'); // New state for view mode
   const [todayJournalEntry, setTodayJournalEntry] = useState<JournalEntry | null>(null); // State for today's entry
+  const [journalEntriesMap, setJournalEntriesMap] = useState<Record<string, JournalEntry>>({}); // New state for calendar map
 
   useEffect(() => {
     // Update selectedDate and viewMode if location state changes
@@ -52,10 +53,25 @@ const Journal = () => {
       toast.error('Failed to load journal entries.');
     } else {
       setEntries(data);
-      // Also update today's entry after fetching all entries
+      
+      const entriesMap: Record<string, JournalEntry> = {};
+      let latestTodayEntry: JournalEntry | null = null;
       const today = new Date();
-      const latestTodayEntry = data.find(entry => isSameDay(new Date(entry.created_at), today)) || null;
-      setTodayJournalEntry(latestTodayEntry);
+
+      data.forEach(entry => {
+        const entryDate = new Date(entry.created_at);
+        const dateKey = format(entryDate, 'yyyy-MM-dd');
+        // Store the latest entry for each day in the map
+        if (!entriesMap[dateKey] || new Date(entry.created_at) > new Date(entriesMap[dateKey].created_at)) {
+          entriesMap[dateKey] = entry;
+        }
+
+        if (isSameDay(entryDate, today) && (!latestTodayEntry || entryDate > new Date(latestTodayEntry.created_at))) {
+          latestTodayEntry = entry;
+        }
+      });
+      setJournalEntriesMap(entriesMap); // Set the map for the calendar
+      setTodayJournalEntry(latestTodayEntry); // Set today's specific entry
     }
     setLoading(false);
   };
@@ -179,7 +195,7 @@ const Journal = () => {
               <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
             </div>
             <div>
-              <CalendarView entries={groupedAllEntries} onDayClick={handleDayClick} />
+              <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-center mb-3 sm:mb-4">
