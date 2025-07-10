@@ -135,7 +135,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           <div className={clsx(
             "relative w-full rounded-xl overflow-hidden",
             {
-              "flex-grow aspect-video": isMobile, // On mobile, video takes full width and grows to fill half height, maintaining aspect ratio
+              "flex-grow": isMobile, // Removed aspect-video here to allow equal height with chat on mobile
               "sm:flex-[3] sm:h-full sm:aspect-auto": !isMobile, // On desktop, video takes 3 parts of width and full height, and no fixed aspect ratio
             }
           )}>
