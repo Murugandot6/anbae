@@ -23,27 +23,29 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
   const [heading, setHeading] = useState(initialEntry?.heading || '');
   const [content, setContent] = useState(initialEntry?.content || '');
   const [mood, setMood] = useState(initialEntry?.mood || '');
-  const [isEditing, setIsEditing] = useState(!initialEntry);
+  const [isEditing, setIsEditing] = useState(!initialEntry); // Initial state based on whether an entry exists
   const [isLoading, setIsLoading] = useState(false);
-  const isMobile = useIsMobile(); // Use the hook
+  const isMobile = useIsMobile();
 
+  // Reset state when initialEntry or selectedDate changes
   useEffect(() => {
     setHeading(initialEntry?.heading || '');
     setContent(initialEntry?.content || '');
     setMood(initialEntry?.mood || '');
     setIsEditing(!initialEntry); // If no initial entry, start in editing mode
-  }, [initialEntry]);
+  }, [initialEntry, selectedDate]); // Added selectedDate to dependencies
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
       const entryData = {
         user_id: user.id,
-        created_at: initialEntry?.created_at || new Date().toISOString(), // Keep original created_at if updating
+        // Use selectedDate for created_at if creating a new entry, otherwise keep original
+        created_at: initialEntry?.created_at || selectedDate.toISOString(), 
         heading,
         content,
         mood,
-        emoji: mood ? MOOD_OPTIONS[mood as keyof typeof MOOD_OPTIONS]?.emoji : null, // Save emoji based on selected mood
+        emoji: mood ? MOOD_OPTIONS[mood as keyof typeof MOOD_OPTIONS]?.emoji : null,
       };
 
       let data, error;
@@ -68,7 +70,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
         toast.error('Failed to save journal entry: ' + error.message);
       } else if (data) {
         toast.success('Journal entry saved!');
-        onEntryUpdated(data);
+        onEntryUpdated(data); // Notify parent to re-fetch/update
         setIsEditing(false);
       }
     } catch (err: any) {
@@ -84,46 +86,60 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
   };
 
   const handleCancel = () => {
-    setHeading(initialEntry?.heading || '');
-    setContent(initialEntry?.content || '');
-    setMood(initialEntry?.mood || '');
-    setIsEditing(false);
+    // If there was an initial entry, revert to its values and exit editing
+    if (initialEntry) {
+      setHeading(initialEntry.heading || '');
+      setContent(initialEntry.content || '');
+      setMood(initialEntry.mood || '');
+      setIsEditing(false);
+    } else {
+      // If no initial entry (meaning we were creating a new one), clear fields and exit editing
+      setHeading('');
+      setContent('');
+      setMood('');
+      setIsEditing(false); 
+    }
   };
 
-  const isToday = isSameDay(selectedDate, new Date());
+  const isCurrentDayToday = isSameDay(selectedDate, new Date());
 
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="pb-2">
         <CardTitle className={`flex items-center justify-between ${isMobile ? 'text-base' : 'text-xl'}`}>
           <span>
-            {isToday ? "Today's Journal" : `Journal for ${format(selectedDate, 'MMM dd, yyyy')}`}
+            {isCurrentDayToday ? "Today's Journal" : `Journal for ${format(selectedDate, 'MMM dd, yyyy')}`}
             {initialEntry && !isEditing && (
               <span className="ml-2 text-xl sm:text-2xl">{initialEntry.emoji || MOOD_OPTIONS[initialEntry.mood as keyof typeof MOOD_OPTIONS]?.emoji}</span>
             )}
           </span>
-          {!isEditing && isToday && (
-            <Button variant="ghost" size={isMobile ? 'sm' : 'default'} onClick={handleEdit} className="h-8 px-3 text-sm">Edit</Button>
-          )}
+          <div className="flex gap-2">
+            {!isEditing && initialEntry && ( // Show Edit button if an entry exists and not editing
+              <Button variant="ghost" size={isMobile ? 'sm' : 'default'} onClick={handleEdit} className="h-8 px-3 text-sm">Edit</Button>
+            )}
+            {!isEditing && !initialEntry && ( // Show Add Entry button if no entry exists and not editing
+              <Button variant="ghost" size={isMobile ? 'sm' : 'default'} onClick={handleEdit} className="h-8 px-3 text-sm">Add Entry</Button>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className={`${isMobile ? 'p-3' : 'p-6'} space-y-3 sm:space-y-4`}> {/* Reduced padding and gap */}
+      <CardContent className={`${isMobile ? 'p-3' : 'p-6'} space-y-3 sm:space-y-4`}>
         {isEditing ? (
           <>
             <Input
               placeholder="Heading (e.g., A great day!)"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
-              className={isMobile ? 'text-sm h-9' : 'text-base h-10'} // Reduced font size and height for input
+              className={isMobile ? 'text-sm h-9' : 'text-base h-10'}
             />
             <Textarea
               placeholder="What's on your mind today?"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className={isMobile ? 'text-sm min-h-[70px]' : 'min-h-[120px]'} // Reduced font size and min-height
+              className={isMobile ? 'text-sm min-h-[70px]' : 'min-h-[120px]'}
             />
             <Select value={mood} onValueChange={setMood}>
-              <SelectTrigger className={isMobile ? 'text-sm h-9' : 'text-base h-10'}> {/* Reduced font size and height for select */}
+              <SelectTrigger className={isMobile ? 'text-sm h-9' : 'text-base h-10'}>
                 <SelectValue placeholder="How are you feeling?" />
               </SelectTrigger>
               <SelectContent>
@@ -142,10 +158,17 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ user, initialEntry,
             </div>
           </>
         ) : (
-          <div className={`${isMobile ? 'text-sm' : 'text-base'} space-y-2`}> {/* Reduced font size for display */}
-            <p className="font-semibold">{heading}</p>
-            <p className="whitespace-pre-wrap">{content}</p>
-          </div>
+          initialEntry ? ( // Display content only if initialEntry exists
+            <div className={`${isMobile ? 'text-sm' : 'text-base'} space-y-2`}>
+              <p className="font-semibold">{heading}</p>
+              <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+          ) : ( // Message when no entry for the selected day
+            <div className="text-center text-muted-foreground py-4">
+              <p className="text-sm sm:text-base">No journal entry for this day.</p>
+              <p className="text-xs sm:text-sm mt-1">Click "Add Entry" to create one.</p>
+            </div>
+          )
         )}
       </CardContent>
     </Card>

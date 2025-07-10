@@ -136,6 +136,13 @@ const Journal = () => {
     fetchJournalData(); // Re-fetch all data to ensure calendar and all entries are updated
   };
 
+  // Calculate the entry for the currently selected date
+  const currentDayEntry = useMemo(() => {
+    if (!selectedDate) return null;
+    const dateKey = format(selectedDate, 'yyyy-MM-dd');
+    return journalEntriesMap[dateKey] || null;
+  }, [selectedDate, journalEntriesMap]);
+
   if (sessionLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
@@ -192,7 +199,8 @@ const Journal = () => {
 
           <div className="flex flex-col gap-6 sm:gap-8">
             <div>
-              <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
+              {/* Pass currentDayEntry and selectedDate to JournalEntryCard */}
+              <JournalEntryCard user={user} initialEntry={currentDayEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={selectedDate} />
             </div>
             <div>
               <CalendarView entries={journalEntriesMap} onDayClick={handleDayClick} />
