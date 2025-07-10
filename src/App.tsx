@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ManualPage from "./pages/UserManual"; // Corrected import path for UserManual
+import ManualPage from "./pages/ManualPage"; // Corrected import path
 import Dashboard from "./pages/Dashboard";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import SendMessage from "./pages/SendMessage";
