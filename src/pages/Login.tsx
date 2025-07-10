@@ -75,7 +75,7 @@ const Login = () => {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4" /> Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base" />
+                      <Input placeholder="your.email@example.com" {...field} type="email" value={field.value || ''} className="text-sm sm:text-base placeholder:text-form-placeholder" />
                     </FormControl>
                     <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
@@ -88,7 +88,7 @@ const Login = () => {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Lock className="w-4 h-4" /> Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your password" {...field} type="password" value={field.value || ''} className="text-sm sm:text-base" />
+                      <Input placeholder="Your password" {...field} type="password" value={field.value || ''} className="text-sm sm:text-base placeholder:text-form-placeholder" />
                     </FormControl>
                     <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>

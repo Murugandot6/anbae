@@ -66,6 +66,8 @@ export default {
         // New Score Colors
         'score-positive': 'hsl(var(--score-positive))',
         'score-negative': 'hsl(var(--score-negative))',
+        // New custom color for form placeholders
+        'form-placeholder': 'hsl(var(--form-placeholder))',
       },
       borderRadius: {
         lg: "var(--radius)",

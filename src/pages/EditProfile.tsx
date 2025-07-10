@@ -237,7 +237,7 @@ const EditProfile = () => {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><User className="w-4 h-4 text-primary" /> Nickname</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
+                      <Input placeholder="Your Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base placeholder:text-form-placeholder" />
                     </FormControl>
                     <FormMessage className="text-xs sm:text-sm" />
                   </FormItem>
@@ -251,7 +251,7 @@ const EditProfile = () => {
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Heart className="w-4 h-4" /> Relationship Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-muted-foreground">
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-form-placeholder">
                           <SelectValue placeholder="Select your status" />
                         </SelectTrigger>
                       </FormControl>
@@ -274,7 +274,7 @@ const EditProfile = () => {
                     <FormItem>
                       <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Mail className="w-4 h-4" /> Partner's Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
+                        <Input placeholder="partner@example.com" {...field} type="email" value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base placeholder:text-form-placeholder" />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
                     </FormItem>
@@ -289,7 +289,7 @@ const EditProfile = () => {
                     <FormItem>
                       <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Users className="w-4 h-4" /> Partner's Nickname</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base" />
+                        <Input placeholder="Your Partner's Nickname" {...field} value={field.value || ''} className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base placeholder:text-form-placeholder" />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
                     </FormItem>
@@ -323,7 +323,7 @@ const EditProfile = () => {
                 </FormLabel>
                 <Select onValueChange={(value) => setTheme(value)} value={theme}>
                   <FormControl>
-                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-muted-foreground">
+                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-form-placeholder">
                       <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
                   </FormControl>

@@ -72,6 +72,9 @@
     --score-positive: 142 76% 36%; /* A nice green */
     --score-negative: 0 80% 60%; /* Destructive red */
 
+    /* Custom form placeholder color */
+    --form-placeholder: 240 10% 10%; /* Equivalent to #17171C */
+
     --radius: 0.5rem; /* Default border radius for rounded corners */
   }
 
@@ -116,6 +119,9 @@
     /* New Score Colors */
     --score-positive: 142 76% 46%; /* A brighter green for dark mode */
     --score-negative: 0 70% 50%; /* Destructive red */
+
+    /* Custom form placeholder color for dark mode (readable) */
+    --form-placeholder: 240 15% 60%; /* Same as muted-foreground in dark mode */
 
     --radius: 0.5rem; /* Default border radius for rounded corners */
   }
