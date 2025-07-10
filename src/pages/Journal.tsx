@@ -232,9 +232,7 @@ const Journal = () => {
                 Object.keys(groupedAllEntries).length > 0 ? (
                   Object.keys(groupedAllEntries).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map(dateKey => (
                     <div key={dateKey} className="mb-6">
-                      <h4 className="text-md sm:text-lg font-bold text-foreground mb-2">
-                        {format(new Date(dateKey), 'MMMM d, yyyy')}
-                      </h4>
+                      {/* Removed the date heading here */}
                       <div className="space-y-3 sm:space-y-4">
                         {groupedAllEntries[dateKey].map(entry => (
                           <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl p-3 sm:p-4">
