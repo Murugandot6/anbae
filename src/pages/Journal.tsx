@@ -12,6 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { JournalEntry } from '@/types/supabase'; // Import JournalEntry
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
+import CalendarView from '@/components/CalendarView'; // Import CalendarView
+import JournalEntryCard from '@/components/JournalEntryCard'; // Import JournalEntryCard
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -22,13 +24,17 @@ const Journal = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     location.state?.selectedDate ? new Date(location.state.selectedDate) : new Date()
   );
+  const [viewMode, setViewMode] = useState<'all' | 'daily'>('daily'); // New state for view mode
+  const [todayJournalEntry, setTodayJournalEntry] = useState<JournalEntry | null>(null); // State for today's entry
 
   useEffect(() => {
-    // Update selectedDate if location state changes
+    // Update selectedDate and viewMode if location state changes
     if (location.state?.selectedDate) {
       setSelectedDate(new Date(location.state.selectedDate));
+      setViewMode('daily');
     } else {
       setSelectedDate(new Date()); // Default to today if no state
+      setViewMode('daily');
     }
   }, [location.state?.selectedDate]);
 
@@ -37,7 +43,7 @@ const Journal = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('journal_entries')
-      .select('*')
+      .select('id, created_at, emoji, heading, content, mood, user_id') // Select user_id
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -45,6 +51,10 @@ const Journal = () => {
       toast.error('Failed to load journal entries.');
     } else {
       setEntries(data);
+      // Also update today's entry after fetching all entries
+      const today = new Date();
+      const latestTodayEntry = data.find(entry => isSameDay(new Date(entry.created_at), today)) || null;
+      setTodayJournalEntry(latestTodayEntry);
     }
     setLoading(false);
   };
@@ -63,7 +73,7 @@ const Journal = () => {
       toast.error('Failed to delete entry.');
     } else {
       toast.success('Entry deleted.');
-      fetchJournalData(); // Re-fetch to update the list
+      fetchJournalData(); // Re-fetch to update the list and calendar
     }
   };
 
@@ -72,15 +82,56 @@ const Journal = () => {
     return entries.filter(entry => isSameDay(new Date(entry.created_at), selectedDate));
   }, [entries, selectedDate]);
 
+  const groupedAllEntries = useMemo(() => {
+    return entries.reduce((acc, entry) => {
+      const dateKey = format(new Date(entry.created_at), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(entry);
+      // Sort entries within each day by created_at descending (most recent first)
+      acc[dateKey].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return acc;
+    }, {} as Record<string, JournalEntry[]>);
+  }, [entries]);
+
   const isTodaySelected = useMemo(() => {
     return selectedDate ? isSameDay(selectedDate, new Date()) : true;
   }, [selectedDate]);
 
   const handleGoToToday = () => {
     setSelectedDate(new Date());
-    // Clear location state to ensure it defaults to today on subsequent direct navigations
+    setViewMode('daily'); // Switch to daily view when going to today
     navigate(location.pathname, { replace: true, state: {} });
   };
+
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date);
+    setViewMode('daily'); // Switch to daily view when a date is clicked
+    navigate(location.pathname, { replace: true, state: { selectedDate: date.toISOString() } });
+  };
+
+  const handleJournalEntryUpdated = (entry: JournalEntry) => {
+    // Update today's entry if it's for today
+    if (isSameDay(new Date(entry.created_at), new Date())) {
+      setTodayJournalEntry(entry);
+    }
+    fetchJournalData(); // Re-fetch all data to ensure calendar and all entries are updated
+  };
+
+  if (sessionLoading || loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-background/80 text-foreground">
+        <LoadingPulsar />
+        <p className="text-xl mt-4">Loading journal...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
     <>
@@ -106,7 +157,7 @@ const Journal = () => {
               </Tooltip>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mx-auto">Journal</h1>
-            {!isTodaySelected && (
+            {!isTodaySelected && viewMode === 'daily' && (
               <div className="absolute top-3 right-3 z-10">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -124,13 +175,39 @@ const Journal = () => {
 
           <div className="flex flex-col gap-6 sm:gap-8">
             <div>
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-foreground">
-                Entries for {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}
+              <JournalEntryCard user={user} initialEntry={todayJournalEntry} onEntryUpdated={handleJournalEntryUpdated} selectedDate={new Date()} />
+            </div>
+            <div>
+              <CalendarView entries={groupedAllEntries} onDayClick={handleDayClick} />
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-3 sm:mb-4">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 sm:mb-0">
+                {viewMode === 'daily' ? `Entries for ${selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'}` : 'All Journal Entries'}
               </h3>
-              <div className="space-y-3 sm:space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                {loading ? (
-                  <p className="text-muted-foreground text-sm sm:text-base">Loading entries...</p>
-                ) : dailyEntries.length > 0 ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'daily' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('daily')}
+                  size="sm"
+                  className="text-sm px-3 py-1.5 h-auto"
+                >
+                  Selected Day
+                </Button>
+                <Button
+                  variant={viewMode === 'all' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('all')}
+                  size="sm"
+                  className="text-sm px-3 py-1.5 h-auto"
+                >
+                  All Entries
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {viewMode === 'daily' ? (
+                dailyEntries.length > 0 ? (
                   dailyEntries.map(entry => (
                     <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl p-3 sm:p-4">
                       <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
@@ -149,8 +226,38 @@ const Journal = () => {
                   ))
                 ) : (
                   <p className="text-muted-foreground text-sm sm:text-base">No entries for this day. You can add one from the Dashboard!</p>
-                )}
-              </div>
+                )
+              ) : (
+                Object.keys(groupedAllEntries).length > 0 ? (
+                  Object.keys(groupedAllEntries).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map(dateKey => (
+                    <div key={dateKey} className="mb-6">
+                      <h4 className="text-md sm:text-lg font-bold text-foreground mb-2">
+                        {format(new Date(dateKey), 'MMMM d, yyyy')}
+                      </h4>
+                      <div className="space-y-3 sm:space-y-4">
+                        {groupedAllEntries[dateKey].map(entry => (
+                          <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl p-3 sm:p-4">
+                            <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
+                              <div>
+                                <CardTitle className="text-base sm:text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
+                                <p className="text-xs sm:text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
+                              </div>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="w-8 h-8 text-destructive hover:bg-destructive/20">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </CardHeader>
+                            <CardContent className="pt-0 text-sm sm:text-base">
+                              <p className="whitespace-pre-wrap text-foreground">{entry.content}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm sm:text-base">No journal entries found.</p>
+                )
+              )}
             </div>
           </div>
         </div>
