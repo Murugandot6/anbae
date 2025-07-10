@@ -54,12 +54,26 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isTheat
              {msg.isSystem ? (
                 <span className="text-xs text-center text-muted-foreground italic px-2 py-1 bg-muted/20 rounded-full">{msg.text}</span>
              ) : (
-                <div className={`flex flex-col w-full max-w-[280px] sm:max-w-[320px] leading-1.5 p-2.5 sm:p-3 border-border/50 rounded-xl shadow-sm ${msg.author === currentUser.name ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted/20 text-foreground rounded-bl-none'}`}> {/* Adjusted max-width and padding */}
-                   <div className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse"> {/* Adjusted gap */}
-                       <span className="text-xs sm:text-sm font-semibold text-foreground">{msg.author}</span> {/* Adjusted font size */}
-                       <span className="text-xs font-normal text-muted-foreground">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                   </div>
-                   <p className="text-sm font-normal py-1.5 sm:py-2 text-foreground">{msg.text}</p> {/* Adjusted padding and font size */}
+                <div className={cn(
+                  "flex flex-col w-full max-w-[280px] sm:max-w-[320px] leading-1.5 p-2.5 sm:p-3 border-border/50 rounded-xl shadow-sm",
+                  msg.author === currentUser.name
+                    ? "bg-primary text-primary-foreground rounded-br-none" // Current user's message
+                    : "bg-muted/20 text-foreground rounded-bl-none" // Other user's message
+                )}>
+                  <div className="flex items-center space-x-1.5 sm:space-x-2 rtl:space-x-reverse">
+                    <span className={cn(
+                      "text-xs sm:text-sm font-semibold",
+                      msg.author === currentUser.name ? "text-primary-foreground" : "text-foreground" // Author name color
+                    )}>{msg.author}</span>
+                    <span className={cn(
+                      "text-xs font-normal",
+                      msg.author === currentUser.name ? "text-primary-foreground/80" : "text-muted-foreground" // Timestamp color
+                    )}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className={cn(
+                    "text-sm font-normal py-1.5 sm:py-2",
+                    msg.author === currentUser.name ? "text-primary-foreground" : "text-foreground" // Message content color
+                  )}>{msg.text}</p>
                 </div>
               )}
            </div>
