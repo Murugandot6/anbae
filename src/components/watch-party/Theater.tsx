@@ -6,13 +6,13 @@ import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
-import { Copy, Link as LinkIcon, ArrowLeft, LogOut } from 'lucide-react';
+import { Copy, Link as LinkIcon, ArrowLeft, LogOut, MessageSquare } from 'lucide-react';
 import VideoHistory from '@/components/watch-party/VideoHistory';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TheaterProps {
   room: Room;
@@ -25,10 +25,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [isChatOpen, setIsChatOpen] = useState(true);
 
   const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile(); // Use the hook
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -75,22 +76,20 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     }
   };
 
-  // This comment is added to force a re-evaluation by the build system.
   return (
     <div 
       ref={theaterContainerRef}
       className={clsx(
         "flex flex-col w-full",
-        isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "h-screen bg-background text-foreground" // Changed h-full to h-screen
+        isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "h-screen bg-background text-foreground"
       )}
     >
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6", // Keep padding here for inner content
+        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6",
         {
-          "max-w-full mx-0": isTheaterFullscreen // In fullscreen, remove max-width and margin
+          "max-w-full mx-0": isTheaterFullscreen
         }
       )}>
-        {/* Header elements - conditionally hide when fullscreen */}
         {!isTheaterFullscreen && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
             <div className="flex items-center justify-between w-full sm:w-auto mb-3 sm:mb-0">
@@ -116,6 +115,17 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   {copyStatus}
                 </Button>
               </div>
+              {!isMobile && !isChatOpen && (
+                <Button
+                  onClick={() => setIsChatOpen(true)}
+                  variant="outline"
+                  size="icon"
+                  className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+                  aria-label="Open Chat"
+                >
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              )}
               <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
@@ -123,20 +133,19 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           </div>
         )}
 
-        {/* Main Video Player and Chat Row */}
         <div className={clsx(
-          "flex flex-grow min-h-0 gap-6 sm:gap-8", // This container fills available vertical space
+          "flex flex-grow min-h-0 gap-6 sm:gap-8",
           {
-            "flex-col": isMobile, // Stack on mobile
-            "sm:flex-row": !isMobile, // Side-by-side on desktop
+            "flex-col": isMobile,
+            "sm:flex-row": !isMobile,
           }
         )}>
-          {/* Left Column: Video Player */}
           <div className={clsx(
-            "relative w-full rounded-xl overflow-hidden",
+            "relative w-full rounded-xl overflow-hidden transition-all duration-300 ease-in-out",
             {
-              "flex-1 min-h-0": isMobile, // Added min-h-0 here
-              "sm:flex-[3] sm:h-full sm:aspect-auto": !isMobile, // On desktop, video takes 3 parts of width and full height, and no fixed aspect ratio
+              "flex-1 min-h-0": isMobile,
+              "sm:flex-[3] sm:h-full": !isMobile && isChatOpen,
+              "sm:flex-grow sm:h-full": !isMobile && !isChatOpen,
             }
           )}>
             <VideoPlayer
@@ -150,31 +159,30 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               isConnectedToRealtime={isConnectedToRealtime}
               onToggleFullscreen={handleToggleFullscreen}
               isTheaterFullscreen={isTheaterFullscreen}
-              className="w-full h-full" // ReactPlayer fills its parent
+              className="w-full h-full"
             />
           </div>
 
-          {/* Right Column: Chat Panel */}
-          <div
-            className={clsx(
-              "w-full flex flex-col",
+          {(isChatOpen || isMobile) && (
+            <div className={clsx(
+              "w-full flex flex-col transition-all duration-300 ease-in-out",
               {
-                "flex-1 min-h-0": isMobile, // Added min-h-0 here
-                "sm:flex-[1] sm:h-full sm:min-w-[320px]": !isMobile, // On desktop, chat takes 1 part of width, full height, and min-width
+                "flex-1 min-h-0": isMobile,
+                "sm:flex-[1] sm:h-full sm:min-w-[320px]": !isMobile,
               }
-            )}
-          >
-            <Chat
-              messages={messages}
-              sendMessage={sendMessage}
-              currentUser={user}
-              isTheaterFullscreen={isTheaterFullscreen}
-              isMobile={isMobile}
-            />
-          </div>
+            )}>
+              <Chat
+                messages={messages}
+                sendMessage={sendMessage}
+                currentUser={user}
+                isTheaterFullscreen={isTheaterFullscreen}
+                isMobile={isMobile}
+                onClose={!isMobile ? () => setIsChatOpen(false) : undefined}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Form and History (moved below the main video/chat row) */}
         {!isTheaterFullscreen && (
           <div className="flex flex-col gap-4 sm:gap-6 mt-6 sm:mt-8 flex-shrink-0">
             <form onSubmit={handleSetVideo} className={clsx(
