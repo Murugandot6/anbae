@@ -14,6 +14,7 @@ import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
 import CalendarView from '@/components/CalendarView'; // Import CalendarView
 import JournalEntryCard from '@/components/JournalEntryCard'; // Import JournalEntryCard
+import { formatDateTimeForMessageView } from '@/lib/utils'; // Import formatDateTimeForMessageView
 
 const Journal = () => {
   const { user, loading: sessionLoading } = useSession();
@@ -213,7 +214,7 @@ const Journal = () => {
                       <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
                         <div>
                           <CardTitle className="text-base sm:text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
-                          <p className="text-xs sm:text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{formatDateTimeForMessageView(entry.created_at)}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="w-8 h-8 text-destructive hover:bg-destructive/20">
                           <Trash2 className="w-4 h-4" />
@@ -240,7 +241,7 @@ const Journal = () => {
                             <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
                               <div>
                                 <CardTitle className="text-base sm:text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
-                                <p className="text-xs sm:text-sm text-muted-foreground">{format(new Date(entry.created_at), 'p')}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground">{formatDateTimeForMessageView(entry.created_at)}</p>
                               </div>
                               <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="w-8 h-8 text-destructive hover:bg-destructive/20">
                                 <Trash2 className="w-4 h-4" />
