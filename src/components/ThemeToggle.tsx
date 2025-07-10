@@ -8,16 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme();
-  const [isClientMounted, setIsClientMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClientMounted(true);
-  }, []);
-
-  if (!isClientMounted) {
-    // Render nothing or a minimal placeholder until client-side mounted
-    return null; 
-  }
+  // Removed isClientMounted state and useEffect for simpler client-side rendering.
 
   const toggleTheme = () => {
     if (theme === "dark") {
