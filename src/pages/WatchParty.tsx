@@ -4,7 +4,6 @@ import Dashboard from '@/components/watch-party/Dashboard';
 import Theater from '@/components/watch-party/Theater';
 import { useSession } from '@/contexts/SessionContext';
 import { useNavigate } from 'react-router-dom';
-import BackgroundWrapper from '@/components/BackgroundWrapper'; // Import BackgroundWrapper
 import { supabase } from '@/integrations/supabase/client'; // Import supabase
 import { Profile } from '@/types/supabase'; // Import Profile type
 import { Helmet } from 'react-helmet-async'; // Import Helmet
@@ -125,12 +124,13 @@ const WatchParty: React.FC = () => {
                 <title>Theater - Anbae</title>
                 <meta name="description" content="Join or create a theater to watch videos with your partner in real-time." />
             </Helmet>
-            <BackgroundWrapper solid>
+            {/* Replaced BackgroundWrapper with a simple div */}
+            <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center">
                 <div className="w-full max-w-sm sm:max-w-md bg-card/60 backdrop-blur-md border border-border/50 p-6 sm:p-8 rounded-xl shadow-lg text-center">
                     <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground">Authentication Error</h2>
                     <p className="text-sm sm:text-base text-muted-foreground">Could not find a valid user session. Please ensure you are logged in.</p>
                 </div>
-            </BackgroundWrapper>
+            </div>
         </>
     );
   }
@@ -141,7 +141,8 @@ const WatchParty: React.FC = () => {
         <title>Theater - Anbae</title>
         <meta name="description" content="Join or create a theater to watch videos with your partner in real-time." />
       </Helmet>
-      <BackgroundWrapper className="pt-0 md:pt-0" solid>
+      {/* Replaced BackgroundWrapper with a simple div */}
+      <div className="min-h-screen w-full bg-background text-foreground flex flex-col">
         <main className="flex-grow min-h-0 w-full p-0">
           {currentRoom ? (
             <Theater room={currentRoom} onLeaveRoom={handleLeaveRoom} user={user} />
@@ -152,7 +153,7 @@ const WatchParty: React.FC = () => {
             </>
           )}
         </main>
-      </BackgroundWrapper>
+      </div>
     </>
   );
 };

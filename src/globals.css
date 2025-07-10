@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    height: 100%; /* Ensure full height for the app */
+  }
+
   :root {
     --background: 270 20% 98%; /* Very light lavender */
     --foreground: 240 10% 15%; /* Darker text */

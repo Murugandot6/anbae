@@ -80,12 +80,12 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     <div 
       ref={theaterContainerRef}
       className={clsx(
-        "flex flex-col h-full w-full", // Base styles for the container
-        isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "bg-background text-foreground"
+        "flex flex-col w-full",
+        isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "h-screen bg-background text-foreground" // Changed h-full to h-screen
       )}
     >
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6",
+        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6", // Keep padding here for inner content
         {
           "max-w-full mx-0": isTheaterFullscreen // In fullscreen, remove max-width and margin
         }
@@ -136,7 +136,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             "relative w-full rounded-xl overflow-hidden",
             {
               "flex-grow aspect-video": isMobile, // On mobile, video takes full width and grows to fill half height, maintaining aspect ratio
-              "sm:flex-[3] sm:h-full sm:aspect-auto": !isMobile, // On desktop, video takes 3 parts of width and full height, no fixed aspect ratio
+              "sm:flex-[3] sm:h-full sm:aspect-auto": !isMobile, // On desktop, video takes 3 parts of width and full height, and no fixed aspect ratio
             }
           )}>
             <VideoPlayer
