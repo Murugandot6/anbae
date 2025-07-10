@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { SearchIcon, XIcon } from './icons';
+import { Search, X } from 'lucide-react'; // Updated imports
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -25,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, isLoading, ini
   return (
     <form onSubmit={handleSubmit} className={`relative w-full ${className || ''}`}> {/* Apply className here */}
       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 sm:pl-3"> {/* Adjusted padding */}
-        <SearchIcon className="h-4 w-4 sm:h-5 w-5 text-muted-foreground" /> {/* Adjusted icon size */}
+        <Search className="h-4 w-4 sm:h-5 w-5 text-muted-foreground" /> {/* Adjusted icon size */}
       </div>
       <input
         type="search"
@@ -41,7 +41,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear, isLoading, ini
             onClick={handleClear}
             className="absolute inset-y-0 right-0 flex items-center pr-2.5 sm:pr-3" // Adjusted padding
         >
-            <XIcon className="h-4 w-4 sm:h-5 w-5 text-muted-foreground hover:text-foreground"/> {/* Adjusted icon size */}
+            <X className="h-4 w-4 sm:h-5 w-5 text-muted-foreground hover:text-foreground"/> {/* Adjusted icon size */}
         </button>
       )}
     </form>

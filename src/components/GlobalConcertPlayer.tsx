@@ -1,7 +1,7 @@
 import React from 'react';
 import { useConcertPlayer } from '@/contexts/ConcertPlayerContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { PlayIcon, PauseIcon, XIcon, RadioIcon } from '@/features/concert/components/icons'; // Updated import path
+import { Play, Pause, X, Radio } from 'lucide-react'; // Updated imports
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +30,7 @@ const GlobalConcertPlayer: React.FC = () => {
     }
   };
 
-  const FallbackIcon = () => <RadioIcon className="w-8 h-8 text-muted-foreground" />;
+  const FallbackIcon = () => <Radio className="w-8 h-8 text-muted-foreground" />;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
@@ -72,7 +72,7 @@ const GlobalConcertPlayer: React.FC = () => {
             size="icon"
             className="w-8 h-8 text-foreground hover:bg-accent/20"
           >
-            {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
+            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </Button>
           <Button
             onClick={handleClearStation}
@@ -80,7 +80,7 @@ const GlobalConcertPlayer: React.FC = () => {
             size="icon"
             className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-accent/20"
           >
-            <XIcon className="w-5 h-5" />
+            <X className="w-5 h-5" />
           </Button>
         </div>
       </div>

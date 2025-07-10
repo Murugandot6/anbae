@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, User } from '@/types/watchParty';
-import { SendIcon } from '@/components/watch-party/icons';
+import { Send } from 'lucide-react'; // Updated import
 import { cn } from '@/lib/utils'; // Ensure cn is imported
 import { X } from 'lucide-react'; // Import X icon
 import { Button } from '@/components/ui/button'; // Import Button for the close icon
@@ -86,7 +86,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendMessage, currentUser, isOverl
             className="flex-grow px-3 py-2 bg-input/50 border border-border/50 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition text-sm sm:text-base" // Adjusted padding and font size
           />
           <button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground p-2.5 sm:p-3 rounded-lg transition-colors"> {/* Adjusted padding */}
-            <SendIcon className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
+            <Send className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
           </button>
         </div>
       </form>

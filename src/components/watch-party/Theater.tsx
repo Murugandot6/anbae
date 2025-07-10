@@ -4,9 +4,8 @@ import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
-import { ClipboardCopyIcon, LinkIcon } from '@/components/watch-party/icons';
+import { Copy, Link as LinkIcon, ArrowLeft, LogOut } from 'lucide-react'; // Updated imports
 import VideoHistory from '@/components/watch-party/VideoHistory';
-import { ArrowLeft, LogOut } from 'lucide-react'; // Import LogOut icon
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { toast } from 'sonner'; // Import sonner toast
 import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
@@ -121,7 +120,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                 <p className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">Share Code:</p>
                 <p className="text-sm sm:text-lg font-mono text-primary bg-input/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md border border-border/50">{room.room_code}</p>
                 <Button onClick={handleCopyCode} variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground bg-input/50 hover:bg-accent/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-md transition-colors h-auto">
-                  <ClipboardCopyIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                   {copyStatus}
                 </Button>
               </div>

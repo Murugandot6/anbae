@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { VideoHistoryEntry } from '@/types/watchParty';
-import { HistoryIcon } from '@/components/watch-party/icons';
+import { History } from 'lucide-react'; // Updated import
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 import { cn } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ const VideoHistory: React.FC<VideoHistoryProps> = ({ history, onSelectVideo, cla
         variant="ghost"
       >
         <div className="flex items-center gap-2 sm:gap-3"> {/* Adjusted gap */}
-          <HistoryIcon className="w-5 h-5 sm:w-6 h-6 text-muted-foreground" /> {/* Adjusted icon size */}
+          <History className="w-5 h-5 sm:w-6 h-6 text-muted-foreground" /> {/* Adjusted icon size */}
           <span className="text-sm sm:text-base">Video History ({history.length})</span> {/* Adjusted font size */}
         </div>
         <svg

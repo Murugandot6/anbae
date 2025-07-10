@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Station } from '../types';
-import { PlayIcon } from './icons/PlayIcon';
-import { PauseIcon } from './icons/PauseIcon';
-import { RadioIcon } from './icons/RadioIcon';
-import { XIcon } from './icons/XIcon';
-import { VolumeUpIcon } from './icons/VolumeUpIcon';
-import { VolumeOffIcon } from './icons/VolumeOffIcon';
+import { Play, Pause, Radio, X, Volume2 as VolumeUp, VolumeX as VolumeOff } from 'lucide-react'; // Updated imports
 
 interface ConcertControlsProps { // Renamed interface
   station: Station;
@@ -57,7 +52,7 @@ const ConcertControls: React.FC<ConcertControlsProps> = ({ station, isPlaying, o
               }}
             />
             <div className="hidden w-12 h-12 sm:w-14 h-14 rounded-md shadow-md bg-input/50 flex items-center justify-center"> {/* Adjusted size */}
-              <RadioIcon className="w-7 h-7 sm:w-8 h-8 text-muted-foreground" /> {/* Adjusted icon size */}
+              <Radio className="w-7 h-7 sm:w-8 h-8 text-muted-foreground" /> {/* Adjusted icon size */}
             </div>
             <div className="min-w-0">
               <p className="font-bold text-foreground truncate text-sm sm:text-base" title={station.name}>{station.name}</p> {/* Adjusted font size */}
@@ -69,13 +64,13 @@ const ConcertControls: React.FC<ConcertControlsProps> = ({ station, isPlaying, o
           </button>
           <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
              <button onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'} className="bg-input/50 hover:bg-accent/20 rounded-full p-2.5 sm:p-3 text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-border/50"> {/* Adjusted padding */}
-              {isMuted ? <VolumeOffIcon className="w-5 h-5 sm:w-6 h-6" /> : <VolumeUpIcon className="w-5 h-5 sm:w-6 h-6" />} {/* Adjusted icon size */}
+              {isMuted ? <VolumeOff className="w-5 h-5 sm:w-6 h-6" /> : <VolumeUp className="w-5 h-5 sm:w-6 h-6" />} {/* Adjusted icon size */}
             </button>
             <button onClick={handlePlayPauseClick} title={isPlaying ? 'Pause' : 'Play'} className="bg-primary hover:bg-primary/90 rounded-full p-2.5 sm:p-3 text-primary-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"> {/* Adjusted padding */}
-              {isPlaying ? <PauseIcon className="w-5 h-5 sm:w-6 h-6" /> : <PlayIcon className="w-5 h-5 sm:w-6 h-6" />} {/* Adjusted icon size */}
+              {isPlaying ? <Pause className="w-5 h-5 sm:w-6 h-6" /> : <Play className="w-5 h-5 sm:w-6 h-6" />} {/* Adjusted icon size */}
             </button>
             <button onClick={handleClear} title="Stop and clear player" className="bg-input/50 hover:bg-accent/20 rounded-full p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-border/50"> {/* Adjusted padding */}
-              <XIcon className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
+              <X className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
             </button>
           </div>
         </div>

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Room } from '@/types/watchParty';
-import { PlusIcon, LoginIcon as JoinIcon } from '@/components/watch-party/icons';
-import { ArrowLeft } from 'lucide-react';
+import { Plus, LogIn as JoinIcon, ArrowLeft } from 'lucide-react'; // Updated imports
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button'; // Import shadcn Button
 
@@ -120,7 +119,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
         {/* Create Room Card */}
         <div className="bg-card/60 backdrop-blur-md border border-border/50 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
             <div className="bg-primary/20 p-3 sm:p-4 rounded-full mb-3 sm:mb-4">
-                <PlusIcon className="h-8 w-8 sm:h-10 sm:w-10 text-primary"/>
+                <Plus className="h-8 w-8 sm:h-10 sm:w-10 text-primary"/>
             </div>
             <h2 className="text-xl sm:text-2xl text-foreground font-semibold mb-2">Start a New Theater</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6">Create a private room and get a shareable code. You can add a video once you're inside.</p>
@@ -131,7 +130,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
                     disabled={!!loading}
                     className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg transition-all transform hover:scale-105 disabled:bg-primary/50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
-                    <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6"/>
+                    <Plus className="h-5 w-5 sm:h-6 sm:w-6"/>
                     {loading === 'create' ? 'Creating...' : 'Create Private Room'}
                 </Button>
             </div>

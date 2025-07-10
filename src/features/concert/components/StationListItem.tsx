@@ -1,6 +1,6 @@
 import React from 'react';
 import { Station } from '../types';
-import { RadioIcon, PlayIcon, VolumeUpIcon } from './icons';
+import { Radio, Play, Volume2 as VolumeUp } from 'lucide-react'; // Updated imports
 
 interface StationListItemProps {
   station: Station;
@@ -9,7 +9,7 @@ interface StationListItemProps {
 }
 
 const StationListItem: React.FC<StationListItemProps> = ({ station, isPlaying, onSelect }) => {
-  const FallbackIcon = () => <RadioIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-muted-foreground" />; // Adjusted icon size
+  const FallbackIcon = () => <Radio className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-muted-foreground" />; // Adjusted icon size
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
@@ -51,9 +51,9 @@ const StationListItem: React.FC<StationListItemProps> = ({ station, isPlaying, o
 
         <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {isPlaying ? (
-            <VolumeUpIcon className="w-7 h-7 sm:w-8 h-8 md:w-10 md:h-10 text-primary-foreground/90" /> /* Adjusted icon size */
+            <VolumeUp className="w-7 h-7 sm:w-8 h-8 md:w-10 md:h-10 text-primary-foreground/90" /> /* Adjusted icon size */
           ) : (
-            <PlayIcon className="w-7 h-7 sm:w-8 h-8 md:w-10 md:h-10 text-primary-foreground/90" /> /* Adjusted icon size */
+            <Play className="w-7 h-7 sm:w-8 h-8 md:w-10 md:h-10 text-primary-foreground/90" /> /* Adjusted icon size */
           )}
         </div>
       </div>

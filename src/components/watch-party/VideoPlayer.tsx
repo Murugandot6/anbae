@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
-import { PlayIcon, PauseIcon, VolumeUpIcon, VolumeOffIcon, MaximizeIcon, FilmIcon } from '@/components/watch-party/icons';
+import { Play, Pause, Volume2, VolumeX, Maximize, Film } from 'lucide-react'; // Updated imports
 import Chat from '@/components/watch-party/Chat'; // Import Chat component
 import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
 import { cn } from '@/lib/utils'; // Ensure cn is imported
@@ -302,11 +302,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
                   <button onClick={handlePlayPause} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    {videoState.isPlaying ? <PauseIcon className="w-5 h-5 sm:w-6 sm:h-6" /> : <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6" />} {/* Adjusted icon size */}
+                    {videoState.isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />} {/* Adjusted icon size */}
                   </button>
                   <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
                       <button onClick={toggleMute} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                          {isMuted ? <VolumeOffIcon className="w-5 h-5 sm:w-6 sm:h-6"/> : <VolumeUpIcon className="w-5 h-5 sm:w-6 sm:h-6"/>} {/* Adjusted icon size */}
+                          {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6"/> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6"/>} {/* Adjusted icon size */}
                       </button>
                       <input
                           type="range"
@@ -349,7 +349,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                     </button>
                   )}
                   <button onClick={handleFullscreen} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <MaximizeIcon className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
+                    <Maximize className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
                   </button>
                 </div>
               </div>
@@ -358,7 +358,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
         </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
-            <FilmIcon className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-3 sm:mb-4" /> {/* Adjusted icon size */}
+            <Film className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-3 sm:mb-4" /> {/* Adjusted icon size */}
             <h3 className="text-base sm:text-xl font-bold text-foreground">No Video Selected</h3> {/* Adjusted font size */}
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p> {/* Adjusted font size */}
         </div>
