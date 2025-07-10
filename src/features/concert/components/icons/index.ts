@@ -1,1 +1,1 @@
-export { Copy, LogOut, Pause, Play, Radio, Search, Users, Volume2 as VolumeUp, Wave, X, VolumeX as VolumeOff, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from 'lucide-react';
+export { Copy, LogOut, Pause, Play, Radio, Search, Users, Volume2 as VolumeUp, Waves as Wave, X, VolumeX as VolumeOff, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from 'lucide-react';

@@ -28,7 +28,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
-  const theaterContainerRef = useRef<HTMLDivLement>(null);
+  const theaterContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const handleToggleFullscreen = useCallback(() => {
     if (theaterContainerRef.current) {
       if (!document.fullscreenElement) {
-        theaterContainerRef.current.requestFullscreen().catch(err => {
+        theaterContainerRef.current.requestFullscreen().catch((err: any) => {
           toast.error(`Error entering fullscreen: ${err.message}`);
         });
       } else {
