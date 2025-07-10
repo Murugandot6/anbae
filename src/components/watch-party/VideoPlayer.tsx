@@ -179,7 +179,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   return (
     <div ref={playerWrapperRef} className={cn(
-      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg",
+      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg aspect-video", // Added aspect-video here
       className
     )}>
       {videoState.source ? (
