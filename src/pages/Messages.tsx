@@ -220,7 +220,7 @@ const Messages = () => {
       <BackgroundWrapper className="pt-0 md:pt-0">
         <div className="w-full max-w-2xl mx-auto pt-8 mt-16 md:mt-8 px-4"> {/* Added px-4 for mobile padding */}
           <div className="flex justify-between items-center mb-6">
-            {/* Replaced Link with Button for consistent styling and positioning */}
+            {/* Back button on the left */}
             <div className="absolute top-3 left-3 z-10">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -241,21 +241,15 @@ const Messages = () => {
               </Tooltip>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mx-auto">Your Messages</h1>
-            <div className="absolute top-3 right-3 z-10">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/send-message">
-                    <Button variant="outline" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Send New Message</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            {/* Removed the old Plus icon button */}
           </div>
+
+          {/* New, prominent Send New Message button */}
+          <Link to="/send-message" className="block w-full mb-6 sm:mb-8">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg py-2.5 sm:py-3 rounded-lg shadow-md">
+              <Plus className="w-5 h-5 mr-2" /> Send New Message
+            </Button>
+          </Link>
 
           <Tabs defaultValue="inbox" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 bg-card/60 backdrop-blur-md border border-border/50 rounded-xl h-10 sm:h-12"> {/* Adjusted height */}
