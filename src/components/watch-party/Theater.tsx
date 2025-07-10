@@ -28,7 +28,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
-  const theaterContainerRef = useRef<HTMLDivElement>(null);
+  const theaterContainerRef = useRef<HTMLDivLement>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -115,17 +115,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   {copyStatus}
                 </Button>
               </div>
-              {!isMobile && !isChatOpen && (
-                <Button
-                  onClick={() => setIsChatOpen(true)}
-                  variant="outline"
-                  size="icon"
-                  className="w-9 h-9 sm:w-10 sm:h-10 text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
-                  aria-label="Open Chat"
-                >
-                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-              )}
+              {/* Removed the chat toggle button from here */}
               <Button onClick={onLeaveRoom} variant="destructive" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full shadow-md">
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
@@ -160,6 +150,9 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               onToggleFullscreen={handleToggleFullscreen}
               isTheaterFullscreen={isTheaterFullscreen}
               className="w-full h-full"
+              isChatOpen={isChatOpen} // Pass prop
+              onToggleChat={() => setIsChatOpen(prev => !prev)} // Pass prop
+              isMobile={isMobile} // Pass prop
             />
           </div>
 

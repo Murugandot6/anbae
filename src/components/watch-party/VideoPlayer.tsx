@@ -4,9 +4,10 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
-import { Play, Pause, Volume2, VolumeX, Maximize, Film } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Film, MessageSquare } from 'lucide-react'; // Added MessageSquare
 import { Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button'; // Import Button component
 
 interface VideoPlayerProps {
   videoState: VideoState;
@@ -20,6 +21,9 @@ interface VideoPlayerProps {
   onToggleFullscreen: () => void;
   isTheaterFullscreen: boolean;
   className?: string;
+  isChatOpen: boolean; // New prop
+  onToggleChat: () => void; // New prop
+  isMobile: boolean; // New prop
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -29,7 +33,7 @@ const formatTime = (timeInSeconds: number) => {
   return `${minutes}:${seconds}`;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen, isTheaterFullscreen, className }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, messages, sendMessage, currentUser, sendVideoReaction, activeReactions, isConnectedToRealtime, onToggleFullscreen, isTheaterFullscreen, className, isChatOpen, onToggleChat, isMobile }) => {
   const playerRef = useRef<ReactPlayer>(null);
   
   const [isMuted, setIsMuted] = useState(true);
@@ -329,6 +333,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
                   <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
+                  {!isMobile && !isTheaterFullscreen && (
+                    <Button
+                      onClick={onToggleChat}
+                      variant="ghost"
+                      size="icon"
+                      className="w-7 h-7 sm:w-8 sm:h-8 text-white hover:bg-white/20"
+                      aria-label={isChatOpen ? "Close Chat" : "Open Chat"}
+                      disabled={isPlayerActionDisabled}
+                    >
+                      <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
