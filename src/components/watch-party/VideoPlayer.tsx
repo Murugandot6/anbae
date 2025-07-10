@@ -5,8 +5,7 @@ import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
 import { Play, Pause, Volume2, VolumeX, Maximize, Film } from 'lucide-react';
-// Removed Chat import
-import { Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Removed MessageSquare
+import { Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
@@ -49,8 +48,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
 
-  // Removed showFullscreenChat state
-
   const sliderTime = isSeeking ? seekingTime : displayTime;
   
   useEffect(() => {
@@ -88,8 +85,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       player.seekTo(masterTime, 'seconds');
     }
   }, [videoState, isPlayerReady, isSeeking]);
-
-  // Removed useEffect for showFullscreenChat based on isTheaterFullscreen
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -179,7 +174,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
 
   return (
     <div ref={playerWrapperRef} className={cn(
-      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg", // Removed aspect-video here
+      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg aspect-video", // Added aspect-video here
       className
     )}>
       {videoState.source ? (
@@ -276,8 +271,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          {/* Removed Fullscreen Chat Overlay */}
-
           <div className={cn("absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}>
             <div className="flex flex-col gap-2">
               <input
@@ -336,7 +329,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4">
                   <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
-                  {/* Removed MessageSquare button */}
                 </div>
               </div>
             </div>
