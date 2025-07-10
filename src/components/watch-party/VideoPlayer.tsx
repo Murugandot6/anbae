@@ -253,6 +253,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             onMouseMove={handleMouseMove}
           ></div>
 
+          {/* Fullscreen button - always visible */}
+          <button 
+            onClick={handleFullscreen} 
+            disabled={isPlayerActionDisabled} 
+            className="absolute top-3 right-3 z-30 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Toggle fullscreen"
+          >
+            <Maximize className="w-4 h-4 sm:w-5 h-5" />
+          </button>
+
           {/* Video Reactions Overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
             {activeReactions.map(reaction => (
@@ -302,11 +312,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
                   <button onClick={handlePlayPause} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    {videoState.isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />} {/* Adjusted icon size */}
+                    {videoState.isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5" />} {/* Adjusted icon size */}
                   </button>
                   <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
                       <button onClick={toggleMute} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                          {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6"/> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6"/>} {/* Adjusted icon size */}
+                          {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5"/> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5"/>} {/* Adjusted icon size */}
                       </button>
                       <input
                           type="range"
@@ -323,34 +333,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                 {/* Reaction Buttons */}
                 <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
                   <button onClick={() => sendVideoReaction('❤️')} disabled={isPlayerActionDisabled} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Heart className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😂')} disabled={isPlayerActionDisabled} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Laugh className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <Laugh className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😭')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Frown className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <Frown className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('😡')} disabled={isPlayerActionDisabled} className="hover:text-red-600 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Angry className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <Angry className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('🔥')} disabled={isPlayerActionDisabled} className="hover:text-orange-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Flame className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <Flame className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                   <button onClick={() => sendVideoReaction('🎉')} disabled={isPlayerActionDisabled} className="hover:text-purple-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6" /> {/* Adjusted icon size */}
+                    <PartyPopper className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
                   </button>
                 </div>
                 <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
                   <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span> {/* Adjusted font size */}
                   {isTheaterFullscreen && ( // Use the prop here
                     <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <MessageSquare className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
+                      <MessageSquare className="w-3.5 h-3.5 sm:w-4 h-4" /> {/* Adjusted icon size */}
                     </button>
                   )}
-                  <button onClick={handleFullscreen} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Maximize className="w-4 h-4 sm:w-5 h-5" /> {/* Adjusted icon size */}
-                  </button>
                 </div>
               </div>
             </div>
