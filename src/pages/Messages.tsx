@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck } from 'lucide-react';
+import { Mail, Send, MessageSquare, Tag, Zap, Smile, User, ArrowLeft, CheckCheck, Plus } from 'lucide-react';
 import { Profile, Message } from '@/types/supabase';
 import { fetchProfileById } from '@/lib/supabaseHelpers';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -241,6 +241,20 @@ const Messages = () => {
               </Tooltip>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mx-auto">Your Messages</h1>
+            <div className="absolute top-3 right-3 z-10">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/send-message">
+                    <Button variant="outline" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-foreground border-border hover:bg-accent hover:text-accent-foreground shadow-md">
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Send New Message</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
 
           <Tabs defaultValue="inbox" className="w-full">

@@ -31,7 +31,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
     { to: "/dashboard", icon: Heart, label: "Dashboard" },
     { to: "/journal", icon: BookText, label: "Journal" },
     { to: "/promposal/create", icon: Sparkles, label: "Promposal" },
-    { to: "/send-message", icon: MessageSquare, label: "Send Message" },
+    // Removed: { to: "/send-message", icon: MessageSquare, label: "Send Message" },
     { to: "/messages", icon: Inbox, label: "Messages" },
     { to: "/theater", icon: Film, label: "Theater" }, // Renamed from Watch Party
     { to: "/concert", icon: Radio, label: "Concert" }, // Renamed from Wave Room
