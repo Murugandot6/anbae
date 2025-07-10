@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import ManualPage from "./pages/ManualPage"; // Corrected import path
+import UserManual from "./pages/UserManual"; // Corrected import to UserManual
 import Dashboard from "./pages/Dashboard";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import SendMessage from "./pages/SendMessage";
@@ -26,7 +26,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/manual" element={<ManualPage />} />
+        <Route path="/manual" element={<UserManual />} /> {/* Updated to UserManual */}
         <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
 
         {/* Protected Routes */}

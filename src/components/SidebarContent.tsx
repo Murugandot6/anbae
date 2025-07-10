@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Import useLocation
-import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, BookOpen } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio } from 'lucide-react'; // Removed BookOpen
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Profile } from '@/types/supabase';
@@ -36,7 +36,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
     { to: "/theater", icon: Film, label: "Theater" }, // Renamed from Watch Party
     { to: "/concert", icon: Radio, label: "Concert" }, // Renamed from Wave Room
     { to: "/edit-profile", icon: Settings, label: "Edit Profile" },
-    { to: "/manual", icon: BookOpen, label: "User Manual" },
+    // Removed: { to: "/manual", icon: BookOpen, label: "User Manual" }, // Removed this line
   ];
 
   return (
