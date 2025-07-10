@@ -79,8 +79,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     <div 
       ref={theaterContainerRef}
       className={clsx(
-        "flex flex-col h-full",
-        // Apply fullscreen styles directly based on state
+        "flex flex-col h-full w-full", // Base styles for the container
         isTheaterFullscreen ? "fixed inset-0 z-50 rounded-none bg-black" : "bg-background text-foreground"
       )}
     >
