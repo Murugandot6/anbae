@@ -72,7 +72,7 @@ const UserManual: React.FC = () => {
                   <li>**Reset Link:** Enter your registered email address to receive a password reset link.</li>
                   <li>**Email Confirmation:** Follow the instructions in the email to set a new password securely.</li>
                 </ul>
-              </HCardContent>
+              </CardContent> {/* Corrected closing tag here */}
             </Card>
 
             <Card className="bg-card/60 dark:bg-card/60 shadow-lg backdrop-blur-md border border-border/50 rounded-xl p-3 sm:p-4"> {/* Adjusted padding */}
