@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Mic, Image } from "lucide-react";
+import { Search, Mic } from "lucide-react"; // Removed Image import
 import { Helmet } from 'react-helmet-async';
 import { ThemeToggle } from '@/components/theme-toggle'; // Import ThemeToggle
 
@@ -76,9 +76,7 @@ const Index = () => {
         <meta name="description" content="Anbae is a personalized app designed to help couples nurture their relationship through structured communication, shared experiences, and emotional insights." />
       </Helmet>
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 relative">
-        <div className="absolute top-4 right-4 z-10">
-          <ThemeToggle /> {/* Added ThemeToggle here */}
-        </div>
+        {/* Removed ThemeToggle from here */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl md:text-7xl font-extrabold mb-4 leading-none">
             <span className="text-blue-600">a</span>
@@ -99,7 +97,7 @@ const Index = () => {
             />
             <div className="absolute right-3 flex space-x-2">
               <Mic className="text-muted-foreground w-5 h-5 cursor-pointer hover:text-foreground" />
-              <Image className="text-muted-foreground w-5 h-5 cursor-pointer hover:text-foreground" />
+              <ThemeToggle /> {/* Placed ThemeToggle here */}
             </div>
           </div>
         </div>
