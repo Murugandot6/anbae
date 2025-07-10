@@ -213,7 +213,9 @@ const Journal = () => {
                     <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl p-3 sm:p-4">
                       <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
                         <div>
-                          <CardTitle className="text-base sm:text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
+                          <CardTitle className="text-base sm:text-lg text-foreground">
+                            {entry.emoji} {entry.heading}
+                          </CardTitle>
                           <p className="text-xs sm:text-sm text-muted-foreground">{formatDateTimeForMessageView(entry.created_at)}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="w-8 h-8 text-destructive hover:bg-destructive/20">
@@ -238,7 +240,9 @@ const Journal = () => {
                           <Card key={entry.id} className="bg-card/50 dark:bg-card/50 border border-border/50 shadow-md rounded-xl p-3 sm:p-4">
                             <CardHeader className="flex flex-row justify-between items-start pb-1 sm:pb-2">
                               <div>
-                                <CardTitle className="text-base sm:text-lg text-foreground">{entry.emoji} {entry.heading}</CardTitle>
+                                <CardTitle className="text-base sm:text-lg text-foreground">
+                                  {entry.emoji} {entry.heading}
+                                </CardTitle>
                                 <p className="text-xs sm:text-sm text-muted-foreground">{formatDateTimeForMessageView(entry.created_at)}</p>
                               </div>
                               <Button variant="ghost" size="icon" onClick={() => handleDeleteEntry(entry.id)} className="w-8 h-8 text-destructive hover:bg-destructive/20">
