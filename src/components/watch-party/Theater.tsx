@@ -1,15 +1,18 @@
+"use client";
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Room, User } from '@/types/watchParty';
 import VideoPlayer from '@/components/watch-party/VideoPlayer';
 import Chat from '@/components/watch-party/Chat';
 import { useSupabaseRealtime } from '@/hooks/watch-party/useSupabaseRealtime';
-import { Copy, Link as LinkIcon, ArrowLeft, LogOut } from 'lucide-react'; // Updated imports
+import { Copy, Link as LinkIcon, ArrowLeft, LogOut } from 'lucide-react';
 import VideoHistory from '@/components/watch-party/VideoHistory';
-import { Button } from '@/components/ui/button'; // Import shadcn Button
-import { toast } from 'sonner'; // Import sonner toast
-import { useNavigate as useReactRouterNavigate } from 'react-router-dom'; // Import useNavigate with alias
-import clsx from 'clsx'; // Import clsx for conditional classes
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useNavigate as useReactRouterNavigate } from 'react-router-dom';
+import clsx from 'clsx';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 interface TheaterProps {
   room: Room;
@@ -18,14 +21,14 @@ interface TheaterProps {
 }
 
 const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
-  const navigate = useReactRouterNavigate(); // Initialize useNavigate with alias
+  const navigate = useReactRouterNavigate();
   const { videoState, sendVideoAction, messages, sendMessage, sendVideoReaction, changeVideoSource, videoHistory, activeReactions, isConnectedToRealtime } = useSupabaseRealtime(room.id, room.videoUrl, user);
   const [copyStatus, setCopyStatus] = useState('Copy Code');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
-  // Fullscreen state and ref for the entire theater container
   const [isTheaterFullscreen, setIsTheaterFullscreen] = useState(false);
   const theaterContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile(); // Use the hook
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -73,31 +76,27 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
   };
 
   return (
-    // Main container for the Theater, now handling fullscreen
     <div 
       ref={theaterContainerRef}
       className={clsx(
-        "flex flex-col h-full", // This is the root of Theater, should take full height of its parent (main)
+        "flex flex-col h-full",
         {
-          "fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none": true, // Always apply fullscreen styles to the container itself
-          "bg-background text-foreground": !isTheaterFullscreen, // Apply background only when not fullscreen
-          "bg-black": isTheaterFullscreen // Black background when fullscreen
+          "fullscreen:h-screen fullscreen:flex fullscreen:fixed fullscreen:inset-0 fullscreen:z-50 fullscreen:rounded-none": true,
+          "bg-background text-foreground": !isTheaterFullscreen,
+          "bg-black": isTheaterFullscreen
         }
       )}
     >
-      {/* This inner div now conditionally adjusts its max-width and margin based on fullscreen state */}
       <div className={clsx(
-        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6", // flex-grow here is key, adjusted padding
+        "w-full flex flex-col flex-grow min-h-0 p-3 sm:p-4 md:p-6",
         {
-          "max-w-full mx-0": isTheaterFullscreen
+          "max-w-full mx-0": isTheaterFullscreen // In fullscreen, remove max-width and margin
         }
       )}>
         {/* Header elements - conditionally hide when fullscreen */}
         {!isTheaterFullscreen && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
-            {/* Top row: Back button and Title */}
             <div className="flex items-center justify-between w-full sm:w-auto mb-3 sm:mb-0">
-              {/* Back button */}
               <div className="flex-shrink-0">
                 <Button
                   onClick={() => navigate('/dashboard')}
@@ -109,12 +108,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                   <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>
               </div>
-              
-              {/* Page Title */}
               <h1 className="text-xl sm:text-3xl font-bold tracking-tighter text-foreground ml-auto sm:ml-4">Theater</h1>
             </div>
-
-            {/* Bottom row (mobile) / Right side (desktop): Room code, Copy, Leave */}
             <div className="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-4">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <p className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">Share Code:</p>
@@ -133,48 +128,57 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Main Video Player and Chat Row */}
         <div className={clsx(
-          "flex flex-col sm:flex-row items-stretch min-h-0 gap-6 sm:gap-8 flex-grow", // This row takes all available height
+          "flex min-h-0 gap-6 sm:gap-8 flex-grow",
           {
             "h-full": isTheaterFullscreen, // Take full height in fullscreen
-            "h-[calc(100vh-120px)]": !isTheaterFullscreen // Fixed height when not fullscreen
+            "h-[calc(100vh-120px)]": !isTheaterFullscreen, // Fixed height when not fullscreen
+            // Conditional flex direction based on fullscreen and mobile
+            "flex-col": isTheaterFullscreen && isMobile, // Mobile fullscreen: column layout
+            "sm:flex-row": !isTheaterFullscreen || !isMobile, // Default or desktop fullscreen: row layout
           }
         )}>
           {/* Left Column: Video Player */}
           <div className={clsx(
-            "relative w-full rounded-xl overflow-hidden flex-grow", // flex-grow to take all available horizontal space
-            "h-full" // Explicitly make it fill height
+            "relative w-full rounded-xl overflow-hidden",
+            {
+              "flex-grow": !isTheaterFullscreen || !isMobile, // Grow on non-fullscreen or desktop fullscreen
+              "h-1/2 flex-shrink-0": isTheaterFullscreen && isMobile, // Take half height on mobile fullscreen, prevent shrinking
+            }
           )}>
             <VideoPlayer
               videoState={videoState}
               sendVideoAction={sendVideoAction}
-              messages={messages}
-              sendMessage={sendMessage}
+              messages={messages} // Still pass messages for reactions
+              sendMessage={sendMessage} // Still pass sendMessage for reactions
               currentUser={user}
               sendVideoReaction={sendVideoReaction}
               activeReactions={activeReactions}
               isConnectedToRealtime={isConnectedToRealtime}
               onToggleFullscreen={handleToggleFullscreen}
               isTheaterFullscreen={isTheaterFullscreen}
-              className="w-full h-full" // VideoPlayer itself fills its parent
+              className="w-full h-full"
             />
           </div>
 
-          {/* Right Column: Chat Panel - Now with a fixed width */}
-          {!isTheaterFullscreen && (
-            <div
-              className={clsx(
-                "w-full flex flex-col min-h-[300px] sm:min-h-0",
-                "sm:w-[320px] sm:flex-shrink-0", // Set a fixed width for chat on sm and up, and prevent shrinking
-                "h-full" // Make chat take full height of its parent (main row)
-              )}
-            >
-              <Chat
-                messages={messages}
-                sendMessage={sendMessage}
-                currentUser={user}
-              />
-            </div>
-          )}
+          {/* Right Column: Chat Panel */}
+          <div
+            className={clsx(
+              "w-full flex flex-col min-h-[300px] sm:min-h-0",
+              {
+                "sm:w-[320px] sm:flex-shrink-0": !isTheaterFullscreen || !isMobile, // Fixed width on non-fullscreen or desktop fullscreen
+                "flex-grow": isTheaterFullscreen && isMobile, // Grow to fill remaining space on mobile fullscreen
+                "h-1/2": isTheaterFullscreen && isMobile, // Take half height on mobile fullscreen
+              }
+            )}
+          >
+            <Chat
+              messages={messages}
+              sendMessage={sendMessage}
+              currentUser={user}
+              // isOverlay={false} // No longer an overlay in this context
+              // onClose is not needed here as it's part of the main layout
+            />
+          </div>
         </div>
 
         {/* Form and History (moved below the main video/chat row) */}
@@ -185,8 +189,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             )}>
               <label htmlFor="video-url-input" className="font-semibold text-foreground sr-only">Video URL</label>
               <div className="relative w-full">
-                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none"> {/* Adjusted padding */}
-                      <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" /> {/* Adjusted icon size */}
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                      <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <input
                       id="video-url-input"
@@ -194,11 +198,11 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
                       value={newVideoUrl}
                       onChange={(e) => { setNewVideoUrl(e.target.value); }}
                       placeholder="Enter YouTube or video URL to start or change the video"
-                      className="w-full bg-input/50 border border-border/50 text-foreground text-xs sm:text-sm rounded-lg focus:ring-primary focus:border-primary block ps-9 p-2 sm:ps-10 sm:p-2.5" // Adjusted font size and padding
+                      className="w-full bg-input/50 border border-border/50 text-foreground text-xs sm:text-sm rounded-lg focus:ring-primary focus:border-primary block ps-9 p-2 sm:ps-10 sm:p-2.5"
                       required
                   />
               </div>
-              <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center h-auto"> {/* Adjusted font size, padding, and height */}
+              <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5 text-center h-auto">
                   Set Video
               </Button>
             </form>
@@ -212,5 +216,3 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     </div>
   );
 };
-
-export default Theater;

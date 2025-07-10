@@ -4,23 +4,23 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import ReactPlayer from 'react-player/lazy';
 import { OnProgressProps } from 'react-player/base';
 import { VideoState, VideoAction, ChatMessage, User } from '@/types/watchParty';
-import { Play, Pause, Volume2, VolumeX, Maximize, Film } from 'lucide-react'; // Updated imports
-import Chat from '@/components/watch-party/Chat'; // Import Chat component
-import { MessageSquare, Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Added Laugh, Frown
-import { cn } from '@/lib/utils'; // Ensure cn is imported
+import { Play, Pause, Volume2, VolumeX, Maximize, Film } from 'lucide-react';
+// Removed Chat import
+import { Heart, Angry, PartyPopper, Flame, Laugh, Frown } from 'lucide-react'; // Removed MessageSquare
+import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
   videoState: VideoState;
   sendVideoAction: (action: VideoAction) => void;
-  messages: ChatMessage[];
-  sendMessage: (text: string) => void;
+  messages: ChatMessage[]; // Still needed for reactions, but not for chat display
+  sendMessage: (text: string) => void; // Still needed for reactions, but not for chat display
   currentUser: User;
-  sendVideoReaction: (emoji: string) => void; // New prop for sending reactions
-  activeReactions: { id: string; emoji: string; timestamp: number; }[]; // New prop for displaying reactions
-  isConnectedToRealtime: boolean; // New prop for real-time connection status
-  onToggleFullscreen: () => void; // New prop: received from parent
-  isTheaterFullscreen: boolean; // New prop: indicates if the parent Theater is in fullscreen
-  className?: string; // New prop to pass additional classes to the root div
+  sendVideoReaction: (emoji: string) => void;
+  activeReactions: { id: string; emoji: string; timestamp: number; }[];
+  isConnectedToRealtime: boolean;
+  onToggleFullscreen: () => void;
+  isTheaterFullscreen: boolean;
+  className?: string;
 }
 
 const formatTime = (timeInSeconds: number) => {
@@ -49,7 +49,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
   const isSyncingSeekRef = useRef(false);
   const throttleTimeoutRef = useRef<number | null>(null);
 
-  const [showFullscreenChat, setShowFullscreenChat] = useState(false); // This state remains local for the chat overlay
+  // Removed showFullscreenChat state
 
   const sliderTime = isSeeking ? seekingTime : displayTime;
   
@@ -89,11 +89,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     }
   }, [videoState, isPlayerReady, isSeeking]);
 
-  // Control showFullscreenChat based on isTheaterFullscreen prop
-  useEffect(() => {
-    // When entering fullscreen, show chat by default. When exiting, hide it.
-    setShowFullscreenChat(isTheaterFullscreen);
-  }, [isTheaterFullscreen]);
+  // Removed useEffect for showFullscreenChat based on isTheaterFullscreen
 
   const handlePlayPause = () => {
     if (!isPlayerReady) return;
@@ -149,7 +145,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setIsMuted(prev => !prev);
   };
 
-  // This now calls the parent's toggle fullscreen function
   const handleFullscreen = () => {
     onToggleFullscreen();
   };
@@ -160,13 +155,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
       window.clearTimeout(controlsTimeoutRef.current);
     }
     controlsTimeoutRef.current = window.setTimeout(() => {
-      if (videoState.isPlaying && !isTheaterFullscreen) { // Only hide controls if not in fullscreen
+      if (videoState.isPlaying && !isTheaterFullscreen) {
         setShowControls(false);
       }
     }, 3000);
   }, [videoState.isPlaying, isTheaterFullscreen]);
 
-  // Attach mousemove listener to the main player container
   const playerWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const container = playerWrapperRef.current;
@@ -181,12 +175,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
     setDisplayTime(seconds);
   };
 
-  const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime; // Combined disabled state
+  const isPlayerActionDisabled = !isPlayerReady || !!playerError || !isConnectedToRealtime;
 
   return (
     <div ref={playerWrapperRef} className={cn(
-      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg", // Base styles for the player itself
-      className // Apply any additional classes passed from parent
+      "relative w-full bg-black rounded-xl overflow-hidden group shadow-lg",
+      className
     )}>
       {videoState.source ? (
         <>
@@ -235,15 +229,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
           
           {!isPlayerReady && !playerError && (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div> {/* Adjusted size */}
-                <p className="mt-3 sm:mt-4 text-white text-sm sm:text-base">Loading Player...</p> {/* Adjusted font size */}
+                <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-3 sm:mt-4 text-white text-sm sm:text-base">Loading Player...</p>
             </div>
           )}
 
           {playerError && (
             <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-30 p-4 text-center">
-                <p className="text-destructive text-base sm:text-lg font-semibold">Video Error</p> {/* Adjusted font size */}
-                <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{playerError}</p> {/* Adjusted font size */}
+                <p className="text-destructive text-base sm:text-lg font-semibold">Video Error</p>
+                <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{playerError}</p>
             </div>
           )}
 
@@ -269,12 +263,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
               <span 
                 key={reaction.id} 
                 className={cn(
-                  "absolute text-5xl sm:text-6xl md:text-8xl animate-fade-in-out" // Adjusted font sizes
+                  "absolute text-5xl sm:text-6xl md:text-8xl animate-fade-in-out"
                 )}
                 style={{ 
                   animationDuration: '5s',
-                  top: `${Math.random() * 80 + 10}%`, // Random vertical position
-                  left: `${Math.random() * 80 + 10}%` // Random horizontal position
+                  top: `${Math.random() * 80 + 10}%`,
+                  left: `${Math.random() * 80 + 10}%`
                 }}
               >
                 {reaction.emoji}
@@ -282,20 +276,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
             ))}
           </div>
 
-          {/* Fullscreen Chat Overlay */}
-          {isTheaterFullscreen && showFullscreenChat && (
-            <div className="absolute inset-y-0 right-0 w-full sm:w-[320px] z-40"> {/* Position to the right, fixed width */}
-              <Chat
-                messages={messages}
-                sendMessage={sendMessage}
-                currentUser={currentUser}
-                isOverlay={true}
-                onClose={() => setShowFullscreenChat(false)}
-              />
-            </div>
-          )}
+          {/* Removed Fullscreen Chat Overlay */}
 
-          <div className={cn("absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}> {/* Adjusted padding */}
+          <div className={cn("absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-gradient-to-t from-black/70 to-transparent transition-opacity duration-300 z-20", showControls || isTheaterFullscreen ? 'opacity-100' : 'opacity-0')}>
             <div className="flex flex-col gap-2">
               <input
                   type="range"
@@ -307,16 +290,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                   onChange={handleSeekChange}
                   onMouseUp={handleSeekMouseUp}
                   disabled={isPlayerActionDisabled}
-                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed" // Adjusted height
+                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                 />
               <div className="flex items-center justify-between text-white">
-                <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
+                <div className="flex items-center gap-3 sm:gap-4">
                   <button onClick={handlePlayPause} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    {videoState.isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5" />} {/* Adjusted icon size */}
+                    {videoState.isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
-                  <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                       <button onClick={toggleMute} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                          {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5"/> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5"/>} {/* Adjusted icon size */}
+                          {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5"/> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5"/>}
                       </button>
                       <input
                           type="range"
@@ -326,38 +309,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
                           value={isMuted ? 0 : volume}
                           onChange={handleVolumeChange}
                           disabled={isPlayerActionDisabled}
-                          className="w-16 sm:w-20 h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed" // Adjusted width and height
+                          className="w-16 sm:w-20 h-1 bg-muted rounded-lg appearance-none cursor-pointer range-sm accent-primary disabled:bg-muted/50 disabled:accent-muted-foreground disabled:cursor-not-allowed"
                         />
                   </div>
                 </div>
                 {/* Reaction Buttons */}
-                <div className="flex items-center gap-1.5 sm:gap-2"> {/* Adjusted gap */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button onClick={() => sendVideoReaction('❤️')} disabled={isPlayerActionDisabled} className="hover:text-red-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button onClick={() => sendVideoReaction('😂')} disabled={isPlayerActionDisabled} className="hover:text-yellow-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Laugh className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <Laugh className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button onClick={() => sendVideoReaction('😭')} disabled={isPlayerActionDisabled} className="hover:text-blue-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Frown className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <Frown className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button onClick={() => sendVideoReaction('😡')} disabled={isPlayerActionDisabled} className="hover:text-red-600 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Angry className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <Angry className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button onClick={() => sendVideoReaction('🔥')} disabled={isPlayerActionDisabled} className="hover:text-orange-500 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <Flame className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   <button onClick={() => sendVideoReaction('🎉')} disabled={isPlayerActionDisabled} className="hover:text-purple-400 transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                    <PartyPopper className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjusted icon size */}
+                    <PartyPopper className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4"> {/* Adjusted gap */}
-                  <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span> {/* Adjusted font size */}
-                  {isTheaterFullscreen && ( // Use the prop here
-                    <button onClick={() => setShowFullscreenChat(prev => !prev)} disabled={isPlayerActionDisabled} className="hover:text-primary transition-colors disabled:text-muted-foreground disabled:cursor-not-allowed">
-                      <MessageSquare className="w-3.5 h-3.5 sm:w-4 h-4" /> {/* Adjusted icon size */}
-                    </button>
-                  )}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <span className="text-xs sm:text-sm font-mono text-muted-foreground">{formatTime(sliderTime)} / {formatTime(videoState.duration)}</span>
+                  {/* Removed MessageSquare button */}
                 </div>
               </div>
             </div>
@@ -365,9 +344,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoState, sendVideoAction, 
         </>
       ) : (
         <div className="absolute inset-0 bg-black flex flex-col items-center justify-center z-30 p-4 text-center">
-            <Film className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-3 sm:mb-4" /> {/* Adjusted icon size */}
-            <h3 className="text-base sm:text-xl font-bold text-foreground">No Video Selected</h3> {/* Adjusted font size */}
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p> {/* Adjusted font size */}
+            <Film className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-xl font-bold text-foreground">No Video Selected</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">To start the party, paste a video URL in the field above and click "Set Video".</p>
         </div>
       )}
     </div>
