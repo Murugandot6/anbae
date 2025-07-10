@@ -75,6 +75,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     }
   };
 
+  // This comment is added to force a re-evaluation by the build system.
   return (
     <div 
       ref={theaterContainerRef}
@@ -209,3 +210,5 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
     </div>
   );
 };
+
+export default Theater;
