@@ -157,7 +157,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           {/* Right Column: Chat Panel */}
           <div
             className={clsx(
-              "w-full flex flex-col min-h-[300px]", // Chat always needs a min-height
+              "w-full flex flex-col", // Removed min-h-[300px]
               {
                 "flex-grow": isMobile, // On mobile, chat takes full width and grows to fill half height
                 "sm:flex-[1] sm:h-full sm:min-w-[320px]": !isMobile, // On desktop, chat takes 1 part of width, full height, and min-width
