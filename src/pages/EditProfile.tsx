@@ -251,8 +251,8 @@ const EditProfile = () => {
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Heart className="w-4 h-4" /> Relationship Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-form-placeholder">
-                          <SelectValue placeholder="Select your status" />
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
+                          <SelectValue placeholder="Select your status" className="data-[placeholder]:text-form-placeholder" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">
@@ -323,8 +323,8 @@ const EditProfile = () => {
                 </FormLabel>
                 <Select onValueChange={(value) => setTheme(value)} value={theme}>
                   <FormControl>
-                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-form-placeholder">
-                      <SelectValue placeholder="Select theme" />
+                    <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
+                      <SelectValue placeholder="Select theme" className="data-[placeholder]:text-form-placeholder" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">

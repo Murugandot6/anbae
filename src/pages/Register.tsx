@@ -99,7 +99,7 @@ const Register = () => {
           {/* Removed ThemeToggle */}
         </div>
         <div className={cn(
-          "w-full max-w-sm sm:max-w-md bg-white/30 dark:bg-gray-800/30 p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
+          "w-full max-w-xs sm:max-w-md bg-white/30 dark:bg-gray-800/30 p-4 sm:p-6 rounded-xl shadow-lg backdrop-blur-sm border border-white/30 dark:border-gray-600/30",
           isExiting ? "animate-fade-out" : "animate-fade-in"
         )}>
           <div className="text-center mb-6">
@@ -156,8 +156,8 @@ const Register = () => {
                     <FormLabel className="flex items-center gap-2 text-sm sm:text-base"><Heart className="w-4 h-4" /> Relationship Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10 placeholder:text-form-placeholder">
-                          <SelectValue placeholder="Select your status" />
+                        <SelectTrigger className="bg-input/50 border-border/50 text-foreground text-sm sm:text-base h-10">
+                          <SelectValue placeholder="Select your status" className="data-[placeholder]:text-form-placeholder" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-card border-border text-foreground text-sm sm:text-base">
