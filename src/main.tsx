@@ -6,17 +6,20 @@ import { ThemeProvider } from './components/theme-provider.tsx';
 import { Toaster } from 'sonner';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { SessionContextProvider } from './contexts/SessionContext.tsx'; // Import SessionContextProvider
-import { ConcertPlayerProvider } from './contexts/ConcertPlayerContext.tsx'; // Import ConcertPlayerProvider
+import { SessionContextProvider } from './contexts/SessionContext.tsx';
+import { ConcertPlayerProvider } from './contexts/ConcertPlayerContext.tsx';
+import { TooltipProvider } from '@/components/ui/tooltip.tsx'; // Import TooltipProvider
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <HelmetProvider>
-          <SessionContextProvider> {/* Wrap App with SessionContextProvider */}
-            <ConcertPlayerProvider> {/* Wrap App with ConcertPlayerProvider */}
-              <App />
+          <SessionContextProvider>
+            <ConcertPlayerProvider>
+              <TooltipProvider> {/* Wrap the entire App with TooltipProvider */}
+                <App />
+              </TooltipProvider>
             </ConcertPlayerProvider>
           </SessionContextProvider>
         </HelmetProvider>
