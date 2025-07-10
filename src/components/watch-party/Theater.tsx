@@ -136,21 +136,21 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             "relative w-full rounded-xl overflow-hidden",
             {
               "flex-grow": isMobile, // On mobile, video takes full width and grows to fill half height
-              "sm:flex-grow sm:h-full": !isMobile, // On desktop, video takes remaining width and full height
+              "sm:flex-[3] sm:h-full": !isMobile, // On desktop, video takes 3 parts of width and full height
             }
           )}>
             <VideoPlayer
               videoState={videoState}
               sendVideoAction={sendVideoAction}
-              messages={messages} // Still pass messages for reactions
-              sendMessage={sendMessage} // Still pass sendMessage for reactions
+              messages={messages}
+              sendMessage={sendMessage}
               currentUser={user}
               sendVideoReaction={sendVideoReaction}
               activeReactions={activeReactions}
               isConnectedToRealtime={isConnectedToRealtime}
               onToggleFullscreen={handleToggleFullscreen}
               isTheaterFullscreen={isTheaterFullscreen}
-              className="w-full h-full" // Ensure ReactPlayer fills its parent
+              className="w-full h-full" // ReactPlayer fills its parent
             />
           </div>
 
@@ -160,7 +160,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               "w-full flex flex-col min-h-[300px]", // Chat always needs a min-height
               {
                 "flex-grow": isMobile, // On mobile, chat takes full width and grows to fill half height
-                "sm:w-[320px] sm:flex-shrink-0 sm:h-full": !isMobile, // On desktop, chat has fixed width and full height
+                "sm:flex-[1] sm:h-full sm:min-w-[320px]": !isMobile, // On desktop, chat takes 1 part of width, full height, and min-width
               }
             )}
           >
@@ -168,8 +168,8 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               messages={messages}
               sendMessage={sendMessage}
               currentUser={user}
-              isTheaterFullscreen={isTheaterFullscreen} // Pass new prop
-              isMobile={isMobile} // Pass new prop
+              isTheaterFullscreen={isTheaterFullscreen}
+              isMobile={isMobile}
             />
           </div>
         </div>
