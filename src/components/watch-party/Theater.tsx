@@ -135,7 +135,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
           <div className={clsx(
             "relative w-full rounded-xl overflow-hidden",
             {
-              "flex-1": isMobile, // Changed from "flex-grow" to "flex-1"
+              "flex-1 min-h-0": isMobile, // Added min-h-0 here
               "sm:flex-[3] sm:h-full sm:aspect-auto": !isMobile, // On desktop, video takes 3 parts of width and full height, and no fixed aspect ratio
             }
           )}>
@@ -159,7 +159,7 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
             className={clsx(
               "w-full flex flex-col",
               {
-                "flex-1": isMobile, // Changed from "flex-grow" to "flex-1"
+                "flex-1 min-h-0": isMobile, // Added min-h-0 here
                 "sm:flex-[1] sm:h-full sm:min-w-[320px]": !isMobile, // On desktop, chat takes 1 part of width, full height, and min-width
               }
             )}
