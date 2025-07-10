@@ -125,18 +125,18 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
 
         {/* Main Video Player and Chat Row */}
         <div className={clsx(
-          "flex min-h-0 gap-6 sm:gap-8 flex-grow",
+          "flex flex-grow min-h-0 gap-6 sm:gap-8", // This container fills available vertical space
           {
-            "flex-col": isTheaterFullscreen && isMobile, // Mobile fullscreen: column layout
-            "sm:flex-row": !isTheaterFullscreen || !isMobile, // Default or desktop fullscreen: row layout
+            "flex-col": isMobile, // Stack on mobile
+            "sm:flex-row": !isMobile, // Side-by-side on desktop
           }
         )}>
           {/* Left Column: Video Player */}
           <div className={clsx(
             "relative w-full rounded-xl overflow-hidden",
             {
-              "flex-grow": !isTheaterFullscreen || !isMobile, // Grow on non-fullscreen or desktop fullscreen
-              "h-1/2 flex-shrink-0": isTheaterFullscreen && isMobile, // Take half height on mobile fullscreen, prevent shrinking
+              "flex-grow": isMobile, // On mobile, video takes full width and grows to fill half height
+              "sm:flex-grow sm:h-full": !isMobile, // On desktop, video takes remaining width and full height
             }
           )}>
             <VideoPlayer
@@ -150,18 +150,17 @@ const Theater: React.FC<TheaterProps> = ({ room, user, onLeaveRoom }) => {
               isConnectedToRealtime={isConnectedToRealtime}
               onToggleFullscreen={handleToggleFullscreen}
               isTheaterFullscreen={isTheaterFullscreen}
-              className="w-full h-full"
+              className="w-full h-full" // Ensure ReactPlayer fills its parent
             />
           </div>
 
           {/* Right Column: Chat Panel */}
           <div
             className={clsx(
-              "w-full flex flex-col min-h-[300px] sm:min-h-0",
+              "w-full flex flex-col min-h-[300px]", // Chat always needs a min-height
               {
-                "sm:w-[320px] sm:flex-shrink-0": !isTheaterFullscreen || !isMobile, // Fixed width on non-fullscreen or desktop fullscreen
-                "flex-grow": isTheaterFullscreen && isMobile, // Grow to fill remaining space on mobile fullscreen
-                "h-1/2": isTheaterFullscreen && isMobile, // Take half height on mobile fullscreen
+                "flex-grow": isMobile, // On mobile, chat takes full width and grows to fill half height
+                "sm:w-[320px] sm:flex-shrink-0 sm:h-full": !isMobile, // On desktop, chat has fixed width and full height
               }
             )}
           >
