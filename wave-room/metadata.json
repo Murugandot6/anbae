@@ -1,0 +1,6 @@
+{
+  "name": "Wave Room",
+  "description": "A web application for creating shared listening parties. Create a private room, invite friends, and listen to thousands of internet radio stations together in real-time.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Watch Party",
+  "description": "A sleek and modern watch party application that allows users to watch videos together in real-time. Features include synchronized video playback, a live chat, and a personal dashboard to manage watch rooms.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

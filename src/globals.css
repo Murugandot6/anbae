@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%; /* Ensure full height for the app */
+  }
+
+  :root {
+    --background: 270 20% 98%; /* Very light lavender */
+    --foreground: 240 10% 15%; /* Darker text */
+
+    --card: 0 0% 100%; /* White for cards */
+    --card-foreground: 240 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 260 60% 60%; /* Soft Lavender */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 330 60% 80%; /* Soft Peach */
+    --secondary-foreground: 240 10% 15%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 200 70% 70%; /* Gentle Blue */
+    --accent-foreground: 240 10% 15%;
+
+    --destructive: 0 80% 60%; /* Soft Red */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 270 10% 90%; /* Light border */
+    --input: 270 10% 95%;
+    --ring: 260 60% 60%;
+
+    /* New/Updated Color Palette for Light Mode */
+    --background: 270 20% 98%; /* Very light lavender */
+    --foreground: 240 10% 15%; /* Darker text */
+
+    --card: 0 0% 100%; /* White for cards */
+    --card-foreground: 240 10% 15%;
+
+    --primary: 260 60% 60%; /* Soft Lavender */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 330 60% 80%; /* Soft Peach */
+    --secondary-foreground: 240 10% 15%;
+
+    --accent: 200 70% 70%; /* Gentle Blue */
+    --accent-foreground: 240 10% 15%;
+
+    --destructive: 0 80% 60%; /* Soft Red */
+
+    --border: 270 10% 90%; /* Light border */
+    --input: 270 10% 95%;
+    --ring: 260 60% 60%;
+
+    /* Sidebar specific colors (Light Mode) */
+    --sidebar-background: 270 20% 95%; /* Slightly darker lavender for sidebar */
+    --sidebar-foreground: 240 10% 20%;
+    --sidebar-primary: 260 60% 50%; /* Deeper lavender for active items */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 15% 85%; /* Lighter accent for hover */
+    --sidebar-accent-foreground: 240 10% 20%;
+    --sidebar-border: 270 10% 80%;
+    --sidebar-ring: 260 60% 60%;
+
+    /* New Score Colors */
+    --score-positive: 142 76% 36%; /* A nice green */
+    --score-negative: 0 80% 60%; /* Destructive red */
+
+    /* Custom form placeholder color */
+    --form-placeholder: 240 10% 10%; /* Equivalent to #17171C */
+
+    --radius: 0.5rem; /* Default border radius for rounded corners */
+  }
+
+  .dark {
+    --background: 240 10% 10%; /* Deep charcoal */
+    --foreground: 240 20% 90%; /* Light gray text */
+
+    --card: 240 10% 15%; /* Darker charcoal for cards */
+    --card-foreground: 240 20% 90%;
+
+    --popover: 240 10% 15%;
+    --popover-foreground: 240 20% 90%;
+
+    --primary: 260 60% 70%; /* Brighter Lavender for dark mode primary */
+    --primary-foreground: 240 10% 10%;
+
+    --secondary: 330 60% 70%; /* Brighter Peach for dark mode secondary */
+    --secondary-foreground: 240 20% 90%;
+
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 15% 60%;
+
+    --accent: 200 70% 60%; /* Deeper Blue for dark mode accent */
+    --accent-foreground: 240 20% 90%;
+
+    --destructive: 0 70% 50%; /* Slightly darker red */
+
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 260 60% 70%;
+
+    /* Sidebar specific colors (Dark Mode) */
+    --sidebar-background: 240 10% 12%; /* Slightly lighter charcoal for sidebar */
+    --sidebar-foreground: 240 20% 85%;
+    --sidebar-primary: 260 60% 60%; /* Deeper lavender for active items */
+    --sidebar-primary-foreground: 240 10% 10%;
+    --sidebar-accent: 240 10% 25%; /* Lighter accent for hover */
+    --sidebar-accent-foreground: 240 20% 85%;
+    --sidebar-border: 240 10% 20%;
+    --sidebar-ring: 260 60% 70%;
+
+    /* New Score Colors */
+    --score-positive: 142 76% 46%; /* A brighter green for dark mode */
+    --score-negative: 0 70% 50%; /* Destructive red */
+
+    /* Custom form placeholder color for dark mode (readable) */
+    --form-placeholder: 240 15% 60%; /* Same as muted-foreground in dark mode */
+
+    --radius: 0.5rem; /* Default border radius for rounded corners */
+  }
+
+  .goblin {
+    /* Primary Background: Pale Ice Blue #e3f1f9 -> HSL: 200 50% 93% */
+    --background: 200 50% 93%;
+    /* Text / Headings: Charcoal Black #2b2b2b -> HSL: 0 0% 17% */
+    --foreground: 0 0% 17%;
+
+    /* Card background: Slightly lighter than background */
+    --card: 200 50% 95%;
+    --card-foreground: 0 0% 17%;
+
+    --popover: 200 50% 95%;
+    --popover-foreground: 0 0% 17%;
+
+    /* Accent / Buttons: Misty Lilac #B0A6C2 -> HSL: 260 19% 71% */
+    --primary: 260 19% 71%;
+    --primary-foreground: 0 0% 17%; /* Charcoal Black for contrast */
+
+    /* Secondary Accent: Navy Blue #3a5267 -> HSL: 209 28% 32% */
+    --secondary: 209 28% 32%;
+    --secondary-foreground: 200 50% 93%; /* Pale Ice Blue for contrast */
+
+    /* Water Element / Highlight: Teal Green Sea #7fd0c5 -> HSL: 172 47% 66% */
+    --accent: 172 47% 66%;
+    --accent-foreground: 0 0% 17%; /* Charcoal Black for contrast */
+
+    --muted: 200 20% 85%; /* Desaturated version of background */
+    --muted-foreground: 209 15% 45%; /* Darker, desaturated blue-gray */
+
+    --destructive: 0 80% 60%; /* Standard red for destructive actions */
+    --destructive-foreground: 200 50% 93%; /* Pale Ice Blue */
+
+    --border: 200 30% 80%; /* Desaturated light blue for borders */
+    --input: 200 50% 90%; /* Slightly darker than background for input fields */
+    --ring: 260 19% 71%; /* Same as primary */
+
+    /* Sidebar specific colors (Goblin Mode) */
+    --sidebar-background: 200 50% 90%; /* Slightly darker than main background */
+    --sidebar-foreground: 0 0% 17%;
+    --sidebar-primary: 260 19% 60%; /* Slightly darker Misty Lilac for active sidebar items */
+    --sidebar-primary-foreground: 0 0% 17%;
+    --sidebar-accent: 200 40% 88%; /* Lighter accent for hover */
+    --sidebar-accent-foreground: 0 0% 17%;
+    --sidebar-border: 200 30% 75%;
+    --sidebar-ring: 260 19% 71%;
+
+    /* Score Colors for Goblin */
+    --score-positive: 120 60% 35%; /* A good green for positive scores */
+    --score-negative: 0 80% 60%; /* Standard red for negative scores */
+
+    /* Custom form placeholder color for goblin mode */
+    --form-placeholder: 209 15% 45%; /* Same as muted-foreground */
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Embla Carousel Fade Transition Styles */
+/* The Embla Fade plugin handles the opacity and positioning,
+   so we remove custom CSS that might conflict. */
+.embla {
+  position: relative;
+}
+
+.embla__viewport {
+  overflow: hidden;
+}
+
+.embla__container {
+  display: flex; /* Embla requires flex for its internal logic */
+  height: 100%;
+}
+
+.embla__slide {
+  /* The Fade plugin will manage opacity and positioning directly. */
+  /* We only need to ensure it takes full width and height. */
+  flex: 0 0 100%; /* Ensure each slide takes full width */
+  min-width: 0; /* Required for flex items */
+  height: 100%;
+}
+
+/* New animation for video reactions */
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+  20% { opacity: 1; transform: translateY(0) scale(1); }
+  80% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(0.8); }
+}
+
+.animate-fade-in-out {
+  animation: fade-in-out 5s ease-out forwards;
+}
