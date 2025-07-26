@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useConcertPlayer } from '@/contexts/ConcertPlayerContext'; // Updated import
 import { Helmet } from 'react-helmet-async'; // Import Helmet
 import LoadingPulsar from '@/components/LoadingPulsar';
+import { useSession } from '@/contexts/SessionContext'; // Import useSession to get user ID
 
 const generateRoomCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
@@ -24,6 +25,7 @@ const generateRoomCode = (): string => {
 
 const ConcertPage: React.FC = () => { // Renamed component
   const navigate = useNavigate();
+  const { user } = useSession(); // Get the current user from session
   const { roomCode: activePlayerRoomCode, isConnectedToRoom } = useConcertPlayer(); // Updated hook
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
@@ -37,6 +39,11 @@ const ConcertPage: React.FC = () => { // Renamed component
   }, [activePlayerRoomCode, isConnectedToRoom, navigate]);
 
   const handleCreateRoom = async () => {
+    if (!user) {
+      setCreateError("You must be logged in to create a room.");
+      return;
+    }
+
     setLoading('create');
     setCreateError(null);
     setJoinError(null);
@@ -72,7 +79,7 @@ const ConcertPage: React.FC = () => { // Renamed component
 
     const { data: newRoom, error: insertError } = await supabase
       .from('wave_rooms') // Table name remains 'wave_rooms' in DB
-      .insert({ code: roomCode, is_playing: false })
+      .insert({ code: roomCode, is_playing: false, creator_id: user.id }) // Add creator_id here
       .select()
       .single();
     
