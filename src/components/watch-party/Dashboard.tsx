@@ -4,6 +4,7 @@ import { Room } from '@/types/watchParty';
 import { Plus, LogIn as JoinIcon, ArrowLeft } from 'lucide-react'; // Updated imports
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button'; // Import shadcn Button
+import { useSession } from '@/contexts/SessionContext'; // Import useSession
 
 // Helper to format the DB response into the client-side Room object
 const formatRoom = (dbRoom: any): Room => ({
@@ -24,11 +25,17 @@ const generateRoomCode = (): string => {
 }
 
 const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom }) => {
+  const { user } = useSession(); // Get the current user
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreateRoom = async () => {
+    if (!user) {
+        setError("You must be logged in to create a room.");
+        return;
+    }
+
     setLoading('create');
     setError(null);
     
@@ -63,7 +70,7 @@ const Dashboard: React.FC<{ onJoinRoom: (room: Room) => void; }> = ({ onJoinRoom
 
     const { data: newRoom, error: insertError } = await supabase
       .from('watch_party_rooms')
-      .insert({ room_code: roomCode, video_url: '', playback_status: 'unstarted' })
+      .insert({ room_code: roomCode, video_url: '', playback_status: 'unstarted', creator_id: user.id }) // Include creator_id
       .select()
       .single();
     
