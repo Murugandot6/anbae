@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Station } from '@/features/concert/types'; // Updated import path
+import { Station } from '@/features/concert/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useSession } from '@/contexts/SessionContext';
+import { fetchProfileByEmail } from '@/lib/supabaseHelpers'; // Import helper to fetch profile by email
 
-interface ConcertPlayerContextType { // Renamed context type
+interface ConcertPlayerContextType {
   currentStation: Station | null;
   isPlaying: boolean;
   roomCode: string | null;
@@ -17,9 +18,9 @@ interface ConcertPlayerContextType { // Renamed context type
   isConnectedToRoom: boolean;
 }
 
-const ConcertPlayerContext = createContext<ConcertPlayerContextType | undefined>(undefined); // Renamed context
+const ConcertPlayerContext = createContext<ConcertPlayerContextType | undefined>(undefined);
 
-export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => { // Renamed provider
+export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useSession();
   const navigate = useNavigate();
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
@@ -27,6 +28,7 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeRoomCode, setActiveRoomCode] = useState<string | null>(null);
   const [localUserHasInteracted, setLocalUserHasInteracted] = useState(false);
   const [isConnectedToRoom, setIsConnectedToRoom] = useState(false);
+  const [partnerId, setPartnerId] = useState<string | null>(null); // State to store partner's ID
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -35,6 +37,19 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const userIdRef = useRef<string | null>(null);
   useEffect(() => {
     userIdRef.current = user?.id || null;
+  }, [user]);
+
+  // Fetch partner's ID once when user session loads
+  useEffect(() => {
+    const getPartnerId = async () => {
+      if (user?.user_metadata?.partner_email) {
+        const partnerProfile = await fetchProfileByEmail(user.user_metadata.partner_email);
+        setPartnerId(partnerProfile?.id || null);
+      } else {
+        setPartnerId(null);
+      }
+    };
+    getPartnerId();
   }, [user]);
 
   // Function to update the database AND broadcast the state
@@ -54,7 +69,7 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Update database for persistence
     const { error: dbError } = await supabase
-      .from('wave_rooms') // Table name remains 'wave_rooms' in DB
+      .from('wave_rooms')
       .update({ current_station: stationToSave, is_playing: playStatus, updated_at: new Date().toISOString() })
       .eq('code', activeRoomCode);
     
@@ -66,7 +81,7 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     if (channelRef.current) {
       channelRef.current.send({
         type: 'broadcast',
-        event: 'concert_state_update', // Renamed event
+        event: 'concert_state_update',
         payload: { newState: stationToSave, isPlaying: playStatus, senderId: user.id },
       });
     }
@@ -77,14 +92,14 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     const setupRoom = async (code: string) => {
       // 1. Fetch initial state from DB for new joiners
       const { data, error } = await supabase
-        .from('wave_rooms') // Table name remains 'wave_rooms' in DB
+        .from('wave_rooms')
         .select('current_station, is_playing')
         .eq('code', code)
         .single();
 
       if (error || !data) {
         toast.error(`Could not join room ${code}. It may not exist.`);
-        navigate('/concert'); // Updated route
+        navigate('/concert');
         return;
       }
 
@@ -93,17 +108,46 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsConnectedToRoom(true);
 
       // 2. Subscribe to BROADCAST messages for real-time updates
-      const channel = supabase.channel(`room:${code}`) // Using a simpler channel name for broadcast
-        .on('broadcast', { event: 'concert_state_update' }, (payload) => { // Renamed event
+      const channel = supabase.channel(`room:${code}`, { config: { presence: { key: user?.id } } })
+        .on('broadcast', { event: 'concert_state_update' }, (payload) => {
           // Only update if the broadcast came from another user
           if (payload.payload.senderId !== userIdRef.current) {
             setCurrentStation(payload.payload.newState);
             setIsPlaying(payload.payload.isPlaying);
           }
         })
+        .on('presence', { event: 'join' }, ({ newPresences }) => {
+          newPresences.forEach((p: any) => {
+            if (p.user_id && p.user_id !== userIdRef.current && p.user_id === partnerId) {
+              toast.info(`${p.user_name || 'Your partner'} joined the concert room.`);
+            }
+          });
+        })
+        .on('presence', { event: 'leave' }, async ({ leftPresences }) => {
+          for (const p of leftPresences) {
+            if (p.user_id && p.user_id !== userIdRef.current && p.user_id === partnerId) {
+              // Partner left, create a notification for the current user
+              const { error: notificationError } = await supabase.from('notifications').insert({
+                user_id: userIdRef.current,
+                actor_id: p.user_id,
+                type: 'CONCERT_ROOM_LEFT',
+                message: `${p.user_name || 'Your partner'} has left the concert room.`,
+                link: `/concert/${code}`,
+              });
+              if (notificationError) {
+                console.error('Error creating partner left notification:', notificationError.message);
+              }
+              toast.info(`${p.user_name || 'Your partner'} has left the concert room.`);
+            }
+          }
+        })
         .subscribe((status, err) => {
             if (status === 'SUBSCRIBED') {
                 setIsConnectedToRoom(true);
+                // Track presence when subscribed
+                if (user) {
+                  channel.track({ user_id: user.id, user_name: user.user_metadata.nickname || user.email?.split('@')[0] || 'Guest' });
+                }
             }
             if (status === 'CHANNEL_ERROR' || err) {
                 const errorMessage = (err as Error)?.message || 'An unknown error occurred. Please refresh.';
@@ -132,7 +176,7 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       leaveRoom();
     };
-  }, [activeRoomCode, user, navigate]);
+  }, [activeRoomCode, user, navigate, partnerId]); // Added partnerId to dependencies
 
   // Effect to control the HTMLAudioElement
   useEffect(() => {
@@ -147,17 +191,13 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       if (isPlaying) {
         audio.play().catch(error => {
           if (error.name === 'NotAllowedError') {
-            // console.warn("Autoplay prevented. User interaction required."); // Removed debug log
             toast.info("Audio paused. Click play to start.");
             setIsPlaying(false); 
-            // IMPORTANT: If autoplay fails, we need to sync this back to the room
-            // so other users know this client is not playing.
-            syncState(currentStation, false); // Sync the actual state (paused)
+            syncState(currentStation, false);
           } else {
-            // console.error("Audio playback error:", error); // Removed debug log
             toast.error("Audio playback failed.");
             setIsPlaying(false); 
-            syncState(currentStation, false); // Sync the actual state (paused)
+            syncState(currentStation, false);
           }
         });
       } else {
@@ -167,18 +207,18 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       audio.pause();
       audio.src = '';
     }
-  }, [currentStation, isPlaying, syncState]); // Added syncState to dependencies
+  }, [currentStation, isPlaying, syncState]);
 
   // Action: Set a new station
   const setStation = useCallback((station: Station) => {
     setLocalUserHasInteracted(false);
-    setCurrentStation(station); // Optimistic update
-    setIsPlaying(true);         // Optimistic update
-    syncState(station, true); // Use the new syncState function
+    setCurrentStation(station);
+    setIsPlaying(true);
+    syncState(station, true);
   }, [syncState]);
 
   // Action: Toggle play/pause
-  const togglePlay = useCallback(async () => { // Make it async
+  const togglePlay = useCallback(async () => {
     const audio = audioRef.current;
     if (!currentStation) return;
 
@@ -198,10 +238,8 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
             setIsPlaying(newPlayStatus); 
         } catch (e: any) {
             if (e.name === 'NotAllowedError') {
-                // console.warn("Autoplay prevented. User interaction required."); // Removed debug log
                 toast.info("Audio paused. Click play to start.");
             } else {
-                // console.error("Audio playback error:", e); // Removed debug log
                 toast.error("Audio playback failed.");
             }
             newPlayStatus = false; 
@@ -216,10 +254,10 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Action: Clear the player
   const clearStation = useCallback(() => {
-    setCurrentStation(null); // Optimistic update
-    setIsPlaying(false);     // Optimistic update
+    setCurrentStation(null);
+    setIsPlaying(false);
     if (activeRoomCode) {
-        syncState(null, false); // Use the new syncState function
+        syncState(null, false);
     }
   }, [activeRoomCode, syncState]);
 
@@ -239,17 +277,17 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <ConcertPlayerContext.Provider value={value}> {/* Renamed context */}
+    <ConcertPlayerContext.Provider value={value}>
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
       {children}
     </ConcertPlayerContext.Provider>
   );
 };
 
-export const useConcertPlayer = () => { // Renamed hook
-  const context = useContext(ConcertPlayerContext); // Renamed context
+export const useConcertPlayer = () => {
+  const context = useContext(ConcertPlayerContext);
   if (context === undefined) {
-    throw new Error('useConcertPlayer must be used within a ConcertPlayerProvider'); // Renamed error message
+    throw new Error('useConcertPlayer must be used within a ConcertPlayerProvider');
   }
   return context;
 };
