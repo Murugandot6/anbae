@@ -67,7 +67,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
                   <item.icon className="w-5 h-5 mr-2" />
                   <span>{item.label}</span>
                 </div>
-                {item.badgeCount > 0 && (
+                {item.badgeCount && item.badgeCount > 0 && (
                   <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />
                 )}
               </div>

@@ -33,6 +33,7 @@ export interface Message {
   replies?: Message[]; // New: For nested replies in UI
   status: 'open' | 'closed'; // New: Status of the message
   sendingStatus?: 'sending' | 'sent' | 'failed'; // Added missing sendingStatus
+  hasUnreadReplies?: boolean; // NEW: Indicates if this message has unread replies
 }
 
 export interface ClearRequest {
