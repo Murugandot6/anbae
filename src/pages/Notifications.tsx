@@ -136,6 +136,34 @@ const Notifications: React.FC = () => {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    if (!user) {
+      toast.error('You must be logged in to mark notifications as read.');
+      return;
+    }
+
+    const unreadNotificationIds = notifications.filter(n => !n.is_read).map(n => n.id);
+
+    if (unreadNotificationIds.length === 0) {
+      toast.info('No unread notifications to mark as read.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .in('id', unreadNotificationIds);
+
+    if (error) {
+      toast.error('Failed to mark all as read: ' + error.message);
+    } else {
+      setNotifications(prev =>
+        prev.map(notif => ({ ...notif, is_read: true }))
+      );
+      toast.success('All notifications marked as read!');
+    }
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
       await handleMarkAsRead(notification.id);
@@ -159,6 +187,8 @@ const Notifications: React.FC = () => {
     return null;
   }
 
+  const hasUnreadNotifications = notifications.some(n => !n.is_read);
+
   return (
     <>
       <Helmet>
@@ -176,6 +206,16 @@ const Notifications: React.FC = () => {
               </Link>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mx-auto">Notifications</h1>
+            {hasUnreadNotifications && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                className="text-sm px-3 py-1.5 h-auto text-foreground border-border hover:bg-accent hover:text-accent-foreground rounded-full shadow-md"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" /> Mark All Read
+              </Button>
+            )}
           </div>
 
           <div className="space-y-4">
