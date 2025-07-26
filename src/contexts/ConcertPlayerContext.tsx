@@ -253,13 +253,27 @@ export const ConcertPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [currentStation, isPlaying, syncState, localUserHasInteracted]); 
 
   // Action: Clear the player
-  const clearStation = useCallback(() => {
+  const clearStation = useCallback(async () => { // Made async
     setCurrentStation(null);
     setIsPlaying(false);
     if (activeRoomCode) {
-        syncState(null, false);
+        await syncState(null, false); // Ensure state is synced before potentially leaving
+
+        // NEW: Send notification to partner if they exist and current user is leaving
+        if (user && partnerId) {
+            const { error: notificationError } = await supabase.from('notifications').insert({
+                user_id: partnerId, // Notification for the partner
+                actor_id: user.id, // Current user is the actor
+                type: 'CONCERT_ROOM_LEFT',
+                message: `${user.user_metadata.nickname || user.email?.split('@')[0] || 'A user'} has left the concert room: ${activeRoomCode}.`,
+                link: `/concert/${activeRoomCode}`,
+            });
+            if (notificationError) {
+                console.error('Error creating partner left notification:', notificationError.message);
+            }
+        }
     }
-  }, [activeRoomCode, syncState]);
+  }, [activeRoomCode, syncState, user, partnerId]); // Added user and partnerId to dependencies
 
   const setRoom = useCallback((code: string | null) => {
     setActiveRoomCode(code);
