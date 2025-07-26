@@ -15,6 +15,7 @@ import Journal from "./pages/Journal";
 import WatchParty from "./pages/WatchParty";
 import ConcertPage from "./features/concert/pages/ConcertPage";
 import ConcertTheaterPage from "./features/concert/pages/ConcertTheaterPage";
+import Notifications from "./pages/Notifications"; // New import
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GlobalConcertPlayer from "./components/GlobalConcertPlayer"; // Import GlobalConcertPlayer
@@ -42,6 +43,7 @@ function App() {
           <Route path="/theater" element={<WatchParty />} />
           <Route path="/concert" element={<ConcertPage />} />
           <Route path="/concert/:roomCode" element={<ConcertTheaterPage />} />
+          <Route path="/notifications" element={<Notifications />} /> {/* New route */}
         </Route>
 
         {/* Catch-all route for 404 */}

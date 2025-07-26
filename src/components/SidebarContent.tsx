@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio } from 'lucide-react';
+import { LogOut, Settings, MessageSquare, Inbox, Heart, BookText, Film, Sparkles, Radio, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Profile } from '@/types/supabase';
 import { User } from '@supabase/supabase-js';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useUnreadCount } from '@/hooks/useUnreadCount'; // New import
+import { useUnreadCount } from '@/hooks/useUnreadCount';
+import { useUnreadNotificationsCount } from '@/hooks/useUnreadNotificationsCount'; // New import
 
 interface SidebarContentProps {
   currentUserProfile: Profile | null;
@@ -19,7 +20,8 @@ interface SidebarContentProps {
 
 const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, partnerProfile, user, handleLogout, onMessagesCleared }) => {
   const location = useLocation();
-  const unreadCount = useUnreadCount(); // Use the new hook
+  const unreadMessageCount = useUnreadCount(); // Renamed for clarity
+  const unreadNotificationsCount = useUnreadNotificationsCount(); // New hook usage
 
   if (!user) {
     return null;
@@ -29,7 +31,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
     { to: "/dashboard", icon: Heart, label: "Dashboard" },
     { to: "/journal", icon: BookText, label: "Journal" },
     { to: "/promposal/create", icon: Sparkles, label: "Promposal" },
-    { to: "/messages", icon: Inbox, label: "Messages" },
+    { to: "/messages", icon: Inbox, label: "Messages", badgeCount: unreadMessageCount }, // Use unreadMessageCount
+    { to: "/notifications", icon: Bell, label: "Notifications", badgeCount: unreadNotificationsCount }, // New Notifications item
     { to: "/theater", icon: Film, label: "Theater" },
     { to: "/concert", icon: Radio, label: "Concert" },
     { to: "/edit-profile", icon: Settings, label: "Edit Profile" },
@@ -64,7 +67,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUserProfile, par
                   <item.icon className="w-5 h-5 mr-2" />
                   <span>{item.label}</span>
                 </div>
-                {item.to === "/messages" && unreadCount > 0 && (
+                {item.badgeCount > 0 && (
                   <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />
                 )}
               </div>

@@ -32,7 +32,6 @@ export interface Message {
   receiverProfile?: Profile | null;
   replies?: Message[]; // New: For nested replies in UI
   status: 'open' | 'closed'; // New: Status of the message
-  hasUnreadReplies?: boolean;
   sendingStatus?: 'sending' | 'sent' | 'failed'; // Added missing sendingStatus
 }
 
@@ -64,4 +63,16 @@ export interface Reaction {
   room_id: string;
   emoji: string;
   created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  type: string;
+  message: string;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+  actorProfile?: Profile | null; // Profile of the user who triggered the notification
 }
