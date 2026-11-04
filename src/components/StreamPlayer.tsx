@@ -6,7 +6,7 @@ import { RefreshCw, ExternalLink, Play, Pause, Volume2, VolumeX, Maximize, Slide
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { buildNetmirrorPlayerUrl } from '@/lib/netmirror';
+import { buildNetmirrorPlayerUrl, resolveNetmirrorStream, searchNetmirrorFamily } from '@/lib/netmirror';
 import { EMBED_PROXY_BASE } from '@/lib/embedProxy';
 
 interface StreamPlayerProps {
@@ -128,16 +128,31 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
       // default. Verified ad-free in-app on 2026-11-04: NetMirror (signed
       // player through the worker, no ad stack), VidSrc, VidCore.
       //
-      // NetMirror (netmirror.plus): the catalog shell sends
+      // NetMirror (netmirror.plus + net77.cc family): the catalog shell sends
       // x-frame-options: SAMEORIGIN and 403s proxy egress, so it can never be
       // used. The signed player page (webvp.watch21.shop/play/external.php)
       // has no frame headers but enforces a Referer allowlist, so it is served
       // through the worker's `netmirror-player` route (src/lib/netmirror.ts).
       // The signature is computed client-side from their published key.
-      // Evidence: docs/netmirror-family-api.md.
+      // Regional fallback: netmirror.plus catalog (regional country/dubbing
+      // rails + tm_id cross-ref) so the 4 ad-bearing sources' content is still
+      // reachable ad-free through NetMirror's regional library.
+      // Evidence: docs/netmirror-family-api.md, docs/net77-api.md.
       { name: "NetMirror", id: "netmirror", quality: "Ultra", proxy: true,
         movie: (id) => id, tv: (id) => id,
-        build: (id, tv, s, e) => buildNetmirrorPlayerUrl(id, tv, s, e) },
+        build: async (id: string, tv: boolean, s: number, e: number): Promise<string | null> => {
+          const url = await resolveNetmirrorStream(id, movie.title || "", tv, s, e);
+          if (url) return url;
+          // net77.cc family endpoint (regional content via portal-numeric ids).
+          const fam = await searchNetmirrorFamily(`${movie.title || ""}`, tv ? "2" : undefined);
+          for (const it of fam) {
+            const viaId = String(it?.tm_id || it?.id || "");
+            if (!viaId) continue;
+            const via = await buildNetmirrorPlayerUrl(viaId, tv, s, e);
+            if (via) return via;
+          }
+          return null;
+        } },
       // VidLink (vidlink.pro): was direct-only (ad-bearing). Its proxied route
       // is now clean — worker serves HTTP 200 with the neutralizer + stream
       // CDN rewrite (surge.flooderrr.store via /r/), verified 2026-11-04.

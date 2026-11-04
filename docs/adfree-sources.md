@@ -24,6 +24,18 @@
 | MultiEmbed (`multiembed.mov`) | Direct | Worker egress → Cloudflare challenge (403); route shape also needs `?video_id=` handling |
 | VixSrc (`vixsrc.to`) | Direct | Worker egress → Cloudflare challenge (403) |
 
+**Mitigation (2026-11-05):** the 4 ad-bearing sources are now covered ad-free by
+the NetMirror family resolver (`src/lib/netmirror.ts`):
+- Primary: netmirror.plus signed player (`webvp.watch21.shop` → worker
+  `/netmirror-player`) keyed by TMDB id.
+- Regional fallback: netmirror.plus catalog API (`api2.imdb3.shop`) with
+  `country` / `dubbing` regional rails → TMDB cross-ref (`tm_id`) → signed player.
+- Family fallback: net77.cc (`netcc`) backend `search.php` aggregated with the
+  netmirror.plus catalog (`searchNetmirrorFamily`).
+
+So content previously only reachable via the 4 blocked/ad sources now resolves
+through NetMirror (ad-free) before the `(Direct · ads)` list is ever used.
+
 Mitigation: clean sources always outrank these; they are labelled `(Direct · ads)` and never auto-selected; the clean fallback list had its ad-bearing duplicates removed.
 
 ## Residuals

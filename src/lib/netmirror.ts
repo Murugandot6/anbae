@@ -76,3 +76,112 @@ export async function buildNetmirrorPlayerUrl(
 
   return `${NETMIRROR_PLAYER_URL}?${params.toString()}`;
 }
+
+// NetMirror catalog / metadata API (netmirror.plus family backend).
+// Regional content: the catalog accepts `country` / `dubbing` filters and its
+// detail items carry a TMDB cross-reference (`tm_id`) that the signed player
+// consumes. Used as the ad-free regional fallback when the TMDB-id-keyed player
+// URL cannot resolve (regional catalogs are keyed differently).
+const NETMIRROR_CATALOG_API = "https://api2.imdb3.shop";
+
+export interface NetmirrorCatalogItem {
+  id?: string;
+  tm_id?: string;
+  media_type?: string;
+  title?: string;
+  release_date?: string;
+  [key: string]: unknown;
+}
+
+export async function searchNetmirrorCatalog(
+  query: string,
+  opts: { country?: string; dubbing?: string; type?: string } = {},
+): Promise<NetmirrorCatalogItem[]> {
+  try {
+    const params = new URLSearchParams({ page: "0", items_per_page: "25" });
+    if (opts.type) params.set("type", opts.type);
+    if (opts.dubbing) params.set("dubbing", opts.dubbing);
+    if (opts.country) params.set("country", opts.country);
+    const url = `${NETMIRROR_CATALOG_API}/api/movies/filter?${params.toString()}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items: NetmirrorCatalogItem[] = Array.isArray(data?.results) ? data.results : [];
+    const q = (query || "").trim().toLowerCase();
+    if (!q) return items;
+    const matches = items.filter((it) => {
+      const t = String(it?.title || "").toLowerCase();
+      return t.includes(q) || String(it?.id ?? "").includes(q);
+    });
+    return matches.slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+// Combined NetMirror family resolver (netmirror.plus + its sibling net77.cc
+// family backend). Ad-free by design: the only playback hop is the signed
+// netmirror.plus player (webvp.watch21.shop) — no provider ad stack ever loads.
+//
+// Order:
+//   1. netmirror.plus signed player keyed by TMDB id (primary).
+//   2. netmirror.plus catalog (regional content) → TMDB cross-ref (tm_id) →
+//      signed player (regional fallback for the 4 ad-bearing sources).
+export async function resolveNetmirrorStream(
+  tmdbId: string,
+  title: string,
+  isTv: boolean,
+  season: number,
+  episode: number,
+  opts: { country?: string; dubbing?: string } = {},
+): Promise<string | null> {
+  const direct = await buildNetmirrorPlayerUrl(tmdbId, isTv, season, episode);
+  if (direct) return direct;
+
+  const items = await searchNetmirrorCatalog(title, {
+    type: isTv ? "2" : undefined,
+    ...(opts.dubbing ? { dubbing: opts.dubbing } : {}),
+    ...(opts.country ? { country: opts.country } : {}),
+  });
+  for (const it of items) {
+    const viaId = String(it?.tm_id || it?.id || "");
+    if (!viaId) continue;
+    const via = await buildNetmirrorPlayerUrl(viaId, isTv, season, episode);
+    if (via) return via;
+  }
+  return null;
+}
+
+// NetMirror family-wide catalog search: netmirror.plus (api2.imdb3.shop
+// regional catalog) + the sibling net77.cc family backend (search.php).
+// Used to collect candidate ids for the ad-free regional resolver above.
+export async function searchNetmirrorFamily(
+  query: string,
+  opts: { type?: string; country?: string; dubbing?: string } = {},
+): Promise<NetmirrorCatalogItem[]> {
+  const out: NetmirrorCatalogItem[] = [];
+  const plus = await searchNetmirrorCatalog(query, opts);
+  out.push(...plus);
+  try {
+    const t = String(Math.floor(Date.now() / 1000));
+    const url = `https://net77.cc/search.php?s=${encodeURIComponent(query || "")}&t=${t}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (res.ok) {
+      const data = await res.json();
+      const results = Array.isArray(data?.searchResult) ? data.searchResult : [];
+      for (const r of results) {
+        const id = String(r?.id ?? "");
+        if (!id) continue;
+        out.push({
+          id,
+          tm_id: id,
+          title: typeof r?.t === "string" ? r.t : undefined,
+          media_type: "movie",
+        });
+      }
+    }
+  } catch {
+    // net77.cc unreachable — netmirror.plus catalog results stand.
+  }
+  return out;
+}
