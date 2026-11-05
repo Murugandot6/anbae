@@ -284,7 +284,10 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
     // GET /v1/tv/{tmdb}/seasons/{s}/episodes/{e} return {sources:[{url,…}]}
     // with PLAYABLE m3u8/file URLs — no provider page, no ads, hls.js-native.
     const directStreams: StreamSource[] = [];
-    const omssBase = (localStorage.getItem('omss_url') || '').trim().replace(/\/+$/, '');
+    // Default: local CinePro Core (OMSS) instance (`npm run dev` in cinepro-core,
+    // port 3000). Override/clear via localStorage `omss_url`. A dead instance
+    // just fails the fetch below and CinePro sources are skipped silently.
+    const omssBase = (localStorage.getItem('omss_url') || 'http://localhost:3000').trim().replace(/\/+$/, '');
     if (omssBase) {
       try {
         const omssUrl = isTv
