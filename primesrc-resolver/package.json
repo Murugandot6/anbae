@@ -1,0 +1,12 @@
+{
+  "name": "primesrc-resolver",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Clean-video resolver for the PrimeWire/PrimeSrc chain: turns the ad-riddled Filemoon player flow into a signed m3u8 URL served over a tiny REST API. Ads never leave the hidden resolver browser.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

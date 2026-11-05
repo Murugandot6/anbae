@@ -1,0 +1,36 @@
+{
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "architecture": "x86",
+  "bitness": "64",
+  "platform": "Windows",
+  "platform_version": "15.0.0",
+  "model": "",
+  "ua_full_version": "131.0.0.0",
+  "brand_full_versions": [
+    { "brand": "Not:A-Brand", "version": "8.0.0.0" },
+    { "brand": "Chromium", "version": "131.0.0.0" },
+    { "brand": "Brave", "version": "131.0.0.0" }
+  ],
+  "pixel_ratio": 1,
+  "screen_width": 1280,
+  "screen_height": 800,
+  "color_depth": 24,
+  "languages": ["en-GB"],
+  "timezone": "Asia/Calcutta",
+  "hardware_concurrency": 4,
+  "device_memory": 8,
+  "touch_points": 0,
+  "webgl_vendor": "Brave",
+  "webgl_renderer": "Brave",
+  "canvas_hash": "RxyPlyr5h6ba8umsus8o8opvCMehXPpcepxVdk6peJM",
+  "audio_hash": "A6pUsA_SFmfzw7N7ntE5hq7jwFo8jq2zafVxvphbElU",
+  "webgl_params_hash": "FuEi-yTUlx20xt-zude3e29dg0vLjSL4z0lZX3hdSRA",
+  "fonts_hash": "hKRUhAhlE__wr08rdi2Wq2ZQTp1SkPT9SjBnxhoQrh8",
+  "codecs_hash": "qJye5DfMLC0co_nw835Vyx_VcUOEnA01Coov9OtwHZs",
+  "media_devices": "ai1ao1vi1",
+  "pointer_type": "fine,hover",
+  "extra": {
+    "vendor": "Google Inc.",
+    "appVersion": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+  }
+}

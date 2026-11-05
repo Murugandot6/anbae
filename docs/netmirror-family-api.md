@@ -59,6 +59,9 @@ secret. `ts` = unix seconds, and
 
 ```
 sig = HMAC-SHA256("{tmdbId}:{ts}", "net###@@sss")     // lowercase hex
+      // TV re-verified 2026-11-05: the same formula applies to TV —
+      // tm_id=1396&tm_type=tv&se=1&ep=1 returned the standard servers[] page,
+      // with se/ep carried into the Server-1 (watchcinemo) URL.
 ```
 
 ```

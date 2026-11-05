@@ -144,7 +144,7 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
           const url = await resolveNetmirrorStream(id, movie.title || "", tv, s, e);
           if (url) return url;
           // net77.cc family endpoint (regional content via portal-numeric ids).
-          const fam = await searchNetmirrorFamily(`${movie.title || ""}`, tv ? "2" : undefined);
+          const fam = await searchNetmirrorFamily(`${movie.title || ""}`, tv ? { type: "2" } : {});
           for (const it of fam) {
             const viaId = String(it?.tm_id || it?.id || "");
             if (!viaId) continue;
@@ -156,6 +156,15 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
       // VidLink (vidlink.pro): was direct-only (ad-bearing). Its proxied route
       // is now clean — worker serves HTTP 200 with the neutralizer + stream
       // CDN rewrite (surge.flooderrr.store via /r/), verified 2026-11-04.
+      // PrimeSrc (primesrc.me): PrimeWire's own embed service. Openly
+      // frameable — response sets `frame-ancestors *` and no XFO (verified
+      // 2026-11-05) — and ad-free by itself (it maps internally to Filemoon /
+      // Playview / Showsy file pages). Its backing API is a plain cookie-free
+      // JSON endpoint (GET /api/v1/list_servers?type=movie|tv&tmdb|imdb|tvmaze=…)
+      // documented in docs/primewire-api.md; both the embed and the API were
+      // verified live for movies old (Inception 27205) and new (Resident Evil
+      // 2026), plus TV (Breaking Bad S1E1).
+      { name: "PrimeSrc", id: "primesrc", quality: "High", proxy: false, movie: (id) => `embed/movie?tmdb=${id}`, tv: (id, s, e) => `embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
       { name: "VidLink",  id: "vidlink",     quality: "Ultra",    proxy: true,  movie: (id) => `movie/${id}`,                tv: (id, s, e) => `tv/${id}/${s}/${e}` },
       { name: "VidSrc",   id: "vidsrc",      quality: "High",     proxy: true,  movie: (id) => `embed/movie/${id}`,          tv: (id, s, e) => `embed/tv/${id}/${s}/${e}` },
       { name: "VidCore",  id: "vidcore",     quality: "Fast",     proxy: true,  movie: (id) => `embed/movie/${id}`,          tv: (id, s, e) => `embed/tv/${id}/${s}/${e}` },
@@ -202,6 +211,7 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
       vidzen: "https://vidzen.fun",
       vidflix: "https://vidflix.club",
       "2embed": "https://www.2embed.cc",
+      primesrc: "https://primesrc.me",
       thisiscinema: "https://thisiscinema.pages.dev",
       multiembed: "https://multiembed.mov",
       vixsrc: "https://vixsrc.to",
@@ -267,7 +277,72 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
 
     const embedSources = [...cleanSources, ...adSources];
 
-    // PRIMARY: direct stream resolution via Vyla (ad-free by design — no
+    // PRIMARY A: direct stream resolution via an OMSS backend (CinePro Core,
+    // github.com/cinepro-org/core — self-hosted; deployable to Cloudflare
+    // Workers via its wrangler.json). Configure in Settings (localStorage key
+    // `omss_url`, e.g. http://localhost:3000). Spec: GET /v1/movies/{tmdb} and
+    // GET /v1/tv/{tmdb}/seasons/{s}/episodes/{e} return {sources:[{url,…}]}
+    // with PLAYABLE m3u8/file URLs — no provider page, no ads, hls.js-native.
+    const directStreams: StreamSource[] = [];
+    const omssBase = (localStorage.getItem('omss_url') || '').trim().replace(/\/+$/, '');
+    if (omssBase) {
+      try {
+        const omssUrl = isTv
+          ? `${omssBase}/v1/tv/${movie.id}/seasons/${season}/episodes/${episode}`
+          : `${omssBase}/v1/movies/${movie.id}`;
+        const omssRes = await fetch(omssUrl);
+        if (omssRes.ok) {
+          const omssData = await omssRes.json();
+          (omssData.sources || []).forEach((src: any, i: number) => {
+            if (src.url && isDirectMediaUrl(src.url)) {
+              const isHls = src.url.split('?')[0].toLowerCase().includes('.m3u8');
+              const label: string = src.provider?.name || src.label || `Source ${i + 1}`;
+              const resLabel: string = src.quality?.resolution || src.quality || 'Auto';
+              directStreams.push({
+                name: `CinePro (${label})`,
+                url: src.url,
+                type: isHls ? 'hls' : 'mp4',
+                quality: `${resLabel} · OMSS`,
+              });
+            }
+          });
+        }
+      } catch (e: any) {
+        console.warn("CinePro (OMSS) resolution failed:", e?.message);
+      }
+    }
+
+    // PRIMARY B: "PrimeSrc (clean)" resolver service — PrimeWire/PrimeSrc's
+    // own chain (primesrc.me /api/v1 → /api/v1/l → Filemoon) harvested inside
+    // a hidden sacrificial browser; only the final signed m3u8 (3h tokens,
+    // fetched cookie-free — verified) is served. Zero ads ever reach this
+    // source. Service + evidence: docs/primewire-api.md.
+    // Runs at http://localhost:8790 (node, D:\Murugan\primesrc-resolver,
+    // `npm start`). Skipped entirely if not reachable.
+    const psBase = (localStorage.getItem('primesrc_resolver') || 'http://localhost:8790').trim().replace(/\/+$/, '');
+    if (psBase) {
+      try {
+        const psUrl = `${psBase}/resolve?tmdb=${encodeURIComponent(String(movie.id))}&type=${isTv ? 'tv' : 'movie'}${isTv ? `&s=${season}&e=${episode}` : ''}`;
+        const psRes = await fetch(psUrl);
+        if (psRes.ok) {
+          const psData = await psRes.json();
+          if (psData.url && isDirectMediaUrl(psData.url)) {
+            const isHls = psData.url.split('?')[0].toLowerCase().includes('.m3u8');
+            const psLabel: string = psData.file || psData.host || 'Clean';
+            directStreams.push({
+              name: `PrimeSrc (clean)`,
+              url: psData.url,
+              type: isHls ? 'hls' : 'mp4',
+              quality: `${psLabel} · ad-free`,
+            });
+          }
+        }
+      } catch (e: any) {
+        console.warn("PrimeSrc resolver not reachable:", e?.message);
+      }
+    }
+
+    // PRIMARY C: direct stream resolution via Vyla (ad-free by design — no
     // provider page ever loads, so no provider ads can exist). The Cloudflare
     // Worker /resolve route (cloudflare/embed-proxy) proxies Vyla's HF Space
     // and returns clean JSON. Only fall back to iframe embeds if direct
@@ -277,14 +352,13 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
       const resolveUrl = `${EMBED_PROXY_BASE}/resolve?id=${encodeURIComponent(movie.id)}&type=${type}${isTv ? `&s=${season}&e=${episode}` : ''}`;
 
       const response = await fetch(resolveUrl);
-      const directSources: StreamSource[] = [];
 
       if (response.ok) {
         const data = await response.json();
         for (const src of (data.sources || [])) {
           if (src.url && isDirectMediaUrl(src.url)) {
             const isHls = src.url.split('?')[0].toLowerCase().includes('.m3u8');
-            directSources.push({
+            directStreams.push({
               name: `Vyla (${src.label || 'Direct'})`,
               url: src.url,
               type: isHls ? 'hls' : 'mp4',
@@ -294,11 +368,11 @@ export const StreamPlayer: React.FC<StreamPlayerProps> = ({ movie }) => {
         }
       }
 
-      if (directSources.length > 0) {
+      if (directStreams.length > 0) {
         // Direct streams available — 100% ad-free. Only append embeds as
         // labelled fallbacks (never auto-selected).
-        setAvailableSources([...directSources, ...embedSources]);
-        setSelectedSource(directSources[0]);
+        setAvailableSources([...directStreams, ...embedSources]);
+        setSelectedSource(directStreams[0]);
       } else {
         // No direct stream — fall back to ad-stripped embeds.
         setAvailableSources(embedSources);
