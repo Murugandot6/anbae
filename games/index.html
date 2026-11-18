@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games — anbae</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#050506; --card:#121216; --line:rgba(255,255,255,.07); --text:#f4f4f5; --muted:#a1a1aa; --rose:#f43f5e; --amber:#fbbf24; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); font-family:Inter,system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  header { position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:18px; padding:14px 22px; background:rgba(5,5,6,.88); backdrop-filter:blur(16px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:center; gap:9px; text-decoration:none; flex:0 0 auto; }
+  .brand i { width:26px; height:26px; border-radius:8px; background:var(--rose); display:grid; place-items:center; color:#fff; font-style:normal; font-size:13px; }
+  .brand b { font-size:15px; font-weight:900; font-style:italic; letter-spacing:-.03em; }
+  .brand span { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.16em; color:var(--amber); margin-left:5px; }
+  .search { flex:1 1 auto; max-width:440px; }
+  .search input { width:100%; padding:10px 16px; border-radius:999px; border:1px solid var(--line); background:#111114; color:var(--text); font:inherit; font-size:13px; outline:none; }
+  .search input:focus { border-color:var(--rose); box-shadow:0 0 0 3px rgba(244,63,94,.15); }
+  .search input::placeholder { color:#71717a; }
+  .chips { display:flex; gap:6px; flex:0 0 auto; }
+  .chip { padding:8px 15px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--muted); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+  .chip:hover { color:#fff; }
+  .chip.on { background:var(--rose); border-color:var(--rose); color:#fff; }
+  .wrap { max-width:1600px; margin:0 auto; padding:28px 22px 70px; }
+  .intro { margin:0 0 24px; }
+  .intro h1 { font-size:30px; font-weight:900; text-transform:uppercase; letter-spacing:-.04em; margin:0 0 6px; }
+  .intro p { color:var(--muted); font-size:13px; margin:0; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:14px; }
+  .tile { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); text-decoration:none; transition:transform .18s,border-color .18s,box-shadow .18s; }
+  .tile:hover,.tile:focus-visible { transform:translateY(-3px); border-color:rgba(251,191,36,.45); box-shadow:0 14px 36px rgba(0,0,0,.55); outline:none; }
+  .art { position:relative; aspect-ratio:1/1; background:#0b0b0e; overflow:hidden; }
+  .art img { width:100%; height:100%; object-fit:cover; display:block; }
+  .fallback { position:absolute; inset:0; display:grid; place-items:center; font-size:30px; font-weight:900; color:#2b2b33; }
+  .badge { position:absolute; top:7px; left:7px; z-index:2; padding:3px 7px; border-radius:999px; font-size:9px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+  .hot { background:#f43f5e; color:#fff; } .new { background:#fbbf24; color:#1a1300; }
+  .name { padding:10px 11px 12px; font-size:12.5px; font-weight:700; line-height:1.35; min-height:46px; }
+  .empty { color:var(--muted); text-align:center; margin-top:50px; }
+  @media (max-width:760px) { header { flex-wrap:wrap; gap:10px; } .search { order:3; max-width:none; flex-basis:100%; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/#/"><i>♪</i><b>anbae</b><span>Games</span></a>
+  <div class="search"><input id="q" type="search" placeholder="Search 144 games" autocomplete="off" spellcheck="false"></div>
+  <nav class="chips" id="chips">
+    <button class="chip on" data-cat="all">All</button>
+    <button class="chip" data-cat="html5">HTML5</button>
+    <button class="chip" data-cat="flash">Flash</button>
+    <button class="chip" data-cat="retro">Retro</button>
+  </nav>
+</header>
+<main class="wrap">
+  <div class="intro">
+    <h1>Play something</h1>
+    <p>Every game is hosted here — pick one and it opens full-page, with no third-party host.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No games match that search.</p>
+</main>
+<script>
+  const grid = document.getElementById('grid');
+  const q = document.getElementById('q');
+  const chips = document.getElementById('chips');
+  const empty = document.getElementById('empty');
+  let games = [], cat = 'all', term = '';
+
+  const initials = (n) => n.replace(/[^a-z0-9 ]/gi,'').trim().split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+
+  function tile(g, i) {
+    const a = document.createElement('a');
+    a.className = 'tile';
+    a.href = g.path;
+    a.title = g.name;
+    const art = document.createElement('div');
+    art.className = 'art';
+    if (g.popular) art.insertAdjacentHTML('beforeend','<span class="badge hot">Top 5</span>');
+    else if (g.fresh) art.insertAdjacentHTML('beforeend','<span class="badge new">New</span>');
+    const fb = document.createElement('span');
+    fb.className = 'fallback'; fb.textContent = initials(g.name); art.appendChild(fb);
+    if (g.icon) {
+      const img = document.createElement('img');
+      img.loading = i < 24 ? 'eager' : 'lazy';
+      img.decoding = 'async'; img.alt = '';
+      img.src = g.icon;
+      img.addEventListener('error', () => img.remove(), { once:true });
+      art.appendChild(img);
+    }
+    const name = document.createElement('span');
+    name.className = 'name'; name.textContent = g.name;
+    a.append(art, name);
+    return a;
+  }
+
+  function render() {
+    const frag = document.createDocumentFragment();
+    let n = 0;
+    for (const g of games) {
+      if (cat !== 'all' && g.category !== cat) continue;
+      if (term && !g.name.toLowerCase().includes(term)) continue;
+      frag.appendChild(tile(g, n++));
+    }
+    grid.replaceChildren(frag);
+    grid.hidden = n === 0;
+    empty.hidden = n !== 0;
+    q.placeholder = 'Search ' + games.length + ' games';
+  }
+
+  q.addEventListener('input', () => { term = q.value.trim().toLowerCase(); render(); });
+  chips.addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    for (const c of chips.children) c.classList.toggle('on', c === b);
+    cat = b.dataset.cat; render();
+  });
+  addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); q.focus(); } });
+
+  fetch('./games.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { games = d.games || []; render(); })
+    .catch(e => { empty.hidden = false; empty.textContent = 'Could not load games.json (' + e.message + ')'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+{
+ "count": 83,
+ "games": [
+  {
+   "name": "1 - Forest",
+   "path": "projects/fireboy-and-watergirl-1/index.html",
+   "icon": "projects/fireboy-and-watergirl-1/thumb.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "1v1.lol",
+   "path": "projects/1v1.lol/index.html",
+   "icon": "projects/1v1.lol/splash.png",
+   "category": "html5"
+  },
+  {
+   "name": "2 - Light",
+   "path": "projects/fireboy-and-watergirl-2/index.html",
+   "icon": "projects/fireboy-and-watergirl-2/thumb.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "3 - Ice",
+   "path": "projects/fireboy-and-watergirl-3/index.html",
+   "icon": "projects/fireboy-and-watergirl-3/thumb.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "4 - Crystal",
+   "path": "projects/fireboy-and-watergirl-4/index.html",
+   "icon": "projects/fireboy-and-watergirl-4/thumb.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "5 - Elements",
+   "path": "projects/fireboy-and-watergirl-5/index.html",
+   "icon": "projects/fireboy-and-watergirl-5/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "6 - Fairy Tales",
+   "path": "projects/fireboy-and-watergirl-6/index.html",
+   "icon": "projects/fireboy-and-watergirl-6/thumb.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "2048",
+   "path": "projects/2048/index.html",
+   "icon": "projects/2048/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "9007199254740992",
+   "path": "projects/9007199254740992/index.html",
+   "icon": "projects/9007199254740992/logo-4.png",
+   "category": "html5"
+  },
+  {
+   "name": "A Small World Cup",
+   "path": "projects/a-small-world-cup/index.html",
+   "icon": "projects/a-small-world-cup/a-small-world-cup.png",
+   "category": "html5",
+   "popular": true
+  },
+  {
+   "name": "Among Us",
+   "path": "projects/among-us/index.html",
+   "icon": "projects/among-us/unnamed.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Ball Sort Puzzle",
+   "path": "projects/ball-sort-puzzle/index.html",
+   "icon": "projects/ball-sort-puzzle/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Basket and Ball",
+   "path": "projects/basket-and-ball/index.html",
+   "icon": "projects/basket-and-ball/thumb.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Basket Random",
+   "path": "projects/basket-random/frame.html",
+   "icon": "projects/basket-random/basket-random.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "Bitlife",
+   "path": "projects/bitlife/index.html",
+   "icon": "projects/bitlife/thumb.png",
+   "category": "html5",
+   "popular": true
+  },
+  {
+   "name": "Blackjack",
+   "path": "projects/blackjack/index.html",
+   "icon": "projects/blackjack/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Block the Pig",
+   "path": "projects/block-the-pig/index.html",
+   "icon": "projects/block-the-pig/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Bloons TD",
+   "path": "flash/bloons-td/index.html",
+   "icon": "flash/bloons-td/bloonstd.jpg",
+   "category": "flash"
+  },
+  {
+   "name": "Bloons TD 2",
+   "path": "flash/bloons-td-2/index.html",
+   "icon": "flash/bloons-td-2/bloonstd2.png",
+   "category": "flash"
+  },
+  {
+   "name": "Boxing Random",
+   "path": "projects/boxing-random/frame.html",
+   "icon": "projects/boxing-random/unnamed.png",
+   "category": "html5"
+  },
+  {
+   "name": "Cell Machine",
+   "path": "projects/cell-machine/index.html",
+   "icon": "projects/cell-machine/img/te9nDu.png",
+   "category": "html5"
+  },
+  {
+   "name": "Chrome Dino",
+   "path": "projects/chrome-dino/index.html",
+   "icon": "projects/chrome-dino/icons/icon-256.png",
+   "category": "html5"
+  },
+  {
+   "name": "circlO",
+   "path": "projects/circlo/index.html",
+   "icon": "projects/circlo/img/download.png",
+   "category": "html5"
+  },
+  {
+   "name": "Cookie Clicker",
+   "path": "projects/cookie-clicker/index.html",
+   "icon": "projects/cookie-clicker/cookie1.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "Core Ball",
+   "path": "projects/core-ball/index.html",
+   "icon": "projects/core-ball/pr_source.png",
+   "category": "html5"
+  },
+  {
+   "name": "Cut The Rope",
+   "path": "projects/ctr-time-travel/index.html",
+   "icon": "projects/ctr-time-travel/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Death Run 3D",
+   "path": "projects/death-run-3d/index.html",
+   "icon": "projects/death-run-3d/img/death.png",
+   "category": "html5"
+  },
+  {
+   "name": "Doodle Jump",
+   "path": "projects/doodle-jump/index.html",
+   "icon": "projects/doodle-jump/doodle.png",
+   "category": "html5"
+  },
+  {
+   "name": "Drift Boss",
+   "path": "projects/drift-boss/index.html",
+   "icon": "projects/drift-boss/drift-boss.png",
+   "category": "html5"
+  },
+  {
+   "name": "Drift Hunters",
+   "path": "projects/drift-hunters/index.html",
+   "icon": "projects/drift-hunters/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Edge Surf",
+   "path": "projects/edge-surf/index.html",
+   "icon": "projects/edge-surf/favicon.svg",
+   "category": "html5"
+  },
+  {
+   "name": "Eggy Car",
+   "path": "projects/eggy-car/index.html",
+   "icon": "projects/eggy-car/eggy-car.png",
+   "category": "html5",
+   "fresh": true
+  },
+  {
+   "name": "Flappy Bird",
+   "path": "projects/flappy-bird/index.html",
+   "icon": "projects/flappy-bird/assets/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Geometry Dash",
+   "path": "projects/geodash/index.html",
+   "icon": "projects/geodash/geoscratchicon.png",
+   "category": "html5"
+  },
+  {
+   "name": "Geometry Dash",
+   "path": "projects/geodash-subzero/index.html",
+   "icon": "projects/geodash-subzero/geodash-subzero.png",
+   "category": "html5",
+   "popular": true
+  },
+  {
+   "name": "Globle Unlimited",
+   "path": "projects/globle/build/index.html",
+   "icon": "projects/globle/globle.png",
+   "category": "html5",
+   "fresh": true
+  },
+  {
+   "name": "Google Feud",
+   "path": "projects/google-feud/index.html",
+   "icon": "projects/google-feud/splash.png",
+   "category": "html5"
+  },
+  {
+   "name": "Google Snake",
+   "path": "projects/google-snake/index.html",
+   "icon": "projects/google-snake/google-snake.png",
+   "category": "html5"
+  },
+  {
+   "name": "Hextris",
+   "path": "projects/hextris/index.html",
+   "icon": "projects/hextris/images/hextris-logo.png",
+   "category": "html5"
+  },
+  {
+   "name": "Idle Breakout",
+   "path": "projects/idle-breakout/frame.html",
+   "icon": "projects/idle-breakout/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Little Alchemy 2",
+   "path": "projects/little-alchemy/index.html",
+   "icon": "projects/little-alchemy/unnamed.png",
+   "category": "html5"
+  },
+  {
+   "name": "Mario",
+   "path": "projects/mario/index.html",
+   "icon": "projects/mario/Theme/Mario.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Minecraft Classic",
+   "path": "projects/minecraft/index.html",
+   "icon": "projects/minecraft/thumb.png",
+   "category": "html5",
+   "popular": true
+  },
+  {
+   "name": "Minesweeper",
+   "path": "projects/minesweeper/index.html",
+   "icon": "projects/minesweeper/img/minesweeper.png",
+   "category": "html5"
+  },
+  {
+   "name": "Moto X3M",
+   "path": "projects/moto-x3m/index.html",
+   "icon": "projects/moto-x3m/moto-x3m.png",
+   "category": "html5"
+  },
+  {
+   "name": "Moto X3M 2",
+   "path": "projects/moto-x3m-2/index.html",
+   "icon": "projects/moto-x3m-2/moto-x3m-2.png",
+   "category": "html5"
+  },
+  {
+   "name": "Moto X3M Pool Party",
+   "path": "projects/moto-x3m-pool-party/index.html",
+   "icon": "projects/moto-x3m-pool-party/moto-x3m-pool-party.png",
+   "category": "html5"
+  },
+  {
+   "name": "Moto X3M Spooky Land",
+   "path": "projects/moto-x3m-spooky-land/index.html",
+   "icon": "projects/moto-x3m-spooky-land/moto-x3m-spooky-land.png",
+   "category": "html5"
+  },
+  {
+   "name": "Moto X3M Winter",
+   "path": "projects/moto-x3m-winter/index.html",
+   "icon": "projects/moto-x3m-winter/moto-x3m-winter.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Pac-Man",
+   "path": "projects/pacman/index.html",
+   "icon": "projects/pacman/thumbnail.png",
+   "category": "html5"
+  },
+  {
+   "name": "Papa's Burgeria",
+   "path": "flash/papas-burgeria/index.html",
+   "icon": "flash/papas-burgeria/thumb.png",
+   "category": "flash"
+  },
+  {
+   "name": "Papa's Freezeria",
+   "path": "flash/papas-freezeria/index.html",
+   "icon": "flash/papas-freezeria/thumb.png",
+   "category": "flash"
+  },
+  {
+   "name": "Papa's Pancakeria",
+   "path": "flash/papas-pancakeria/index.html",
+   "icon": "flash/papas-pancakeria/thumb.png",
+   "category": "flash"
+  },
+  {
+   "name": "Papa's Pizzeria",
+   "path": "flash/papas-pizzeria/index.html",
+   "icon": "flash/papas-pizzeria/thumb.png",
+   "category": "flash"
+  },
+  {
+   "name": "Paper.io 2",
+   "path": "projects/paperio2/index.html",
+   "icon": "projects/paperio2/images/icon512.png",
+   "category": "html5"
+  },
+  {
+   "name": "Poker",
+   "path": "projects/poker/poker.html",
+   "icon": "projects/poker/static/images/logo.png",
+   "category": "html5"
+  },
+  {
+   "name": "Project Sand",
+   "path": "projects/project-sand/index.html",
+   "icon": "projects/project-sand/assets/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Riddle School 1",
+   "path": "flash/riddle-school/index.html",
+   "icon": "flash/riddle-school/riddleschool.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle School 2",
+   "path": "flash/riddle-school-2/index.html",
+   "icon": "flash/riddle-school-2/riddleschool2.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle School 3",
+   "path": "flash/riddle-school-3/index.html",
+   "icon": "flash/riddle-school-3/riddleschool3.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle School 4",
+   "path": "flash/riddle-school-4/index.html",
+   "icon": "flash/riddle-school-4/riddleschool4.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle School 5",
+   "path": "flash/riddle-school-5/index.html",
+   "icon": "flash/riddle-school-5/riddleschool5.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle Transfer",
+   "path": "flash/riddle-transfer/index.html",
+   "icon": "flash/riddle-transfer/riddletransfer.png",
+   "category": "flash"
+  },
+  {
+   "name": "Riddle Transfer 2",
+   "path": "flash/riddle-transfer-2/index.html",
+   "icon": "flash/riddle-transfer-2/riddletransfer2.png",
+   "category": "flash"
+  },
+  {
+   "name": "Rocketpult",
+   "path": "projects/rocketpult/index.html",
+   "icon": "projects/rocketpult/rocketpult.png",
+   "category": "html5"
+  },
+  {
+   "name": "Rooftop Snipers",
+   "path": "projects/rooftop-snipers/index.html",
+   "icon": "projects/rooftop-snipers/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Sand Tetris",
+   "path": "projects/sandtrix/index.html",
+   "icon": "projects/sandtrix/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Save the Doge",
+   "path": "projects/save-the-doge/index.html",
+   "icon": "projects/save-the-doge/thumb.png",
+   "category": "html5",
+   "popular": true
+  },
+  {
+   "name": "Sister Location",
+   "path": "projects/fnaf-5/index.html",
+   "icon": "projects/fnaf-5/favicon.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Slope",
+   "path": "projects/slope/index.html",
+   "icon": "projects/slope/slope4.jpeg",
+   "category": "html5"
+  },
+  {
+   "name": "Snail Bob 3",
+   "path": "projects/snail-bob-3/index.html",
+   "icon": "projects/snail-bob-3/snail-bob-3.png",
+   "category": "html5"
+  },
+  {
+   "name": "Snail Bob 4",
+   "path": "projects/snail-bob-4/index.html",
+   "icon": "projects/snail-bob-4/snail-bob-4.png",
+   "category": "html5"
+  },
+  {
+   "name": "Soccer Random",
+   "path": "projects/soccer-random/frame.html",
+   "icon": "projects/soccer-random/unnamed.png",
+   "category": "html5"
+  },
+  {
+   "name": "Solitare",
+   "path": "projects/solitaire/index.html",
+   "icon": "projects/solitaire/screen-shot.png",
+   "category": "html5"
+  },
+  {
+   "name": "Stack",
+   "path": "projects/stack/index.html",
+   "icon": "projects/stack/icon.png",
+   "category": "html5"
+  },
+  {
+   "name": "Tomb of the Mask",
+   "path": "projects/totm/index.html",
+   "icon": "projects/totm/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Vex 3",
+   "path": "projects/vex3/index.html",
+   "icon": "projects/vex3/vex3.png",
+   "category": "html5"
+  },
+  {
+   "name": "Vex 4",
+   "path": "projects/vex4/index.html",
+   "icon": "projects/vex4/vex4.png",
+   "category": "html5"
+  },
+  {
+   "name": "Vex 5",
+   "path": "projects/vex5/index.html",
+   "icon": "projects/vex5/vex.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Vex 6",
+   "path": "projects/vex6/index.html",
+   "icon": "projects/vex6/assets/icon.jpg",
+   "category": "html5"
+  },
+  {
+   "name": "Volley Random",
+   "path": "projects/volley-random/frame.html",
+   "icon": "projects/volley-random/unnamed.png",
+   "category": "html5"
+  },
+  {
+   "name": "We Become what we Behold",
+   "path": "projects/wbwwb/index.html",
+   "icon": "projects/wbwwb/thumb.png",
+   "category": "html5"
+  },
+  {
+   "name": "Wordle Unlimited",
+   "path": "projects/wordle/index.html",
+   "icon": "projects/wordle/wordle.jpg",
+   "category": "html5",
+   "fresh": true
+  }
+ ]
+}

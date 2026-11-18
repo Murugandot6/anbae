@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-R1ZCLH6XCR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-R1ZCLH6XCR');
+</script>
+	<link rel="stylesheet" href="styles.css">
+    <title>Retro Games</title>
+    <meta property="og:description" content="We do got games on our phone." />
+    <meta name="description" content="We do got games on our phone." />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body onload="startTime()">
+  
+  <div class="menubar">
+  <div class="topnav">
+  <a href="index.html">Games</a>
+  <a class="active" href="retro.html">Retro</a>
+  <a href="flash.html">Flash</a>
+              <div class="topnav-right">
+    <a href="feedback.html"><img src="feedback.png" alt="Description for image" width="15" height="15"></a>
+    <a href="info.html"><img src="info.png" alt="Description for image" width="15" height="15"></a>
+	<a id="txt"></a>
+	<a id="hide">Hide</a>
+  </div>
+  </div>
+  </div>
+  
+			<h1 class="text-center">Retro Games</h1>
+     <p class="text-center">Here is all of our retro video games sorted by console and then further by series</p>
+	 <p class="text-important">Make sure you don't forget to manually save as these games are made to save to a cartridge</p>
+	 <p class="text-important">and on PC it doesn't have anywhere to save to so there is a button at the bottom to save the state</p>
+	 <p class="text-center">If your favourite game is missing you can put it in the suggestion box in the top right</p>
+	 <p class="text-center"> </p>
+					
+	 		      <div class="flex-container">
+
+          <a href="emulation/webretro/index.html" class="game-link container">
+              <div class="game-tile">
+                  <h1 class="game-title">Click on this text if you have your own ROM files and would like to play them on this site</h1>
+              </div>
+          </a>
+		</div>
+	 
+	   <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+	<a href="#ds">DS</a>
+    <a href="#gba">GBA</a>
+	<a href="#gbc">GBC</a>
+	<a href="#n64">N64</a>
+	<a href="#nes">NES</a>
+	<a href="#snes">SNES</a>
+	</div>
+	</div>
+	<script src="JS/hide.js"></script>
+	<script src="JS/clock.js"></script>
+	<script src="JS/search.js"></script>
+  <nav>
+  <div class="nav-container">
+    <div class="search-container">
+      <input class="search-box" id="search-box" type="search"  onkeyup="searching(this)" onfocus="fun(this)" placeholder="Search for Games">
+      <div class="search-results" id="search-results">
+	  
+			<hr class="dashed">
+			
+ 	 	<div><h1 id="ds" class="text-left">DS Games</h1></div>
+ 	 	<div><h1 class="text-important">!Warning! DS games are a lot more intense than other systems on this page making them much harder to get to work through the web</h1></div>
+			
+  <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+    <a href="#ds-pokemon">Pokemon</a>
+  </div>
+  </div>
+	 
+	 	<div><h1 id="ds-pokemon" class="text-center">Pokemon Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/DS/pokemon-black/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/DS/pokemon-black/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Black</h1>
+              </div>
+          </a>
+
+          <a href="emulation/DS/pokemon-white/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/DS/pokemon-white/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">White</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+		
+			<hr class="dashed">
+			
+	 	 	<div><h1 id="gba" class="text-left">Gameboy Advance Games</h1></div>
+			
+  <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+    <a href="#gba-pokemon">Pokemon</a>
+    <a href="#gba-sonic">Sonic</a>
+	<a href="#gba-other">Other</a>
+  </div>
+  </div>
+	 
+	 	<div><h1 id="gba-pokemon" class="text-center">Pokemon Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/GBA/pokemon-fire-red/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/pokemon-fire-red/pokemon-fire-red.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Fire Red</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/pokemon-leaf-green/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/pokemon-leaf-green/pokemon-leaf-green.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Leaf Green</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/pokemon-ruby/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/pokemon-ruby/pokemon-ruby.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Ruby</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/pokemon-sapphire/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/pokemon-sapphire/pokemon-sapphire.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Sapphire</h1>
+              </div>
+          </a>
+		  
+		  <a href="emulation/GBA/pokemon-emerald/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/pokemon-emerald/PokemonEmeraldBox.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Emerald</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+			 	<div><h1 id="gba-sonic" class="text-center">Sonic Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/GBA/sonic-advance/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/sonic-advance/sonic-advance.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Sonic Advance</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/sonic-advance-2/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/sonic-advance-2/sonic-advance-2.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Sonic Advance 2</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/sonic-advance-3/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/sonic-advance-3/sonic-advance-3.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Sonic Advance 3</h1>
+              </div>
+          </a>
+		</div>
+		
+					 	<div><h1 id="gba-other" class="text-center">Other Games</h1></div>
+				
+		      <div class="flex-container">
+          <a href="emulation/GBA/gta-advance/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/gta-advance/GTAA.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">GTA Advance</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBA/legend-of-zelda-minish-cap/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBA/legend-of-zelda-minish-cap/legend-of-zelda-minish-cap.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">The Minish Cap</h1>
+              </div>
+          </a>
+		</div>
+		
+					<hr class="dashed">
+			
+	 	 	<div><h1 id="gba" class="text-left">Gameboy Colour Games</h1></div>
+			
+  <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+    <a href="#gbc-pokemon">Pokemon</a>
+  </div>
+  </div>
+	 
+	 	<div><h1 id="gbc-pokemon" class="text-center">Pokemon Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/GBC/pokemon-crystal/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBC/pokemon-crystal/cover.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Crystal</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBC/pokemon-gold/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBC/pokemon-gold/cover.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Gold</h1>
+              </div>
+          </a>
+
+          <a href="emulation/GBC/pokemon-silver/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/GBC/pokemon-silver/cover.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Silver</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+							<div><hr class="dashed">
+			 	 	<h1 id="n64" class="text-left">Nintendo 64 Games</h1></div>
+			
+<div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+    <a href="#n64-mario">Mario</a>
+	<a href="#n64-other">Other</a>
+  </div>
+  </div>
+	 
+	 	<div><h1 id="n64-mario" class="text-center">Mario Games</h1></div>
+				
+		      <div class="flex-container">
+			  
+		  <a href="emulation/N64/mario-party/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/mario-party/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Mario Party</h1>
+              </div>
+          </a>
+		  
+		  		  <a href="emulation/N64/mario-party-2/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/mario-party-2/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Mario Party 2</h1>
+              </div>
+          </a>
+		  
+		  		  <a href="emulation/N64/mario-party-3/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/mario-party-3/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Mario Party 3</h1>
+              </div>
+          </a>
+
+          <a href="emulation/N64/super-mario-64/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/super-mario-64/mario-64.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario 64</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+			 	<div><h1 id="n64-other" class="text-center">Other Games</h1></div>
+				
+						      <div class="flex-container">
+		  		  <a href="emulation/N64/ocarina-of-time/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/ocarina-of-time/thumb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Ocarina of Time</h1>
+              </div>
+          </a>
+		            <a href="emulation/N64/star-fox-64/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/N64/star-fox-64/star-fox-64.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Star Fox 64</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+							<div><hr class="dashed">
+			 	 	<h1 id="nes" class="text-left">Nintendo Entertainment System Games</h1></div>
+			
+  <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+	<a href="#nes-mario">Mario</a>
+	<a href="#nes-other">Other</a>
+  </div>
+  </div>
+  	 	<div><h1 id="nes-mario" class="text-center">Mario Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/NES/super-mario-bros/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/NES/super-mario-bros/smb.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario Bros</h1>
+              </div>
+          </a>
+		  
+		            <a href="emulation/NES/super-mario-bros-2/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/NES/super-mario-bros-2/smb2.png" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario Bros 2</h1>
+              </div>
+          </a>
+		  
+		  <a href="emulation/NES/super-mario-bros-3/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/NES/super-mario-bros-3/smb3.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario Bros 3</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+			<div><h1 id="nes-other" class="text-center">Other Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/NES/tetris/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/NES/tetris/tetris.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Tetris</h1>
+              </div>
+          </a>
+		</div>
+		
+					<div><hr class="dashed">
+			 	 	<h1 id="snes" class="text-left">Super Nintendo Games</h1></div>
+			
+  <div class="sortbar">
+    <div class="topnav">
+	<a class="active">Sort by:</a>
+    <a href="#snes-mario">Mario</a>
+	<a href="#snes-other">Other</a>
+  </div>
+  </div>
+	 
+	 	<div><h1 id="snes-mario" class="text-center">Mario Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/SNES/super-mario-world/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/SNES/super-mario-world/super-mario-world.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario World</h1>
+              </div>
+          </a>
+		  
+		            <a href="emulation/SNES/super-mario-world-two/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/SNES/super-mario-world-two/super-mario-world-two.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario World 2</h1>
+              </div>
+          </a>
+		  
+		  <a href="emulation/SNES/super-mario-kart/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/SNES/super-mario-kart/super-mario-kart.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">Super Mario Kart</h1>
+              </div>
+          </a>
+		  
+		</div>
+		
+			<div><h1 id="snes-other" class="text-center">Other Games</h1></div>
+				
+		      <div class="flex-container">
+
+          <a href="emulation/SNES/legend-of-zelda-link-to-the-past/index.html" class="game-link container">
+              <div class="game-tile">
+                  <img class="game-icon" src="emulation/SNES/legend-of-zelda-link-to-the-past/legend-of-zelda-link-to-the-past.jpg" alt="icon" width="360" height="360" />
+                  <h1 class="game-title">A Link to the Past</h1>
+              </div>
+          </a>
+		</div>
+		
+		<hr class="dashed">
+		
+			</div>
+    </div>
+    <div class="links-container"></div>
+  </div>
+</nav>
+		
+  </body>
+</html>
