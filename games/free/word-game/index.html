@@ -1,0 +1,281 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/word-game -->
+<!-- Word Search: a complete HTML5 canvas word game in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Search (HTML5 canvas)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e1726; color: #eef2ff; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const SIZE = 10;                     // the grid is SIZE × SIZE letters
+const WORDS_PER_GAME = 8;            // words hidden in each puzzle
+const ALLOW_BACKWARDS = true;        // words may also read right to left and upwards
+// The word list: edit freely (capital letters A-Z). Each puzzle picks words at random.
+const WORDS = ["CANVAS", "PIXEL", "SPRITE", "SCRIPT", "BROWSER", "KEYBOARD", "SCORE", "LEVEL", "PUZZLE", "LETTER",
+  "PLAYER", "TIMER", "BONUS", "ARCADE", "VECTOR", "ROCKET", "PLANET", "GARDEN", "DRAGON", "CASTLE"];
+const COLORS = { bg: "#0e1726", paper: "#f7f3e8", ink: "#1d2433", text: "#eef2ff", dim: "#8d98b8", cursor: "#e8590c", pick: "rgba(232, 89, 12, 0.35)", miss: "rgba(220, 40, 60, 0.35)" };
+const MARKS = ["rgba(255, 196, 0, 0.5)", "rgba(64, 192, 255, 0.45)", "rgba(80, 220, 120, 0.45)", "rgba(255, 120, 200, 0.45)", "rgba(170, 130, 255, 0.45)"];
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 48;
+let W = 0, H = 0, cell = 30, boardX = 0, boardY = 0, listX = 0, listY = 0, listCols = 1, wide = false;
+
+// ----- Sizing: grid and word list side by side on wide screens, stacked on tall ones -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  wide = W > H * 1.15;
+  const pad = 12;
+  if (wide) {
+    const listW = Math.min(220, W * 0.3);
+    cell = Math.floor(Math.min(H - HUD - pad * 2, W - listW - pad * 3) / SIZE);
+    boardX = Math.round((W - cell * SIZE - listW - pad) / 2);
+    boardY = Math.round(HUD + (H - HUD - cell * SIZE) / 2);
+    listX = boardX + cell * SIZE + pad * 2; listY = boardY + 8; listCols = 1;
+  } else {
+    listCols = W < 300 ? 2 : 3;
+    const listH = Math.ceil(WORDS_PER_GAME / listCols) * 26 + pad + 8;
+    cell = Math.floor(Math.min(W - pad * 2, H - HUD - listH - pad * 2) / SIZE);
+    boardX = Math.round((W - cell * SIZE) / 2);
+    boardY = Math.round(HUD + (H - HUD - listH - cell * SIZE) / 2);
+    listX = boardX; listY = boardY + cell * SIZE + pad + 16;
+  }
+  draw();
+}
+
+// ----- Game state -----
+let grid = [], words = [], marks = [], sel = null, miss = null;
+let state = "ready";                 // ready → playing → over
+let time = 0, best = null, last = 0, cursor = { x: 0, y: 0 }, showCursor = false;
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ----- Building a puzzle: place words, then fill the gaps -----
+function makePuzzle() {
+  grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(""));
+  words = []; marks = []; sel = null; miss = null; time = 0;
+  for (const word of shuffle(WORDS.filter((w) => w.length <= SIZE))) {
+    if (words.length === WORDS_PER_GAME) break;
+    const spot = findSpot(word);
+    if (!spot) continue;               // no room left for this word: try the next one
+    for (let i = 0; i < word.length; i++) grid[spot.y + spot.dy * i][spot.x + spot.dx * i] = word[i];
+    words.push({ word, found: false });
+  }
+  words.sort((a, b) => a.word.localeCompare(b.word));
+  // Fill the gaps with letters taken from the hidden words, so a rare letter like Z
+  // doesn't give its word away and the grid is full of near misses.
+  const pool = words.map((w) => w.word).join("");
+  for (const row of grid) for (let x = 0; x < SIZE; x++) {
+    if (!row[x]) row[x] = pool[Math.floor(Math.random() * pool.length)];
+  }
+}
+
+// Try random positions and directions until the word fits (crossing only on equal letters).
+function findSpot(word) {
+  const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+  if (ALLOW_BACKWARDS) dirs.push(...dirs.map(([dx, dy]) => [-dx, -dy]));
+  for (let tries = 0; tries < 300; tries++) {
+    const [dx, dy] = dirs[Math.floor(Math.random() * dirs.length)];
+    const x = Math.floor(Math.random() * SIZE), y = Math.floor(Math.random() * SIZE);
+    const ex = x + dx * (word.length - 1), ey = y + dy * (word.length - 1);
+    if (ex < 0 || ey < 0 || ex >= SIZE || ey >= SIZE) continue;
+    let fits = true;
+    for (let i = 0; i < word.length && fits; i++) {
+      const c = grid[y + dy * i][x + dx * i];
+      fits = !c || c === word[i];
+    }
+    if (fits) return { x, y, dx, dy };
+  }
+  return null;
+}
+
+function start() {
+  if (state === "over") makePuzzle();
+  state = "playing";
+}
+
+// ----- Selecting: snap a drag to one of the 8 straight directions -----
+function snap(x1, y1, x, y) {
+  const len = Math.max(Math.abs(x - x1), Math.abs(y - y1));
+  if (len === 0) return { x2: x1, y2: y1 };
+  const a = Math.round(Math.atan2(y - y1, x - x1) / (Math.PI / 4)) * (Math.PI / 4);
+  const sx = Math.round(Math.cos(a)), sy = Math.round(Math.sin(a));
+  let n = len;                       // shorten the line until it fits inside the grid
+  while (n > 0 && (x1 + sx * n < 0 || x1 + sx * n >= SIZE || y1 + sy * n < 0 || y1 + sy * n >= SIZE)) n--;
+  return { x2: x1 + sx * n, y2: y1 + sy * n };
+}
+
+// Read the letters under a selection and compare them with the hidden words.
+function finish() {
+  const s = sel;
+  sel = null;
+  const dx = Math.sign(s.x2 - s.x1), dy = Math.sign(s.y2 - s.y1);
+  const n = Math.max(Math.abs(s.x2 - s.x1), Math.abs(s.y2 - s.y1)) + 1;
+  if (n < 2) return;                 // a single tap is not a guess
+  let text = "";
+  for (let i = 0; i < n; i++) text += grid[s.y1 + dy * i][s.x1 + dx * i];
+  const back = [...text].reverse().join("");
+  const hit = words.find((w) => !w.found && (w.word === text || w.word === back));
+  if (!hit) { miss = { ...s, t: 0.5 }; return; }
+  hit.found = true;
+  marks.push({ ...s, color: MARKS[marks.length % MARKS.length] });
+  if (words.every((w) => w.found)) {
+    state = "over";
+    best = best === null ? time : Math.min(best, time);
+  }
+}
+
+// ----- Main loop -----
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (state === "playing") time += dt;
+  if (miss && (miss.t -= dt) <= 0) miss = null;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Drawing -----
+function line(s, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = cell * 0.78;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(boardX + (s.x1 + 0.5) * cell, boardY + (s.y1 + 0.5) * cell);
+  ctx.lineTo(boardX + (s.x2 + 0.5) * cell, boardY + (s.y2 + 0.5) * cell);
+  ctx.stroke();
+}
+
+const clock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+
+function draw() {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = COLORS.paper;
+  ctx.beginPath();
+  ctx.roundRect(boardX - 6, boardY - 6, cell * SIZE + 12, cell * SIZE + 12, 10);
+  ctx.fill();
+  for (const m of marks) line(m, m.color);
+  if (miss) line(miss, COLORS.miss);
+  if (sel) line(sel, COLORS.pick);
+  if (showCursor && state === "playing") {
+    ctx.strokeStyle = COLORS.cursor;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(boardX + cursor.x * cell + 2, boardY + cursor.y * cell + 2, cell - 4, cell - 4);
+  }
+  ctx.fillStyle = COLORS.ink;
+  ctx.font = `600 ${Math.round(cell * 0.56)}px system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    ctx.fillText(grid[y][x], boardX + (x + 0.5) * cell, boardY + (y + 0.5) * cell + 1);
+  }
+
+  // Word list: found words are dimmed and crossed out.
+  const colW = wide ? 200 : (cell * SIZE) / listCols;
+  ctx.font = `600 ${Math.min(17, Math.max(13, cell * 0.45))}px system-ui, sans-serif`;
+  ctx.textAlign = "left";
+  words.forEach((w, i) => {
+    const x = listX + (i % listCols) * colW, y = listY + Math.floor(i / listCols) * 26;
+    ctx.fillStyle = w.found ? COLORS.dim : COLORS.text;
+    ctx.fillText(w.word, x, y);
+    if (w.found) ctx.fillRect(x - 2, y, ctx.measureText(w.word).width + 4, 2);
+  });
+
+  const font = Math.round(Math.min(18, Math.max(13, W / 26)));
+  ctx.font = `600 ${font}px system-ui, sans-serif`;
+  ctx.fillStyle = COLORS.text;
+  ctx.textAlign = "left";
+  ctx.fillText(`Found ${words.filter((w) => w.found).length}/${words.length}`, 12, HUD / 2);
+  ctx.textAlign = "center";
+  ctx.fillText(clock(time), W / 2, HUD / 2);
+  ctx.textAlign = "right";
+  ctx.fillText(best === null ? "" : `Best ${clock(best)}`, W - 12, HUD / 2);
+
+  if (state === "playing") return;
+  ctx.fillStyle = "rgba(6, 10, 20, 0.82)";
+  ctx.fillRect(0, HUD, W, H - HUD);
+  const cy = HUD + (H - HUD) / 2, pw = Math.min(W - 24, 480);
+  ctx.fillStyle = "#1a2438";             // solid panel behind the text
+  ctx.beginPath();
+  ctx.roundRect((W - pw) / 2, cy - font * 4, pw, font * 8, 14);
+  ctx.fill();
+  ctx.fillStyle = COLORS.text;
+  ctx.textAlign = "center";
+  ctx.font = `700 ${font * 1.8}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? "All words found!" : "Word Search", W / 2, cy - font * 2);
+  ctx.font = `500 ${font}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? `Time ${clock(time)}` : `Find the ${words.length} hidden words`, W / 2, cy);
+  ctx.fillStyle = COLORS.dim;
+  ctx.fillText("Drag across letters, or use arrows and Space", W / 2, cy + font * 1.6);
+  ctx.fillText(state === "over" ? "Tap or press Space for a new puzzle" : "Tap or press Space to start", W / 2, cy + font * 3.2);
+}
+
+// ----- Input: drag with mouse or finger; arrows/WASD + Space on a keyboard -----
+function cellAt(e) {
+  const r = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left - boardX) / cell), y = Math.floor((e.clientY - r.top - boardY) / cell);
+  return { x: Math.max(0, Math.min(SIZE - 1, x)), y: Math.max(0, Math.min(SIZE - 1, y)), inside: x >= 0 && y >= 0 && x < SIZE && y < SIZE };
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  showCursor = false;
+  if (state !== "playing") { start(); return; }
+  const c = cellAt(e);
+  if (!c.inside) return;
+  canvas.setPointerCapture(e.pointerId); // keep receiving moves even outside the canvas
+  sel = { x1: c.x, y1: c.y, x2: c.x, y2: c.y };
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!sel || sel.keys) return;
+  const c = cellAt(e);
+  Object.assign(sel, snap(sel.x1, sel.y1, c.x, c.y));
+});
+canvas.addEventListener("pointerup", () => { if (sel && !sel.keys) finish(); });
+canvas.addEventListener("pointercancel", () => { sel = null; });
+
+const MOVES = { ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1] };
+window.addEventListener("keydown", (e) => {
+  const m = MOVES[e.code];
+  if (m && state === "playing") {
+    e.preventDefault();
+    showCursor = true;
+    cursor = { x: Math.max(0, Math.min(SIZE - 1, cursor.x + m[0])), y: Math.max(0, Math.min(SIZE - 1, cursor.y + m[1])) };
+    if (sel && sel.keys) Object.assign(sel, snap(sel.x1, sel.y1, cursor.x, cursor.y));
+  } else if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    if (state !== "playing") { start(); return; }
+    showCursor = true;
+    if (sel && sel.keys) finish();     // second press: check the word
+    else sel = { x1: cursor.x, y1: cursor.y, x2: cursor.x, y2: cursor.y, keys: true };
+  } else if (e.code === "Escape") sel = null;
+});
+
+window.addEventListener("resize", resize);
+makePuzzle();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

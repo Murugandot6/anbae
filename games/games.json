@@ -1,5 +1,5 @@
 {
- "count": 81,
+ "count": 106,
  "games": [
   {
    "name": "1 - Forest",
@@ -50,6 +50,12 @@
    "category": "html5"
   },
   {
+   "name": "2048 (Original)",
+   "path": "free/2048/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "9007199254740992",
    "path": "projects/9007199254740992/index.html",
    "icon": "projects/9007199254740992/logo-4.png",
@@ -93,6 +99,12 @@
    "category": "html5"
   },
   {
+   "name": "Block Drop",
+   "path": "free/tetris/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Block the Pig",
    "path": "projects/block-the-pig/index.html",
    "icon": "projects/block-the-pig/thumb.png",
@@ -111,10 +123,34 @@
    "category": "flash"
   },
   {
+   "name": "Bolt Workshop",
+   "path": "free/clicker-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Boxing Random",
    "path": "projects/boxing-random/frame.html",
    "icon": "projects/boxing-random/unnamed.png",
    "category": "html5"
+  },
+  {
+   "name": "Brick Burst",
+   "path": "free/breakout/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Burrow Bop",
+   "path": "free/whack-a-mole/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Buzzer Hoops",
+   "path": "free/sports-game/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Cell Machine",
@@ -133,6 +169,12 @@
    "path": "projects/circlo/index.html",
    "icon": "projects/circlo/img/download.png",
    "category": "html5"
+  },
+  {
+   "name": "Conway's Game of Life",
+   "path": "free/game-of-life/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Cookie Clicker",
@@ -196,6 +238,12 @@
    "category": "html5"
   },
   {
+   "name": "Gem Swap",
+   "path": "free/match-3/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Geometry Dash",
    "path": "projects/geodash/index.html",
    "icon": "projects/geodash/geoscratchicon.png",
@@ -216,6 +264,12 @@
    "fresh": true
   },
   {
+   "name": "Golf Solitaire",
+   "path": "free/card-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Google Feud",
    "path": "projects/google-feud/index.html",
    "icon": "projects/google-feud/splash.png",
@@ -226,6 +280,12 @@
    "path": "projects/google-snake/index.html",
    "icon": "projects/google-snake/google-snake.png",
    "category": "html5"
+  },
+  {
+   "name": "Grove Guard",
+   "path": "free/tower-defense/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Hextris",
@@ -240,6 +300,12 @@
    "category": "html5"
   },
   {
+   "name": "Leaf Leap",
+   "path": "free/platformer/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Little Alchemy 2",
    "path": "projects/little-alchemy/index.html",
    "icon": "projects/little-alchemy/unnamed.png",
@@ -250,6 +316,18 @@
    "path": "projects/mario/index.html",
    "icon": "projects/mario/Theme/Mario.jpg",
    "category": "html5"
+  },
+  {
+   "name": "Maze Dash",
+   "path": "free/maze-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Memory Match",
+   "path": "free/memory-game/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Minecraft Classic",
@@ -295,10 +373,22 @@
    "category": "html5"
   },
   {
+   "name": "Nova Patrol",
+   "path": "free/space-shooter/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Pac-Man",
    "path": "projects/pacman/index.html",
    "icon": "projects/pacman/thumbnail.png",
    "category": "html5"
+  },
+  {
+   "name": "Paddle Duel",
+   "path": "free/pong/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Papa's Burgeria",
@@ -341,6 +431,18 @@
    "path": "projects/project-sand/index.html",
    "icon": "projects/project-sand/assets/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "Quick Quiz",
+   "path": "free/quiz-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Reel Rush",
+   "path": "free/casino-games/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Riddle School 1",
@@ -410,6 +512,12 @@
    "category": "html5"
   },
   {
+   "name": "Slide 15",
+   "path": "free/puzzle-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Slope",
    "path": "projects/slope/index.html",
    "icon": "projects/slope/slope4.jpeg",
@@ -428,6 +536,12 @@
    "category": "html5"
   },
   {
+   "name": "Snake",
+   "path": "free/snake/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Soccer Random",
    "path": "projects/soccer-random/frame.html",
    "icon": "projects/soccer-random/unnamed.png",
@@ -440,10 +554,34 @@
    "category": "html5"
   },
   {
+   "name": "Sort It Out",
+   "path": "free/drag-and-drop-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Sprint Bot",
+   "path": "free/endless-runner/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "Stack",
    "path": "projects/stack/index.html",
    "icon": "projects/stack/icon.png",
    "category": "html5"
+  },
+  {
+   "name": "Sunset Sprint",
+   "path": "free/racing-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Tic-Tac-Toe",
+   "path": "free/board-game/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Tomb of the Mask",
@@ -482,10 +620,22 @@
    "category": "html5"
   },
   {
+   "name": "Wardrobe Studio",
+   "path": "free/dress-up-game/index.html",
+   "category": "free",
+   "license": "MIT"
+  },
+  {
    "name": "We Become what we Behold",
    "path": "projects/wbwwb/index.html",
    "icon": "projects/wbwwb/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "Word Search",
+   "path": "free/word-game/index.html",
+   "category": "free",
+   "license": "MIT"
   },
   {
    "name": "Wordle Unlimited",

@@ -1,0 +1,259 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/card-game -->
+<!-- Golf Solitaire: a complete card game in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golf Solitaire (HTML5 card game)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0f3b2c; color: #f4f1e8; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const COLS = 7, DEPTH = 5;           // 7 columns of 5 face-up cards; the other 17 cards start the stock and the pile
+const WRAP = true;                   // Ace and King count as neighbours
+const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const SUITS = ["♠", "♥", "♦", "♣"];  // hearts and diamonds are red
+const POINTS = 10;                   // points for a card, times the length of the current run
+const STOCK_BONUS = 50;              // bonus per stock card left when you clear the board
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, cw = 60, ch = 84, gap = 8, fan = 24, colPos = [], stockBox, pileBox, newBtn;
+
+// ----- Sizing: the biggest cards that fit 7 columns across and the whole table down -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cw = Math.max(30, Math.min(120, (W - 20) / (COLS + (COLS - 1) * 0.12), (H - 90) / 5.2));
+  ch = cw * 1.4; gap = cw * 0.12;
+  fan = Math.min(ch * 0.5, Math.max(ch * 0.3, (H - 100 - ch * 2.45) / (DEPTH - 1))); // tall screens fan out more
+  const tableH = ch + (DEPTH - 1) * fan + ch * 0.45 + ch + 26;
+  const top = Math.max(50, 44 + (H - 44 - tableH) / 2);
+  const left = (W - (COLS * cw + (COLS - 1) * gap)) / 2;
+  colPos = Array.from({ length: COLS }, (_, c) => ({ x: left + c * (cw + gap), y: top }));
+  const rowY = top + ch + (DEPTH - 1) * fan + ch * 0.45;
+  stockBox = { x: W / 2 - cw - gap * 2, y: rowY, w: cw, h: ch };
+  pileBox = { x: W / 2 + gap * 2, y: rowY, w: cw, h: ch };
+  newBtn = { x: W - 104, y: 8, w: 94, h: 30 };
+}
+
+// ----- The deck -----
+function newDeck() {
+  const deck = [];
+  for (let suit = 0; suit < 4; suit++) for (let rank = 0; rank < 13; rank++) deck.push({ rank, suit });
+  // Fisher–Yates shuffle: walk backwards and swap each card with a random card at or before it.
+  // Every one of the 52! orders is equally likely, unlike sorting with a random comparator.
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+// ----- Game state -----
+let columns = [], stock = [], pile = [], score = 0, best = 0, streak = 0, cursor = 0;
+let state = "ready";                 // ready → playing → won | stuck → playing …
+let anim = null, nope = null, endedAt = 0, last = 0, keyboardUsed = false;
+
+function deal() {
+  const deck = newDeck();
+  columns = Array.from({ length: COLS }, () => []);
+  // Deal row by row from the top of the deck, like dealing by hand.
+  for (let row = 0; row < DEPTH; row++) for (const col of columns) col.push(deck.pop());
+  pile = [deck.pop()];
+  stock = deck;                      // the 16 cards left; the top of the stock is the end of the array
+  score = 0; streak = 0; cursor = 0; anim = null;
+  state = "playing";
+}
+
+const topCard = (arr) => arr[arr.length - 1];
+
+// The only rule: a card fits if it is one rank above or below the top of the pile.
+function fits(card) {
+  const diff = Math.abs(card.rank - topCard(pile).rank);
+  return diff === 1 || (WRAP && diff === 12);
+}
+
+function playColumn(c) {
+  if (state !== "playing") return;
+  const col = columns[c];
+  if (!col.length) return;
+  const card = topCard(col);
+  if (!fits(card)) { nope = { c, t: 0.3 }; return; }
+  col.pop();
+  streak++;
+  score += POINTS * streak;          // long runs without drawing score more
+  startMove(card, colPos[c].x, colPos[c].y + col.length * fan);
+  pile.push(card);
+  checkEnd();
+}
+
+function drawFromStock() {
+  if (state !== "playing" || !stock.length) return;
+  const card = stock.pop();
+  streak = 0;
+  startMove(card, stockBox.x, stockBox.y);
+  pile.push(card);
+  checkEnd();
+}
+
+function checkEnd() {
+  const left = columns.reduce((n, col) => n + col.length, 0);
+  if (left === 0) {
+    score += stock.length * STOCK_BONUS;
+    state = "won";
+  } else if (!stock.length && !columns.some((col) => col.length && fits(topCard(col)))) {
+    state = "stuck";
+  } else return;
+  best = Math.max(best, score);
+  endedAt = performance.now();
+}
+
+// A card flying to the pile; the logic has already moved it, this is only for the eyes.
+function startMove(card, x, y) { anim = { card, x0: x, y0: y, t: 0 }; }
+
+// ----- Drawing -----
+function roundBox(x, y, w, h, fill, stroke) {
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, Math.max(3, w * 0.08));
+  ctx.fillStyle = fill; ctx.fill();
+  if (stroke) { ctx.lineWidth = 1; ctx.strokeStyle = stroke; ctx.stroke(); }
+}
+
+function drawCard(card, x, y, glow, covered) {
+  roundBox(x, y, cw, ch, "#fbfaf4", "#b9b3a2");
+  if (glow) { ctx.lineWidth = 3; ctx.strokeStyle = glow; ctx.stroke(); }
+  ctx.fillStyle = card.suit === 1 || card.suit === 2 ? "#cc2f2a" : "#1d1d26";
+  ctx.textBaseline = "middle"; ctx.textAlign = "left";
+  ctx.font = `700 ${Math.max(12, cw * 0.25)}px system-ui, sans-serif`;
+  ctx.fillText(RANKS[card.rank] + SUITS[card.suit], x + cw * 0.08, y + fan * 0.5);  // readable when covered
+  if (covered) return;
+  ctx.textAlign = "center";
+  ctx.font = `${cw * 0.5}px system-ui, sans-serif`;
+  ctx.fillText(SUITS[card.suit], x + cw / 2, y + ch * 0.62);
+}
+
+function drawBack(x, y) {
+  roundBox(x, y, cw, ch, "#24508f", "#0d2547");
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.35)"; ctx.lineWidth = 2;
+  ctx.strokeRect(x + cw * 0.12, y + cw * 0.12, cw * 0.76, ch - cw * 0.24);
+}
+
+function text(str, x, y, size, align = "center", color = "#f4f1e8", weight = 600) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(str, x, y);
+}
+
+function draw() {
+  ctx.fillStyle = "#0f3b2c"; ctx.fillRect(0, 0, W, H);
+  text(`Score ${score}`, 12, 23, 17, "left");
+  text(`Best ${best}`, W / 2, 23, 15, "center", "#bcd9c6", 500);
+  roundBox(newBtn.x, newBtn.y, newBtn.w, newBtn.h, "#1d5a43", "#3f8a6b");
+  text("New deal", newBtn.x + newBtn.w / 2, newBtn.y + newBtn.h / 2, 14);
+
+  // Columns: only the last card of each one can be played, and it glows when it fits.
+  columns.forEach((col, c) => {
+    const p = colPos[c];
+    const shake = nope && nope.c === c ? Math.sin(nope.t * 60) * 4 : 0;
+    if (!col.length) roundBox(p.x, p.y, cw, ch, "rgba(255, 255, 255, 0.06)", "rgba(255, 255, 255, 0.15)");
+    col.forEach((card, k) => {
+      const last = k === col.length - 1;
+      const glow = last && state === "playing" ? (fits(card) ? "#ffc94a" : c === cursor && keyboardUsed ? "#7fb2ff" : null) : null;
+      drawCard(card, p.x + (last ? shake : 0), p.y + k * fan, glow, !last);
+    });
+    if (keyboardUsed && c === cursor && state === "playing") {
+      ctx.fillStyle = "#7fb2ff"; ctx.fillRect(p.x + cw * 0.2, p.y - 10, cw * 0.6, 4);
+    }
+  });
+
+  // Stock (face down) and pile (face up). While a card flies, the pile shows the card under it.
+  if (stock.length) drawBack(stockBox.x, stockBox.y);
+  else roundBox(stockBox.x, stockBox.y, cw, ch, "rgba(255, 255, 255, 0.06)", "rgba(255, 255, 255, 0.15)");
+  text(`Stock ${stock.length}`, stockBox.x + cw / 2, stockBox.y + ch + 14, 13, "center", "#bcd9c6", 500);
+  const shown = anim ? pile[pile.length - 2] : topCard(pile);
+  if (shown) drawCard(shown, pileBox.x, pileBox.y);
+  text(streak > 1 ? `Run ×${streak}` : "Pile", pileBox.x + cw / 2, pileBox.y + ch + 14, 13, "center", streak > 1 ? "#ffc94a" : "#bcd9c6", 500);
+  if (anim) {
+    const e = 1 - Math.pow(1 - anim.t, 3);           // ease-out
+    drawCard(anim.card, anim.x0 + (pileBox.x - anim.x0) * e, anim.y0 + (pileBox.y - anim.y0) * e);
+  }
+
+  if (state !== "playing" && !anim) {
+    ctx.fillStyle = "rgba(4, 22, 15, 0.9)"; ctx.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, s = Math.min(1, W / 460);
+    if (state === "ready") {
+      text("Golf Solitaire", cx, cy - 92 * s, 38 * s, "center", "#ffc94a", 800);
+      text("Clear all 35 cards from the seven columns.", cx, cy - 40 * s, 16 * s);
+      text("Play the bottom card of a column if it is", cx, cy - 14 * s, 16 * s);
+      text("one rank above or below the pile. A and K connect.", cx, cy + 10 * s, 16 * s);
+      text("No move? Draw a card from the stock.", cx, cy + 36 * s, 16 * s);
+      text("Keys: ← → choose, ↑ play, Space draw, 1–7 play", cx, cy + 72 * s, 14 * s, "center", "#bcd9c6", 500);
+      text("Tap or press Enter to deal", cx, cy + 110 * s, 18 * s, "center", "#ffc94a", 700);
+    } else {
+      const cleared = 35 - columns.reduce((n, col) => n + col.length, 0);
+      text(state === "won" ? "Board cleared!" : "No moves left", cx, cy - 60 * s, 36 * s, "center", "#ffc94a", 800);
+      text(`${cleared} of 35 cards · score ${score} · best ${best}`, cx, cy - 10 * s, 17 * s);
+      if (state === "won") text(`Includes ${STOCK_BONUS} points for each card left in the stock`, cx, cy + 18 * s, 14 * s, "center", "#bcd9c6", 500);
+      text("Tap or press Enter to deal again", cx, cy + 64 * s, 18 * s, "center", "#ffc94a", 700);
+    }
+  }
+}
+
+// ----- Main loop: only animations move, the rules run on input -----
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  if (anim && (anim.t += dt / 0.22) >= 1) anim = null;
+  if (nope && (nope.t -= dt) <= 0) nope = null;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input -----
+const inBox = (x, y, b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
+
+function startOrRestart() {
+  if (state === "ready" || performance.now() - endedAt > 600) deal();
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  const x = e.clientX, y = e.clientY;
+  keyboardUsed = false;
+  if (state !== "playing") { startOrRestart(); return; }
+  if (inBox(x, y, newBtn)) { deal(); return; }
+  if (inBox(x, y, stockBox)) { drawFromStock(); return; }
+  // A tap anywhere on a column plays its last card: big targets for fingers.
+  const c = colPos.findIndex((p) => inBox(x, y, { x: p.x, y: p.y, w: cw, h: ch + (DEPTH - 1) * fan }));
+  if (c >= 0) { cursor = c; playColumn(c); }
+});
+
+window.addEventListener("keydown", (e) => {
+  const k = e.code;
+  if (["Space", "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(k)) e.preventDefault();
+  if (state !== "playing") { if (k === "Enter" || k === "Space") startOrRestart(); return; }
+  keyboardUsed = true;
+  if (k === "ArrowLeft" || k === "KeyA") cursor = (cursor + COLS - 1) % COLS;
+  else if (k === "ArrowRight" || k === "KeyD") cursor = (cursor + 1) % COLS;
+  else if (k === "ArrowUp" || k === "KeyW" || k === "Enter") playColumn(cursor);
+  else if (k === "ArrowDown" || k === "KeyS" || k === "Space") drawFromStock();
+  else if (k === "KeyN") deal();
+  else if (/^Digit[1-7]$/.test(k)) { cursor = Number(k.slice(5)) - 1; playColumn(cursor); }
+});
+
+window.addEventListener("resize", resize);
+resize();
+deal(); state = "ready";             // show a dealt table behind the start screen
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

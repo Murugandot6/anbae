@@ -1,0 +1,341 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/dress-up-game -->
+<!-- Wardrobe Studio: a dress-up game in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wardrobe Studio (HTML5 dress-up game)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #fdf6ec; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Wardrobe data: every slot has styles (items) and colours. Tags are used to rate an outfit. -----
+const CLOTH = ["#e63946", "#f4a261", "#ffd166", "#2a9d8f", "#457b9d", "#f1faee", "#264653", "#c77dff"];
+const SLOTS = [
+  { name: "Skin", items: [{ n: "Tone" }], colors: ["#f6d7c3", "#eac0a0", "#d49a6a", "#a86b45", "#7a4a2e", "#4b2e1e"] },
+  { name: "Hair", items: [{ n: "Short" }, { n: "Long" }, { n: "Curly" }, { n: "Ponytail" }, { n: "Buns" }],
+    colors: ["#2b1d14", "#5a3825", "#a0522d", "#d9a05b", "#f1e3b5", "#9e9e9e", "#c0392b"] },
+  { name: "Top", items: [{ n: "T-shirt", t: "sport sun" }, { n: "Tank top", t: "sun" }, { n: "Hoodie", t: "warm sport" },
+    { n: "Sweater", t: "warm" }, { n: "Raincoat", t: "rain" }, { n: "Sparkle top", t: "party" }], colors: CLOTH },
+  { name: "Bottom", items: [{ n: "Trousers", t: "warm rain" }, { n: "Shorts", t: "sun sport" }, { n: "Skirt", t: "party sun" },
+    { n: "Joggers", t: "sport warm" }], colors: CLOTH },
+  { name: "Shoes", items: [{ n: "Sneakers", t: "sport party" }, { n: "Boots", t: "warm" }, { n: "Rain boots", t: "rain" },
+    { n: "Sandals", t: "sun" }], colors: CLOTH },
+  { name: "Hat", items: [{ n: "No hat" }, { n: "Cap", t: "sport sun" }, { n: "Beanie", t: "warm" }, { n: "Sun hat", t: "sun" },
+    { n: "Party hat", t: "party" }, { n: "Rain hat", t: "rain" }], colors: CLOTH },
+  { name: "Extra", items: [{ n: "Nothing" }, { n: "Scarf", t: "warm" }, { n: "Sunglasses", t: "sun" }, { n: "Umbrella", t: "rain" },
+    { n: "Balloon", t: "party" }, { n: "Ball", t: "sport" }], colors: CLOTH },
+];
+const THEMES = [
+  { name: "Snow day", want: "warm", avoid: "sun", sky: "#dceaf7", fx: "snow" },
+  { name: "Beach trip", want: "sun", avoid: "warm", sky: "#ffeab8", fx: "sun" },
+  { name: "Rainy walk", want: "rain", avoid: "sun", sky: "#c9d3dc", fx: "rain" },
+  { name: "Birthday party", want: "party", avoid: "rain", sky: "#fadbe8", fx: "party" },
+  { name: "Sports day", want: "sport", avoid: "party", sky: "#d6f0d2", fx: "none" },
+];
+const RATED = [2, 3, 4, 5, 6];               // slots that count for the theme: top, bottom, shoes, hat, extra
+const TIP = { 2: "top", 3: "bottom", 4: "pair of shoes", 5: "hat", 6: "accessory" };
+const DEFAULT = [[0, 1], [0, 1], [0, 4], [0, 6], [0, 5], [0, 0], [0, 0]];   // [item, colour] per slot
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, hud = 52, stage, panel, buttons = [];
+
+// ----- State -----
+let state = "ready";                         // ready → dress → rated → … (5 themes) → over
+let pick = DEFAULT.map(([i, c]) => ({ i, c })), sel = 2, round = 0, order = [], stars = 0, rating = null;
+let bounce = 1, last = 0;
+const flakes = Array.from({ length: 40 }, () => ({ x: Math.random(), y: Math.random(), s: 0.5 + Math.random() }));
+const theme = () => THEMES[order[round]];
+const item = (slot) => SLOTS[slot].items[pick[slot].i];
+const color = (slot) => SLOTS[slot].colors[pick[slot].c];
+
+function newGame() {
+  order = [0, 1, 2, 3, 4];                     // play the themes in a random order (Fisher–Yates shuffle)
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  round = 0; stars = 0; reset(); state = "dress";
+}
+function reset() { pick = DEFAULT.map(([i, c]) => ({ i, c })); bounce = 0; }
+function randomise() {
+  pick = SLOTS.map((s) => ({ i: Math.floor(Math.random() * s.items.length), c: Math.floor(Math.random() * s.colors.length) }));
+  bounce = 0;
+}
+// Arrows change the style; the skin row has one style, so its arrows change the colour.
+function cycle(slot, d) {
+  const s = SLOTS[slot], p = pick[slot];
+  if (s.items.length > 1) p.i = (p.i + d + s.items.length) % s.items.length;
+  else p.c = (p.c + d + s.colors.length) % s.colors.length;
+  bounce = 0;
+}
+function recolor(slot) { pick[slot].c = (pick[slot].c + 1) % SLOTS[slot].colors.length; bounce = 0; }
+
+// ----- Rating: +20 for each piece that suits the theme, −10 for each that clashes -----
+function rate() {
+  const t = theme();
+  let score = 0, fits = 0, clash = null, missing = null;
+  for (const slot of RATED) {
+    const tags = item(slot).t || "";
+    if (tags.includes(t.want)) { score += 20; fits++; } else if (!missing) missing = TIP[slot];
+    if (tags.includes(t.avoid)) { score -= 10; clash = clash || item(slot).n; }
+  }
+  score = Math.max(0, score);
+  const got = score >= 80 ? 3 : score >= 50 ? 2 : score >= 20 ? 1 : 0;
+  stars += got;
+  const tip = clash ? `${clash} on a ${t.name.toLowerCase()}? Not a great fit.` : missing ? `Tip: try a different ${missing}.` : "Perfect match!";
+  rating = { score, got, fits, tip };
+  state = "rated";
+}
+function next() {
+  if (state === "ready") newGame();
+  else if (state === "dress") rate();
+  else if (state === "rated") { round++; if (round >= THEMES.length) state = "over"; else state = "dress"; }
+  else if (state === "over") newGame();
+}
+
+// ----- Layout: character on top and controls below on phones, side by side on wide screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (W < H * 0.95) {
+    const ph = Math.min(H * 0.54, 8.4 * 46);
+    panel = { x: 10, y: H - ph - 8, w: W - 20, h: ph };
+    stage = { x: 0, y: hud, w: W, h: panel.y - hud };
+  } else {
+    const pw = Math.min(440, W * 0.5);
+    panel = { x: W - pw - 16, y: hud + 12, w: pw, h: H - hud - 24 };
+    stage = { x: 0, y: hud, w: panel.x, h: H - hud };
+  }
+  const rh = Math.min(52, panel.h / 8.3), b = rh * 0.84, top = panel.y + (panel.h - rh * 8.3) / 2;
+  buttons = [];
+  SLOTS.forEach((s, i) => {
+    const y = top + i * rh;
+    buttons.push({ x: panel.x, y, w: b, h: b, row: i, label: "◀", act: () => { sel = i; cycle(i, -1); } });
+    buttons.push({ x: panel.x + panel.w - b * 2 - 8, y, w: b, h: b, row: i, label: "▶", act: () => { sel = i; cycle(i, 1); } });
+    buttons.push({ x: panel.x + panel.w - b, y, w: b, h: b, row: i, swatch: true, act: () => { sel = i; recolor(i); } });
+  });
+  const by = top + 7 * rh + rh * 0.3, bw = (panel.w - 16) / 3;
+  [["Random", randomise], ["Reset", reset], ["Done ✓", next]].forEach(([label, act], k) =>
+    buttons.push({ x: panel.x + k * (bw + 8), y: by, w: bw, h: rh * 0.9, label, act, big: true }));
+  draw(0);
+}
+
+// ----- Drawing helpers (the character is drawn in units: 100 = head to feet) -----
+function shade(hex, f) {   // f < 0 darkens, f > 0 lightens
+  const n = parseInt(hex.slice(1), 16), mix = (v) => Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f);
+  return `rgb(${mix(n >> 16)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`;
+}
+function poly(col, pts) { ctx.fillStyle = col; ctx.beginPath(); pts.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.closePath(); ctx.fill(); }
+function ell(x, y, rx, ry, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+function seg(x1, y1, x2, y2, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+function rrect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function drawCharacter(time) {
+  const u = Math.min(stage.h / 126, stage.w / 80);
+  const breathe = Math.sin(time * 2) * 0.4, squash = 1 + 0.05 * Math.sin(Math.min(1, bounce / 0.25) * Math.PI);
+  ctx.save();
+  ctx.translate(stage.x + stage.w / 2, stage.y + stage.h - 4 * u);
+  ctx.scale(u * (2 - squash), u * squash);
+  ctx.translate(0, -96);                      // from here on: x = 0 is the middle, y = 0 is above the head
+  const skin = color(0), hair = color(1), top = item(2).n, bottom = item(3).n, shoes = item(4).n, hat = item(5).n, extra = item(6).n;
+  const tc = color(2), bc = color(3), sc = color(4), hc = color(5), xc = color(6), hairStyle = item(1).n;
+  ell(0, 95, 20, 2.5, "rgba(0, 0, 0, 0.12)");  // shadow
+  // Hair that hangs behind the head and body.
+  if (hairStyle === "Long") { rrect(-12, 10 + breathe, 24, 30, 9); ctx.fillStyle = hair; ctx.fill(); }
+  if (hairStyle === "Curly") for (let a = 0; a < 12; a++) ell(Math.cos(a / 1.9) * 11, 16 + Math.sin(a / 1.9) * 10 + breathe, 5, 5, hair);
+  if (hairStyle === "Ponytail") { seg(10, 12 + breathe, 15, 30 + breathe, 6, hair); ell(9, 11 + breathe, 3, 3, shade(hair, -0.3)); }
+  if (hairStyle === "Buns") { ell(-9, 7 + breathe, 5, 5, hair); ell(9, 7 + breathe, 5, 5, hair); }
+  if (extra === "Balloon") { seg(-17, 56, -27, 14, 0.6, "#555"); ell(-27, 6, 8, 10, xc); ell(-30, 3, 2, 3, "rgba(255,255,255,0.5)"); }
+  // Legs, then what covers them.
+  seg(-5, 56, -5, 88, 7.5, skin); seg(5, 56, 5, 88, 7.5, skin);
+  const legBottom = bottom === "Shorts" ? 68 : bottom === "Skirt" ? 0 : 86;
+  if (bottom === "Skirt") poly(bc, [[-10.5, 52], [10.5, 52], [16, 72], [-16, 72]]);
+  else {
+    poly(bc, [[-10.5, 52], [10.5, 52], [10, 60], [-10, 60]]);
+    ctx.fillStyle = bc; ctx.fillRect(-10, 58, 9.4, legBottom - 58); ctx.fillRect(0.6, 58, 9.4, legBottom - 58);
+    if (bottom === "Joggers") { ctx.fillStyle = shade(bc, -0.3); ctx.fillRect(-10, 82, 9.4, 4); ctx.fillRect(0.6, 82, 9.4, 4); seg(-9.6, 60, -9.6, 81, 1, "#fff"); seg(9.6, 60, 9.6, 81, 1, "#fff"); }
+  }
+  for (const s of [-1, 1]) {                  // shoes
+    const x = s * 5;
+    if (shoes === "Sandals") { const fx = x + s * 1.5; ell(fx, 91, 5.5, 2.5, skin); seg(fx - 3.5, 89.5, fx + 3.5, 89.5, 1.6, sc); seg(fx, 89.5, fx + s * 2, 92, 1.4, sc); continue; }
+    const h = shoes === "Rain boots" ? 18 : shoes === "Boots" ? 12 : 0;
+    if (h) { ctx.fillStyle = sc; ctx.fillRect(x - 4.5, 88 - h, 9, h); }
+    rrect(x - 5.5 + s, 86, 11, 6.5, 2.5); ctx.fillStyle = sc; ctx.fill();   // toes point slightly outwards
+    if (shoes === "Sneakers") { ctx.fillStyle = "#fff"; ctx.fillRect(x - 5 + s, 90.5, 10, 1.6); }
+    if (shoes === "Rain boots") seg(x - 2.5, 74, x - 2.5, 84, 1.2, "rgba(255,255,255,0.6)");
+    if (h) { ctx.fillStyle = shade(sc, -0.35); ctx.fillRect(x - 5 + s, 91.5, 10, 1.5); }
+  }
+  // Torso and arms.
+  seg(-3, 24, 3, 24, 6, skin);                 // neck
+  const long = top === "Hoodie" || top === "Sweater" || top === "Raincoat", bottomY = top === "Raincoat" ? 66 : 57;
+  const shoulder = top === "Tank top" ? 9 : 12.5;
+  if (top === "Hoodie") ell(0, 28, 9, 4, shade(tc, -0.25));
+  poly(tc, [[-shoulder, 28], [shoulder, 28], [12.5, 31], [11, bottomY], [-11, bottomY], [-12.5, 31]]);
+  if (top === "Tank top") { poly(skin, [[-3.5, 28], [3.5, 28], [0, 33]]); }
+  for (const s of [-1, 1]) {
+    seg(s * 13, 31, s * 17, 55, 5.5, skin);
+    if (top !== "Tank top") seg(s * 13, 31, s * (long ? 16.6 : 14.2), long ? 52 : 39, 7, shade(tc, -0.08));
+    if (top === "Sweater") seg(s * 16.2, 50, s * 16.7, 53, 7, shade(tc, -0.3));
+    ell(s * 17.2, 57, 3, 3, skin);
+  }
+  if (top === "Hoodie") { ctx.fillStyle = shade(tc, -0.2); ctx.fillRect(-6, 44, 12, 7); seg(-2, 29, -2.5, 38, 0.8, "#fff"); seg(2, 29, 2.5, 38, 0.8, "#fff"); }
+  if (top === "Sweater") { ctx.strokeStyle = shade(tc, 0.5); ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = -11; x <= 11; x += 2.75) ctx.lineTo(x, 38 + ((x + 11) / 2.75 % 2 ? 2 : -1)); ctx.stroke(); ctx.fillStyle = shade(tc, -0.3); ctx.fillRect(-11, bottomY - 3, 22, 3); }
+  if (top === "Raincoat") { poly(shade(tc, -0.2), [[-5, 27], [0, 33], [-3, 34]]); poly(shade(tc, -0.2), [[5, 27], [0, 33], [3, 34]]); for (const y of [40, 48, 56]) ell(0, y, 1.1, 1.1, shade(tc, -0.45)); }
+  if (top === "Sparkle top") for (let k = 0; k < 6; k++) ell(-7 + (k % 3) * 7, 36 + Math.floor(k / 3) * 10, 1.2 + 0.5 * Math.sin(time * 5 + k), 1.2 + 0.5 * Math.sin(time * 5 + k), "#fff");
+  if (extra === "Scarf") { rrect(-8, 25, 16, 5, 2); ctx.fillStyle = xc; ctx.fill(); poly(shade(xc, -0.15), [[3, 28], [7.5, 29], [8, 43], [4, 43]]); }
+  if (extra === "Ball") { ell(19, 61, 5.5, 5.5, xc); seg(13.5, 61, 24.5, 61, 0.8, "#333"); seg(19, 55.5, 19, 66.5, 0.8, "#333"); }
+  // Head and face.
+  ctx.translate(0, breathe);
+  ell(-10, 18, 2.2, 3, skin); ell(10, 18, 2.2, 3, skin); ell(0, 16, 10, 11, skin);
+  if (extra === "Sunglasses") { rrect(-8.5, 13.5, 7, 4.5, 1.5); ctx.fillStyle = "#222"; ctx.fill(); rrect(1.5, 13.5, 7, 4.5, 1.5); ctx.fill(); seg(-1.5, 15, 1.5, 15, 0.8, "#222"); }
+  else { ell(-3.8, 16, 1.2, 1.5, "#2b2b2b"); ell(3.8, 16, 1.2, 1.5, "#2b2b2b"); }
+  ell(-6, 20.5, 2, 1.2, "rgba(255, 120, 120, 0.35)"); ell(6, 20.5, 2, 1.2, "rgba(255, 120, 120, 0.35)");
+  ctx.strokeStyle = "#7a3b2e"; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(0, 20, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  // Hair on top of the head.
+  ctx.fillStyle = hair; ctx.beginPath(); ctx.ellipse(0, 12, 10.6, 7.5, 0, Math.PI, 0); ctx.fill();
+  if (hairStyle === "Short") poly(hair, [[-10.5, 12], [-4, 12], [-7, 16]]);
+  if (hairStyle === "Long") { ctx.fillRect(-11, 11, 3.5, 18); ctx.fillRect(7.5, 11, 3.5, 18); }
+  if (hairStyle === "Ponytail") ell(0, 6, 6, 2.5, hair);
+  // Hats sit on top of the hair.
+  if (hat === "Cap") { ctx.fillStyle = hc; ctx.beginPath(); ctx.ellipse(0, 10, 10.5, 7, 0, Math.PI, 0); ctx.fill(); ell(8, 10, 9, 1.8, shade(hc, -0.2)); }
+  if (hat === "Beanie") { ctx.fillStyle = hc; ctx.beginPath(); ctx.ellipse(0, 11, 11, 9, 0, Math.PI, 0); ctx.fill(); rrect(-11.5, 8.5, 23, 4.5, 2); ctx.fillStyle = shade(hc, -0.25); ctx.fill(); ell(0, 1.5, 3, 3, shade(hc, 0.5)); }
+  if (hat === "Sun hat") { ell(0, 8.5, 20, 3.5, hc); ctx.fillStyle = hc; ctx.beginPath(); ctx.ellipse(0, 8, 9, 7, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = shade(hc, -0.35); ctx.fillRect(-9, 5.5, 18, 2.2); }
+  if (hat === "Party hat") { poly(hc, [[-7, 7], [7, 7], [0, -12]]); ell(-2, 1, 1.2, 1.2, "#fff"); ell(2, -4, 1.2, 1.2, "#fff"); ell(1.5, 4, 1.2, 1.2, "#fff"); ell(0, -12.5, 2.5, 2.5, shade(hc, 0.5)); }
+  if (hat === "Rain hat") { poly(hc, [[-8, 0], [8, 0], [10, 8], [-10, 8]]); poly(shade(hc, -0.2), [[-10, 7.5], [10, 7.5], [15, 11], [-15, 11]]); }
+  ctx.translate(0, -breathe);
+  if (extra === "Umbrella") {
+    seg(17.2, 57, 17.2, -2, 1.2, "#555");
+    ctx.fillStyle = xc; ctx.beginPath(); ctx.arc(17.2, -2, 22, Math.PI, 0); ctx.fill();
+    for (let k = -1; k <= 1; k++) ell(17.2 + k * 14.7, -2, 7.3, 2.2, shade(xc, -0.2));
+  }
+  ctx.restore();
+}
+
+function drawWeather(time) {
+  const t = theme() || THEMES[3];          // the start screen borrows the party backdrop
+  ctx.fillStyle = t.sky; ctx.fillRect(stage.x, stage.y, stage.w, stage.h);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.06)"; ctx.fillRect(stage.x, stage.y + stage.h * 0.82, stage.w, stage.h * 0.18);
+  if (t.fx === "sun") ell(stage.x + stage.w * 0.15, stage.y + stage.h * 0.15, 22, 22, "#ffcf33");
+  for (const f of t.fx === "snow" || t.fx === "rain" || t.fx === "party" ? flakes : []) {
+    const speed = t.fx === "rain" ? 0.9 : 0.08;
+    const y = stage.y + ((f.y + time * speed * f.s) % 1) * stage.h, x = stage.x + f.x * stage.w;
+    if (t.fx === "snow") ell(x, y, 2.5 * f.s, 2.5 * f.s, "#fff");
+    else if (t.fx === "rain") seg(x, y, x - 2, y + 10, 1.5, "rgba(80, 110, 160, 0.5)");
+    else { ctx.fillStyle = CLOTH[Math.floor(f.x * 8)]; ctx.fillRect(x, y, 5, 5); }
+  }
+}
+
+function text(str, x, y, size, col, align = "center", weight = 700) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(str, x, y);
+}
+function star(x, y, r, filled) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, d = i % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * d, y + Math.sin(a) * d); }
+  ctx.closePath(); ctx.fillStyle = filled ? "#ffb703" : "#e5e0d8"; ctx.fill();
+}
+
+function draw(time) {
+  ctx.fillStyle = "#fdf6ec"; ctx.fillRect(0, 0, W, H);
+  drawWeather(time);
+  drawCharacter(time);
+  const fs = Math.max(14.5, Math.min(18, W / 26));
+  // Controls: one row per slot, then Random / Reset / Done.
+  for (const b of buttons) {
+    if (b.swatch) {
+      if (b.row === sel && state === "dress") { rrect(panel.x - 4, b.y - 3, panel.w + 8, b.h + 6, 10); ctx.strokeStyle = "#e76f51"; ctx.lineWidth = 2; ctx.stroke(); }
+      ell(b.x + b.w / 2, b.y + b.h / 2, b.h * 0.36, b.h * 0.36, SLOTS[b.row].colors[pick[b.row].c]);
+      ctx.strokeStyle = "#5c4d3c"; ctx.lineWidth = 1.5; ctx.stroke();
+      continue;
+    }
+    rrect(b.x, b.y, b.w, b.h, 8); ctx.fillStyle = b.label === "Done ✓" ? "#e76f51" : b.big ? "#3d405b" : "#ece4d8"; ctx.fill();
+    text(b.label, b.x + b.w / 2, b.y + b.h / 2, b.big ? fs : fs * 0.9, b.big ? "#fff" : "#3d405b");
+    if (b.label === "◀") {
+      const cx = (b.x + b.w + buttons[buttons.indexOf(b) + 1].x) / 2;
+      text(SLOTS[b.row].name, cx, b.y + b.h * 0.3, fs * 0.72, "#8a7f72", "center", 600);
+      text(SLOTS[b.row].items.length > 1 ? item(b.row).n : `Tone ${pick[b.row].c + 1}`, cx, b.y + b.h * 0.68, fs, "#3d405b");
+    }
+  }
+  // Top bar: the theme and the stars so far.
+  ctx.fillStyle = "#3d405b"; ctx.fillRect(0, 0, W, hud);
+  if (state !== "ready") {
+    const t = theme() || THEMES[0];
+    text(state === "over" ? "Show's over" : `Dress for: ${t.name}`, 12, hud / 2 - 7, fs * 1.05, "#fff", "left");
+    text(`Theme ${Math.min(round + 1, 5)} of 5`, 12, hud / 2 + 11, fs * 0.72, "#c9c6d8", "left", 500);
+  } else text("Wardrobe Studio", 12, hud / 2, fs * 1.1, "#fff", "left");
+  star(W - 70, hud / 2, 11, true);
+  text(`${stars}/15`, W - 12, hud / 2, fs, "#fff", "right");
+
+  if (state === "dress") return;
+  ctx.fillStyle = "rgba(40, 30, 50, 0.6)"; ctx.fillRect(0, hud, W, H - hud);
+  const cw = Math.min(W - 32, 380), ch = 230, cx = W / 2, cy = hud + (H - hud) / 2;
+  rrect(cx - cw / 2, cy - ch / 2, cw, ch, 16); ctx.fillStyle = "#fffaf3"; ctx.fill();
+  const line = (s, dy, size, col, w) => text(s, cx, cy + dy, size, col, "center", w);
+  if (state === "ready") {
+    line("Wardrobe Studio", -80, fs * 1.6, "#e76f51", 800);
+    line("Dress the model for 5 themes.", -40, fs, "#3d405b", 500);
+    line("◀ ▶ change a piece, the dot its colour.", -14, fs * 0.85, "#3d405b", 500);
+    line("Keys: ↑↓ row · ←→ piece · Space colour", 12, fs * 0.8, "#8a7f72", 500);
+    line("R random · Enter done", 34, fs * 0.8, "#8a7f72", 500);
+    line("Tap or press Enter to start", 80, fs, "#e76f51");
+  } else if (state === "rated") {
+    line(theme().name, -82, fs * 1.3, "#3d405b", 800);
+    for (let k = 0; k < 3; k++) star(cx + (k - 1) * 46, cy - 36, 20, k < rating.got);
+    line(`${rating.score} / 100 · ${rating.fits} of 5 pieces fit`, 10, fs, "#3d405b", 600);
+    line(rating.tip, 38, fs * 0.85, "#8a7f72", 500);
+    line(round + 1 < THEMES.length ? "Tap or press Enter for the next theme" : "Tap or press Enter to see your total", 82, fs * 0.9, "#e76f51");
+  } else {
+    line("Show's over!", -78, fs * 1.6, "#e76f51", 800);
+    line(`You earned ${stars} of 15 stars`, -30, fs * 1.1, "#3d405b", 700);
+    line(stars >= 13 ? "Style star!" : stars >= 9 ? "Great eye for an outfit." : "Keep experimenting!", 4, fs, "#8a7f72", 500);
+    line("Tap or press Enter to play again", 76, fs, "#e76f51");
+  }
+}
+
+// ----- Loop -----
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  bounce += dt;
+  draw(now / 1000);
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: tap the buttons, or use the keyboard -----
+canvas.addEventListener("pointerdown", (e) => {
+  if (state !== "dress") { next(); return; }
+  const b = buttons.find((b) => e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h);
+  if (b) b.act();
+});
+window.addEventListener("keydown", (e) => {
+  const k = e.code;
+  if (k === "Enter" || (k === "Space" && state !== "dress")) { e.preventDefault(); next(); return; }
+  if (state !== "dress") return;
+  if (k === "ArrowUp" || k === "KeyW") sel = (sel + SLOTS.length - 1) % SLOTS.length;
+  else if (k === "ArrowDown" || k === "KeyS") sel = (sel + 1) % SLOTS.length;
+  else if (k === "ArrowLeft" || k === "KeyA") cycle(sel, -1);
+  else if (k === "ArrowRight" || k === "KeyD") cycle(sel, 1);
+  else if (k === "Space" || k === "KeyC") recolor(sel);
+  else if (k === "KeyR") randomise();
+  else if (k === "Backspace" || k === "Delete") reset();
+  else return;
+  e.preventDefault();
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

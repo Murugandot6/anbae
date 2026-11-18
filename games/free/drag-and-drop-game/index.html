@@ -1,0 +1,300 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/drag-and-drop-game -->
+<!-- Sort It Out: a complete HTML5 drag-and-drop sorting game in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sort It Out (HTML5 drag and drop)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #13171f; color: #f1f3f8; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Content: edit the title, the instruction and the groups to make your own sorting game -----
+const TITLE = "Sort It Out";
+const PROMPT = "Drag each animal into its group";
+const GROUPS = [
+  { name: "Mammals", color: "#e8875f", items: ["Dolphin", "Bat", "Whale", "Elephant", "Kangaroo", "Hedgehog"] },
+  { name: "Birds", color: "#4aa3ec", items: ["Penguin", "Ostrich", "Eagle", "Owl", "Parrot", "Flamingo"] },
+  { name: "Fish", color: "#38c172", items: ["Shark", "Salmon", "Seahorse", "Tuna", "Clownfish", "Eel"] },
+];
+const PER_GROUP = 3;                 // cards dealt from each group per round
+const RIGHT = 100, WRONG = 25;       // points won for a right drop, lost for a wrong one
+const RETURN_TIME = 0.25;            // seconds a wrong card takes to fly back
+const COLORS = { bg: "#13171f", card: "#fbf8f1", ink: "#1f2430", text: "#f1f3f8", dim: "#9aa3b8", select: "#ffb020", good: "#38c172", bad: "#e5484d" };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 48, PAD = 12;
+let W = 0, H = 0, cols = 2, rowH = 60, cardW = 150, cardH = 48, trayX = 0, trayY = 0, binW = 100, binH = 150, binY = 0;
+
+// ----- Sizing: tray of cards on top, one bin per group along the bottom -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  binH = Math.round(Math.max(110, Math.min(190, H * 0.26)));
+  binW = (W - PAD * (GROUPS.length + 1)) / GROUPS.length;
+  binY = H - binH - PAD;
+  cols = W >= 640 ? 4 : W >= 420 ? 3 : 2;
+  const rows = Math.ceil((GROUPS.length * PER_GROUP) / cols);
+  const trayH = binY - HUD - PAD * 2;
+  rowH = Math.min(66, trayH / rows);
+  cardH = Math.max(24, Math.min(52, rowH - 10));
+  cardW = Math.min(170, (W - PAD * (cols + 1)) / cols);
+  trayX = (W - cols * cardW - (cols - 1) * PAD) / 2;
+  trayY = HUD + PAD + (trayH - rows * rowH) / 2;
+  draw();
+}
+
+// Where a card sits when nobody is holding it.
+function home(slot) {
+  return { x: trayX + (slot % cols) * (cardW + PAD), y: trayY + Math.floor(slot / cols) * rowH + (rowH - cardH) / 2 };
+}
+
+// ----- Game state -----
+let cards = [], sorted = [], flash = [], drag = null, selected = null;
+let state = "ready";                 // ready → playing → over
+let score = 0, mistakes = 0, time = 0, best = null, last = 0;
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function deal() {
+  cards = [];
+  GROUPS.forEach((g, group) => {
+    for (const text of shuffle(g.items.slice()).slice(0, PER_GROUP)) cards.push({ text, group, placed: false, back: null, x: 0, y: 0 });
+  });
+  shuffle(cards).forEach((c, i) => { c.slot = i; });
+  sorted = GROUPS.map(() => []);
+  flash = GROUPS.map(() => null);
+  score = 0; mistakes = 0; time = 0; drag = null; selected = null;
+}
+
+function start() {
+  if (state === "over") deal();
+  state = "playing";
+}
+
+// Card position on screen: in the hand, flying home, or resting at home.
+function cardPos(c) {
+  if (drag && drag.card === c) return { x: c.x, y: c.y };
+  const h = home(c.slot);
+  if (!c.back) return h;
+  const t = 1 - Math.pow(1 - c.back.t, 3);   // ease-out: fast start, soft landing
+  return { x: c.back.x + (h.x - c.back.x) * t, y: c.back.y + (h.y - c.back.y) * t };
+}
+
+function binAt(p) {
+  if (p.y < binY || p.y > binY + binH) return -1;
+  const i = Math.floor((p.x - PAD / 2) / (binW + PAD));
+  return i >= 0 && i < GROUPS.length ? i : -1;
+}
+
+// ----- Rules: a drop is right, wrong, or outside every bin -----
+function drop(card, bin) {
+  if (bin >= 0 && card.group === bin) {
+    card.placed = true;
+    score += RIGHT;
+    sorted[bin].push(card.text);
+    flash[bin] = { good: true, t: 0.4 };
+    if (cards.every((c) => c.placed)) {
+      state = "over";
+      best = best === null ? score : Math.max(best, score);
+    }
+    return;
+  }
+  if (bin >= 0) {
+    score -= WRONG;                    // the score can go below zero: mistakes always cost
+    mistakes++;
+    flash[bin] = { good: false, t: 0.4 };
+  }
+  card.back = { x: card.x, y: card.y, t: 0 };   // fly back to the tray
+}
+
+// Sort the selected card without dragging (keyboard, or tap a card then a bin).
+function dropSelected(bin, keepGoing) {
+  const open = cards.filter((c) => !c.placed).sort((a, b) => a.slot - b.slot);
+  const card = selected, h = home(card.slot);
+  card.x = h.x; card.y = h.y;
+  drop(card, bin);
+  if (!card.placed) return;
+  const rest = open.filter((c) => c !== card);   // keyboard: highlight the next card
+  selected = keepGoing && rest.length ? rest[Math.min(open.indexOf(card), rest.length - 1)] : null;
+}
+
+// ----- Main loop -----
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (state === "playing") time += dt;
+  for (const c of cards) if (c.back && (c.back.t += dt / RETURN_TIME) >= 1) c.back = null;
+  flash.forEach((f, i) => { if (f && (f.t -= dt) <= 0) flash[i] = null; });
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Drawing -----
+function drawCard(c, lifted) {
+  const p = cardPos(c);
+  ctx.save();
+  if (lifted) { ctx.shadowColor = "rgba(0, 0, 0, 0.45)"; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6; }
+  ctx.fillStyle = COLORS.card;
+  ctx.beginPath();
+  ctx.roundRect(p.x, p.y, cardW, cardH, 10);
+  ctx.fill();
+  ctx.restore();
+  if (c === selected && !lifted) {
+    ctx.strokeStyle = COLORS.select;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  ctx.fillStyle = COLORS.ink;
+  ctx.font = `600 ${Math.round(Math.min(18, cardH * 0.4))}px system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.fillText(c.text, p.x + cardW / 2, p.y + cardH / 2 + 1);
+}
+
+function drawBin(g, i) {
+  const f = flash[i];
+  const shake = f && !f.good ? Math.sin(f.t * 60) * 5 : 0;
+  const x = PAD + i * (binW + PAD) + shake;
+  const hover = drag && binAt(drag.point) === i;
+  ctx.fillStyle = f ? (f.good ? COLORS.good : COLORS.bad) + "55" : g.color + (hover ? "40" : "22");
+  ctx.strokeStyle = g.color;
+  ctx.lineWidth = hover ? 4 : 2;
+  ctx.beginPath();
+  ctx.roundRect(x, binY, binW, binH, 14);
+  ctx.fill();
+  ctx.stroke();
+  const font = Math.round(Math.min(18, Math.max(13, binW / 7)));
+  ctx.fillStyle = COLORS.text;
+  ctx.font = `700 ${font}px system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.fillText(`${i + 1}  ${g.name}`, x + binW / 2, binY + font + 4);
+  ctx.font = `500 ${Math.max(12, font - 2)}px system-ui, sans-serif`;
+  ctx.fillStyle = COLORS.dim;
+  sorted[i].forEach((t, k) => ctx.fillText(t, x + binW / 2, binY + font * 2.6 + k * (font + 2)));
+}
+
+const clock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+
+function draw() {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = "middle";
+  GROUPS.forEach(drawBin);
+  for (const c of cards) if (!c.placed && (!drag || drag.card !== c)) drawCard(c, false);
+  if (drag) drawCard(drag.card, true);   // the held card is drawn last, on top
+
+  const font = Math.round(Math.min(18, Math.max(13, W / 26)));
+  ctx.font = `600 ${font}px system-ui, sans-serif`;
+  ctx.fillStyle = COLORS.text;
+  ctx.textAlign = "left";
+  ctx.fillText(`Score ${score}`, PAD, HUD / 2);
+  ctx.textAlign = "center";
+  ctx.fillText(`Left ${cards.filter((c) => !c.placed).length}`, W / 2, HUD / 2);
+  ctx.textAlign = "right";
+  ctx.fillText(clock(time), W - PAD, HUD / 2);
+
+  if (state === "playing") return;
+  ctx.fillStyle = "rgba(8, 10, 16, 0.75)";
+  ctx.fillRect(0, HUD, W, H - HUD);
+  const cy = HUD + (H - HUD) / 2, pw = Math.min(W - 24, 480);
+  ctx.fillStyle = "#1e2533";
+  ctx.beginPath();
+  ctx.roundRect((W - pw) / 2, cy - font * 4.2, pw, font * 8.4, 14);
+  ctx.fill();
+  ctx.fillStyle = COLORS.text;
+  ctx.textAlign = "center";
+  ctx.font = `700 ${font * 1.8}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? (mistakes ? "All sorted!" : "Perfect sort!") : TITLE, W / 2, cy - font * 2.2);
+  ctx.font = `500 ${font}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? `${score} points, ${mistakes} mistake${mistakes === 1 ? "" : "s"}, ${clock(time)}` : PROMPT, W / 2, cy - font * 0.2);
+  ctx.fillStyle = COLORS.dim;
+  ctx.fillText(state === "over" ? `Best: ${best} points` : `Or tap a card, then a bin. Keys: arrows, 1-${GROUPS.length}`, W / 2, cy + font * 1.4);
+  ctx.fillText(state === "over" ? "Tap or press Space to play again" : "Tap or press Space to start", W / 2, cy + font * 3);
+}
+
+// ----- Input: drag with mouse, pen or finger (Pointer Events) -----
+function point(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  if (state !== "playing") { start(); return; }
+  const p = point(e);
+  const bin = binAt(p);
+  if (selected && bin >= 0) { dropSelected(bin, false); return; }   // second tap: the bin
+  const card = cards.find((c) => {
+    const q = cardPos(c);
+    return !c.placed && p.x >= q.x && p.x <= q.x + cardW && p.y >= q.y && p.y <= q.y + cardH;
+  });
+  if (!card) { selected = null; return; }   // tapping empty space clears the selection
+  const q = cardPos(card);
+  card.x = q.x; card.y = q.y; card.back = null;
+  drag = { card, dx: p.x - q.x, dy: p.y - q.y, point: p, start: p };   // where the card was grabbed
+  selected = null;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  drag.point = point(e);
+  drag.card.x = drag.point.x - drag.dx;
+  drag.card.y = drag.point.y - drag.dy;
+});
+canvas.addEventListener("pointerup", (e) => {
+  if (!drag) return;
+  const card = drag.card, p = point(e);
+  const moved = Math.hypot(p.x - drag.start.x, p.y - drag.start.y) > 8;
+  drag = null;
+  if (moved) { drop(card, binAt(p)); return; }
+  selected = card;                     // a tap: select the card, the next tap on a bin sorts it
+  card.back = { x: card.x, y: card.y, t: 0 };
+});
+canvas.addEventListener("pointercancel", () => {
+  if (drag) { drag.card.back = { x: drag.card.x, y: drag.card.y, t: 0 }; drag = null; }
+});
+
+// ----- Keyboard: arrows/WASD choose a card, number keys drop it in a bin -----
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    if (state !== "playing") { start(); selected = cards[0]; }   // keyboard players start with a card picked
+    return;
+  }
+  if (state !== "playing" || drag) return;
+  const open = cards.filter((c) => !c.placed).sort((a, b) => a.slot - b.slot);
+  const step = { ArrowRight: 1, KeyD: 1, ArrowDown: 1, KeyS: 1, ArrowLeft: -1, KeyA: -1, ArrowUp: -1, KeyW: -1 }[e.code];
+  if (step) {
+    e.preventDefault();
+    const i = open.indexOf(selected);
+    selected = open[i < 0 ? 0 : (i + step + open.length) % open.length];
+    return;
+  }
+  const bin = Number(e.key) - 1;
+  if (selected && !selected.placed && bin >= 0 && bin < GROUPS.length) dropSelected(bin, true);
+});
+
+window.addEventListener("resize", resize);
+deal();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

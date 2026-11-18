@@ -1,0 +1,247 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/quiz-game -->
+<!-- Quick Quiz: a complete HTML5 quiz game in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Quiz (HTML5)</title>
+<style>
+  :root { --bg: #0f1420; --panel: #1a2133; --line: #33405f; --text: #eef2ff; --dim: #aab4d0; --accent: #ffd166; --good: #2fbf71; --bad: #ef5b60; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { height: 100%; }
+  body { margin: 0; min-height: 100%; display: flex; padding: 14px; background: var(--bg); color: var(--text); font: 17px/1.4 system-ui, sans-serif; }
+  main { width: 100%; max-width: 660px; margin: auto; }
+  h1 { font-size: 1.9rem; margin: 0 0 10px; }
+  h2 { font-size: 1.25rem; margin: 0 0 16px; outline: none; }
+  .hud { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px; }
+  .timer { height: 8px; background: #2a3350; border-radius: 4px; overflow: hidden; margin-bottom: 18px; }
+  .timer div { height: 100%; width: 100%; background: var(--accent); }
+  .timer .low { background: var(--bad); }
+  .answers { display: grid; gap: 10px; }
+  @media (min-width: 560px) { .answers { grid-template-columns: 1fr 1fr; } }
+  button { font: inherit; color: var(--text); background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 12px 16px; min-height: 54px; text-align: left; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #6677a8; }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button:disabled { cursor: default; }
+  button.correct { background: #15482f; border-color: var(--good); }
+  button.wrong { background: #571d22; border-color: var(--bad); }
+  button.gone { visibility: hidden; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #1b1b1b; font-weight: 700; text-align: center; }
+  .key { display: inline-block; min-width: 1.7em; font-weight: 700; color: var(--accent); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .feedback { min-height: 2.8em; margin: 14px 0 0; }
+  .hint { color: var(--dim); font-size: 0.92rem; }
+  .keyhint { display: none; }
+  .keys .keyhint { display: block; }
+  .row + h2 { margin-top: 28px; }
+  li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="hud" id="hud" hidden><span id="progress"></span><span id="clock"></span><span id="score"></span></div>
+  <div class="timer" id="timer" aria-hidden="true" hidden><div id="timebar"></div></div>
+  <section id="panel"></section>
+</main>
+<script>
+// ----- Questions: edit this list. The FIRST answer is the right one; the game shuffles them. -----
+const QUESTIONS = [
+  { q: "Which planet is closest to the Sun?", a: ["Mercury", "Venus", "Mars", "Earth"], why: "Mercury orbits the Sun at an average distance of about 58 million km." },
+  { q: "How many sides does a hexagon have?", a: ["6", "5", "7", "8"], why: "Hexa comes from the Greek word for six." },
+  { q: "What is the chemical symbol for gold?", a: ["Au", "Ag", "Gd", "Go"], why: "Au comes from aurum, the Latin word for gold. Ag is silver." },
+  { q: "Which is the largest ocean on Earth?", a: ["Pacific", "Atlantic", "Indian", "Arctic"], why: "The Pacific covers about a third of the planet's surface." },
+  { q: "Which gas do plants take in from the air to make their food?", a: ["Carbon dioxide", "Oxygen", "Nitrogen", "Helium"], why: "Photosynthesis turns carbon dioxide and water into sugar using light, and releases oxygen." },
+  { q: "Which is the largest continent by area?", a: ["Asia", "Africa", "North America", "Antarctica"], why: "Asia covers about 30% of Earth's land area." },
+  { q: "Who painted the Mona Lisa?", a: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Rembrandt"], why: "Leonardo began it in the early 1500s. It hangs in the Louvre in Paris." },
+  { q: "At sea level, water boils at what temperature?", a: ["100 °C", "90 °C", "110 °C", "120 °C"], why: "Higher up, the air pressure is lower, so water boils at a lower temperature." },
+  { q: "What is the smallest prime number?", a: ["2", "1", "3", "0"], why: "2 is the only even prime. 1 is not a prime number." },
+  { q: "What is the capital of Australia?", a: ["Canberra", "Sydney", "Melbourne", "Perth"], why: "Canberra was chosen as a compromise between Sydney and Melbourne." },
+  { q: "How many bones are in a typical adult human body?", a: ["206", "186", "226", "256"], why: "Babies have more bones; some of them fuse together as the body grows." },
+  { q: "Which element has the atomic number 1?", a: ["Hydrogen", "Helium", "Oxygen", "Carbon"], why: "Hydrogen is the lightest element and the most common one in the universe." },
+  { q: "Which is the longest river in Africa?", a: ["Nile", "Congo", "Niger", "Zambezi"], why: "The Nile flows north and empties into the Mediterranean Sea." },
+  { q: "What does HTML stand for?", a: ["HyperText Markup Language", "HighText Machine Language", "Hyperlink Transfer Markup Language", "Home Tool Markup Language"], why: "HTML describes a page's structure. CSS styles it and JavaScript adds behaviour." },
+  { q: "How many minutes are there in a day?", a: ["1,440", "1,240", "1,400", "1,600"], why: "24 hours × 60 minutes = 1,440 minutes." },
+];
+
+// ----- Settings -----
+const ROUND = 10;                    // questions per game, picked at random from the list
+const TIME = 20;                     // seconds per question (0 = no time limit)
+const POINTS = 100;                  // points for a right answer
+const SPEED_BONUS = 5;               // extra points for each second left on the clock
+
+const $ = (id) => document.getElementById(id);
+const panel = $("panel");
+
+// Small helper: el("p", { className: "hint" }, "text", childNode) builds an element.
+function el(tag, props = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children);
+  return node;
+}
+
+// Fisher-Yates shuffle (in place): every order is equally likely.
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ----- Game state -----
+let state = "start";                 // start → question → answered → … → end
+let round = [], index = 0, score = 0, right = 0, best = 0, missed = [];
+let options = [], timeLeft = TIME, fiftyUsed = false, last = 0;
+let fifty, next, feedback;           // buttons and text of the current question
+
+function updateHud() {
+  const playing = state === "question" || state === "answered";
+  $("hud").hidden = !playing;
+  $("timer").hidden = !playing || TIME === 0;
+  $("progress").textContent = `Question ${index + 1} of ${round.length}`;
+  $("score").textContent = `Score ${score}`;
+  $("clock").textContent = TIME ? `${Math.ceil(timeLeft)} s` : "";
+  $("timebar").style.width = TIME ? `${(timeLeft / TIME) * 100}%` : "0";
+  $("timebar").className = TIME && timeLeft <= 5 ? "low" : "";
+}
+
+// ----- Screens -----
+function showStart() {
+  state = "start";
+  panel.replaceChildren(
+    el("h1", { textContent: "Quick Quiz" }),
+    el("p", { textContent: `${ROUND} questions${TIME ? `, ${TIME} seconds each. Faster answers score more` : ""}.` }),
+    el("p", { className: "hint", textContent: "One 50:50 per game removes two wrong answers. Keys: 1-4 or A-D to answer, F for 50:50, Enter to go on." }),
+    el("div", { className: "row" }, el("button", { className: "primary", textContent: "Start quiz", onclick: startGame })));
+  updateHud();
+}
+
+function startGame() {
+  round = shuffle(QUESTIONS.slice()).slice(0, Math.min(ROUND, QUESTIONS.length));
+  index = 0; score = 0; right = 0; missed = []; fiftyUsed = false;
+  showQuestion();
+}
+
+function showQuestion() {
+  const item = round[index];
+  state = "question";
+  timeLeft = TIME;
+  // Shuffle the answers and remember which one is right.
+  options = shuffle(item.a.map((text, i) => ({ text, right: i === 0, gone: false })));
+  const title = el("h2", { tabIndex: -1, textContent: item.q });
+  const answers = el("div", { className: "answers" }, ...options.map((o, i) => {
+    o.button = el("button", { onclick: () => answer(i) }, el("span", { className: "key", textContent: "ABCD"[i] }), o.text);
+    return o.button;
+  }));
+  fifty = el("button", { textContent: "50:50", disabled: fiftyUsed, onclick: useFifty });
+  next = el("button", { className: "primary", hidden: true, onclick: nextQuestion,
+    textContent: index + 1 < round.length ? "Next question" : "See results" });
+  feedback = el("p", { className: "feedback" });
+  feedback.setAttribute("aria-live", "polite");   // screen readers announce the result
+  panel.replaceChildren(title, answers, el("div", { className: "row" }, fifty, next), feedback,
+    el("p", { className: "hint keyhint", textContent: "Keys: 1-4 or A-D to answer, F for 50:50, Enter for next" }));
+  title.focus();
+  updateHud();
+}
+
+// ----- Rules: check an answer (i = -1 when the time runs out) -----
+function answer(i) {
+  const chosen = i >= 0 ? options[i] : null;
+  if (state !== "question" || (i >= 0 && (!chosen || chosen.gone))) return;
+  state = "answered";
+  const item = round[index];
+  const correct = options.find((o) => o.right);
+  options.forEach((o) => { o.button.disabled = true; });
+  correct.button.classList.add("correct");
+  let text;
+  if (chosen && chosen.right) {
+    const gained = POINTS + SPEED_BONUS * Math.ceil(timeLeft);
+    score += gained;
+    right++;
+    text = `Correct! +${gained} points.`;
+  } else {
+    if (chosen) chosen.button.classList.add("wrong");
+    missed.push(item);
+    text = `${chosen ? "Not quite." : "Time's up."} The answer is ${correct.text}.`;
+  }
+  feedback.textContent = `${text} ${item.why || ""}`;
+  fifty.disabled = true;
+  next.hidden = false;
+  next.focus();
+  updateHud();
+}
+
+// 50:50 lifeline: hide two wrong answers, once per game.
+function useFifty() {
+  if (state !== "question" || fiftyUsed) return;
+  fiftyUsed = true;
+  fifty.disabled = true;
+  shuffle(options.filter((o) => !o.right)).slice(0, 2).forEach((o) => {
+    o.gone = true;
+    o.button.disabled = true;
+    o.button.classList.add("gone");
+  });
+  options.find((o) => !o.gone).button.focus();
+}
+
+function nextQuestion() {
+  if (state !== "answered") return;
+  index++;
+  if (index < round.length) showQuestion(); else showEnd();
+}
+
+function showEnd() {
+  state = "end";
+  best = Math.max(best, score);
+  const share = right / round.length;
+  const verdict = share === 1 ? "Perfect score!" : share >= 0.7 ? "Great work!" : share >= 0.4 ? "Not bad!" : "Keep practising!";
+  const review = missed.length ? [el("h2", { textContent: "Answers to review" }),
+    el("ul", {}, ...missed.map((m) => el("li", {}, `${m.q} `, el("strong", { textContent: m.a[0] }))))] : [];
+  const again = el("button", { className: "primary", textContent: "Play again", onclick: startGame });
+  panel.replaceChildren(
+    el("h1", { textContent: verdict }),
+    el("p", { textContent: `You got ${right} of ${round.length} right and scored ${score} points.` }),
+    el("p", { className: "hint", textContent: `Best this session: ${best} points` }),
+    el("div", { className: "row" }, again), ...review);
+  again.focus();
+  updateHud();
+}
+
+// ----- Loop: the countdown, time-based -----
+function loop(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+  if (state === "question" && TIME > 0) {
+    timeLeft = Math.max(0, timeLeft - dt);
+    if (timeLeft === 0) answer(-1);
+    updateHud();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: buttons work with mouse, touch and keyboard; keys are shortcuts -----
+window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;   // leave browser shortcuts like Ctrl+F alone
+  document.body.classList.add("keys");          // show key hints to keyboard players
+  const key = e.key.toLowerCase();
+  const pick = "1234".indexOf(key) >= 0 ? "1234".indexOf(key) : "abcd".indexOf(key);
+  if (state === "question" && key.length === 1 && pick >= 0) { e.preventDefault(); answer(pick); return; }
+  if (state === "question" && key === "f") { e.preventDefault(); useFifty(); return; }
+  // Enter or Space with nothing focused moves on (a focused button handles them itself).
+  if ((key === "enter" || key === " ") && document.activeElement?.tagName !== "BUTTON") {
+    e.preventDefault();
+    if (state === "start" || state === "end") startGame();
+    else if (state === "answered") nextQuestion();
+  }
+});
+// Touch and mouse players don't need the key hints.
+window.addEventListener("pointerdown", () => document.body.classList.remove("keys"));
+
+showStart();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

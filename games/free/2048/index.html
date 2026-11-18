@@ -1,0 +1,261 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/2048 -->
+<!-- 2048: a sliding-tile number puzzle in one HTML5 canvas file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048 (HTML5 canvas sliding-tile puzzle)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d1220; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const SIZE = 4;                          // 4 × 4 board
+const GOAL = 2048;
+const SLIDE = 0.1;                       // seconds for tiles to slide
+const POP = 0.14;                        // seconds for merged tiles to pulse and new tiles to grow
+const HUD = 76;                          // room above the board for the title and scores
+// Tile colours [background, text] by value. Anything above 2048 uses BIG.
+const TILE = {
+  2: ["#36466f", "#e8edff"], 4: ["#3f5f93", "#e8edff"], 8: ["#1c7a8c", "#ffffff"], 16: ["#14a085", "#ffffff"],
+  32: ["#3fb950", "#ffffff"], 64: ["#a3d139", "#17220a"], 128: ["#f4c430", "#2a1f00"], 256: ["#f5a524", "#2a1600"],
+  512: ["#ee7b30", "#ffffff"], 1024: ["#e5484d", "#ffffff"], 2048: ["#d6409f", "#ffffff"],
+};
+const BIG = ["#8e4ec6", "#ffffff"];
+const COLORS = { bg: "#0d1220", board: "#18213a", empty: "#212c48", text: "#e8edff", dim: "#8c97b8", box: "#18213a" };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let boardX = 0, boardY = 0, boardSize = 400;
+
+// ----- Sizing: the largest square board that fits under the score bar, sharp on high-DPI -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  boardSize = Math.max(200, Math.floor(Math.min(W - 24, H - 24 - HUD, 520)));
+  boardX = Math.floor((W - boardSize) / 2);
+  boardY = Math.floor((H - boardSize - HUD) / 2) + HUD;
+}
+
+// ----- Game state -----
+// grid[r][c] holds a tile object or null. A tile remembers where it was before the last move
+// (fromR, fromC) so drawing can slide it; the grid itself is always the true, final position.
+let grid, ghosts, score, best = 0, state, won, anim = 0, shownAt = 0, last = 0;
+
+function reset() {
+  grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+  ghosts = [];
+  score = 0;
+  won = false;
+  addRandomTile();
+  addRandomTile();
+  anim = SLIDE;                          // skip the slide; just grow the two starting tiles
+  state = "ready";                       // ready → playing → over (with a "won" pause at 2048)
+}
+
+// A new 2 (or, one time in ten, a 4) on a random empty cell.
+function addRandomTile() {
+  const empty = [];
+  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (!grid[r][c]) empty.push([r, c]);
+  if (!empty.length) return;
+  const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+  grid[r][c] = { value: Math.random() < 0.9 ? 2 : 4, r, c, fromR: r, fromC: c, kind: "new" };
+}
+
+const inside = (r, c) => r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+
+// Slide every tile towards (dr, dc), merging equal pairs once per move. Returns true if anything moved.
+function move(dr, dc) {
+  // Start this move from where every tile is now, even if the last animation hasn't finished.
+  ghosts = [];
+  for (const row of grid) for (const t of row) if (t) { t.fromR = t.r; t.fromC = t.c; t.kind = "slide"; t.merged = false; }
+
+  // Visit the tiles nearest the far wall first, so each tile stops against one that has already moved.
+  const order = [...Array(SIZE).keys()], back = [...order].reverse();   // [0, 1, 2, 3] and [3, 2, 1, 0]
+  const rows = dr > 0 ? back : order, cols = dc > 0 ? back : order;
+  let moved = false, madeGoal = false;
+  for (const r of rows) for (const c of cols) {
+    const t = grid[r][c];
+    if (!t) continue;
+    let nr = r, nc = c;
+    while (inside(nr + dr, nc + dc) && !grid[nr + dr][nc + dc]) { nr += dr; nc += dc; }   // slide into empty cells
+    const next = inside(nr + dr, nc + dc) ? grid[nr + dr][nc + dc] : null;
+    grid[r][c] = null;
+    if (next && next.value === t.value && !next.merged) {
+      // Merge: both tiles slide into next's cell (as ghosts), and one doubled tile replaces them.
+      ghosts.push({ value: t.value, fromR: r, fromC: c, r: next.r, c: next.c }, next);
+      grid[next.r][next.c] = { value: t.value * 2, r: next.r, c: next.c, fromR: next.r, fromC: next.c, kind: "merged", merged: true };
+      score += t.value * 2;
+      if (t.value * 2 === GOAL && !won) madeGoal = true;
+      moved = true;
+    } else {
+      grid[nr][nc] = t;
+      t.r = nr; t.c = nc;
+      if (nr !== r || nc !== c) moved = true;
+    }
+  }
+  if (!moved) return false;
+  addRandomTile();
+  anim = 0;
+  best = Math.max(best, score);
+  if (madeGoal) { won = true; state = "won"; shownAt = performance.now(); }
+  else if (!canMove()) { state = "over"; shownAt = performance.now(); }
+  return true;
+}
+
+// The game is over when the board is full and no two neighbours match.
+function canMove() {
+  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+    const t = grid[r][c];
+    if (!t) return true;
+    if (c + 1 < SIZE && grid[r][c + 1] && grid[r][c + 1].value === t.value) return true;
+    if (r + 1 < SIZE && grid[r + 1][c] && grid[r + 1][c].value === t.value) return true;
+  }
+  return false;
+}
+
+// Every key, swipe and tap comes through here. (0, 0) means "no direction": a tap, Space or Enter.
+function input(dr, dc) {
+  const recent = performance.now() - shownAt < 600;   // ignore presses right after a message appears
+  if (state === "over") {
+    if (dr || dc || recent) return;
+    reset();
+    state = "playing";
+    return;
+  }
+  if (state === "won") {
+    if (recent) return;
+    state = canMove() ? "playing" : "over";            // keep going past 2048
+    return;
+  }
+  if (state === "ready") state = "playing";
+  if (dr || dc) move(dr, dc);
+}
+
+// ----- Drawing -----
+function roundRect(x, y, w, h, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function text(str, x, y, size, color, weight = 700) {
+  ctx.font = `${weight} ${Math.round(size)}px system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.fillText(str, x, y);
+}
+
+// Draws one tile at a fractional grid position (row, col), scaled around its centre.
+function drawTile(value, row, col, scale) {
+  const gap = boardSize * 0.03, size = (boardSize - gap * (SIZE + 1)) / SIZE;
+  const x = boardX + gap + col * (size + gap), y = boardY + gap + row * (size + gap);
+  const s = size * scale, [bg, fg] = TILE[value] || BIG;
+  roundRect(x + (size - s) / 2, y + (size - s) / 2, s, s, s * 0.1, bg);
+  const digits = String(value).length;
+  text(String(value), x + size / 2, y + size / 2 + size * 0.03, s * (digits <= 2 ? 0.46 : digits === 3 ? 0.38 : digits === 4 ? 0.3 : 0.24), fg, 800);
+}
+
+function draw() {
+  const W = window.innerWidth, H = window.innerHeight;
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Score bar: title on the left, score and best boxes on the right.
+  const top = boardY - HUD, boxW = Math.min(96, boardSize * 0.26), boxH = 50;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  text("2048", boardX, top + HUD / 2 - 6, Math.min(44, boardSize * 0.11), COLORS.text, 800);
+  ctx.textAlign = "center";
+  [["SCORE", score], ["BEST", best]].forEach(([label, n], i) => {
+    const x = boardX + boardSize - (2 - i) * boxW - (1 - i) * 8;
+    roundRect(x, top + 6, boxW, boxH, 8, COLORS.box);
+    text(label, x + boxW / 2, top + 20, 11, COLORS.dim, 700);
+    text(String(n), x + boxW / 2, top + 40, n > 99999 ? 15 : 19, COLORS.text, 800);
+  });
+
+  // Board and empty cells.
+  roundRect(boardX, boardY, boardSize, boardSize, boardSize * 0.03, COLORS.board);
+  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+    const gap = boardSize * 0.03, size = (boardSize - gap * (SIZE + 1)) / SIZE;
+    roundRect(boardX + gap + c * (size + gap), boardY + gap + r * (size + gap), size, size, size * 0.1, COLORS.empty);
+  }
+
+  // Tiles. p: slide progress 0 → 1 (eased); q: pop progress after the slide.
+  const p = Math.min(1, anim / SLIDE), ease = 1 - (1 - p) * (1 - p);
+  const q = Math.min(1, Math.max(0, (anim - SLIDE) / POP));
+  const lerp = (a, b) => a + (b - a) * ease;
+  if (p < 1) for (const g of ghosts) drawTile(g.value, lerp(g.fromR, g.r), lerp(g.fromC, g.c), 1);
+  for (const row of grid) for (const t of row) {
+    if (!t) continue;
+    if (t.kind === "slide") drawTile(t.value, lerp(t.fromR, t.r), lerp(t.fromC, t.c), 1);
+    else if (p >= 1 && t.kind === "merged") drawTile(t.value, t.r, t.c, 1 + 0.15 * Math.sin(Math.PI * q));
+    else if (p >= 1 && t.kind === "new") drawTile(t.value, t.r, t.c, 0.3 + 0.7 * q);
+  }
+
+  if (state === "playing") return;
+  roundRect(boardX, boardY, boardSize, boardSize, boardSize * 0.03, state === "ready" ? "rgba(8, 12, 22, 0.82)" : "rgba(8, 12, 22, 0.9)");
+  const cx = boardX + boardSize / 2, cy = boardY + boardSize / 2, small = Math.max(14, boardSize * 0.042);
+  const lines = {
+    ready: ["Slide the tiles", "Join equal numbers to reach 2048", "Arrows, WASD or swipe", "Tap or press an arrow to start"],
+    won: ["You made 2048!", `Score ${score}`, "Bigger tiles are still out there", "Tap or press Space to keep going"],
+    over: ["No moves left", `Score ${score}`, `Best ${best}`, "Tap or press Space to play again"],
+  }[state];
+  text(lines[0], cx, cy - boardSize * 0.16, Math.max(24, boardSize * 0.085), COLORS.text, 800);
+  text(lines[1], cx, cy - boardSize * 0.03, small, COLORS.text, 500);
+  text(lines[2], cx, cy + boardSize * 0.05, small, COLORS.dim, 500);
+  text(lines[3], cx, cy + boardSize * 0.18, small, TILE[128][0], 700);
+}
+
+// ----- Main loop: the game only changes on input; the loop runs the animations -----
+function loop(now) {
+  anim += Math.min(0.1, (now - last) / 1000);
+  last = now;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: keyboard, swipe and tap -----
+const DIRS = { ArrowUp: [-1, 0], KeyW: [-1, 0], ArrowDown: [1, 0], KeyS: [1, 0], ArrowLeft: [0, -1], KeyA: [0, -1], ArrowRight: [0, 1], KeyD: [0, 1] };
+window.addEventListener("keydown", (e) => {
+  const d = DIRS[e.code];
+  if (d) { e.preventDefault(); input(d[0], d[1]); }
+  else if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); input(0, 0); }
+  else if (e.code === "KeyR") { reset(); state = "playing"; }   // new game at any time
+});
+
+let swipe = null;
+canvas.addEventListener("pointerdown", (e) => { swipe = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener("pointerup", (e) => {
+  if (!swipe) return;
+  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+  swipe = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) input(0, 0);          // a tap
+  else if (Math.abs(dx) > Math.abs(dy)) input(0, Math.sign(dx));       // a sideways swipe
+  else input(Math.sign(dy), 0);                                        // an up or down swipe
+});
+canvas.addEventListener("pointercancel", () => { swipe = null; });
+
+window.addEventListener("resize", resize);
+reset();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

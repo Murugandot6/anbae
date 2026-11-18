@@ -1,0 +1,285 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/game-of-life -->
+<!-- Game of Life: Conway's cellular automaton on an HTML5 canvas, in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conway's Game of Life (HTML5 canvas)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0e14; color: #e6ecf5; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const BORN = [3], SURVIVE = [2, 3];  // Conway's rules (B3/S23): try BORN = [3, 6] for "HighLife"
+const WRAP = true;                   // true: the edges wrap around (a torus); false: outside the grid is dead
+const SPEEDS = [1, 2, 5, 10, 20, 30, 60];   // generations per second to choose from
+const FILL = 0.25;                   // share of cells alive after Random
+const COLORS = { bg: "#0b0e14", board: "#10151f", line: "#1a2130", young: "#ffe66d", alive: "#6ef2c2", old: "#3d9be9", text: "#e6ecf5", dim: "#8792a8", button: "#1d2433", on: "#24704f" };
+// Famous patterns, drawn with "O" for a live cell. Shape cycles through them.
+const PATTERNS = [
+  { name: "Glider", rows: [".O.", "..O", "OOO"] },
+  { name: "Spaceship", rows: [".O..O", "O....", "O...O", "OOOO."] },
+  { name: "Pulsar", rows: ["..OOO...OOO..", ".............", "O....O.O....O", "O....O.O....O", "O....O.O....O", "..OOO...OOO..", ".............",
+    "..OOO...OOO..", "O....O.O....O", "O....O.O....O", "O....O.O....O", ".............", "..OOO...OOO.."] },
+  { name: "R-pentomino", rows: [".OO", "OO.", ".O."] },
+  { name: "Glider gun", rows: ["........................O...........", "......................O.O...........", "............OO......OO............OO",
+    "...........O...O....OO............OO", "OO........O.....O...OO..............", "OO........O...O.OO....O.O...........",
+    "..........O.....O.......O...........", "...........O...O....................", "............OO......................"] },
+];
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 40;                      // height of the top bar
+let W = 0, H = 0, cell = 12, cols = 0, rows = 0, gridX = 0, gridY = 0, buttons = [];
+
+// ----- World state: three buffers of 0/1, so we can spot a world that has stopped changing -----
+let cells = new Uint8Array(0), next = new Uint8Array(0), prev = new Uint8Array(0);
+let age = new Uint16Array(0);        // generations each cell has been alive, for colour
+let generation = 0, population = 0, speedIndex = 3, running = false, started = false;
+let banner = "", bannerTime = 0, patternIndex = -1, timer = 0;
+let quiet = false;                   // true after the world settled once, so Play can keep watching it
+
+// ----- Sizing: fill the window; keep the cells you had when the window changes size -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const perRow = Math.max(1, Math.min(7, Math.floor((W - 8) / 84)));   // toolbar buttons per row
+  const barH = Math.ceil(7 / perRow) * 48 + 8;
+  const areaH = H - HUD - barH;
+  cell = Math.max(8, Math.min(18, Math.floor(Math.min(W - 8, areaH - 8) / 36)));
+  const newCols = Math.max(10, Math.floor((W - 8) / cell)), newRows = Math.max(10, Math.floor((areaH - 8) / cell));
+  // Copy the old world into the new grid, centred, so a resize or rotation doesn't wipe your drawing.
+  const old = cells, oldAge = age, oldCols = cols, oldRows = rows;
+  cells = new Uint8Array(newCols * newRows); age = new Uint16Array(newCols * newRows);
+  next = new Uint8Array(newCols * newRows); prev = new Uint8Array(newCols * newRows).fill(2);
+  const ox = Math.floor((newCols - oldCols) / 2), oy = Math.floor((newRows - oldRows) / 2);
+  for (let y = 0; y < oldRows; y++) for (let x = 0; x < oldCols; x++) {
+    const nx = x + ox, ny = y + oy;
+    if (nx >= 0 && ny >= 0 && nx < newCols && ny < newRows) { cells[ny * newCols + nx] = old[y * oldCols + x]; age[ny * newCols + nx] = oldAge[y * oldCols + x]; }
+  }
+  cols = newCols; rows = newRows;
+  gridX = Math.floor((W - cols * cell) / 2);
+  gridY = HUD + Math.floor((areaH - rows * cell) / 2);
+  layoutButtons(perRow, H - barH + 4);
+  count();
+  draw();
+}
+
+// ----- The rules -----
+function alive(x, y) {
+  if (WRAP) { x = (x + cols) % cols; y = (y + rows) % rows; }
+  else if (x < 0 || y < 0 || x >= cols || y >= rows) return 0;
+  return cells[y * cols + x];
+}
+
+// One generation. Every cell looks at its 8 neighbours in the CURRENT grid and writes its new
+// state to `next`; only then do the buffers swap, so no cell sees a half-updated world.
+function step() {
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    let n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) n += alive(x + dx, y + dy);
+    const i = y * cols + x;
+    next[i] = (cells[i] ? SURVIVE.includes(n) : BORN.includes(n)) ? 1 : 0;
+    age[i] = next[i] ? Math.min(age[i] + 1, 999) : 0;
+  }
+  const still = same(next, cells), blinking = same(next, prev);
+  [prev, cells, next] = [cells, next, prev];   // rotate buffers: no copying, no new arrays
+  generation++;
+  count();
+  if (!running || quiet) return;
+  const gens = `${generation} generation${generation === 1 ? "" : "s"}`;
+  if (population === 0) stop(`Everything died after ${gens}`);
+  else if (still || blinking) stop(`Settled after ${gens}`);   // a still life, or a blinker-style 2-step loop
+}
+
+function same(a, b) {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function count() { population = 0; for (let i = 0; i < cells.length; i++) population += cells[i]; }
+
+// ----- Actions (buttons and keys) -----
+function stop(message) { running = false; quiet = true; banner = message; bannerTime = Infinity; }
+function say(message) { banner = message; bannerTime = 2; }
+// After any change by the player: forget the history used to spot a settled world.
+function edited(fresh) {
+  prev.fill(2); quiet = false; count();
+  if (fresh) generation = 0;         // a new world (Random, Clear, Shape) counts from zero
+  if (bannerTime === Infinity) bannerTime = 0;
+}
+
+function start() { started = true; running = true; bannerTime = 0; }
+function togglePlay() { if (!started) start(); else { running = !running; if (running) bannerTime = 0; } }
+function stepOnce() { started = true; running = false; bannerTime = 0; step(); }
+function randomize() {
+  for (let i = 0; i < cells.length; i++) { cells[i] = Math.random() < FILL ? 1 : 0; age[i] = cells[i]; }
+  edited(true);
+}
+function clearAll() { cells.fill(0); age.fill(0); running = false; edited(true); }
+function changeSpeed(d) { speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, speedIndex + d)); say(`${SPEEDS[speedIndex]} generations per second`); }
+
+// Clear the world and stamp the next famous pattern in the middle (skipping any too big to fit).
+function nextPattern() {
+  started = true;
+  for (let tries = 0; tries < PATTERNS.length; tries++) {
+    patternIndex = (patternIndex + 1) % PATTERNS.length;
+    const p = PATTERNS[patternIndex], pw = p.rows[0].length, ph = p.rows.length;
+    if (pw + 2 > cols || ph + 2 > rows) continue;
+    cells.fill(0); age.fill(0);
+    const x0 = Math.floor((cols - pw) / 2), y0 = Math.floor((rows - ph) / 2);
+    p.rows.forEach((line, y) => { for (let x = 0; x < pw; x++) if (line[x] === "O") { cells[(y0 + y) * cols + x0 + x] = 1; age[(y0 + y) * cols + x0 + x] = 1; } });
+    edited(true);
+    say(p.name);
+    return;
+  }
+}
+
+// ----- Toolbar -----
+const ACTIONS = [
+  { label: () => (running ? "Pause" : "Play"), run: togglePlay },
+  { label: () => "Step", run: stepOnce },
+  { label: () => "Random", run: () => { started = true; randomize(); } },
+  { label: () => "Clear", run: () => { started = true; clearAll(); } },
+  { label: () => "Shape", run: nextPattern },
+  { label: () => "Slower", run: () => changeSpeed(-1) },
+  { label: () => "Faster", run: () => changeSpeed(1) },
+];
+
+function layoutButtons(perRow, top) {
+  const w = (W - 8 - (perRow - 1) * 6) / perRow;
+  buttons = ACTIONS.map((a, k) => ({ a, x: 4 + (k % perRow) * (w + 6), y: top + Math.floor(k / perRow) * 48, w, h: 42 }));
+}
+
+// ----- Drawing -----
+function label(text, x, y, px, weight, align, color = COLORS.text) {
+  ctx.font = `${weight} ${px}px system-ui, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function draw() {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+  const px = Math.max(13, Math.min(17, W / 26));
+  label(`Gen ${generation}`, 8, HUD / 2, px, 700, "left");
+  label(`Alive ${population}`, W / 2, HUD / 2, px, 700, "center", COLORS.alive);
+  label(`${SPEEDS[speedIndex]}/s ${WRAP ? "· wrap" : ""}`, W - 8, HUD / 2, px, 600, "right", COLORS.dim);
+
+  // The grid: a dark board with faint lines, then every live cell coloured by age.
+  ctx.fillStyle = COLORS.board;
+  ctx.fillRect(gridX, gridY, cols * cell, rows * cell);
+  ctx.strokeStyle = COLORS.line;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x <= cols; x++) { ctx.moveTo(gridX + x * cell + 0.5, gridY); ctx.lineTo(gridX + x * cell + 0.5, gridY + rows * cell); }
+  for (let y = 0; y <= rows; y++) { ctx.moveTo(gridX, gridY + y * cell + 0.5); ctx.lineTo(gridX + cols * cell, gridY + y * cell + 0.5); }
+  ctx.stroke();
+  for (let i = 0; i < cells.length; i++) {
+    if (!cells[i]) continue;
+    ctx.fillStyle = age[i] <= 1 ? COLORS.young : age[i] < 10 ? COLORS.alive : COLORS.old;
+    ctx.fillRect(gridX + (i % cols) * cell + 1, gridY + Math.floor(i / cols) * cell + 1, cell - 1, cell - 1);
+  }
+
+  for (const b of buttons) {
+    ctx.fillStyle = b.a.run === togglePlay && running ? COLORS.on : COLORS.button;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    label(b.a.label(), b.x + b.w / 2, b.y + b.h / 2, Math.max(13, Math.min(16, b.w / 5.5)), 700, "center");
+  }
+
+  if (!started) {
+    ctx.fillStyle = "rgba(6, 9, 14, 0.8)";
+    ctx.fillRect(gridX, gridY, cols * cell, rows * cell);
+    const cx = W / 2, cy = gridY + (rows * cell) / 2, small = Math.max(13, Math.min(18, W / 26));
+    label("Game of Life", cx, cy - small * 4, Math.min(44, W / 9), 800, "center");
+    label("A dead cell with 3 live neighbours is born", cx, cy - small, small, 500, "center");
+    label("A live cell with 2 or 3 neighbours survives", cx, cy + small * 0.6, small, 500, "center");
+    label("Draw on the grid, or try Shape and Random", cx, cy + small * 2.2, small, 400, "center", COLORS.dim);
+    label("Tap or press Space to start", cx, cy + small * 4.2, small, 700, "center", COLORS.young);
+  } else if (bannerTime > 0) {
+    const px2 = Math.max(14, Math.min(18, W / 24));
+    ctx.font = `700 ${px2}px system-ui, sans-serif`;
+    const bw = Math.min(W - 16, ctx.measureText(banner).width + 32);
+    ctx.fillStyle = "rgba(6, 9, 14, 0.85)";
+    ctx.fillRect(W / 2 - bw / 2, gridY + 10, bw, px2 * 2.2);
+    label(banner, W / 2, gridY + 10 + px2 * 1.1, px2, 700, "center", COLORS.young);
+  }
+}
+
+// ----- Main loop: run generations at the chosen speed, draw every frame -----
+let last = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (running) {
+    timer += dt;
+    const every = 1 / SPEEDS[speedIndex];
+    let steps = 0;
+    while (timer >= every && running && steps < 4) { timer -= every; step(); steps++; }
+    if (steps === 4) timer = 0;      // the device can't keep up: drop the backlog instead of piling it up
+  }
+  if (bannerTime !== Infinity) bannerTime -= dt;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: draw or erase cells with mouse or finger; buttons; keyboard shortcuts -----
+let painting = null;                 // { value, x, y } while a drag is drawing (value 1) or erasing (value 0)
+function cellAt(e) {
+  const x = Math.floor((e.clientX - gridX) / cell), y = Math.floor((e.clientY - gridY) / cell);
+  return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : null;
+}
+function paint(x, y, value) { const i = y * cols + x; cells[i] = value; age[i] = value; }
+
+canvas.addEventListener("pointerdown", (e) => {
+  const b = buttons.find((b) => e.clientX >= b.x && e.clientX <= b.x + b.w && e.clientY >= b.y && e.clientY <= b.y + b.h);
+  if (b) { b.a.run(); return; }
+  const c = cellAt(e);
+  if (!started) { start(); return; }
+  if (!c) return;
+  painting = { value: cells[c.y * cols + c.x] ? 0 : 1, x: c.x, y: c.y };   // start on a live cell = erase
+  paint(c.x, c.y, painting.value);
+  edited();
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", (e) => {
+  const c = painting && cellAt(e);
+  if (!c) return;
+  // Fill every cell between the last point and this one, so fast strokes don't leave gaps.
+  const dx = c.x - painting.x, dy = c.y - painting.y, n = Math.max(Math.abs(dx), Math.abs(dy));
+  for (let k = 1; k <= n; k++) paint(Math.round(painting.x + (dx * k) / n), Math.round(painting.y + (dy * k) / n), painting.value);
+  painting.x = c.x; painting.y = c.y;
+  edited();
+});
+const endPaint = () => { painting = null; };
+canvas.addEventListener("pointerup", endPaint);
+canvas.addEventListener("pointercancel", endPaint);
+
+window.addEventListener("keydown", (e) => {
+  const keys = {
+    Space: togglePlay, Enter: stepOnce, ArrowRight: stepOnce, KeyN: stepOnce,
+    ArrowUp: () => changeSpeed(1), KeyW: () => changeSpeed(1), Equal: () => changeSpeed(1),
+    ArrowDown: () => changeSpeed(-1), KeyS: () => changeSpeed(-1), Minus: () => changeSpeed(-1),
+    KeyR: () => { started = true; randomize(); }, KeyC: () => { started = true; clearAll(); }, KeyP: nextPattern,
+  };
+  if (keys[e.code]) { e.preventDefault(); keys[e.code](); }
+});
+
+window.addEventListener("resize", resize);
+resize();
+randomize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/space-shooter -->
+<!-- Nova Patrol: a space shooter in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nova Patrol (HTML5 canvas shooter)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #05060f; color: #eef2ff; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const VIEW = 480;                // world units along the short side of the screen
+const STEP = 1 / 120;            // fixed simulation step in seconds
+const PLAYER_SPEED = 300;        // world units per second
+const FIRE_DELAY = 0.18;         // seconds between player shots
+const BULLET_SPEED = 640;        // world units per second
+const LIVES = 3;
+const GAP_X = 52, GAP_Y = 36;    // spacing of the drone fleet
+const COLORS = { bg: "#05060f", ship: "#6ee7ff", flame: "#ffb347", bullet: "#fffbe0", shot: "#ff5f7e", missile: "#ffa63d", rock: "#8d8599", line: "rgba(255, 95, 126, 0.5)", text: "#eef2ff", rows: ["#ff6bd6", "#ffb84d", "#9dff6b", "#6bb0ff", "#c08bff"] };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = VIEW, H = VIEW, scale = 1;   // world size and world-to-CSS-pixel scale, set by resize()
+
+// ----- Game state -----
+let player, bullets, enemies, fleet, shots, rocks, sparks, state, score, best = 0, lives, wave;
+let banner = 0, fireTimer = 0, rockTimer = 0, overAt = 0, invaded = false;
+const stars = Array.from({ length: 80 }, () => ({ x: Math.random(), y: Math.random(), s: 0.02 + Math.random() * 0.08 }));
+const lineY = () => H - 150;          // the fleet must not cross this line
+const hit = (a, b, r) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2 < r * r;   // circle overlap, no square root
+
+function reset() {
+  player = { x: W / 2, y: H - 60, r: 14, cool: 0, inv: 0 };
+  bullets = []; rocks = []; sparks = [];
+  score = 0; lives = LIVES; wave = 0; invaded = false;
+  nextWave();
+  state = "ready";                    // ready → playing → over
+}
+
+function begin() {
+  if (state === "ready") state = "playing";
+  else if (state === "over" && performance.now() - overAt > 600) { reset(); state = "playing"; }
+}
+
+// ----- Waves: a fleet of drones that sweeps sideways and steps down -----
+function nextWave() {
+  wave++;
+  const rowsN = Math.min(5, 2 + wave), colsN = Math.max(4, Math.min(8, Math.floor((W - 80) / GAP_X)));
+  enemies = [];
+  for (let r = 0; r < rowsN; r++) for (let c = 0; c < colsN; c++) enemies.push({ r, c, x: 0, y: 0, alive: true });
+  // Step-down size: about 2,700 units of sweeping before a full fleet lands, on any screen shape.
+  // Wide screens get long sweeps and small steps; tall phones get short sweeps and bigger steps.
+  const sweep = W - 48 - (colsN - 1) * GAP_X, passes = Math.max(8, Math.round(2700 / sweep));
+  const bottom = 64 + (rowsN - 1) * GAP_Y + 14;
+  fleet = { x: (W - (colsN - 1) * GAP_X) / 2, y: 64, dir: 1, rows: rowsN, total: rowsN * colsN, drop: Math.max(6, (lineY() - bottom) / passes) };
+  placeFleet();
+  shots = [];
+  fireTimer = 1.2;
+  rockTimer = 2.5;
+  banner = 1.6;
+}
+
+function placeFleet() {
+  for (const e of enemies) { e.x = fleet.x + e.c * GAP_X; e.y = fleet.y + e.r * GAP_Y; }
+}
+
+// Only the lowest drone in each column fires, so shots never pass through other drones.
+function enemyFire(alive) {
+  const front = alive.filter((e) => !alive.some((o) => o.c === e.c && o.r > e.r));
+  const e = front[Math.floor(Math.random() * front.length)];
+  if (wave >= 3 && Math.random() < 0.3) {
+    shots.push({ x: e.x, y: e.y + 12, vx: 0, vy: 150, missile: true, fuel: 2.5, r: 6 });   // a slow homing missile
+  } else {
+    const vx = Math.max(-70, Math.min(70, (player.x - e.x) * 0.3));           // aimed a little at the player
+    shots.push({ x: e.x, y: e.y + 12, vx, vy: 210 + wave * 12, missile: false, fuel: 0, r: 4 });
+  }
+}
+
+function spawnRock(size, x, y, side = 0) {
+  const shape = Array.from({ length: 9 }, () => 0.75 + Math.random() * 0.35);  // a lumpy outline
+  rocks.push({ x, y, size, r: [0, 10, 16, 24][size], shape, a: 0, spin: (Math.random() - 0.5) * 3,
+    vx: side ? side * (50 + Math.random() * 40) : (Math.random() - 0.5) * 60, vy: 60 + Math.random() * 50 + wave * 6 });
+}
+
+// A rock splits in two until it is small, like the classic Asteroids arcade game.
+function breakRock(k) {
+  k.dead = true;
+  score += [0, 40, 30, 20][k.size];
+  burst(k.x, k.y, COLORS.rock, 10);
+  if (k.size > 1) { spawnRock(k.size - 1, k.x, k.y, -1); spawnRock(k.size - 1, k.x, k.y, 1); }
+}
+
+function burst(x, y, color, n) {
+  for (let i = 0; i < n && sparks.length < 300; i++) {
+    const a = Math.random() * Math.PI * 2, v = 40 + Math.random() * 160;
+    sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0.6, color });
+  }
+}
+
+function hurt() {
+  burst(player.x, player.y, COLORS.ship, 24);
+  lives--;
+  player.inv = 2;                     // two seconds of blinking safety
+  if (lives <= 0) gameOver();
+}
+
+function gameOver() {
+  state = "over";
+  overAt = performance.now();
+  best = Math.max(best, score);
+}
+
+function clampPlayer() {
+  player.x = Math.max(16, Math.min(W - 16, player.x));
+  player.y = Math.max(lineY() + 30, Math.min(H - 24, player.y));
+}
+
+// ----- One fixed step of the simulation -----
+function update(dt) {
+  // Player: move, then fire while Space is held or a finger is down.
+  let mx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), my = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+  if (mx && my) { mx *= Math.SQRT1_2; my *= Math.SQRT1_2; }
+  player.x += mx * PLAYER_SPEED * dt;
+  player.y += my * PLAYER_SPEED * dt;
+  clampPlayer();
+  player.cool -= dt;
+  player.inv -= dt;
+  if ((keys.fire || drag) && player.cool <= 0) { bullets.push({ x: player.x, y: player.y - 18 }); player.cool = FIRE_DELAY; }
+  for (const b of bullets) { b.y -= BULLET_SPEED * dt; if (b.y < -10) b.dead = true; }
+
+  const alive = enemies.filter((e) => e.alive);
+  if (banner > 0) banner -= dt;       // the fleet waits while "Wave N" shows
+  else {
+    // The fewer drones are left, the faster the fleet sweeps.
+    fleet.x += fleet.dir * (40 + wave * 8 + 110 * (1 - alive.length / fleet.total)) * dt;
+    placeFleet();
+    const minX = Math.min(...alive.map((e) => e.x)), maxX = Math.max(...alive.map((e) => e.x));
+    if ((fleet.dir > 0 && maxX > W - 24) || (fleet.dir < 0 && minX < 24)) { fleet.dir = -fleet.dir; fleet.y += fleet.drop; placeFleet(); }
+    if (alive.some((e) => e.y + 14 > lineY())) { invaded = true; burst(player.x, player.y, COLORS.ship, 24); gameOver(); return; }
+    fireTimer -= dt;
+    if (fireTimer <= 0) { fireTimer = Math.max(0.35, 1.3 - wave * 0.1) * (0.6 + Math.random() * 0.8); enemyFire(alive); }
+    rockTimer -= dt;
+    if (rockTimer <= 0) { rockTimer = Math.max(1.4, 4.4 - wave * 0.4) * (0.7 + Math.random() * 0.6); spawnRock(3, 30 + Math.random() * (W - 60), -30); }
+  }
+
+  // Enemy shots; missiles turn toward the player at a limited rate until their fuel runs out.
+  for (const s of shots) {
+    if (s.fuel > 0) {
+      s.fuel -= dt;
+      const have = Math.atan2(s.vy, s.vx), want = Math.atan2(player.y - s.y, player.x - s.x);
+      const diff = Math.atan2(Math.sin(want - have), Math.cos(want - have));   // shortest way round
+      const turn = have + Math.max(-2 * dt, Math.min(2 * dt, diff)), speed = Math.hypot(s.vx, s.vy);
+      s.vx = Math.cos(turn) * speed;
+      s.vy = Math.sin(turn) * speed;
+    }
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    if (s.y > H + 20 || s.y < -40 || s.x < -20 || s.x > W + 20) s.dead = true;
+  }
+  for (const k of rocks) {
+    k.x += k.vx * dt; k.y += k.vy * dt; k.a += k.spin * dt;
+    if (k.x < k.r || k.x > W - k.r) k.vx = Math.sign(W / 2 - k.x) * Math.abs(k.vx);   // bounce off the sides
+    if (k.y > H + k.r) k.dead = true;
+  }
+
+  // Collisions. Each step moves a bullet about 5 units, less than any radius, so nothing tunnels.
+  for (const b of bullets) {
+    if (b.dead) continue;
+    const e = alive.find((e) => e.alive && hit(b, e, 17));
+    if (e) { e.alive = false; b.dead = true; score += 10 * (fleet.rows - e.r); burst(e.x, e.y, COLORS.rows[e.r], 14); continue; }
+    const k = rocks.find((k) => !k.dead && hit(b, k, k.r + 3));
+    if (k) { breakRock(k); b.dead = true; continue; }
+    const m = shots.find((s) => !s.dead && s.missile && hit(b, s, 9));
+    if (m) { m.dead = true; b.dead = true; score += 15; burst(m.x, m.y, COLORS.missile, 8); }
+  }
+  if (player.inv <= 0) {
+    const s = shots.find((s) => !s.dead && hit(s, player, s.r + player.r * 0.7));
+    const k = rocks.find((k) => !k.dead && hit(k, player, k.r * 0.85 + player.r * 0.7));
+    if (s) s.dead = true;
+    if (k) { k.dead = true; burst(k.x, k.y, COLORS.rock, 10); }
+    if (s || k) hurt();
+  }
+  bullets = bullets.filter((b) => !b.dead);
+  shots = shots.filter((s) => !s.dead);
+  rocks = rocks.filter((k) => !k.dead);
+  if (state === "playing" && !enemies.some((e) => e.alive)) { score += wave * 100; nextWave(); }
+}
+
+function moveSparks(dt) {
+  for (const p of sparks) { p.x += p.vx * dt; p.y += p.vy * dt; p.t -= dt; }
+  sparks = sparks.filter((p) => p.t > 0);
+}
+
+// ----- Sizing: fill the window, keep 480 world units on the short side, sharp on high-DPI -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  canvas.width = Math.round(window.innerWidth * dpr);
+  canvas.height = Math.round(window.innerHeight * dpr);
+  scale = Math.min(window.innerWidth, window.innerHeight) / VIEW;
+  W = window.innerWidth / scale;
+  H = window.innerHeight / scale;
+  if (player) {
+    clampPlayer();
+    // Turning a phone sideways mid-wave moves the line up: lift the fleet so the game stays fair.
+    fleet.y = Math.max(64, Math.min(fleet.y, lineY() - 14 - (fleet.rows - 1) * GAP_Y - 4 * fleet.drop));
+    placeFleet();
+  }
+  draw();
+}
+
+// ----- Drawing -----
+function drawDrone(e, t) {
+  const flap = Math.sin(t * 6 + e.c) * 3;
+  ctx.fillStyle = COLORS.rows[e.r];
+  ctx.beginPath();                    // body: a squat hexagon
+  ctx.moveTo(e.x - 14, e.y); ctx.lineTo(e.x - 7, e.y - 10); ctx.lineTo(e.x + 7, e.y - 10);
+  ctx.lineTo(e.x + 14, e.y); ctx.lineTo(e.x + 7, e.y + 9); ctx.lineTo(e.x - 7, e.y + 9);
+  ctx.fill();
+  ctx.fillRect(e.x - 19, e.y - 4 + flap, 5, 8);   // fins
+  ctx.fillRect(e.x + 14, e.y - 4 - flap, 5, 8);
+  ctx.fillStyle = COLORS.bg;
+  ctx.beginPath(); ctx.arc(e.x, e.y - 1, 4, 0, Math.PI * 2); ctx.fill();   // eye
+}
+
+function drawShip(x, y, s) {
+  ctx.beginPath();
+  ctx.moveTo(x, y - 18 * s); ctx.lineTo(x + 14 * s, y + 12 * s); ctx.lineTo(x, y + 6 * s); ctx.lineTo(x - 14 * s, y + 12 * s);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function draw() {
+  const dpr = window.devicePixelRatio || 1, t = performance.now() / 1000;
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);    // draw in world units
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+  for (const s of stars) { ctx.fillStyle = `rgba(220, 230, 255, ${0.3 + s.s * 6})`; ctx.fillRect(s.x * W, s.y * H, s.s * 25, s.s * 25); }
+  if (!player) return;
+
+  ctx.strokeStyle = COLORS.line;      // the line the fleet must not cross
+  ctx.setLineDash([8, 10]);
+  ctx.beginPath(); ctx.moveTo(0, lineY()); ctx.lineTo(W, lineY()); ctx.stroke();
+  ctx.setLineDash([]);
+
+  for (const e of enemies) if (e.alive) drawDrone(e, t);
+  for (const k of rocks) {
+    ctx.fillStyle = COLORS.rock;
+    ctx.beginPath();
+    k.shape.forEach((m, i) => { const a = k.a + (i / k.shape.length) * Math.PI * 2; ctx.lineTo(k.x + Math.cos(a) * k.r * m, k.y + Math.sin(a) * k.r * m); });
+    ctx.fill();
+  }
+  ctx.fillStyle = COLORS.bullet;
+  for (const b of bullets) ctx.fillRect(b.x - 1.5, b.y - 7, 3, 14);
+  for (const s of shots) {
+    ctx.fillStyle = s.missile ? COLORS.missile : COLORS.shot;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    if (s.missile) { ctx.fillStyle = "rgba(255, 166, 61, 0.35)"; ctx.beginPath(); ctx.arc(s.x - s.vx * 0.06, s.y - s.vy * 0.06, 4, 0, Math.PI * 2); ctx.fill(); }
+  }
+  for (const p of sparks) { ctx.globalAlpha = p.t / 0.6; ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); }
+  ctx.globalAlpha = 1;
+
+  // The ship blinks while it is invulnerable and disappears once the game is over.
+  if (state !== "over" && (player.inv <= 0 || Math.floor(t * 10) % 2)) {
+    ctx.fillStyle = COLORS.flame;
+    ctx.beginPath(); ctx.moveTo(player.x - 5, player.y + 9); ctx.lineTo(player.x + 5, player.y + 9); ctx.lineTo(player.x, player.y + 16 + Math.random() * 8); ctx.fill();
+    ctx.fillStyle = COLORS.ship;
+    drawShip(player.x, player.y, 1);
+  }
+
+  // Score bar, in CSS pixels so the text stays the same size on every screen.
+  const sw = window.innerWidth, sh = window.innerHeight;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = COLORS.text;
+  ctx.font = "600 16px system-ui, sans-serif";
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillText(`Score ${score}`, 12, 20);
+  ctx.textAlign = "center";
+  ctx.fillText(`Wave ${wave}`, sw / 2, 20);
+  ctx.fillStyle = COLORS.ship;
+  for (let i = 0; i < lives; i++) drawShip(sw - 18 - i * 22, 22, 0.55);
+
+  const size = Math.min(sw, sh);
+  const title = (text, y) => { ctx.fillStyle = COLORS.text; ctx.font = `800 ${Math.max(28, size * 0.08)}px system-ui, sans-serif`; ctx.fillText(text, sw / 2, y); };
+  const lines = (list, y) => { ctx.font = `500 ${Math.max(14, size * 0.032)}px system-ui, sans-serif`; list.forEach((l, i) => ctx.fillText(l, sw / 2, y + i * Math.max(22, size * 0.05))); };
+  ctx.textAlign = "center";
+  if (state === "playing" && banner > 0) title(`Wave ${wave}`, sh * 0.42);
+  if (state !== "playing") { ctx.fillStyle = "rgba(5, 6, 15, 0.7)"; ctx.fillRect(0, 40, sw, sh - 40); }
+  if (state === "ready") {
+    title("Nova Patrol", sh * 0.4);
+    lines(["Stop the fleet before it crosses the red line", "Shoot rocks, dodge shots and missiles", "Arrows / WASD move, Space fires", "Phone: drag to move, hold to fire", "Press Space or tap to start"], sh * 0.4 + size * 0.1);
+  } else if (state === "over") {
+    title("Game over", sh * 0.36);
+    lines([invaded ? "The fleet crossed the line" : `You reached wave ${wave}`, `Score ${score} · Best ${best}`, "Tap or press Space to play again"], sh * 0.36 + size * 0.1);
+  }
+}
+
+// ----- Main loop: fixed steps, smooth frames -----
+let last = 0, acc = 0;
+function loop(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+  for (const s of stars) { s.y += s.s * dt * (state === "playing" ? 1.5 : 0.4); if (s.y > 1) { s.y -= 1; s.x = Math.random(); } }
+  if (state === "playing") {
+    acc += dt;
+    while (acc >= STEP && state === "playing") { update(STEP); acc -= STEP; }
+  }
+  moveSparks(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: keyboard, plus drag-to-move and hold-to-fire for touch and mouse -----
+const keys = {};
+const BIND = { ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", Space: "fire", KeyZ: "fire", KeyJ: "fire" };
+window.addEventListener("keydown", (e) => {
+  if (BIND[e.code] || e.code === "Enter") e.preventDefault();
+  if (BIND[e.code]) keys[BIND[e.code]] = true;
+  if ((e.code === "Space" || e.code === "Enter") && !e.repeat) begin();
+});
+window.addEventListener("keyup", (e) => { if (BIND[e.code]) keys[BIND[e.code]] = false; });
+
+let drag = null;                      // the finger (or mouse button) that steers the ship
+canvas.addEventListener("pointerdown", (e) => {
+  begin();
+  if (state === "playing" && !drag) drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag || e.pointerId !== drag.id) return;
+  // Relative drag: the ship moves as far as the finger, so the finger never hides it.
+  player.x += (e.clientX - drag.x) / scale;
+  player.y += (e.clientY - drag.y) / scale;
+  drag.x = e.clientX;
+  drag.y = e.clientY;
+  clampPlayer();
+});
+const release = (e) => { if (drag && e.pointerId === drag.id) drag = null; };
+canvas.addEventListener("pointerup", release);
+canvas.addEventListener("pointercancel", release);
+window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; drag = null; });
+
+window.addEventListener("resize", resize);
+resize();
+reset();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

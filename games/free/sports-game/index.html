@@ -1,0 +1,295 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/sports-game -->
+<!-- Buzzer Hoops: a basketball shooting game in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buzzer Hoops (HTML5 basketball game)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #16213e; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings (world units: the court is 600 wide and 700 tall, y grows downwards) -----
+const WORLD_W = 600, WORLD_H = 700, FLOOR = 650;
+const GRAVITY = 1500;                  // units per second squared
+const BALL_R = 17;
+const RIM_Y = 330, FRONT_X = 478, BACK_X = 548, RIM_R = 5;   // the rim, seen from the side: two points
+const BOARD = { x1: 556, x2: 566, y1: 228, y2: 350 };        // the backboard
+const THREE_X = 200;                   // shots from left of this line are worth 3
+const MIN_SPEED = 300, MAX_SPEED = 1150, PULL_TO_SPEED = 6;
+const ROUND_TIME = 60;
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, hud = 52, scale = 1, ox = 0, oy = 0;    // screen size, world → screen transform
+
+// ----- Sizing: fit the court to the window, stay sharp on high-DPI screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  hud = Math.round(Math.max(44, Math.min(60, H * 0.08)));
+  scale = Math.min(W / WORLD_W, (H - hud) / WORLD_H);
+  ox = (W - WORLD_W * scale) / 2;
+  oy = hud + (H - hud - WORLD_H * scale);              // court sits on the bottom edge
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+// ----- Game state -----
+let state = "ready";                   // ready → playing → over
+let score = 0, best = 0, made = 0, shots = 0, timeLeft = ROUND_TIME, overAt = 0, last = 0;
+let aim = { angle: 58, speed: 820 };   // degrees above horizontal, units per second
+let ball, drag = null, pops = [], netSwing = 0;
+
+function newBall() {
+  const x = 70 + Math.random() * 260;  // a new spot for every shot
+  ball = { x, y: 540, vx: 0, vy: 0, spin: 0, flying: false, scored: false, fromBelow: false, touched: false, bounces: 0, t: 0, three: x < THREE_X };
+}
+
+function start() {
+  score = made = shots = 0;
+  timeLeft = ROUND_TIME; pops = [];
+  newBall();
+  state = "playing";
+}
+
+function shoot() {
+  if (state !== "playing" || ball.flying || timeLeft <= 0) return;
+  const a = aim.angle * Math.PI / 180;
+  ball.vx = Math.cos(a) * aim.speed;
+  ball.vy = -Math.sin(a) * aim.speed;  // negative = up on screen
+  ball.flying = true;
+  shots++;
+}
+
+// ----- Physics: push the ball out of a point (a rim edge or the closest point of the board) -----
+function bounceOff(px, py, radius, restitution) {
+  const dx = ball.x - px, dy = ball.y - py, dist = Math.hypot(dx, dy), min = BALL_R + radius;
+  if (dist >= min || dist === 0) return;
+  const nx = dx / dist, ny = dy / dist;
+  ball.x = px + nx * min; ball.y = py + ny * min;
+  const vn = ball.vx * nx + ball.vy * ny;              // speed towards the point
+  if (vn < 0) { ball.vx -= (1 + restitution) * vn * nx; ball.vy -= (1 + restitution) * vn * ny; }
+  ball.touched = true;
+}
+
+function physicsStep(h) {
+  const prevY = ball.y;
+  ball.vy += GRAVITY * h;
+  ball.x += ball.vx * h; ball.y += ball.vy * h;
+  ball.spin += (ball.vx * h) / BALL_R;
+  bounceOff(FRONT_X, RIM_Y, RIM_R, 0.55);
+  bounceOff(BACK_X, RIM_Y, RIM_R, 0.55);
+  const cx = Math.max(BOARD.x1, Math.min(BOARD.x2, ball.x)), cy = Math.max(BOARD.y1, Math.min(BOARD.y2, ball.y));
+  bounceOff(cx, cy, 0, 0.7);
+  // A basket: the centre crosses the rim line going down, between the two rim edges (and never came up through it).
+  const inside = ball.x > FRONT_X && ball.x < BACK_X;
+  if (prevY > RIM_Y && ball.y <= RIM_Y && inside) ball.fromBelow = true;
+  if (!ball.scored && !ball.fromBelow && prevY < RIM_Y && ball.y >= RIM_Y && ball.vy > 0 && inside) scoreBasket();
+  if (ball.scored && ball.y < RIM_Y + 60 && ball.x > FRONT_X - 10 && ball.x < BACK_X + 10) { ball.vx *= 0.9; ball.vy *= 0.97; }  // the net slows it
+  if (ball.y + BALL_R > FLOOR) {                       // floor
+    ball.y = FLOOR - BALL_R;
+    if (ball.vy > 0) { ball.vy *= -0.55; ball.vx *= 0.8; ball.bounces++; }
+  }
+  if (ball.x - BALL_R < 0) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx) * 0.5; }
+  if (ball.x + BALL_R > WORLD_W) { ball.x = WORLD_W - BALL_R; ball.vx = -Math.abs(ball.vx) * 0.5; }
+}
+
+function scoreBasket() {
+  ball.scored = true;
+  const swish = !ball.touched;
+  const points = (ball.three ? 3 : 2) + (swish ? 1 : 0);
+  score += points; made++;
+  netSwing = 1;
+  pops.push({ x: (FRONT_X + BACK_X) / 2, y: RIM_Y - 40, text: `+${points}${swish ? " swish!" : ""}`, t: 0 });
+}
+
+function update(dt) {
+  timeLeft = Math.max(0, timeLeft - dt);
+  if (ball.flying) {
+    for (let i = 0; i < 4; i++) physicsStep(dt / 4);   // small steps so a fast ball can't pass through the rim
+    ball.t += dt;
+    // The shot is over after two floor bounces, or a while after a basket, or after 5 seconds.
+    if (ball.bounces >= 2 || ball.t > 5 || (ball.scored && ball.y > RIM_Y + 150)) newBall();
+  }
+  // The buzzer: a ball already in the air still counts.
+  if (timeLeft <= 0 && !ball.flying) { state = "over"; best = Math.max(best, score); overAt = performance.now(); drag = null; }
+}
+
+// ----- Drawing -----
+const sx = (x) => ox + x * scale, sy = (y) => oy + y * scale;
+
+function circle(x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+
+function text(str, x, y, size, color, align = "center", weight = 700) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(str, x, y);
+}
+
+function drawCourt() {
+  const wall = ctx.createLinearGradient(0, hud, 0, sy(FLOOR));
+  wall.addColorStop(0, "#16213e"); wall.addColorStop(1, "#24345e");
+  ctx.fillStyle = wall; ctx.fillRect(0, hud, W, sy(FLOOR) - hud);
+  ctx.fillStyle = "#c8894f"; ctx.fillRect(0, sy(FLOOR), W, H - sy(FLOOR));   // wooden floor
+  ctx.fillStyle = "#b5773f";
+  for (let x = ox % (40 * scale) - 40 * scale; x < W; x += 40 * scale) ctx.fillRect(x, sy(FLOOR), 2, H - sy(FLOOR));
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(sx(THREE_X) - 2, sy(FLOOR), 4, H - sy(FLOOR));
+  text("3 PT", sx(THREE_X) - 8, sy(FLOOR) + 18 * scale, Math.max(11, 16 * scale), "#ffffff", "right");
+  ctx.fillStyle = "#8d99ae"; ctx.fillRect(sx(BOARD.x2), sy(285), W - sx(BOARD.x2), 8 * scale);   // arm to the wall
+  ctx.fillStyle = "#f8f9fa"; ctx.fillRect(sx(BOARD.x1), sy(BOARD.y1), (BOARD.x2 - BOARD.x1) * scale, (BOARD.y2 - BOARD.y1) * scale);
+}
+
+function drawHoop() {
+  // Net: lines from the rim that narrow towards the bottom and swing after a basket.
+  const sway = Math.sin(performance.now() / 40) * netSwing * 6;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.85)"; ctx.lineWidth = Math.max(1, 1.5 * scale);
+  ctx.beginPath();
+  for (let i = 0; i <= 5; i++) {
+    const top = FRONT_X + (BACK_X - FRONT_X) * (i / 5), bottom = FRONT_X + 12 + (BACK_X - FRONT_X - 24) * (i / 5) + sway;
+    ctx.moveTo(sx(top), sy(RIM_Y)); ctx.lineTo(sx(bottom), sy(RIM_Y + 55));
+  }
+  for (let k = 1; k <= 3; k++) {
+    const y = RIM_Y + k * 18, inset = k * 4;
+    ctx.moveTo(sx(FRONT_X + inset) + sway * k / 3, sy(y)); ctx.lineTo(sx(BACK_X - inset) + sway * k / 3, sy(y));
+  }
+  ctx.stroke();
+  ctx.strokeStyle = "#ff6b35"; ctx.lineWidth = RIM_R * 2 * scale; ctx.lineCap = "round";   // rim and bracket
+  ctx.beginPath(); ctx.moveTo(sx(FRONT_X), sy(RIM_Y)); ctx.lineTo(sx(BOARD.x1), sy(RIM_Y)); ctx.stroke();
+  ctx.lineCap = "butt";
+}
+
+function drawBall() {
+  const x = sx(ball.x), y = sy(ball.y), r = BALL_R * scale;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";               // shadow on the floor
+  ctx.beginPath(); ctx.ellipse(x, sy(FLOOR), r * 0.9, r * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+  circle(x, y, r, "#f77f00");
+  ctx.save();                                          // seams turn with the ball
+  ctx.translate(x, y); ctx.rotate(ball.spin);
+  ctx.strokeStyle = "#5c2c06"; ctx.lineWidth = Math.max(1, 1.6 * scale);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.moveTo(0, -r); ctx.lineTo(0, r);
+  ctx.moveTo(r * 0.55, -r * 0.83); ctx.quadraticCurveTo(r * 0.15, 0, r * 0.55, r * 0.83);
+  ctx.moveTo(-r * 0.55, -r * 0.83); ctx.quadraticCurveTo(-r * 0.15, 0, -r * 0.55, r * 0.83);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAim() {
+  // Dots along the first 0.45 s of the flight: enough to aim, not enough to be sure.
+  const a = aim.angle * Math.PI / 180, vx = Math.cos(a) * aim.speed, vy = -Math.sin(a) * aim.speed;
+  for (let i = 1; i <= 9; i++) {
+    const t = i * 0.05;
+    circle(sx(ball.x + vx * t), sy(ball.y + vy * t + 0.5 * GRAVITY * t * t), Math.max(2, (4 - i * 0.25) * scale), "rgba(255, 255, 255, 0.8)");
+  }
+  const power = Math.round(((aim.speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)) * 100);
+  text(`${Math.round(aim.angle)}° · ${power}%`, sx(ball.x), sy(ball.y + 52), Math.max(12, 18 * scale), "#ffffff", "center", 600);
+}
+
+function draw() {
+  ctx.fillStyle = "#16213e"; ctx.fillRect(0, 0, W, H);
+  drawCourt();
+  if (ball) {
+    if (state === "playing" && !ball.flying) drawAim();
+    // A ball dropping through the hoop is drawn behind the front of the rim and net.
+    if (ball.scored && ball.y < RIM_Y + 60) { drawBall(); drawHoop(); } else { drawHoop(); drawBall(); }
+  } else drawHoop();
+  const fs = Math.max(15, Math.min(22, W / 28));
+  for (const p of pops) {
+    ctx.globalAlpha = Math.max(0, 1 - p.t);
+    text(p.text, sx(p.x), sy(p.y) - p.t * 40, fs * 1.2, "#ffd166");
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.fillStyle = "#0f1629"; ctx.fillRect(0, 0, W, hud);           // score bar
+  text(`Score ${score}`, 12, hud / 2, fs, "#ffffff", "left");
+  text(`${Math.ceil(timeLeft)}s`, W / 2, hud / 2, fs, timeLeft < 10 ? "#ff6b6b" : "#ffffff");
+  text(`${made}/${shots}  Best ${best}`, W - 12, hud / 2, fs, "#bcd4ff", "right", 600);
+
+  if (state !== "playing") {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; ctx.fillRect(0, hud, W, H - hud);
+    const cx = W / 2, cy = hud + (H - hud) * 0.42, big = Math.max(28, Math.min(46, W / 12));
+    if (state === "ready") {
+      text("Buzzer Hoops", cx, cy - fs * 4, big, "#ffd166");
+      text("Drag back from the ball and let go to shoot.", cx, cy - fs * 1.5, fs * 0.95, "#ffffff", "center", 500);
+      text("Keys: ← → power, ↑ ↓ angle, Space shoots", cx, cy, fs * 0.95, "#bcd4ff", "center", 500);
+      text("2 points, 3 behind the line, +1 for a swish", cx, cy + fs * 1.5, fs * 0.95, "#bcd4ff", "center", 500);
+      text("Tap or press Space to start", cx, cy + fs * 3.5, fs * 1.1, "#ffd166");
+    } else {
+      text("Buzzer!", cx, cy - fs * 4, big, "#ffd166");
+      text(`Score ${score}   Best ${best}`, cx, cy - fs * 1.5, fs * 1.15, "#ffffff");
+      text(`Made ${made} of ${shots} shots (${shots ? Math.round((made / shots) * 100) : 0}%)`, cx, cy, fs, "#bcd4ff", "center", 500);
+      text("Tap or press Space to play again", cx, cy + fs * 2.5, fs * 1.1, "#ffd166");
+    }
+  }
+}
+
+// ----- Main loop -----
+function loop(now) {
+  const dt = Math.min(1 / 30, (now - last) / 1000);
+  last = now;
+  if (state === "playing") update(dt);
+  pops.forEach((p) => { p.t += dt; });
+  pops = pops.filter((p) => p.t < 1);
+  netSwing = Math.max(0, netSwing - dt * 1.5);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: drag back and release (mouse or touch), or aim with the keyboard -----
+function startOrRestart() {
+  if (state === "ready" || (state === "over" && performance.now() - overAt > 700)) start();
+}
+
+function aimFromDrag(e) {
+  // The pull is the opposite of the drag, in world units with y up: drag down-left to shoot up-right.
+  const px = (drag.x - e.clientX) / scale, py = (e.clientY - drag.y) / scale;
+  if (Math.hypot(px, py) < 8) return false;
+  let angle = Math.atan2(py, px) * 180 / Math.PI;
+  if (angle < 10 || angle > 85) angle = angle > -90 && angle < 10 ? 10 : 85;
+  aim.angle = angle;
+  aim.speed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, Math.hypot(px, py) * PULL_TO_SPEED));
+  return true;
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  if (state !== "playing") { startOrRestart(); return; }
+  if (ball.flying) return;
+  drag = { x: e.clientX, y: e.clientY };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", (e) => { if (drag) aimFromDrag(e); });
+canvas.addEventListener("pointerup", (e) => {
+  if (!drag) return;
+  const pulled = aimFromDrag(e);
+  drag = null;
+  if (pulled) shoot();
+});
+canvas.addEventListener("pointercancel", () => { drag = null; });
+
+window.addEventListener("keydown", (e) => {
+  const k = e.code;
+  if (k === "Space" || k === "Enter") { e.preventDefault(); if (state === "playing") shoot(); else startOrRestart(); return; }
+  if (k === "ArrowUp" || k === "KeyW") aim.angle = Math.min(85, aim.angle + 1);
+  else if (k === "ArrowDown" || k === "KeyS") aim.angle = Math.max(10, aim.angle - 1);
+  else if (k === "ArrowRight" || k === "KeyD") aim.speed = Math.min(MAX_SPEED, aim.speed + 10);
+  else if (k === "ArrowLeft" || k === "KeyA") aim.speed = Math.max(MIN_SPEED, aim.speed - 10);
+  else return;
+  e.preventDefault();
+});
+
+window.addEventListener("resize", resize);
+newBall();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

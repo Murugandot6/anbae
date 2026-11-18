@@ -1,0 +1,252 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/breakout -->
+<!-- Brick Burst: a Breakout-style brick breaker in one HTML5 canvas file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brick Burst (HTML5 canvas brick breaker)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0e17; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings (in field units: the playfield is always 480 × 640) -----
+const W = 480, H = 640;
+const HUD = 44;                          // score bar at the top of the field
+const COLS = 8, ROWS = 6, GAP = 4, SIDE = 16, TOP = 84;   // brick wall layout
+const BRICK_W = (W - SIDE * 2 - GAP * (COLS - 1)) / COLS, BRICK_H = 20;
+const PADDLE_W = 84, PADDLE_H = 12, PADDLE_Y = H - 48, PADDLE_SPEED = 560;
+const BALL_R = 7;
+const START_SPEED = 320, LEVEL_SPEED = 25, MAX_SPEED = 620;   // field units per second
+const MAX_ANGLE = 60 * Math.PI / 180;    // steepest bounce off the paddle edge
+const LIVES = 3;
+const STEP = 1 / 120;                    // 120 physics steps a second
+const ROW_COLORS = ["#ff5d73", "#ff9f45", "#ffd166", "#5ee6a0", "#4cc9f0", "#9b8cff"];
+const COLORS = { bg: "#0b0e17", field: "#121a2b", hud: "#0e1422", paddle: "#e8ecff", ball: "#ffffff", text: "#e8ecff", dim: "#8d97b5" };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let view = { scale: 1, x: 0, y: 0, dpr: 1 };
+
+// ----- Sizing: scale the fixed field to fit the window (letterbox), sharp on high-DPI -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const sw = window.innerWidth, sh = window.innerHeight;
+  canvas.style.width = sw + "px";
+  canvas.style.height = sh + "px";
+  canvas.width = Math.round(sw * dpr);
+  canvas.height = Math.round(sh * dpr);
+  const scale = Math.min(sw / W, sh / H);
+  view = { scale, dpr, x: (sw - W * scale) / 2, y: (sh - H * scale) / 2 };
+}
+
+// Screen position → field x, for mouse and touch control.
+function pointerX(e) {
+  const r = canvas.getBoundingClientRect();
+  return (e.clientX - r.left - view.x) / view.scale;
+}
+
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+// ----- Game state -----
+let bricks, paddleX, ball, score, best = 0, lives, level, state, endedAt = 0, timer = 0, last = 0;
+const held = new Set();
+
+function reset() {
+  score = 0;
+  lives = LIVES;
+  level = 1;
+  paddleX = W / 2;
+  buildLevel();
+  state = "ready";                       // ready → playing → over
+}
+
+// A fresh wall. From level 2, the top rows take two hits (one more row each level, up to 3).
+function buildLevel() {
+  bricks = [];
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      bricks.push({
+        x: SIDE + col * (BRICK_W + GAP), y: TOP + row * (BRICK_H + GAP),
+        hp: row < Math.min(3, level - 1) ? 2 : 1,
+        color: ROW_COLORS[row], points: (ROWS - row) * 10,
+      });
+    }
+  }
+  catchBall();
+}
+
+// Park the ball on the paddle until the player launches it.
+function catchBall() {
+  ball = { x: paddleX, y: PADDLE_Y - BALL_R - 1, vx: 0, vy: 0, speed: Math.min(MAX_SPEED, START_SPEED + (level - 1) * LEVEL_SPEED), stuck: true };
+}
+
+function launch() {
+  const angle = (Math.random() * 2 - 1) * 0.4;   // a little off vertical, so no two serves match
+  ball.vx = Math.sin(angle) * ball.speed;
+  ball.vy = -Math.cos(angle) * ball.speed;
+  ball.stuck = false;
+}
+
+// Space, Enter, a click or a tap: start, launch, or play again.
+function action() {
+  if (state === "over") {
+    if (performance.now() - endedAt < 600) return;   // ignore a stray tap right after losing
+    reset();
+  }
+  state = "playing";
+  if (ball.stuck) launch();
+}
+
+// ----- One physics step -----
+function step(dt) {
+  const dir = (held.has("ArrowRight") || held.has("KeyD") ? 1 : 0) - (held.has("ArrowLeft") || held.has("KeyA") ? 1 : 0);
+  paddleX = clamp(paddleX + dir * PADDLE_SPEED * dt, PADDLE_W / 2, W - PADDLE_W / 2);
+  if (ball.stuck) { ball.x = paddleX; return; }
+
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+  // Walls: left, right and the bottom of the score bar. Set the direction, don't just flip it,
+  // so a ball that is still touching a wall next step can't get stuck flipping back and forth.
+  if (ball.x < BALL_R) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx); }
+  if (ball.x > W - BALL_R) { ball.x = W - BALL_R; ball.vx = -Math.abs(ball.vx); }
+  if (ball.y < HUD + BALL_R) { ball.y = HUD + BALL_R; ball.vy = Math.abs(ball.vy); }
+
+  // Paddle: the further from the centre the ball lands, the steeper it leaves.
+  const offset = (ball.x - paddleX) / (PADDLE_W / 2 + BALL_R);
+  if (ball.vy > 0 && ball.y + BALL_R >= PADDLE_Y && ball.y < PADDLE_Y + PADDLE_H && Math.abs(offset) <= 1) {
+    const angle = offset * MAX_ANGLE;
+    ball.vx = Math.sin(angle) * ball.speed;
+    ball.vy = -Math.cos(angle) * ball.speed;
+    ball.y = PADDLE_Y - BALL_R;
+  }
+
+  hitBricks();
+
+  // Fell past the paddle: lose a life.
+  if (ball.y > H + BALL_R) {
+    lives--;
+    if (lives <= 0) { state = "over"; best = Math.max(best, score); endedAt = performance.now(); }
+    catchBall();
+  }
+}
+
+// Circle-vs-rectangle test against every brick; the ball breaks at most one brick per step.
+function hitBricks() {
+  for (const b of bricks) {
+    if (!b.hp) continue;
+    const nx = clamp(ball.x, b.x, b.x + BRICK_W), ny = clamp(ball.y, b.y, b.y + BRICK_H);   // nearest point on the brick
+    const dx = ball.x - nx, dy = ball.y - ny;
+    if (dx * dx + dy * dy > BALL_R * BALL_R) continue;
+    // Bounce off the side the ball went in least deep: left/right flips vx, top/bottom flips vy.
+    const cx = b.x + BRICK_W / 2, cy = b.y + BRICK_H / 2;
+    const overlapX = BALL_R + BRICK_W / 2 - Math.abs(ball.x - cx);
+    const overlapY = BALL_R + BRICK_H / 2 - Math.abs(ball.y - cy);
+    if (overlapX < overlapY) ball.vx = ball.x < cx ? -Math.abs(ball.vx) : Math.abs(ball.vx);
+    else ball.vy = ball.y < cy ? -Math.abs(ball.vy) : Math.abs(ball.vy);
+    b.hp--;
+    if (!b.hp) score += b.points * level;
+    // Each brick speeds the ball up by 1%, up to MAX_SPEED.
+    const k = Math.min(MAX_SPEED, ball.speed * 1.01) / ball.speed;
+    ball.speed *= k; ball.vx *= k; ball.vy *= k;
+    if (bricks.every((brick) => !brick.hp)) { level++; buildLevel(); }
+    return;
+  }
+}
+
+// ----- Drawing (everything in field units; the transform does the scaling) -----
+function text(str, x, y, size, color, weight = 600, align = "center") {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(str, x, y);
+}
+
+function draw() {
+  ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const s = view.scale * view.dpr;
+  ctx.setTransform(s, 0, 0, s, view.x * view.dpr, view.y * view.dpr);
+  ctx.fillStyle = COLORS.field;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = COLORS.hud;
+  ctx.fillRect(0, 0, W, HUD);
+
+  for (const b of bricks) {
+    if (!b.hp) continue;
+    ctx.fillStyle = b.color;
+    ctx.fillRect(b.x, b.y, BRICK_W, BRICK_H);
+    if (b.hp > 1) {                      // tough bricks get a white frame until the first hit
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x + 3, b.y + 3, BRICK_W - 6, BRICK_H - 6);
+    }
+  }
+  ctx.fillStyle = COLORS.paddle;
+  ctx.fillRect(paddleX - PADDLE_W / 2, PADDLE_Y, PADDLE_W, PADDLE_H);
+  ctx.fillStyle = COLORS.ball;
+  ctx.beginPath();
+  ctx.arc(ball.stuck ? paddleX : ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Score bar: score on the left, level in the middle, one dot per life on the right.
+  ctx.textBaseline = "middle";
+  text(`Score ${score}`, 14, HUD / 2, 18, COLORS.text, 700, "left");
+  text(`Level ${level}`, W / 2, HUD / 2, 18, COLORS.dim, 600);
+  ctx.fillStyle = COLORS.paddle;
+  for (let i = 0; i < lives; i++) { ctx.beginPath(); ctx.arc(W - 20 - i * 20, HUD / 2, 6, 0, Math.PI * 2); ctx.fill(); }
+
+  if (state === "playing" && ball.stuck) {
+    text(`Level ${level}`, W / 2, H * 0.6, 32, COLORS.text, 800);
+    text("Tap or press Space to launch", W / 2, H * 0.6 + 40, 18, COLORS.text, 600);
+  }
+  if (state === "playing") return;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(0, HUD, W, H - HUD);
+  const over = state === "over";
+  text(over ? "Game over" : "Brick Burst", W / 2, H * 0.4, 46, COLORS.text, 800);
+  text(over ? `Score ${score}   ·   Best ${best}` : "Clear every brick. Keep the ball up.", W / 2, H * 0.4 + 52, 19, COLORS.text, 500);
+  text("Mouse, drag, or ← → / A D to move", W / 2, H * 0.4 + 88, 18, COLORS.dim, 500);
+  text(over ? "Tap or press Space to play again" : "Tap or press Space to launch", W / 2, H * 0.4 + 136, 20, ROW_COLORS[2], 700);
+}
+
+// ----- Main loop: fixed physics steps, one drawing per frame -----
+function loop(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+  if (state === "playing") {
+    timer += dt;
+    while (timer >= STEP && state === "playing") { timer -= STEP; step(STEP); }
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: keyboard, mouse and touch -----
+window.addEventListener("keydown", (e) => {
+  if (["ArrowLeft", "ArrowRight", "KeyA", "KeyD"].includes(e.code)) { e.preventDefault(); held.add(e.code); }
+  else if (["Space", "Enter", "ArrowUp", "KeyW"].includes(e.code)) { e.preventDefault(); action(); }
+});
+window.addEventListener("keyup", (e) => held.delete(e.code));
+window.addEventListener("blur", () => held.clear());
+
+// The paddle follows the mouse, or your finger while it's down. Releasing launches a parked ball.
+canvas.addEventListener("pointerdown", (e) => { paddleX = clamp(pointerX(e), PADDLE_W / 2, W - PADDLE_W / 2); });
+canvas.addEventListener("pointermove", (e) => {
+  if (e.pointerType === "mouse" || e.buttons) paddleX = clamp(pointerX(e), PADDLE_W / 2, W - PADDLE_W / 2);
+});
+canvas.addEventListener("pointerup", () => { if (state !== "playing" || ball.stuck) action(); });
+
+window.addEventListener("resize", resize);
+reset();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

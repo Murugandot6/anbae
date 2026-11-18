@@ -1,0 +1,251 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/pong -->
+<!-- Paddle Duel: a Pong-style HTML5 canvas game in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paddle Duel (HTML5 canvas Pong-style game)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0a0d14; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings (in court units: the court is always 600 across and 800 long) -----
+const COURT_W = 600;                 // along the paddles
+const COURT_L = 800;                 // from the computer's back line (v = 0) to yours (v = 800)
+const PADDLE_LEN = 110, PADDLE_THICK = 14, PADDLE_GAP = 30;   // size, and distance from the back line
+const BALL_R = 9;
+const SERVE_SPEED = 380;             // court units per second
+const SPEED_UP = 1.06;               // the ball gets 6% faster on every paddle hit...
+const MAX_SPEED = 950;               // ...up to this
+const MAX_ANGLE = 50 * Math.PI / 180;   // the steepest return, off the very end of a paddle
+const PLAYER_SPEED = 640;            // your paddle with the keyboard
+const POINTER_SPEED = 1400;          // your paddle chasing the mouse or finger
+const CPU_SPEED = 300;               // the computer can never move faster than this
+const WIN_SCORE = 7;
+const STEP = 1 / 120;                // the physics runs 120 times a second
+const COLORS = { bg: "#0a0d14", court: "#111827", line: "#2a3550", you: "#3ee6a8", cpu: "#ff6b9a", ball: "#f8fafc", text: "#e5ecff", score: "rgba(229, 236, 255, 0.12)" };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let view = { portrait: false, scale: 1, x: 0, y: 0, w: 0, h: 0 };
+
+// ----- Sizing: fill the window, turn the court to fit the screen, stay sharp on high-DPI -----
+// Landscape screens show the court sideways (you play on the left). Portrait screens show it
+// upright (you play at the bottom). The game logic only knows court units and never changes.
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const portrait = H > W;
+  const cw = portrait ? COURT_W : COURT_L, ch = portrait ? COURT_L : COURT_W;
+  const scale = Math.min(W / cw, H / ch);
+  view = { portrait, scale, w: cw * scale, h: ch * scale, x: (W - cw * scale) / 2, y: (H - ch * scale) / 2 };
+}
+
+// Court point (u along the paddles, v between them) → screen pixels.
+function toScreen(u, v) {
+  return view.portrait
+    ? { x: view.x + u * view.scale, y: view.y + v * view.scale }
+    : { x: view.x + (COURT_L - v) * view.scale, y: view.y + u * view.scale };
+}
+
+// Screen pixels → position along the paddles, for mouse and touch control.
+function pointerToU(e) {
+  const r = canvas.getBoundingClientRect();
+  return view.portrait ? (e.clientX - r.left - view.x) / view.scale : (e.clientY - r.top - view.y) / view.scale;
+}
+
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+// ----- Game state -----
+let you, cpu, ball, state, serveTimer, cpuAim = 0, endedAt = 0, timer = 0, last = 0;
+let pointerU = null;                 // where the mouse or finger wants your paddle (court units)
+const held = new Set();              // movement keys currently held down
+
+function reset() {
+  // side: which way the ball travels (along v) when it comes towards this paddle.
+  you = { u: COURT_W / 2, v: COURT_L - PADDLE_GAP, side: 1, score: 0 };
+  cpu = { u: COURT_W / 2, v: PADDLE_GAP, side: -1, score: 0 };
+  serve(1);
+  state = "ready";                   // ready → playing → over
+}
+
+// Park the ball in the middle; it launches towards `side` after a short pause.
+function serve(side) {
+  ball = { u: COURT_W / 2, v: COURT_L / 2, vu: 0, vv: 0, speed: SERVE_SPEED, side };
+  serveTimer = 0.9;
+}
+
+function launch() {
+  const angle = (Math.random() * 2 - 1) * 0.5;   // up to about 29 degrees off straight
+  ball.vu = Math.sin(angle) * ball.speed;
+  ball.vv = Math.cos(angle) * ball.speed * ball.side;
+}
+
+function start() {
+  if (state === "over" && performance.now() - endedAt < 600) return;   // ignore a stray tap right after the end
+  if (state === "over") reset();
+  state = "playing";
+}
+
+// ----- One physics step -----
+function step(dt) {
+  // Your paddle: keys move it at a fixed speed; a pointer pulls it towards the pointer.
+  const keyDir = (["ArrowDown", "ArrowRight", "KeyS", "KeyD"].some((k) => held.has(k)) ? 1 : 0)
+    - (["ArrowUp", "ArrowLeft", "KeyW", "KeyA"].some((k) => held.has(k)) ? 1 : 0);
+  if (keyDir) pointerU = null;
+  if (pointerU !== null) you.u += clamp(pointerU - you.u, -POINTER_SPEED * dt, POINTER_SPEED * dt);
+  else you.u += keyDir * PLAYER_SPEED * dt;
+  // The computer chases the ball (plus a small aiming error) only while it's coming its way.
+  const target = ball.vv < 0 ? ball.u + cpuAim : COURT_W / 2;
+  cpu.u += clamp(target - cpu.u, -CPU_SPEED * dt, CPU_SPEED * dt);
+  for (const p of [you, cpu]) p.u = clamp(p.u, PADDLE_LEN / 2, COURT_W - PADDLE_LEN / 2);
+
+  if (serveTimer > 0) { serveTimer -= dt; if (serveTimer <= 0) launch(); return; }
+
+  const prevU = ball.u, prevV = ball.v;
+  ball.u += ball.vu * dt;
+  ball.v += ball.vv * dt;
+  // Side walls: push the ball back inside and send it the other way.
+  if (ball.u < BALL_R) { ball.u = BALL_R; ball.vu = Math.abs(ball.vu); }
+  if (ball.u > COURT_W - BALL_R) { ball.u = COURT_W - BALL_R; ball.vu = -Math.abs(ball.vu); }
+  bounce(you, prevU, prevV);
+  bounce(cpu, prevU, prevV);
+  // Past a back line: a point for the other player.
+  if (ball.v > COURT_L + BALL_R) point(cpu);
+  else if (ball.v < -BALL_R) point(you);
+}
+
+// Swept test: did the front of the ball cross the paddle's face during this step?
+// Testing the crossing, not just the overlap, means a fast ball can't skip through a paddle.
+function bounce(p, prevU, prevV) {
+  if (ball.vv * p.side <= 0) return;                     // moving away from this paddle
+  const face = p.v - p.side * PADDLE_THICK / 2;          // the side of the paddle facing the court
+  const before = (prevV + p.side * BALL_R - face) * p.side;
+  const after = (ball.v + p.side * BALL_R - face) * p.side;
+  if (before > 0 || after < 0) return;                   // the ball didn't reach the face this step
+  const t = before === after ? 0 : before / (before - after);
+  const hitU = prevU + (ball.u - prevU) * t;             // where along the paddle it arrived
+  const offset = (hitU - p.u) / (PADDLE_LEN / 2 + BALL_R);   // -1 at one end, 0 centre, 1 the other end
+  if (Math.abs(offset) > 1) return;                      // missed the paddle
+  // Hit near the end for a steep return. Every hit makes the ball a little faster.
+  const angle = offset * MAX_ANGLE;
+  ball.speed = Math.min(MAX_SPEED, ball.speed * SPEED_UP);
+  ball.vu = Math.sin(angle) * ball.speed;
+  ball.vv = -p.side * Math.cos(angle) * ball.speed;
+  ball.u = hitU;
+  ball.v = face - p.side * BALL_R;
+  // Give the computer a new aiming error. It grows as the ball speeds up, so long rallies
+  // end with the occasional miss instead of going on forever.
+  const rush = (ball.speed - SERVE_SPEED) / (MAX_SPEED - SERVE_SPEED);   // 0 … 1
+  if (p === you) cpuAim = (Math.random() * 2 - 1) * PADDLE_LEN * (0.35 + 0.35 * rush);
+}
+
+function point(scorer) {
+  scorer.score++;
+  serve(scorer === you ? -1 : 1);    // serve towards whoever lost the point
+  if (scorer.score >= WIN_SCORE) { state = "over"; endedAt = performance.now(); }
+}
+
+// ----- Drawing -----
+// Fills a court-space box (centre u, v and half sizes) on screen, whichever way the court is turned.
+function courtRect(u, v, halfU, halfV, color) {
+  const a = toScreen(u - halfU, v - halfV), b = toScreen(u + halfU, v + halfV);
+  ctx.fillStyle = color;
+  ctx.fillRect(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.abs(b.x - a.x), Math.abs(b.y - a.y));
+}
+
+function text(str, x, y, size, color, weight = 600) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.fillText(str, x, y);
+}
+
+function draw() {
+  const s = view.scale;
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  courtRect(COURT_W / 2, COURT_L / 2, COURT_W / 2, COURT_L / 2, COLORS.court);
+  for (let u = 15; u < COURT_W; u += 40) courtRect(u, COURT_L / 2, 10, 2, COLORS.line);   // dashed centre line
+
+  // Big faint scores in each half during play, with a label so you know which end is yours.
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const big = Math.round(130 * s), small = Math.max(12, Math.round(22 * s));
+  const sides = state === "playing" ? [[cpu, "CPU", COLORS.cpu], [you, "YOU", COLORS.you]] : [];
+  for (const [p, label, color] of sides) {
+    const c = toScreen(COURT_W / 2, p === cpu ? COURT_L * 0.27 : COURT_L * 0.73);
+    text(String(p.score), c.x, c.y, big, COLORS.score, 800);
+    text(label, c.x, c.y + big * 0.62, small, color, 700);
+  }
+
+  courtRect(you.u, you.v, PADDLE_LEN / 2, PADDLE_THICK / 2, COLORS.you);
+  courtRect(cpu.u, cpu.v, PADDLE_LEN / 2, PADDLE_THICK / 2, COLORS.cpu);
+  if (state === "playing") {
+    const b = toScreen(ball.u, ball.v);
+    ctx.fillStyle = COLORS.ball;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, BALL_R * s, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  // Start and game over screens: a dark layer over the court and a few lines of text.
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  ctx.fillRect(view.x, view.y, view.w, view.h);
+  const cx = view.x + view.w / 2, cy = view.y + view.h / 2;
+  const unit = Math.min(view.w, view.h) / 600;            // 1 on a full-size court
+  const line = Math.max(14, 22 * unit);
+  const title = state === "ready" ? "Paddle Duel" : you.score > cpu.score ? "You win!" : "CPU wins";
+  text(title, cx, cy - 80 * unit, Math.max(28, 56 * unit), COLORS.text, 800);
+  if (state === "over") text(`${you.score} – ${cpu.score}`, cx, cy - 22 * unit, Math.max(18, 32 * unit), COLORS.text, 700);
+  else text(`First to ${WIN_SCORE} points wins`, cx, cy - 22 * unit, line, COLORS.text, 500);
+  text(view.portrait ? "You: green paddle, bottom" : "You: green paddle, left", cx, cy + 22 * unit, line, COLORS.you, 600);
+  text(view.portrait ? "Drag, or ← → / A D" : "Mouse, drag, or ↑ ↓ / W S", cx, cy + 56 * unit, line, COLORS.text, 500);
+  text(state === "over" ? "Tap or press Space to play again" : "Tap or press Space to serve", cx, cy + 100 * unit, line, COLORS.text, 700);
+}
+
+// ----- Main loop: fixed physics steps, one drawing per frame -----
+function loop(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+  if (state === "playing") {
+    timer += dt;
+    while (timer >= STEP && state === "playing") { timer -= STEP; step(STEP); }
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: keyboard, mouse and touch -----
+const MOVE_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyS", "KeyA", "KeyD"];
+window.addEventListener("keydown", (e) => {
+  if (MOVE_KEYS.includes(e.code)) { e.preventDefault(); held.add(e.code); }
+  else if ((e.code === "Space" || e.code === "Enter") && state !== "playing") { e.preventDefault(); start(); }
+});
+window.addEventListener("keyup", (e) => held.delete(e.code));
+window.addEventListener("blur", () => held.clear());   // don't keep moving after the window loses focus
+
+canvas.addEventListener("pointerdown", (e) => {
+  pointerU = pointerToU(e);
+  if (state !== "playing") start();
+});
+canvas.addEventListener("pointermove", (e) => { pointerU = pointerToU(e); });
+
+window.addEventListener("resize", resize);
+reset();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

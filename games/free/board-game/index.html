@@ -1,0 +1,314 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/board-game -->
+<!-- Tic-Tac-Toe: a complete HTML5 board game with an easy and an unbeatable computer player. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tic-Tac-Toe (HTML5 canvas board game)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #151a2e; color: #eef1ff; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const AI_DELAY = 0.5;                // seconds the computer "thinks" before it moves
+const MARK_TIME = 0.25;              // seconds to draw an X or an O
+const COLORS = { bg: "#151a2e", grid: "#3a4670", X: "#ff6b6b", O: "#4ecdc4", text: "#eef1ff", dim: "#9aa5cc", button: "#283461", focus: "#ffd166" };
+const HUMAN = "X", AI = "O";         // against the computer you are X and it is O
+const MODES = [
+  { name: "Easy computer", ai: "easy" },
+  { name: "Unbeatable computer", ai: "hard" },
+  { name: "Two players", ai: null },
+];
+// The 8 ways to win: three rows, three columns, two diagonals (cells are numbered 0–8, row by row).
+const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 72;                      // room above the board for the score and whose turn it is
+let size = 300, cell = 100;          // board and cell size in CSS pixels, set by resize()
+
+// ----- Sizing: a square board that fits the window, sharp on high-DPI screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  size = Math.max(240, Math.floor(Math.min(window.innerWidth - 16, window.innerHeight - HUD - 16, 560)));
+  cell = size / 3;
+  canvas.style.width = size + "px";
+  canvas.style.height = size + HUD + "px";
+  canvas.width = Math.round(size * dpr);
+  canvas.height = Math.round((size + HUD) * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+// ----- Game state -----
+let board = Array(9).fill("");       // "" for empty, or "X" / "O"; cell i is row Math.floor(i / 3), column i % 3
+let drawn = Array(9).fill(0);        // how much of each mark has been drawn so far, 0 → 1
+let state = "menu";                  // menu → play → over → play (next round) …
+let mode = MODES[1], menuIndex = 1, turn = "X", starter = "X";
+let wins = { X: 0, O: 0, draw: 0 }, outcome = null, overTime = 0, aiTimer = 0;
+let cursor = 4, usingKeys = false, buttons = [];
+
+// The rules in one function: a finished line wins, a full board is a draw, otherwise play on.
+function result(b) {
+  for (const line of LINES) {
+    const [a, c, d] = line;
+    if (b[a] && b[a] === b[c] && b[a] === b[d]) return { mark: b[a], line };
+  }
+  return b.includes("") ? null : { mark: "draw" };
+}
+
+// ----- The computer player -----
+// Minimax: try every move, then every reply, to the end of the game. The computer (O) picks the
+// highest score and assumes you pick the lowest. Using depth prefers fast wins and slow losses.
+function minimax(b, player, depth) {
+  const r = result(b);
+  if (r) return r.mark === AI ? 10 - depth : r.mark === HUMAN ? depth - 10 : 0;
+  let best = player === AI ? -Infinity : Infinity;
+  for (let i = 0; i < 9; i++) {
+    if (b[i]) continue;
+    b[i] = player;                   // try the move…
+    const score = minimax(b, player === AI ? HUMAN : AI, depth + 1);
+    b[i] = "";                       // …and take it back
+    best = player === AI ? Math.max(best, score) : Math.min(best, score);
+  }
+  return best;
+}
+
+function bestMove(b) {
+  let top = -Infinity, choices = [];
+  for (let i = 0; i < 9; i++) {
+    if (b[i]) continue;
+    b[i] = AI;
+    const score = minimax(b, HUMAN, 1);
+    b[i] = "";
+    if (score > top) { top = score; choices = [i]; } else if (score === top) choices.push(i);
+  }
+  return choices[Math.floor(Math.random() * choices.length)];   // equal moves: vary the game
+}
+
+// Easy: take a win when there is one, otherwise play anywhere. It never blocks you.
+function easyMove(b) {
+  const free = [];
+  for (let i = 0; i < 9; i++) if (!b[i]) free.push(i);
+  for (const i of free) {
+    b[i] = AI;
+    const won = result(b)?.mark === AI;
+    b[i] = "";
+    if (won) return i;
+  }
+  return free[Math.floor(Math.random() * free.length)];
+}
+
+// ----- Turns -----
+function startMatch(m) {
+  mode = m;
+  wins = { X: 0, O: 0, draw: 0 };
+  starter = "O";                     // nextRound() flips this, so X starts the first round
+  nextRound();
+}
+
+function nextRound() {
+  board = Array(9).fill("");
+  drawn = Array(9).fill(0);
+  outcome = null;
+  starter = starter === "X" ? "O" : "X";   // players take turns going first
+  turn = starter;
+  aiTimer = AI_DELAY;
+  state = "play";
+}
+
+const aiTurn = () => state === "play" && mode.ai && turn === AI;
+
+function place(i) {
+  if (state !== "play" || board[i]) return;   // only empty cells, only during a round
+  board[i] = turn;
+  outcome = result(board);
+  if (outcome) {
+    wins[outcome.mark]++;
+    state = "over";
+    overTime = 0;
+  } else {
+    turn = turn === "X" ? "O" : "X";
+    aiTimer = AI_DELAY;
+  }
+}
+
+function update(dt) {
+  for (let i = 0; i < 9; i++) if (board[i]) drawn[i] = Math.min(1, drawn[i] + dt / MARK_TIME);
+  if (state === "over") overTime += dt;
+  if (aiTurn()) {
+    aiTimer -= dt;
+    if (aiTimer <= 0) place(mode.ai === "hard" ? bestMove(board) : easyMove(board));
+  }
+}
+
+// ----- Drawing -----
+function label(text, x, y, px, weight, align, color = COLORS.text) {
+  ctx.font = `${weight} ${px}px system-ui, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+const centre = (i) => ({ x: (i % 3 + 0.5) * cell, y: HUD + (Math.floor(i / 3) + 0.5) * cell });
+
+function drawMark(mark, i, p) {
+  const { x, y } = centre(i), r = cell * 0.28;
+  ctx.strokeStyle = COLORS[mark];
+  ctx.lineWidth = Math.max(5, cell * 0.09);
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  if (mark === "O") ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p);
+  else {
+    const a = Math.min(1, p * 2), b = Math.max(0, p * 2 - 1);   // first stroke, then the second
+    ctx.moveTo(x - r, y - r);
+    ctx.lineTo(x - r + 2 * r * a, y - r + 2 * r * a);
+    if (b > 0) { ctx.moveTo(x + r, y - r); ctx.lineTo(x + r - 2 * r * b, y - r + 2 * r * b); }
+  }
+  ctx.stroke();
+}
+
+function button(text, y, action, focused) {
+  const w = Math.min(size * 0.8, 320), h = Math.max(44, cell * 0.36), x = (size - w) / 2;
+  ctx.fillStyle = COLORS.button;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, 10); else ctx.rect(x, y, w, h);
+  ctx.fill();
+  if (focused) { ctx.strokeStyle = COLORS.focus; ctx.lineWidth = 3; ctx.stroke(); }
+  label(text, size / 2, y + h / 2, Math.max(15, Math.min(19, size / 22)), 700, "center");
+  buttons.push({ x, y, w, h, action });
+  return h;
+}
+
+function status() {
+  if (state === "menu") return "Pick a mode to start";
+  if (state === "over") {
+    if (outcome.mark === "draw") return "Draw";
+    if (!mode.ai) return `${outcome.mark} wins!`;
+    return outcome.mark === HUMAN ? "You win!" : "Computer wins";
+  }
+  if (aiTurn()) return "Computer is thinking…";
+  return mode.ai ? "Your turn (X)" : `${turn} to move`;
+}
+
+function draw() {
+  buttons = [];
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, size, size + HUD);
+
+  // Score and status.
+  const px = Math.max(15, Math.min(20, size / 22));
+  const names = mode.ai ? { X: "You", O: "Computer" } : { X: "X", O: "O" };
+  label(`${names.X} ${wins.X}`, 6, 22, px, 700, "left", COLORS.X);
+  label(`Draws ${wins.draw}`, size / 2, 22, px, 600, "center", COLORS.dim);
+  label(`${names.O} ${wins.O}`, size - 6, 22, px, 700, "right", COLORS.O);
+  label(status(), size / 2, 54, px, 500, "center", state === "play" ? COLORS[turn] : COLORS.text);
+
+  // The grid: two vertical and two horizontal lines.
+  ctx.strokeStyle = COLORS.grid;
+  ctx.lineWidth = Math.max(3, cell * 0.04);
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  for (let k = 1; k < 3; k++) {
+    ctx.moveTo(k * cell, HUD + cell * 0.12); ctx.lineTo(k * cell, HUD + size - cell * 0.12);
+    ctx.moveTo(cell * 0.12, HUD + k * cell); ctx.lineTo(size - cell * 0.12, HUD + k * cell);
+  }
+  ctx.stroke();
+
+  for (let i = 0; i < 9; i++) if (board[i]) drawMark(board[i], i, drawn[i]);
+  if (usingKeys && state === "play" && !aiTurn()) {
+    ctx.strokeStyle = COLORS.focus;
+    ctx.lineWidth = 3;
+    ctx.strokeRect((cursor % 3) * cell + 8, HUD + Math.floor(cursor / 3) * cell + 8, cell - 16, cell - 16);
+  }
+
+  // The winning line grows across its three cells.
+  if (outcome && outcome.line) {
+    const a = centre(outcome.line[0]), b = centre(outcome.line[2]), p = Math.min(1, overTime / 0.3);
+    ctx.strokeStyle = COLORS.text;
+    ctx.lineWidth = Math.max(5, cell * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(a.x + (b.x - a.x) * p, a.y + (b.y - a.y) * p);
+    ctx.stroke();
+  }
+
+  // Menu and end-of-round panels (the end panel waits a moment so you can see the board).
+  if (state === "menu" || (state === "over" && overTime > 0.8)) {
+    ctx.fillStyle = "rgba(10, 13, 26, 0.85)";
+    ctx.fillRect(0, HUD, size, size);
+    const big = Math.min(cell * 0.4, size / 9);
+    if (state === "menu") {
+      let y = HUD + size * 0.14;
+      label("Tic-Tac-Toe", size / 2, y, big, 800, "center");
+      y += big * 1.3;
+      MODES.forEach((m, k) => { y += button(`${k + 1}. ${m.name}`, y, () => startMatch(m), usingKeys && k === menuIndex) + 12; });
+      label("Tap a mode, or press 1, 2 or 3", size / 2, y + 14, Math.max(13, size / 30), 400, "center", COLORS.dim);
+    } else {
+      // "Next round" sits in the middle, where a player taps without thinking; "Change mode" is below.
+      label(status(), size / 2, HUD + size * 0.26, Math.min(big, (size * 1.5) / status().length), 800, "center", outcome.mark === "draw" ? COLORS.text : COLORS[outcome.mark]);
+      const h = button("Next round (Space)", HUD + size / 2 - Math.max(44, cell * 0.36) / 2, nextRound, false);
+      button("Change mode (M)", HUD + size / 2 + h / 2 + 16, () => { state = "menu"; }, false);
+    }
+  }
+}
+
+// ----- Main loop -----
+let last = 0;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: tap or click a cell; arrows + Space, or 1–9, on a keyboard -----
+canvas.addEventListener("pointerdown", (e) => {
+  usingKeys = false;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const hit = buttons.find((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+  if (hit) { hit.action(); return; }
+  if (state === "over" && overTime > 0.8) { nextRound(); return; }
+  if (state !== "play" || aiTurn() || y < HUD) return;
+  place(Math.min(2, Math.floor((y - HUD) / cell)) * 3 + Math.min(2, Math.floor(x / cell)));
+});
+
+const MOVE = { ArrowUp: -3, KeyW: -3, ArrowDown: 3, KeyS: 3, ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1 };
+window.addEventListener("keydown", (e) => {
+  const digit = /^(Digit|Numpad)([1-9])$/.exec(e.code), go = e.code === "Space" || e.code === "Enter";
+  if (MOVE[e.code] !== undefined || go) e.preventDefault();
+  usingKeys = true;
+  if (state === "menu") {
+    if (digit && +digit[2] <= MODES.length) startMatch(MODES[+digit[2] - 1]);
+    else if (MOVE[e.code] === -3 || MOVE[e.code] === 3) menuIndex = (menuIndex + Math.sign(MOVE[e.code]) + MODES.length) % MODES.length;
+    else if (go) startMatch(MODES[menuIndex]);
+  } else if (state === "over") {
+    if (e.code === "KeyM" || e.code === "Escape") state = "menu";
+    else if (go && overTime > 0.8) nextRound();
+  } else if (e.code === "Escape") state = "menu";
+  else if (!aiTurn()) {
+    const d = MOVE[e.code];
+    if (d !== undefined) {
+      const col = cursor % 3 + (Math.abs(d) === 1 ? d : 0), row = Math.floor(cursor / 3) + (Math.abs(d) === 3 ? d / 3 : 0);
+      if (col >= 0 && col < 3 && row >= 0 && row < 3) cursor = row * 3 + col;
+    } else if (go) place(cursor);
+    else if (digit) place(+digit[2] - 1);   // 1–9 map to the cells row by row
+  }
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

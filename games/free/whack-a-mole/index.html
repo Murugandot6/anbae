@@ -1,0 +1,309 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/whack-a-mole -->
+<!-- Burrow Bop: a whack-a-mole game in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Burrow Bop (HTML5 whack-a-mole)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #3f8f3a; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const ROUND_TIME = 40;                 // seconds in one round
+const GAP = [0.95, 0.38];              // seconds between pop-ups at the start and at the end of a round
+const STAY = [1.15, 0.55];             // seconds a target stays up, start → end
+const RISE = 0.12;                     // seconds to pop up or duck down
+const GOLD_CHANCE = 0.12, BOMB_CHANCE = 0.16;
+const BOMB_PENALTY = 3;                // seconds lost when you hit a bomb
+const POINTS = { mole: 10, gold: 30 };
+const KEYS = { KeyQ: 0, KeyW: 1, KeyE: 2, KeyA: 3, KeyS: 4, KeyD: 5, KeyZ: 6, KeyX: 7, KeyC: 8 };
+for (let i = 1; i <= 9; i++) KEYS["Digit" + i] = i - 1;   // 1–9 in reading order, like a phone keypad
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, hud = 56;            // canvas size in CSS pixels, height of the score bar
+const holes = Array.from({ length: 9 }, () => ({ x: 0, y: 0, r: 0, kind: null, t: 0, stay: 0, hit: false, hitT: 0 }));
+
+// ----- Sizing: fill the window, lay out the 3 × 3 field, stay sharp on high-DPI screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  hud = Math.round(Math.max(48, Math.min(68, H * 0.1)));
+  // Cells are square on wide screens and up to 35% taller than wide on phones held upright.
+  const cw = Math.min((W - 20) / 3, (H - hud - 20) / 3);
+  const ch = Math.min(cw * 1.35, (H - hud - 20) / 3);
+  const left = (W - cw * 3) / 2, top = hud + (H - hud - ch * 3) / 2;
+  holes.forEach((h, i) => {
+    h.x = left + (i % 3 + 0.5) * cw;
+    h.y = top + Math.floor(i / 3) * ch + ch * 0.68;   // low in the cell: the target rises above it
+    h.r = cw * 0.34;
+  });
+  draw();
+}
+
+// ----- Game state -----
+let state = "ready";                   // ready → playing → over
+let score = 0, best = 0, hits = 0, missed = 0, whiffs = 0, streak = 0;
+let timeLeft = ROUND_TIME, elapsed = 0, spawnIn = 0, overAt = 0, last = 0;
+let cursor = 4, showCursor = false, pops = [], swing = null;
+
+function start() {
+  score = hits = missed = whiffs = streak = 0;
+  timeLeft = ROUND_TIME; elapsed = 0; spawnIn = 0.6; pops = []; swing = null;
+  holes.forEach((h) => { h.kind = null; });
+  state = "playing";
+}
+
+const lerp = (a, b, t) => a + (b - a) * t;
+const multiplier = () => 1 + Math.min(3, Math.floor(streak / 5));   // ×2 after 5 hits in a row, up to ×4
+
+function spawn(d) {
+  // d is the difficulty, 0 at the start of the round and 1 at the end.
+  const up = holes.filter((h) => h.kind).length;
+  if (up >= 1 + Math.floor(d * 2.5)) return;          // one target at first, up to three near the end
+  const free = holes.filter((h) => !h.kind);
+  const h = free[Math.floor(Math.random() * free.length)];
+  const roll = Math.random();
+  h.kind = elapsed > 4 && roll < BOMB_CHANCE ? "bomb" : roll > 1 - GOLD_CHANCE ? "gold" : "mole";
+  h.t = 0; h.hit = false; h.hitT = 0;
+  h.stay = lerp(STAY[0], STAY[1], d) * (h.kind === "gold" ? 0.7 : 1);
+}
+
+// How far a target is out of its hole: 0 = hidden, 1 = fully up.
+function heightOf(h) {
+  if (h.hit) return Math.max(0, 1 - Math.max(0, h.hitT - 0.12) / 0.2);   // stay dizzy a moment, then drop
+  if (h.t < RISE) return h.t / RISE;
+  if (h.t < RISE + h.stay) return 1;
+  return Math.max(0, 1 - (h.t - RISE - h.stay) / RISE);
+}
+
+function update(dt) {
+  elapsed += dt;
+  timeLeft -= dt;
+  const d = Math.min(1, elapsed / ROUND_TIME);
+  spawnIn -= dt;
+  if (spawnIn <= 0) { spawn(d); spawnIn = lerp(GAP[0], GAP[1], d) * (0.75 + Math.random() * 0.5); }
+  for (const h of holes) {
+    if (!h.kind) continue;
+    if (h.hit) { h.hitT += dt; if (h.hitT > 0.35) h.kind = null; continue; }
+    h.t += dt;
+    if (h.t > h.stay + RISE * 2) {                    // it got away
+      if (h.kind !== "bomb") { missed++; streak = 0; }
+      h.kind = null;
+    }
+  }
+  if (timeLeft <= 0) { timeLeft = 0; state = "over"; best = Math.max(best, score); overAt = performance.now(); }
+}
+
+// ----- Rules: one swing at one hole -----
+function whack(i) {
+  const h = holes[i];
+  swing = { h, t: 0 };
+  if (!h.kind || h.hit || heightOf(h) < 0.25) {      // swung at an empty hole
+    whiffs++; streak = 0;
+    pop(h.x, h.y - h.r * 0.5, "miss", "#e8f5e9");
+    return;
+  }
+  h.hit = true; h.hitT = 0;
+  if (h.kind === "bomb") {
+    timeLeft = Math.max(0, timeLeft - BOMB_PENALTY); streak = 0;
+    pop(h.x, h.y - h.r * 1.7, "−" + BOMB_PENALTY + "s", "#ff8a80");
+    return;
+  }
+  hits++; streak++;
+  const points = POINTS[h.kind] * multiplier();
+  score += points;
+  pop(h.x, h.y - h.r * 1.7, "+" + points, h.kind === "gold" ? "#ffe066" : "#ffffff");
+}
+
+function pop(x, y, text, color) { pops.push({ x, y, text, color, t: 0 }); }
+
+// ----- Drawing -----
+function ellipse(x, y, rx, ry, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawTarget(h, x, base, r) {
+  // base is the bottom of the body; the body is 1.9 r tall.
+  const w = r * 0.72, top = base - r * 1.9, t = performance.now() / 1000;
+  if (h.kind === "bomb") {
+    const cy = top + w * 1.1;
+    ellipse(x, cy, w, w, "#2b2b33");
+    ellipse(x - w * 0.35, cy - w * 0.35, w * 0.22, w * 0.16, "#5a5a66");
+    ctx.strokeStyle = "#c9a26b"; ctx.lineWidth = Math.max(2, r * 0.07);
+    ctx.beginPath(); ctx.moveTo(x, cy - w); ctx.quadraticCurveTo(x + w * 0.2, cy - w * 1.45, x + w * 0.55, cy - w * 1.35); ctx.stroke();
+    ellipse(x + w * 0.58, cy - w * 1.37, w * (0.14 + 0.06 * Math.sin(t * 30)), w * 0.14, "#ffb703");
+    return;
+  }
+  const gold = h.kind === "gold";
+  ctx.fillStyle = gold ? "#f2c230" : "#8a5a3b";       // body: a dome on a column
+  ctx.beginPath();
+  ctx.moveTo(x - w, base); ctx.lineTo(x - w, top + w); ctx.arc(x, top + w, w, Math.PI, 0); ctx.lineTo(x + w, base);
+  ctx.closePath(); ctx.fill();
+  ellipse(x, top + w * 1.45, w * 0.62, w * 0.5, gold ? "#fff1b8" : "#c79a74");   // face patch
+  const ey = top + w * 0.8, ex = w * 0.34, er = w * 0.11;
+  if (h.hit) {                                         // dizzy eyes: little crosses
+    ctx.strokeStyle = "#1b1b1b"; ctx.lineWidth = Math.max(2, er * 0.7);
+    for (const s of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(x + s * ex - er, ey - er); ctx.lineTo(x + s * ex + er, ey + er);
+      ctx.moveTo(x + s * ex + er, ey - er); ctx.lineTo(x + s * ex - er, ey + er);
+      ctx.stroke();
+    }
+  } else {
+    for (const s of [-1, 1]) { ellipse(x + s * ex, ey, er, er * 1.2, "#1b1b1b"); ellipse(x + s * ex + er * 0.3, ey - er * 0.4, er * 0.35, er * 0.35, "#ffffff"); }
+  }
+  ellipse(x, top + w * 1.2, w * 0.17, w * 0.12, "#e7799b");                      // nose
+  ctx.fillStyle = "#ffffff";                                                        // two front teeth
+  ctx.fillRect(x - w * 0.12, top + w * 1.42, w * 0.11, w * 0.18);
+  ctx.fillRect(x + w * 0.01, top + w * 1.42, w * 0.11, w * 0.18);
+  if (gold) for (let k = 0; k < 3; k++) {                                         // sparkles
+    const a = t * 2 + k * 2.1;
+    ellipse(x + Math.cos(a) * w * 1.25, top + w + Math.sin(a) * w * 0.9, r * 0.05, r * 0.05, "#fffbe6");
+  }
+}
+
+function drawHole(h, i) {
+  const { x, y, r } = h;
+  ellipse(x, y + r * 0.08, r * 1.15, r * 0.52, "#6b4a2b");   // dirt mound
+  ellipse(x, y, r, r * 0.38, "#24160d");                      // the opening
+  if (h.kind) {
+    // Clip to "above the hole's centre line" plus the opening, so the target seems to climb out of it.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x - r * 1.6, y - r * 3, r * 3.2, r * 3);
+    ctx.ellipse(x, y, r, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.clip();
+    drawTarget(h, x, y + r * 0.4 + (1 - heightOf(h)) * r * 1.95, r);
+    ctx.restore();
+  }
+  ctx.strokeStyle = "#9a6d40"; ctx.lineWidth = Math.max(2, r * 0.08);   // front lip
+  ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38, 0, 0.1, Math.PI - 0.1); ctx.stroke();
+  if (showCursor && state === "playing" && i === cursor) {
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.ellipse(x, y - r * 0.55, r * 1.25, r * 1.15, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function drawMallet(h, t) {
+  // Swings down onto the hole in 0.06 s, holds, then fades.
+  const r = h.r, a = 0.9 * Math.max(0, 1 - t / 0.06);
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 0.12) / 0.1);
+  ctx.translate(h.x + r * 1.45, h.y - r * 1.25);       // the hand holding the handle
+  ctx.rotate(a);
+  ctx.fillStyle = "#c98b4a"; ctx.fillRect(-r * 1.15, -r * 0.07, r * 1.15, r * 0.14);
+  ctx.fillStyle = "#d64545"; ctx.fillRect(-r * 1.75, -r * 0.42, r * 0.6, r * 0.84);
+  ctx.fillStyle = "#f08080"; ctx.fillRect(-r * 1.75, -r * 0.42, r * 0.6, r * 0.14);
+  ctx.restore();
+}
+
+function text(str, x, y, size, color, align = "center", weight = 700) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(str, x, y);
+}
+
+function draw() {
+  ctx.fillStyle = "#3f8f3a"; ctx.fillRect(0, 0, W, H);       // lawn with mowing stripes
+  ctx.fillStyle = "#47993f";
+  const band = Math.max(36, W / 9);
+  for (let x = 0; x < W; x += band * 2) ctx.fillRect(x, hud, band, H - hud);
+  holes.forEach(drawHole);
+  if (swing && swing.t < 0.22) drawMallet(swing.h, swing.t);
+  const fs = Math.max(15, Math.min(24, Math.min(W, H) / 24));
+  for (const p of pops) {
+    ctx.globalAlpha = 1 - p.t / 0.8;
+    text(p.text, p.x, p.y - p.t * 50, fs * 1.1, p.color);
+    ctx.globalAlpha = 1;
+  }
+
+  // Score bar: score and multiplier, time left, best.
+  ctx.fillStyle = "#1f3d1c"; ctx.fillRect(0, 0, W, hud);
+  ctx.fillStyle = timeLeft < 8 ? "#ff6b6b" : "#ffd166";
+  ctx.fillRect(0, hud - 6, W * (timeLeft / ROUND_TIME), 6);
+  const mult = multiplier();
+  text(`Score ${score}${mult > 1 ? "  ×" + mult : ""}`, 12, hud / 2 - 3, fs, "#ffffff", "left");
+  text(`${Math.ceil(timeLeft)}s`, W / 2, hud / 2 - 3, fs, "#ffffff");
+  text(`Best ${best}`, W - 12, hud / 2 - 3, fs, "#cde8c9", "right", 600);
+
+  if (state !== "playing") {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; ctx.fillRect(0, hud, W, H - hud);
+    const cx = W / 2, cy = hud + (H - hud) / 2, big = Math.max(28, Math.min(48, W / 12));
+    if (state === "ready") {
+      text("Burrow Bop", cx, cy - fs * 4, big, "#ffe066");
+      text("Bop the moles before they hide.", cx, cy - fs * 1.6, fs, "#ffffff", "center", 500);
+      text("Gold mole 30 · mole 10 · bomb −3 s", cx, cy, fs, "#ffffff", "center", 500);
+      text("Keys: Q W E / A S D / Z X C or 1–9", cx, cy + fs * 1.6, fs, "#cde8c9", "center", 500);
+      text("Tap or press Space to start", cx, cy + fs * 3.6, fs * 1.1, "#ffe066");
+    } else {
+      const shots = hits + whiffs;
+      text("Time's up!", cx, cy - fs * 4, big, "#ffe066");
+      text(`Score ${score}   Best ${best}`, cx, cy - fs * 1.6, fs * 1.15, "#ffffff");
+      text(`Hits ${hits} · Got away ${missed} · Misses ${whiffs}`, cx, cy, fs, "#ffffff", "center", 500);
+      text(`Accuracy ${shots ? Math.round((hits / shots) * 100) : 0}%`, cx, cy + fs * 1.6, fs, "#cde8c9", "center", 500);
+      text("Tap or press Space to play again", cx, cy + fs * 3.6, fs * 1.1, "#ffe066");
+    }
+  }
+}
+
+// ----- Main loop: time-based, so speed is the same at 60 Hz and 120 Hz -----
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (state === "playing") update(dt);
+  pops.forEach((p) => { p.t += dt; });
+  pops = pops.filter((p) => p.t < 0.8);
+  if (swing) swing.t += dt;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: tap/click a hole, or use the keyboard -----
+function startOrRestart() {
+  if (state === "ready" || (state === "over" && performance.now() - overAt > 600)) start();
+}
+
+window.addEventListener("keydown", (e) => {
+  const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 };
+  if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    if (state === "playing") { showCursor = true; whack(cursor); } else startOrRestart();
+  } else if (e.code in moves) {
+    e.preventDefault();
+    showCursor = true;
+    const next = cursor + moves[e.code];
+    // Left/right stay on the same row; up/down stay inside the grid.
+    if (next >= 0 && next < 9 && (Math.abs(moves[e.code]) === 3 || Math.floor(next / 3) === Math.floor(cursor / 3))) cursor = next;
+  } else if (e.code in KEYS && state === "playing" && !e.repeat) {
+    cursor = KEYS[e.code];
+    whack(cursor);
+  }
+});
+
+canvas.addEventListener("pointerdown", (e) => {
+  if (state !== "playing") { startOrRestart(); return; }
+  showCursor = false;
+  // Each hole's hit box covers the hole and the space a target uses above it.
+  const i = holes.findIndex((h) => Math.abs(e.clientX - h.x) < h.r * 1.1 && e.clientY > h.y - h.r * 2.1 && e.clientY < h.y + h.r * 0.6);
+  if (i >= 0) whack(i);
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

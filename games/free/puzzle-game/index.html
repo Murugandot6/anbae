@@ -1,0 +1,243 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/puzzle-game -->
+<!-- Slide 15: a complete sliding-tile puzzle in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slide 15: Sliding Puzzle (HTML5 canvas)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e1726; color: #e9edf5; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const SIZE = 4;                      // 4 = the classic 15-puzzle; try 3 (8-puzzle) or 5 (24-puzzle)
+const SHUFFLE_MOVES = SIZE * SIZE * 12;   // random legal moves used to scramble the solved board
+const SLIDE_SPEED = 14;              // cells per second for a sliding tile
+const COLORS = { bg: "#0e1726", board: "#1a2942", tile: "#e9edf5", home: "#86e3b5", number: "#14213a", text: "#e9edf5", dim: "#8fa1c0" };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 60;                      // room above the board for moves, time and the New button
+let cell = 80;                       // pixel size of one cell, set by resize()
+let newButton = { x: 0, y: 0, w: 0, h: 0 };
+
+// ----- Sizing: the largest square board that fits, sharp on high-DPI screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  cell = Math.max(40, Math.floor(Math.min((window.innerWidth - 16) / SIZE, (window.innerHeight - HUD - 16) / SIZE)));
+  const w = cell * SIZE, h = cell * SIZE + HUD;
+  canvas.style.width = w + "px";
+  canvas.style.height = h + "px";
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+// ----- Game state -----
+// tiles[cell] is the number on that cell (cell = row * SIZE + col) and 0 is the gap.
+// drawn[number] is where that tile is drawn, in cells; it slides toward the tile's real cell.
+let tiles = [], drawn = [];
+let state = "ready";                 // ready → play → over
+let moves = 0, best = 0, startTime = 0, elapsed = 0, finished = false, endedAt = 0;
+
+const colOf = (i) => i % SIZE, rowOf = (i) => Math.floor(i / SIZE);
+const isSolved = () => tiles.every((n, i) => n === (i + 1) % (SIZE * SIZE));
+
+function solvedBoard() {
+  tiles = [];
+  for (let n = 1; n < SIZE * SIZE; n++) tiles.push(n);
+  tiles.push(0);
+  drawn = [null];                    // the gap (0) is never drawn
+  for (let n = 1; n < SIZE * SIZE; n++) drawn.push({ x: colOf(n - 1), y: rowOf(n - 1) });   // tile n lives on cell n - 1
+}
+
+// The cells next to cell i (up to four).
+function neighbours(i) {
+  const out = [];
+  if (colOf(i) > 0) out.push(i - 1);
+  if (colOf(i) < SIZE - 1) out.push(i + 1);
+  if (rowOf(i) > 0) out.push(i - SIZE);
+  if (rowOf(i) < SIZE - 1) out.push(i + SIZE);
+  return out;
+}
+
+// Scramble by making random legal moves from the solved board. Every position reached this way
+// can be solved again, which is not true of a random shuffle of the numbers: half of those can't.
+function shuffle() {
+  solvedBoard();
+  let gap = tiles.length - 1, previous = -1;
+  for (let k = 0; k < SHUFFLE_MOVES || isSolved(); k++) {
+    const options = neighbours(gap).filter((i) => i !== previous);   // never undo the last move
+    const pick = options[Math.floor(Math.random() * options.length)];
+    tiles[gap] = tiles[pick];
+    tiles[pick] = 0;
+    previous = gap;
+    gap = pick;
+  }
+  tiles.forEach((n, i) => { if (n) drawn[n] = { x: colOf(i), y: rowOf(i) }; });
+}
+
+function begin() {
+  if (state === "over" && performance.now() - endedAt < 600) return;   // ignore a stray tap at the end
+  shuffle();
+  moves = 0; elapsed = 0; finished = false;
+  state = "play";
+}
+
+// ----- Moves -----
+// Tapping any tile in the gap's row or column slides it and every tile between it and the gap.
+function slide(cell) {
+  if (state !== "play" || finished) return;
+  const gap = tiles.indexOf(0);
+  if (cell === gap || (colOf(cell) !== colOf(gap) && rowOf(cell) !== rowOf(gap))) return;
+  const step = colOf(cell) === colOf(gap) ? (cell > gap ? SIZE : -SIZE) : (cell > gap ? 1 : -1);
+  if (moves === 0) startTime = performance.now();   // the clock starts with the first move
+  for (let i = gap; i !== cell; i += step) {        // walk from the gap toward the tapped tile
+    tiles[i] = tiles[i + step];
+    tiles[i + step] = 0;
+    moves++;                                        // each tile that moves counts as one move
+  }
+  if (isSolved()) { finished = true; elapsed = (performance.now() - startTime) / 1000; }
+}
+
+// Arrow keys and swipes push a tile into the gap: Left moves the tile to the right of the gap leftward.
+function push(dx, dy) {
+  const gap = tiles.indexOf(0);
+  const c = colOf(gap) - dx, r = rowOf(gap) - dy;
+  if (c >= 0 && r >= 0 && c < SIZE && r < SIZE) slide(r * SIZE + c);
+}
+
+// ----- Update: slide tiles toward their cells, then check for the win -----
+function update(dt) {
+  let moving = false;
+  tiles.forEach((n, i) => {
+    if (!n) return;
+    const d = drawn[n], tx = colOf(i), ty = rowOf(i);
+    if (d.x === tx && d.y === ty) return;
+    moving = true;
+    const step = SLIDE_SPEED * dt;
+    d.x += Math.sign(tx - d.x) * Math.min(step, Math.abs(tx - d.x));
+    d.y += Math.sign(ty - d.y) * Math.min(step, Math.abs(ty - d.y));
+  });
+  if (state !== "play") return;
+  if (moves && !finished) elapsed = (performance.now() - startTime) / 1000;
+  if (finished && !moving) {          // let the last tile land before showing the result
+    state = "over";
+    best = best ? Math.min(best, moves) : moves;
+    endedAt = performance.now();
+  }
+}
+
+// ----- Drawing -----
+const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+function label(text, x, y, size, weight, align, color = COLORS.text) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function box(x, y, w, h, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h);
+  ctx.fill();
+}
+
+function draw() {
+  const w = cell * SIZE;
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, w, HUD + w);
+
+  // Moves, time and a New button.
+  const size = Math.max(14, Math.min(20, w / 20));
+  label(`Moves ${moves}`, 4, HUD / 2, size, 700, "left");
+  label(clock(elapsed), w / 2, HUD / 2, size, 700, "center", COLORS.dim);
+  newButton = { x: w - 76, y: HUD / 2 - 18, w: 72, h: 36 };
+  box(newButton.x, newButton.y, newButton.w, newButton.h, 8, "#2b4068");
+  label("New", newButton.x + newButton.w / 2, HUD / 2, size * 0.9, 700, "center");
+
+  // The board and tiles. A tile turns green when it sits on its home cell.
+  box(0, HUD, w, w, 12, COLORS.board);
+  const inset = Math.max(3, cell * 0.04);
+  tiles.forEach((n, i) => {
+    if (!n) return;
+    const d = drawn[n], x = d.x * cell + inset, y = HUD + d.y * cell + inset;
+    box(x, y, cell - inset * 2, cell - inset * 2, cell * 0.12, i === n - 1 ? COLORS.home : COLORS.tile);
+    label(String(n), x + cell / 2 - inset, y + cell / 2 - inset, cell * 0.4, 800, "center", COLORS.number);
+  });
+
+  if (state !== "play") {
+    ctx.fillStyle = "rgba(8, 14, 26, 0.86)";
+    ctx.fillRect(0, HUD, w, w);
+    const cx = w / 2, cy = HUD + w / 2, big = Math.min(cell * 0.55, w / 8), small = Math.max(13, Math.min(18, w / 24));
+    if (state === "ready") {
+      label("Slide 15", cx, cy - big * 1.4, big, 800, "center");
+      label(`Put the tiles back in order, 1 to ${SIZE * SIZE - 1}`, cx, cy, small, 600, "center");
+      label("Tap a tile in line with the gap,", cx, cy + small * 1.6, small, 400, "center", COLORS.dim);
+      label("or push tiles with the arrow keys", cx, cy + small * 3, small, 400, "center", COLORS.dim);
+    } else {
+      label("Solved!", cx, cy - big * 1.4, big, 800, "center", COLORS.home);
+      label(`${moves} moves in ${clock(elapsed)}`, cx, cy, small, 600, "center");
+      label(`Best: ${best} moves`, cx, cy + small * 1.6, small, 400, "center", COLORS.dim);
+    }
+    label(state === "ready" ? "Tap or press Space to shuffle" : "Tap or press Space for a new puzzle", cx, cy + small * 5, small, 700, "center", "#ffd166");
+  }
+}
+
+// ----- Main loop -----
+let last = 0;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: tap or swipe with mouse and touch, arrows or WASD on a keyboard -----
+let press = null;
+canvas.addEventListener("pointerdown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top, b = newButton;
+  if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { begin(); return; }
+  if (state !== "play") { begin(); return; }
+  press = { x: e.clientX, y: e.clientY, col: Math.floor(x / cell), row: Math.floor((y - HUD) / cell) };
+});
+canvas.addEventListener("pointerup", (e) => {
+  if (!press) return;
+  const dx = e.clientX - press.x, dy = e.clientY - press.y, p = press;
+  press = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) > 24) {          // a swipe pushes a tile that way
+    if (Math.abs(dx) > Math.abs(dy)) push(Math.sign(dx), 0); else push(0, Math.sign(dy));
+  } else if (p.col >= 0 && p.row >= 0 && p.col < SIZE && p.row < SIZE) {
+    slide(p.row * SIZE + p.col);                            // a tap slides the tapped tile
+  }
+});
+canvas.addEventListener("pointercancel", () => { press = null; });
+
+const KEYS = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
+window.addEventListener("keydown", (e) => {
+  const d = KEYS[e.code];
+  if (d) { e.preventDefault(); if (state === "play") push(d[0], d[1]); }
+  else if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); if (state !== "play") begin(); }
+  else if (e.code === "KeyN") begin();                     // N: new puzzle at any time
+});
+
+window.addEventListener("resize", resize);
+solvedBoard();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

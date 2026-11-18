@@ -1,0 +1,265 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/memory-game -->
+<!-- Memory Match: a complete HTML5 canvas matching game in one file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Match (HTML5 canvas)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #10131c; color: #eef2ff; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const PAIRS = 8;                     // pairs on the board (up to 10, one per symbol below)
+const FLIP_TIME = 0.18;              // seconds for a card to turn over
+const PEEK_TIME = 0.9;               // seconds a wrong pair stays face up
+const COLORS = { bg: "#10131c", back: "#2b3a67", backEdge: "#5470c6", face: "#f4f1e8", found: "#d4f2da", text: "#eef2ff", dim: "#aab4d4", cursor: "#ffd166" };
+
+// Each symbol is a shape plus a colour, so no two pairs differ by colour alone.
+const SYMBOLS = [
+  { shape: "circle", color: "#e63946" }, { shape: "square", color: "#1d6fd8" },
+  { shape: "triangle", color: "#23913f" }, { shape: "diamond", color: "#8e44ad" },
+  { shape: "star", color: "#d98a00" }, { shape: "hexagon", color: "#0d8f9c" },
+  { shape: "cross", color: "#d6336c" }, { shape: "ring", color: "#4a5bd4" },
+  { shape: "bars", color: "#6d4c41" }, { shape: "pentagon", color: "#2f6b2a" },
+];
+// Polygon shapes: [number of points, rotation, inner radius for stars].
+const POLYGONS = { triangle: [3, -Math.PI / 2, 1], diamond: [4, 0, 1], pentagon: [5, -Math.PI / 2, 1], hexagon: [6, 0, 1], star: [10, -Math.PI / 2, 0.45] };
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 48;                      // height of the score bar at the top
+let W = 0, H = 0, cols = 4, rows = 4, size = 80, gap = 8, boardX = 0, boardY = 0;
+
+// ----- Sizing: fill the window, pick the grid shape that gives the biggest cards -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = PAIRS * 2, pad = 12;
+  let fit = 0;
+  for (let c = 1; c <= n; c++) {     // try every column count, keep the best fit
+    const r = Math.ceil(n / c);
+    const s = Math.min((W - pad * 2) / c, (H - HUD - pad * 2) / r);
+    const score = c * r === n ? s : s * 0.9;   // prefer grids without empty slots
+    if (score > fit) { fit = score; size = s; cols = c; rows = r; }
+  }
+  size = Math.floor(Math.min(size, 170));
+  gap = Math.max(4, Math.round(size * 0.08));
+  boardX = Math.round((W - cols * size) / 2);
+  boardY = Math.round(HUD + (H - HUD - rows * size) / 2);
+  draw();
+}
+
+// ----- Game state -----
+let cards = [], open = [], moves = 0, found = 0, time = 0, best = null, peek = 0;
+let state = "ready";                 // ready → playing → over
+let endDelay = 0;                    // short pause before the results show
+let cursor = 0, showCursor = false, last = 0;
+
+function deal() {
+  const deck = [];
+  for (let i = 0; i < PAIRS; i++) deck.push(i, i);
+  shuffle(deck);
+  cards = deck.map((sym) => ({ sym, up: false, done: false, turn: 0 }));
+  open = []; moves = 0; found = 0; time = 0; peek = 0;
+}
+
+// Fisher-Yates shuffle: every order of the deck is equally likely.
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+function start() {
+  if (endDelay > 0) return;            // ignore a quick extra tap on the last pair
+  if (state === "over") deal();
+  state = "playing";
+}
+
+// ----- Rules: turn a card, compare pairs -----
+function flip(i) {
+  const card = cards[i];
+  if (state !== "playing" || !card || card.up || card.done) return;
+  if (open.length === 2) hideOpen();   // a third tap skips the wait after a miss
+  card.up = true;
+  open.push(i);
+  if (open.length < 2) return;
+  moves++;
+  const [a, b] = open;
+  if (cards[a].sym === cards[b].sym) {
+    cards[a].done = cards[b].done = true;
+    open = [];
+    found++;
+    if (found === PAIRS) {
+      state = "over";
+      endDelay = 0.8;
+      best = best === null ? moves : Math.min(best, moves);
+    }
+  } else {
+    peek = PEEK_TIME;                  // leave the wrong pair up for a moment
+  }
+}
+
+function hideOpen() {
+  open.forEach((i) => { cards[i].up = false; });
+  open = [];
+  peek = 0;
+}
+
+// ----- Main loop: timers and flip animation, time-based -----
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (state === "playing") {
+    time += dt;
+    if (peek > 0) { peek -= dt; if (peek <= 0) hideOpen(); }
+  }
+  endDelay = Math.max(0, endDelay - dt);
+  // Move each card's turn value towards 1 (face up) or 0 (face down).
+  for (const c of cards) {
+    const target = c.up || c.done ? 1 : 0;
+    const amount = dt / FLIP_TIME;
+    c.turn = target > c.turn ? Math.min(target, c.turn + amount) : Math.max(target, c.turn - amount);
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Drawing -----
+function drawSymbol(sym, r) {
+  ctx.fillStyle = sym.color;
+  ctx.strokeStyle = sym.color;
+  ctx.beginPath();
+  if (sym.shape === "circle") ctx.arc(0, 0, r, 0, Math.PI * 2);
+  else if (sym.shape === "square") ctx.rect(-r * 0.82, -r * 0.82, r * 1.64, r * 1.64);
+  else if (sym.shape === "cross") { const t = r * 0.34; ctx.rect(-t, -r, t * 2, r * 2); ctx.rect(-r, -t, r * 2, t * 2); }
+  else if (sym.shape === "bars") { for (const k of [-1, 0, 1]) ctx.rect(-r, k * r * 0.66 - r * 0.2, r * 2, r * 0.4); }
+  else if (sym.shape === "ring") { ctx.lineWidth = r * 0.36; ctx.arc(0, 0, r * 0.8, 0, Math.PI * 2); ctx.stroke(); return; }
+  else {
+    const [points, rot, inner] = POLYGONS[sym.shape];
+    for (let i = 0; i < points; i++) {
+      const a = rot + (i * Math.PI * 2) / points, rr = i % 2 ? r * inner : r;
+      ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    ctx.closePath();
+  }
+  ctx.fill();
+}
+
+function drawCard(i) {
+  const c = cards[i];
+  const s = size - gap;
+  const x = boardX + (i % cols) * size + gap / 2, y = boardY + Math.floor(i / cols) * size + gap / 2;
+  // Turning over: squash the card to nothing, swap sides at the halfway point, grow back.
+  const squash = Math.max(0.02, Math.abs(Math.cos(c.turn * Math.PI)));
+  const faceUp = c.turn > 0.5;
+  ctx.save();
+  ctx.translate(x + s / 2, y + s / 2);
+  ctx.scale(squash, 1);
+  ctx.beginPath();
+  ctx.roundRect(-s / 2, -s / 2, s, s, s * 0.12);
+  ctx.fillStyle = faceUp ? (c.done ? COLORS.found : COLORS.face) : COLORS.back;
+  ctx.fill();
+  if (faceUp) drawSymbol(SYMBOLS[c.sym], s * 0.3);
+  else {
+    ctx.strokeStyle = COLORS.backEdge;
+    ctx.lineWidth = Math.max(2, s * 0.04);
+    ctx.beginPath();
+    ctx.roundRect(-s * 0.34, -s * 0.34, s * 0.68, s * 0.68, s * 0.08);
+    ctx.stroke();
+  }
+  ctx.restore();
+  if (showCursor && i === cursor && state === "playing") {
+    ctx.strokeStyle = COLORS.cursor;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(x - 3, y - 3, s + 6, s + 6, s * 0.14);
+    ctx.stroke();
+  }
+}
+
+const clock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+
+function draw() {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < cards.length; i++) drawCard(i);
+
+  const font = Math.round(Math.min(18, Math.max(13, W / 26)));
+  ctx.fillStyle = COLORS.text;
+  ctx.font = `600 ${font}px system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillText(`Moves ${moves}`, 12, HUD / 2);
+  ctx.textAlign = "center";
+  ctx.fillText(`Pairs ${found}/${PAIRS}`, W / 2, HUD / 2);
+  ctx.textAlign = "right";
+  ctx.fillText(clock(time), W - 12, HUD / 2);
+
+  if (state === "playing" || endDelay > 0) return;
+  ctx.fillStyle = "rgba(8, 10, 18, 0.72)";
+  ctx.fillRect(0, HUD, W, H - HUD);
+  const cy = HUD + (H - HUD) / 2, pw = Math.min(W - 24, 460);
+  ctx.fillStyle = "#1c2236";             // a solid panel keeps the text readable over the cards
+  ctx.beginPath();
+  ctx.roundRect((W - pw) / 2, cy - font * 4.2, pw, font * 8.4, 14);
+  ctx.fill();
+  ctx.fillStyle = COLORS.text;
+  ctx.textAlign = "center";
+  ctx.font = `700 ${font * 1.8}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? "All pairs found!" : "Memory Match", W / 2, cy - font * 2.2);
+  ctx.font = `500 ${font}px system-ui, sans-serif`;
+  ctx.fillText(state === "over" ? `${moves} moves in ${clock(time)}` : `Find all ${PAIRS} pairs in as few moves as you can`, W / 2, cy - font * 0.2);
+  ctx.fillStyle = COLORS.dim;
+  if (best !== null) ctx.fillText(`Best: ${best} moves`, W / 2, cy + font * 1.4);
+  ctx.fillText(state === "over" ? "Tap or press Space to play again" : "Tap or press Space to start", W / 2, cy + font * 3);
+}
+
+// ----- Input: tap or click a card; arrows/WASD and Space/Enter on a keyboard -----
+canvas.addEventListener("pointerdown", (e) => {
+  showCursor = false;                  // the keyboard highlight only shows for keyboard players
+  if (state !== "playing") { start(); return; }
+  const r = canvas.getBoundingClientRect();
+  const col = Math.floor((e.clientX - r.left - boardX) / size);
+  const row = Math.floor((e.clientY - r.top - boardY) / size);
+  if (col < 0 || col >= cols || row < 0) return;
+  const i = row * cols + col;
+  if (i < cards.length) { cursor = i; flip(i); }
+});
+
+const MOVES = { ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1] };
+window.addEventListener("keydown", (e) => {
+  const m = MOVES[e.code];
+  if (m) {
+    e.preventDefault();
+    showCursor = true;
+    const col = Math.min(cols - 1, Math.max(0, (cursor % cols) + m[0]));
+    const row = Math.min(rows - 1, Math.max(0, Math.floor(cursor / cols) + m[1]));
+    cursor = Math.min(cards.length - 1, row * cols + col);
+  } else if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    if (state !== "playing") start();
+    else { showCursor = true; flip(cursor); }
+  }
+});
+
+window.addEventListener("resize", resize);
+deal();
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

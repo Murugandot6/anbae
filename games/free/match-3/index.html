@@ -1,0 +1,383 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/match-3 -->
+<!-- Gem Swap: a complete match-3 game in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gem Swap: Match-3 (HTML5 canvas)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #140f24; color: #f3eeff; font: 16px system-ui, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+const COLS = 8, ROWS = 8;            // board size in cells
+const MOVES = 20;                    // swaps allowed per game
+const TARGET = 1500;                 // score needed to win
+const POINTS = 10;                   // points per cleared gem, times the cascade level
+const SWAP_SPEED = 7;                // cells per second while two gems trade places
+const FALL_SPEED = 11;               // cells per second while gems drop
+const CLEAR_TIME = 0.25;             // seconds a matched gem takes to shrink away
+const BG = "#140f24";
+// Gem kinds: a colour AND a shape each, so the board stays readable for colour-blind players.
+// corners 0 = circle; inner = star point depth; turn = rotation; size = scale; dy = nudge down.
+const GEMS = [
+  { color: "#ff5f7e", corners: 0 },                                   // red circle
+  { color: "#4aa8ff", corners: 4, size: 1.12 },                        // blue diamond
+  { color: "#46d98a", corners: 4, size: 1.18, turn: Math.PI / 4 },     // green square
+  { color: "#ffd447", corners: 3, size: 1.2, dy: 0.15 },               // yellow triangle
+  { color: "#b583ff", corners: 6, size: 1.05, turn: Math.PI / 6 },     // purple hexagon
+  { color: "#ff9b42", corners: 5, size: 1.2, inner: 0.5 },             // orange star
+];
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const HUD = 60;                      // room above the board for score, goal and moves
+let cell = 40;                       // pixel size of one cell, set by resize()
+
+// ----- Sizing: the largest square cells that fit, sharp on high-DPI screens -----
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  cell = Math.max(20, Math.floor(Math.min((window.innerWidth - 8) / COLS, (window.innerHeight - HUD - 8) / ROWS)));
+  const w = cell * COLS, h = cell * ROWS + HUD;
+  canvas.style.width = w + "px";
+  canvas.style.height = h + "px";
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+// ----- Game state -----
+// grid[row][col] holds a gem { t: kind, x, y: where it is drawn (in cells), s: scale, dying } or null.
+// The array says where each gem belongs; x and y trail behind it, and that gap is the animation.
+let grid = [];
+let state = "ready";                 // ready → play → over
+let phase = "idle";                  // while playing: idle → swap → clear → fall (→ clear → fall …) → idle
+let score = 0, best = 0, moves = MOVES, chain = 0, won = false, endedAt = 0;
+let selected = null, swapped = null, clearTimer = 0;
+let cursor = { c: 3, r: 4 }, usingKeys = false;
+let note = "", noteTimer = 0;        // a short message such as "Cascade x2"
+
+const inside = (c, r) => c >= 0 && r >= 0 && c < COLS && r < ROWS;
+const randomKind = () => Math.floor(Math.random() * GEMS.length);
+const sameKind = (r1, c1, r2, c2) => grid[r1][c1] && grid[r2][c2] && grid[r1][c1].t === grid[r2][c2].t;
+
+// Fill the board with no line of 3 already in it, and keep trying until at least one swap works.
+function newBoard(dropIn) {
+  do {
+    grid = [];
+    for (let r = 0; r < ROWS; r++) {
+      grid.push([]);
+      for (let c = 0; c < COLS; c++) {
+        let t;
+        do t = randomKind();
+        while ((c >= 2 && grid[r][c - 1].t === t && grid[r][c - 2].t === t) ||
+               (r >= 2 && grid[r - 1][c].t === t && grid[r - 2][c].t === t));
+        grid[r].push({ t, x: c, y: dropIn ? r - ROWS : r, s: 1 });
+      }
+    }
+  } while (!hasMove());
+}
+
+// Every gem that is part of a line of 3 or more, as cell numbers (row * COLS + col).
+// A Set means a gem shared by a row and a column match (an L or T shape) counts once.
+function findMatches() {
+  const hit = new Set();
+  for (let r = 0; r < ROWS; r++) {
+    let run = 1;
+    for (let c = 1; c <= COLS; c++) {
+      if (c < COLS && sameKind(r, c, r, c - 1)) { run++; continue; }
+      if (run >= 3) for (let k = c - run; k < c; k++) hit.add(r * COLS + k);
+      run = 1;
+    }
+  }
+  for (let c = 0; c < COLS; c++) {
+    let run = 1;
+    for (let r = 1; r <= ROWS; r++) {
+      if (r < ROWS && sameKind(r, c, r - 1, c)) { run++; continue; }
+      if (run >= 3) for (let k = r - run; k < r; k++) hit.add(k * COLS + c);
+      run = 1;
+    }
+  }
+  return [...hit];
+}
+
+function swapCells(a, b) {
+  const g = grid[a.r][a.c];
+  grid[a.r][a.c] = grid[b.r][b.c];
+  grid[b.r][b.c] = g;
+}
+
+// True when some swap of two neighbours makes a match. Try each one, look, and swap back.
+function hasMove() {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    for (const [dc, dr] of [[1, 0], [0, 1]]) {
+      const a = { c, r }, b = { c: c + dc, r: r + dr };
+      if (!inside(b.c, b.r)) continue;
+      swapCells(a, b);
+      const works = findMatches().length > 0;
+      swapCells(a, b);
+      if (works) return true;
+    }
+  }
+  return false;
+}
+
+// ----- Turns -----
+function begin() {
+  if (state === "over" && performance.now() - endedAt < 700) return;   // ignore a stray tap at the end
+  score = 0; moves = MOVES; selected = null; noteTimer = 0;
+  newBoard(true);                    // the new gems drop in from above
+  state = "play";
+  phase = "fall";
+}
+
+function trySwap(a, b) {
+  if (state !== "play" || phase !== "idle" || !inside(b.c, b.r)) return;
+  swapCells(a, b);                   // swap in the grid now; the drawing catches up
+  swapped = [a, b];
+  selected = null;
+  phase = "swap";
+}
+
+// A tap selects a gem, a tap on a neighbour swaps the two, a second tap on the same gem lets go.
+function tap(p) {
+  cursor = p;
+  if (selected && Math.abs(selected.c - p.c) + Math.abs(selected.r - p.r) === 1) trySwap(selected, p);
+  else selected = selected && selected.c === p.c && selected.r === p.r ? null : p;
+}
+
+function startClear(hits) {
+  chain++;                           // 1 for the player's own match, 2+ for cascades
+  score += hits.length * POINTS * chain;
+  for (const i of hits) grid[Math.floor(i / COLS)][i % COLS].dying = true;
+  if (chain > 1) { note = `Cascade x${chain}`; noteTimer = 1; }
+  clearTimer = CLEAR_TIME;
+  phase = "clear";
+}
+
+// Gravity and refill: survivors slide down into the holes, new gems start above the board.
+function collapse() {
+  for (let c = 0; c < COLS; c++) {
+    let write = ROWS - 1;            // the lowest cell still waiting for a gem
+    for (let r = ROWS - 1; r >= 0; r--) {
+      const g = grid[r][c];
+      if (g && !g.dying) { grid[r][c] = null; grid[write][c] = g; write--; }
+    }
+    const missing = write + 1;       // rows 0 … write are empty now
+    for (let r = 0; r < missing; r++) grid[r][c] = { t: randomKind(), x: c, y: r - missing, s: 1 };
+  }
+}
+
+function endTurn() {
+  phase = "idle";
+  if (score >= TARGET || moves <= 0) {
+    won = score >= TARGET;
+    best = Math.max(best, score);
+    state = "over";
+    endedAt = performance.now();
+  } else if (!hasMove()) {
+    newBoard(true);                  // stuck: deal a fresh board (it never starts with a match)
+    phase = "fall";
+    note = "No moves: new board"; noteTimer = 1.5;
+  }
+}
+
+// Slide every gem toward its cell. Returns true while anything is still moving.
+function animate(dt) {
+  let busy = false;
+  const step = (phase === "fall" ? FALL_SPEED : SWAP_SPEED) * dt;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const g = grid[r][c];
+    if (!g || (g.x === c && g.y === r)) continue;
+    busy = true;
+    g.x += Math.sign(c - g.x) * Math.min(step, Math.abs(c - g.x));
+    g.y += Math.sign(r - g.y) * Math.min(step, Math.abs(r - g.y));
+  }
+  return busy;
+}
+
+// ----- One frame of the board's state machine -----
+function update(dt) {
+  noteTimer -= dt;
+  if (phase === "clear") {
+    clearTimer -= dt;
+    for (const row of grid) for (const g of row) if (g && g.dying) g.s = Math.max(0, clearTimer / CLEAR_TIME);
+    if (clearTimer <= 0) { collapse(); phase = "fall"; }
+    return;
+  }
+  if (phase === "idle" || animate(dt)) return;
+  // Everything has stopped moving: decide what happens next.
+  const hits = findMatches();
+  if (phase === "swap") {
+    if (hits.length) { moves--; chain = 0; startClear(hits); }
+    else { swapCells(swapped[0], swapped[1]); phase = "unswap"; }   // no match: the swap doesn't stick
+  } else if (phase === "unswap") phase = "idle";
+  else if (phase === "fall") {
+    if (hits.length) startClear(hits);   // the dropped gems lined up by themselves: a cascade
+    else endTurn();
+  }
+}
+
+// ----- Drawing -----
+function label(text, x, y, size, weight, align, color = "#f3eeff") {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+function drawGem(t, x, y, r) {
+  if (r < 0.5) return;
+  const k = GEMS[t];
+  ctx.fillStyle = k.color;
+  ctx.beginPath();
+  if (!k.corners) ctx.arc(x, y, r, 0, Math.PI * 2);
+  else {
+    const n = k.inner ? k.corners * 2 : k.corners, R = r * k.size;
+    for (let i = 0; i < n; i++) {
+      const a = (k.turn || 0) - Math.PI / 2 + (i / n) * Math.PI * 2;
+      const d = k.inner && i % 2 ? R * k.inner : R;
+      ctx.lineTo(x + Math.cos(a) * d, y + (k.dy || 0) * r + Math.sin(a) * d);
+    }
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";   // a small shine
+  ctx.beginPath();
+  ctx.arc(x - r * 0.28, y - r * 0.3, r * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function outline(p, color, width) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.strokeRect(p.c * cell + 3, HUD + p.r * cell + 3, cell - 6, cell - 6);
+}
+
+function draw() {
+  const w = cell * COLS, h = cell * ROWS;
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, w, HUD + h);
+
+  // Score bar: score, goal, moves left and a progress bar toward the goal.
+  const size = Math.max(14, Math.min(20, w / 22));
+  label(`Score ${score}`, 6, HUD * 0.36, size, 700, "left");
+  label(`Goal ${TARGET}`, w / 2, HUD * 0.36, size * 0.85, 500, "center", "#bfb3e0");
+  label(`Moves ${moves}`, w - 6, HUD * 0.36, size, 700, "right");
+  ctx.fillStyle = "#2c2349";
+  ctx.fillRect(6, HUD * 0.7, w - 12, 8);
+  ctx.fillStyle = "#ffd447";
+  ctx.fillRect(6, HUD * 0.7, (w - 12) * Math.min(1, score / TARGET), 8);
+
+  // The board, clipped so new gems stay hidden until they fall into view.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, HUD, w, h);
+  ctx.clip();
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    ctx.fillStyle = (r + c) % 2 ? "#1e1735" : "#261e43";
+    ctx.fillRect(c * cell, HUD + r * cell, cell, cell);
+  }
+  for (const row of grid) for (const g of row) {
+    if (g) drawGem(g.t, (g.x + 0.5) * cell, HUD + (g.y + 0.5) * cell, cell * 0.37 * g.s);
+  }
+  ctx.restore();
+  if (selected) outline(selected, "#ffffff", 3);
+  if (usingKeys && state === "play" && !selected) outline(cursor, "#ffd447", 2);
+
+  if (noteTimer > 0 && state === "play") {
+    ctx.globalAlpha = Math.min(1, noteTimer * 3);
+    ctx.font = `800 ${Math.max(20, cell * 0.6)}px system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.strokeStyle = BG;
+    ctx.lineWidth = 6;
+    ctx.strokeText(note, w / 2, HUD + h / 2);
+    label(note, w / 2, HUD + h / 2, Math.max(20, cell * 0.6), 800, "center", "#ffffff");
+    ctx.globalAlpha = 1;
+  }
+
+  if (state !== "play") {
+    ctx.fillStyle = "rgba(12, 8, 22, 0.75)";
+    ctx.fillRect(0, HUD, w, h);
+    const cx = w / 2, cy = HUD + h / 2, big = Math.min(cell * 0.9, w / 9), small = Math.max(13, Math.min(18, w / 24));
+    if (state === "ready") {
+      label("Gem Swap", cx, cy - big * 1.3, big, 800, "center");
+      label(`Score ${TARGET} points in ${MOVES} moves`, cx, cy, small, 600, "center");
+      label("Swap neighbours to line up 3 or more", cx, cy + small * 1.6, small, 400, "center");
+    } else {
+      label(won ? "Goal reached!" : "Out of moves", cx, cy - big * 1.3, big, 800, "center");
+      label(`Score ${score}   Best ${best}`, cx, cy, small, 600, "center");
+      label(won ? `${moves} moves to spare` : `${TARGET - score} points short`, cx, cy + small * 1.6, small, 400, "center");
+    }
+    label("Tap or press Space to " + (state === "ready" ? "start" : "play again"), cx, cy + small * 4, small, 700, "center", "#ffd447");
+  }
+}
+
+// ----- Main loop -----
+let last = 0;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);   // cap, so a background tab doesn't skip animations
+  last = now;
+  if (state === "play") update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: tap or drag with mouse and touch, arrows and Space on a keyboard -----
+function cellAt(e) {
+  const rect = canvas.getBoundingClientRect();
+  const c = Math.floor((e.clientX - rect.left) / cell), r = Math.floor((e.clientY - rect.top - HUD) / cell);
+  return inside(c, r) ? { c, r } : null;
+}
+
+let press = null;                    // the cell and point where a tap or drag started
+canvas.addEventListener("pointerdown", (e) => {
+  usingKeys = false;
+  if (state !== "play") { begin(); return; }
+  press = { at: cellAt(e), x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!press || !press.at) return;
+  const dx = e.clientX - press.x, dy = e.clientY - press.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < cell * 0.4) return;
+  const a = press.at;
+  press = null;                      // one swap per drag
+  if (Math.abs(dx) > Math.abs(dy)) trySwap(a, { c: a.c + Math.sign(dx), r: a.r });
+  else trySwap(a, { c: a.c, r: a.r + Math.sign(dy) });
+});
+canvas.addEventListener("pointerup", () => {
+  if (press && press.at && state === "play" && phase === "idle") tap(press.at);
+  press = null;
+});
+canvas.addEventListener("pointercancel", () => { press = null; });
+
+const DIRS = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0] };
+window.addEventListener("keydown", (e) => {
+  const d = DIRS[e.code], act = e.code === "Space" || e.code === "Enter";
+  if (!d && !act && e.code !== "Escape") return;
+  e.preventDefault();
+  usingKeys = true;
+  if (state !== "play") { if (act) begin(); return; }
+  if (e.code === "Escape") selected = null;
+  else if (act) { if (phase === "idle") tap(cursor); }
+  else if (selected) trySwap(selected, { c: selected.c + d[0], r: selected.r + d[1] });   // arrow = swap that way
+  else cursor = { c: Math.min(COLS - 1, Math.max(0, cursor.c + d[0])), r: Math.min(ROWS - 1, Math.max(0, cursor.r + d[1])) };
+});
+
+window.addEventListener("resize", resize);
+newBoard(false);
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>

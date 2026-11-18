@@ -1,0 +1,324 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 HTML5 Games Studio. Step-by-step tutorial: https://html5gamesstudio.com/html-game-code/casino-games -->
+<!-- Reel Rush: a slot machine demo with play credits only (no real money) in one HTML file. Free to use, change and ship (MIT license). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel Rush (HTML5 slot machine, play credits only)</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #12091f; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ----- Settings -----
+// Reel strips: each letter is one stop (C cherry, L lemon, B bell, S star, G gem, 7 seven).
+// More copies of a symbol on a strip make it more likely to land.
+const REELS = ["CLBCSLC7LBCGLSCBLCSBLGC7", "LCBSCLGCBL7CSLBCLSGCBLC7", "CBLSCGLBC7LSCBLCGSLBCL7S"];
+const L = 24;                                  // stops per strip
+const PAYS = { 7: 100, G: 50, S: 30, B: 20, L: 15, C: 10 };   // three on a line, × credits bet per line
+const TWO_CHERRIES = 4;                        // cherry, cherry, anything, reading from the left
+const LINES = [[1, 1, 1], [0, 0, 0], [2, 2, 2], [0, 1, 2], [2, 1, 0]];   // the row used on each reel
+const LINE_COLORS = ["#ffd166", "#06d6a0", "#4cc9f0", "#f72585", "#ff9f1c"];
+const BETS = [1, 2, 3];                        // play credits per line; a spin costs bet × 5 lines
+const START_CREDITS = 100;
+const SPIN_TIME = [1.0, 1.5, 2.0];             // seconds until each reel stops
+const DESIGN_W = 360, DESIGN_H = 640;          // the machine is laid out in these units, then scaled
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let W = 0, H = 0, dpr = 1, scale = 1, ox = 0, oy = 0;
+const mod = (n, m) => ((n % m) + m) % m;
+
+// ----- Fair randomness: crypto.getRandomValues with rejection sampling, so no stop is favoured -----
+function randomInt(n) {
+  const buf = new Uint32Array(1), limit = Math.floor(0x100000000 / n) * n;
+  do crypto.getRandomValues(buf); while (buf[0] >= limit);
+  return buf[0] % n;
+}
+
+// ----- Rules: which lines win for a set of stops -----
+function evaluate(stops) {
+  // The 3 × 3 window: row 0 shows the stop itself, rows 1 and 2 the next two symbols on the strip.
+  const grid = stops.map((s, r) => [0, 1, 2].map((row) => REELS[r][(s + row) % L]));
+  const wins = [];
+  LINES.forEach((rows, line) => {
+    const [a, b, c] = rows.map((row, r) => grid[r][row]);
+    const three = a === b && b === c;
+    const pay = three ? PAYS[a] : a === "C" && b === "C" ? TWO_CHERRIES : 0;
+    if (pay) wins.push({ line, pay, count: three ? 3 : 2 });
+  });
+  return wins;
+}
+
+// The exact odds: try all 24 × 24 × 24 stop combinations once, at load.
+function computeOdds() {
+  let paid = 0, hits = 0;
+  for (let a = 0; a < L; a++) for (let b = 0; b < L; b++) for (let c = 0; c < L; c++) {
+    const wins = evaluate([a, b, c]);
+    paid += wins.reduce((sum, w) => sum + w.pay, 0);
+    if (wins.length) hits++;
+  }
+  return { rtp: paid / (L ** 3 * LINES.length), hitRate: hits / L ** 3 };
+}
+const ODDS = computeOdds();
+
+// ----- State -----
+let state = "ready";                           // ready → idle ⇄ spinning → broke (refill) → idle
+let credits = START_CREDITS, shown = START_CREDITS, bet = 0, spins = 0, biggest = 0;
+let result = [0, 0, 0], wins = [], message = "", last = 0, brokeAt = 0;
+const reels = [0, 1, 2].map(() => ({ pos: randomInt(L), from: 0, dist: 0, t: 0, spinning: false, kick: 1 }));
+
+function spin() {
+  if (state === "ready") { state = "idle"; message = "Press SPIN"; return; }
+  if (state === "broke") {
+    if (performance.now() - brokeAt < 800) return;     // don't skip the screen with a late tap
+    credits = shown = START_CREDITS; state = "idle"; message = "100 play credits added";
+    return;
+  }
+  if (state !== "idle") return;
+  credits -= BETS[bet] * LINES.length;
+  spins++; wins = []; message = "Spinning…";
+  result = reels.map(() => randomInt(L));      // the outcome is decided first...
+  reels.forEach((r, i) => {                    // ...then each reel travels to it
+    const base = 12 + i * 8;                   // later reels spin longer, so they travel further
+    r.from = r.pos; r.t = 0; r.spinning = true;
+    r.dist = base + mod(r.pos - base - result[i], L);
+  });
+  state = "spinning";
+}
+
+// Constant speed for 60% of the time, then a smooth stop (position and speed stay continuous).
+function travel(u) {
+  const a = 0.6, v = 2 / (1 + a);
+  return u <= a ? v * u : 1 - (v * (1 - u) ** 2) / (2 * (1 - a));
+}
+
+function settle() {
+  wins = evaluate(result);
+  const won = wins.reduce((sum, w) => sum + w.pay, 0) * BETS[bet];
+  credits += won;
+  biggest = Math.max(biggest, won);
+  message = won ? `Win ${won} credits` : "No win this time";
+  while (bet > 0 && credits < BETS[bet] * LINES.length) bet--;   // never offer a bet you can't cover
+  state = credits < BETS[0] * LINES.length ? "broke" : "idle";
+  if (state === "broke") brokeAt = performance.now();
+}
+
+function changeBet(d) {
+  if (state !== "idle") return;
+  const next = Math.max(0, Math.min(BETS.length - 1, bet + d));
+  if (credits >= BETS[next] * LINES.length) bet = next;
+}
+
+function update(dt) {
+  if (state === "spinning") {
+    let moving = false;
+    reels.forEach((r, i) => {
+      if (!r.spinning) return;
+      r.t += dt;
+      const u = Math.min(1, r.t / SPIN_TIME[i]);
+      r.pos = r.from - r.dist * travel(u);
+      if (u < 1) moving = true;
+      else { r.spinning = false; r.pos = result[i]; r.kick = 0; }   // land exactly on the chosen stop
+    });
+    if (!moving) settle();
+  }
+  reels.forEach((r) => { r.kick += dt; });
+  shown += (credits - shown) * Math.min(1, dt * 8);             // credits count up or down smoothly
+  if (Math.abs(credits - shown) < 0.5) shown = credits;
+}
+
+// ----- Drawing (in design units) -----
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function text(str, x, y, size, color, align = "center", weight = 700) {
+  ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
+  ctx.fillText(str, x, y);
+}
+
+function drawSymbol(id, x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s / 100, s / 100);   // each symbol is drawn in a 100 × 100 box
+  ctx.lineWidth = 4; ctx.strokeStyle = "#3a1f04";
+  if (id === "C") {
+    ctx.strokeStyle = "#2d6a4f"; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(-18, 12); ctx.quadraticCurveTo(-10, -20, 6, -34); ctx.moveTo(16, 18); ctx.quadraticCurveTo(14, -12, 6, -34); ctx.stroke();
+    ctx.fillStyle = "#52b788"; ctx.beginPath(); ctx.ellipse(18, -32, 14, 7, -0.4, 0, Math.PI * 2); ctx.fill();
+    for (const [cx, cy] of [[-18, 20], [16, 24]]) {
+      ctx.fillStyle = "#d00000"; ctx.beginPath(); ctx.arc(cx, cy, 17, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ff8fa3"; ctx.beginPath(); ctx.arc(cx - 6, cy - 6, 5, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (id === "L") {
+    ctx.fillStyle = "#ffd60a"; ctx.beginPath(); ctx.ellipse(0, 0, 36, 26, -0.35, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff3b0"; ctx.beginPath(); ctx.ellipse(-12, -8, 10, 5, -0.35, 0, Math.PI * 2); ctx.fill();
+  } else if (id === "B") {
+    ctx.fillStyle = "#f4a261";
+    ctx.beginPath(); ctx.moveTo(-32, 22); ctx.quadraticCurveTo(-26, 16, -26, -4); ctx.quadraticCurveTo(-24, -32, 0, -32);
+    ctx.quadraticCurveTo(24, -32, 26, -4); ctx.quadraticCurveTo(26, 16, 32, 22); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#e76f51"; ctx.beginPath(); ctx.arc(0, 28, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#ffe8d6"; ctx.fillRect(-14, -22, 6, 26);
+  } else if (id === "S") {
+    ctx.fillStyle = "#9d4edd"; ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 16 : 38;
+      ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else if (id === "G") {
+    ctx.fillStyle = "#48cae4"; ctx.beginPath();
+    ctx.moveTo(-34, -10); ctx.lineTo(-18, -30); ctx.lineTo(18, -30); ctx.lineTo(34, -10); ctx.lineTo(0, 34); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "#caf0f8"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-34, -10); ctx.lineTo(34, -10); ctx.moveTo(-10, -30); ctx.lineTo(-14, -10); ctx.lineTo(0, 34); ctx.lineTo(14, -10); ctx.lineTo(10, -30); ctx.stroke();
+  } else {
+    ctx.font = "900 78px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineWidth = 8; ctx.strokeText("7", 0, 4); ctx.fillStyle = "#e63946"; ctx.fillText("7", 0, 4);
+  }
+  ctx.restore();
+}
+
+const REEL_X = (r) => 30 + r * 102, REEL_Y = 82, CELL_W = 96, CELL_H = 80;
+
+function drawReels(time) {
+  const winning = state === "idle" || state === "broke" ? wins : [];
+  reels.forEach((r, i) => {
+    const x = REEL_X(i);
+    ctx.save();
+    rr(x, REEL_Y, CELL_W, CELL_H * 3, 8); ctx.clip();
+    const bg = ctx.createLinearGradient(0, REEL_Y, 0, REEL_Y + CELL_H * 3);
+    bg.addColorStop(0, "#cfc6b8"); bg.addColorStop(0.5, "#fffaf0"); bg.addColorStop(1, "#cfc6b8");
+    ctx.fillStyle = bg; ctx.fillRect(x, REEL_Y, CELL_W, CELL_H * 3);
+    const kick = r.kick < 0.2 ? Math.sin((r.kick / 0.2) * Math.PI) * 0.12 : 0;   // small bounce on landing
+    const p = r.pos - kick;
+    for (let k = Math.floor(p) - 1; k <= Math.floor(p) + 3; k++) {
+      const row = k - p;                       // 0 = top row; symbols move down as pos decreases
+      const id = REELS[i][mod(k, L)];
+      // Winning symbols pulse.
+      const lit = !r.spinning && winning.some((w) => LINES[w.line][i] === row && i < w.count);
+      drawSymbol(id, x + CELL_W / 2, REEL_Y + row * CELL_H + CELL_H / 2, lit ? 66 + Math.sin(time * 10) * 5 : 62);
+    }
+    ctx.restore();
+  });
+  winning.forEach((w, n) => {                  // win lines through the centre of each symbol
+    ctx.strokeStyle = LINE_COLORS[w.line]; ctx.lineWidth = 5; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(time * 6 + n);
+    ctx.beginPath();
+    LINES[w.line].forEach((row, r) => ctx.lineTo(REEL_X(r) + CELL_W / 2, REEL_Y + row * CELL_H + CELL_H / 2));
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+}
+
+const BUTTONS = { minus: [136, 386, 28, 30], plus: [204, 386, 28, 30], spin: [240, 364, 96, 56], reels: [24, 76, 312, 252] };
+
+function draw(time) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#12091f"; ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy);   // from here on: design units
+
+  const body = ctx.createLinearGradient(0, 0, 0, DESIGN_H);
+  body.addColorStop(0, "#3c096c"); body.addColorStop(1, "#240046");
+  rr(8, 6, 344, 628, 22); ctx.fillStyle = body; ctx.fill();
+  ctx.strokeStyle = "#ffb703"; ctx.lineWidth = 3; ctx.stroke();
+  text("REEL RUSH", 180, 36, 30, "#ffd166", "center", 900);
+  text("Play credits only · no real money", 180, 62, 13, "#e0c3fc", "center", 500);
+  rr(22, 74, 316, 256, 12); ctx.fillStyle = "#10002b"; ctx.fill();
+  drawReels(time);
+  text(message, 180, 346, 17, message.startsWith("Win") ? "#ffd166" : "#e0c3fc");
+
+  // Credits, bet and SPIN.
+  rr(24, 364, 104, 56, 10); ctx.fillStyle = "#10002b"; ctx.fill();
+  text("CREDITS", 76, 378, 11, "#c77dff", "center", 600);
+  text(String(Math.round(shown)), 76, 401, 22, "#ffffff");
+  rr(136, 364, 96, 56, 10); ctx.fillStyle = "#10002b"; ctx.fill();
+  text("BET / LINE", 184, 378, 11, "#c77dff", "center", 600);
+  text(String(BETS[bet]), 184, 401, 22, "#ffffff");
+  for (const [name, label] of [["minus", "−"], ["plus", "+"]]) {
+    const [x, y, w, h] = BUTTONS[name];
+    rr(x + 3, y, w - 6, h - 4, 6); ctx.fillStyle = "#5a189a"; ctx.fill();
+    text(label, x + w / 2, y + h / 2 - 2, 20, "#ffffff");
+  }
+  const [bx, by, bw, bh] = BUTTONS.spin, ready = state === "idle";
+  rr(bx, by, bw, bh, 12); ctx.fillStyle = ready ? "#e63946" : "#6c757d"; ctx.fill();
+  text("SPIN", bx + bw / 2, by + 22, 20, "#ffffff", "center", 900);
+  text(`costs ${BETS[bet] * LINES.length}`, bx + bw / 2, by + 42, 11, "#ffe5ec", "center", 600);
+
+  // Paytable, always visible.
+  rr(24, 432, 312, 196, 12); ctx.fillStyle = "rgba(16, 0, 43, 0.7)"; ctx.fill();
+  text("PAYTABLE · × bet per line", 180, 450, 13, "#ffd166", "center", 800);
+  ["7", "G", "S", "B", "L", "C"].forEach((id, n) => {
+    const x = 40 + (n % 2) * 152, y = 480 + Math.floor(n / 2) * 32;
+    for (let k = 0; k < 3; k++) drawSymbol(id, x + k * 24, y, 24);
+    text(`× ${PAYS[id]}`, x + 74, y, 15, "#ffffff", "left");
+  });
+  drawSymbol("C", 40, 576, 24); drawSymbol("C", 64, 576, 24);
+  text(`+ any   × ${TWO_CHERRIES}`, 80, 576, 15, "#ffffff", "left");
+  text("5 lines: the 3 rows and 2 diagonals", 180, 598, 12, "#e0c3fc", "center", 500);
+  text(`Return ${(ODDS.rtp * 100).toFixed(1)}% · wins on ${(ODDS.hitRate * 100).toFixed(1)}% of spins (exact)`, 180, 616, 12, "#c77dff", "center", 500);
+
+  if (state === "ready" || state === "broke") {
+    rr(8, 6, 344, 628, 22); ctx.fillStyle = "rgba(10, 0, 25, 0.86)"; ctx.fill();
+    if (state === "ready") {
+      text("Reel Rush", 180, 200, 38, "#ffd166", "center", 900);
+      text("A slot machine demo with play credits.", 180, 250, 15, "#ffffff", "center", 500);
+      text("Credits have no value: you can't buy", 180, 280, 15, "#e0c3fc", "center", 500);
+      text("them or cash them out.", 180, 302, 15, "#e0c3fc", "center", 500);
+      text("Space or SPIN to spin · ← → change the bet", 180, 340, 13, "#c77dff", "center", 500);
+      text("Tap or press Space to start", 180, 400, 18, "#ffd166");
+    } else {
+      text("Out of play credits", 180, 220, 28, "#ffd166", "center", 900);
+      text(`${spins} spins · biggest win ${biggest}`, 180, 264, 15, "#ffffff", "center", 500);
+      text("The machine keeps about " + (100 - ODDS.rtp * 100).toFixed(0) + "% of every bet on average,", 180, 300, 13, "#e0c3fc", "center", 500);
+      text("so credits always run out in the end.", 180, 320, 13, "#e0c3fc", "center", 500);
+      text("Tap or press Space for 100 more", 180, 380, 18, "#ffd166");
+    }
+  }
+}
+
+// ----- Sizing and loop -----
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  scale = Math.min(W / DESIGN_W, H / DESIGN_H);
+  ox = (W - DESIGN_W * scale) / 2; oy = (H - DESIGN_H * scale) / 2;
+  draw(performance.now() / 1000);
+}
+
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw(now / 1000);
+  requestAnimationFrame(loop);
+}
+
+// ----- Input: buttons by mouse or touch, or the keyboard -----
+canvas.addEventListener("pointerdown", (e) => {
+  const x = (e.clientX - ox) / scale, y = (e.clientY - oy) / scale;
+  const hit = (name) => { const [bx, by, bw, bh] = BUTTONS[name]; return x >= bx && x <= bx + bw && y >= by && y <= by + bh; };
+  if (state === "ready" || state === "broke" || hit("spin") || hit("reels")) spin();
+  else if (hit("minus")) changeBet(-1);
+  else if (hit("plus")) changeBet(1);
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); spin(); }
+  else if (["ArrowLeft", "ArrowDown", "KeyA", "KeyS"].includes(e.code)) { e.preventDefault(); changeBet(-1); }
+  else if (["ArrowRight", "ArrowUp", "KeyD", "KeyW"].includes(e.code)) { e.preventDefault(); changeBet(1); }
+});
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame((t) => { last = t; loop(t); });
+</script>
+</body>
+</html>
