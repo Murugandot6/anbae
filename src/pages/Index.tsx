@@ -3,7 +3,7 @@
 import React from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { useNavigate } from 'react-router-dom';
-import { Music, Film, Radio, ScrollText, Tv, ArrowRight, Sparkles } from 'lucide-react';
+import { Music, Film, Radio, ScrollText, Tv, Gamepad2, ArrowRight, Sparkles } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -73,6 +73,20 @@ const Index = () => {
       bgIconClass: 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20',
       hoverTextClass: 'group-hover:text-cyan-400',
       description: 'Thousands of free live channels — news, movies, music and sports.'
+    },
+    {
+      id: 'games',
+      title: 'Games',
+      subtitle: 'Instant HTML5 Arcade',
+      icon: Gamepad2,
+      path: '/games/',
+      external: true,
+      accentColor: 'amber',
+      accentClass: 'text-amber-400 group-hover:text-amber-300',
+      borderClass: 'border-l-4 border-l-amber-500/50 hover:border-l-amber-400 hover:border-amber-500/30',
+      bgIconClass: 'bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20',
+      hoverTextClass: 'group-hover:text-amber-400',
+      description: 'Hundreds of browser games — HTML5, Flash and retro — hosted right here.'
     }
   ];
 
@@ -106,7 +120,7 @@ const Index = () => {
             {hubs.map((hub) => (
               <div
                 key={hub.id}
-                onClick={() => navigate(hub.path)}
+                onClick={() => hub.external ? (window.location.href = hub.path) : navigate(hub.path)}
                 className={`group flex items-center gap-5 p-5 sm:p-6 bg-zinc-900/40 hover:bg-zinc-900/80 border border-white/5 rounded-xl text-left cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:translate-y-[-2px] shadow-xl ${hub.borderClass}`}
               >
                 {/* Icon */}

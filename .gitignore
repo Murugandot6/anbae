@@ -28,3 +28,6 @@ dist-ssr
 .wrangler/
 dist/
 build/
+
+# Mirrored game assets are deployed on gh-pages, not stored in the source branch
+public/games/

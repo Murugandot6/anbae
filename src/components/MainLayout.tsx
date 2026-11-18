@@ -4,7 +4,7 @@ import React from 'react';
 import { MusicPlayer } from './MusicPlayer';
 import { LanguageSelector } from './LanguageSelector';
 import { MobileNav } from './MobileNav';
-import { Music, User, Settings, Sparkles, Home, Heart, History, Library, Film, Radio, Search, ScrollText, Tv } from 'lucide-react';
+import { Music, User, Settings, Sparkles, Home, Heart, History, Library, Film, Radio, Search, ScrollText, Tv, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           
           <div className="hidden lg:flex items-center gap-3">
             <button onClick={() => navigate('/')} className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 hover:text-white transition-all shrink-0"><Home size={18} /></button>
+            <button onClick={() => { window.location.href = '/games/'; }} title="Games" className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-amber-300/80 hover:text-amber-300 transition-all shrink-0"><Gamepad2 size={18} /></button>
             <div className="h-5 w-[1px] bg-border/50 mx-1 shrink-0" />
 
             {isMusicContext && (

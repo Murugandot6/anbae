@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Home, Music, Film, Radio, Search, Heart, BookOpen, ScrollText, Tv } from 'lucide-react';
+import { Home, Music, Film, Radio, Search, Heart, BookOpen, ScrollText, Tv, Gamepad2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +25,7 @@ export const MobileNav = () => {
     { icon: Radio, label: 'Radio', path: '/radio' },
     { icon: ScrollText, label: 'Lyrics', path: '/lyrics' },
     { icon: Tv, label: 'TV', path: '/tv' },
+    { icon: Gamepad2, label: 'Games', path: '/games/' },
   ];
 
   if (isMoviesContext) {
@@ -68,21 +69,23 @@ export const MobileNav = () => {
     <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border z-50 px-4 py-3 flex items-center justify-between pb-safe">
       {navItems.map((item) => {
         const isActive = path === item.path || (path === '/search' && item.path.startsWith('/search') && searchType === (item.path.includes('movies') ? 'movies' : item.path.includes('fm') ? 'fm' : 'music'));
-        return (
-          <Link 
-            key={item.path} 
-            to={item.path} 
-            className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-200 flex-1",
-              isActive 
-                ? (isMoviesContext ? "text-purple-400" : isRadioContext ? "text-orange-400" : isLyricsContext ? "text-rose-400" : isTvContext ? "text-cyan-400" : "text-green-500") 
-                : "text-muted-foreground"
-            )}
-          >
+        const isExternal = item.path.startsWith('/games');
+        const className = cn(
+          "flex flex-col items-center gap-1 transition-all duration-200 flex-1",
+          isActive
+            ? (isMoviesContext ? "text-purple-400" : isRadioContext ? "text-orange-400" : isLyricsContext ? "text-rose-400" : isTvContext ? "text-cyan-400" : "text-green-500")
+            : "text-muted-foreground"
+        );
+        const content = (
+          <>
             <item.icon size={20} className={cn(isActive && "scale-110")} />
             <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
-          </Link>
+          </>
         );
+        // /games is a real static document outside the hash-router SPA.
+        return isExternal
+          ? <a key={item.path} href={item.path} className={className}>{content}</a>
+          : <Link key={item.path} to={item.path} className={className}>{content}</Link>;
       })}
     </div>
   );
