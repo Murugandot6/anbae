@@ -1,5 +1,5 @@
 {
- "count": 83,
+ "count": 81,
  "games": [
   {
    "name": "1 - Forest",
@@ -54,13 +54,6 @@
    "path": "projects/9007199254740992/index.html",
    "icon": "projects/9007199254740992/logo-4.png",
    "category": "html5"
-  },
-  {
-   "name": "A Small World Cup",
-   "path": "projects/a-small-world-cup/index.html",
-   "icon": "projects/a-small-world-cup/a-small-world-cup.png",
-   "category": "html5",
-   "popular": true
   },
   {
    "name": "Among Us",
@@ -401,12 +394,6 @@
    "name": "Rooftop Snipers",
    "path": "projects/rooftop-snipers/index.html",
    "icon": "projects/rooftop-snipers/thumb.png",
-   "category": "html5"
-  },
-  {
-   "name": "Sand Tetris",
-   "path": "projects/sandtrix/index.html",
-   "icon": "projects/sandtrix/thumb.png",
    "category": "html5"
   },
   {
