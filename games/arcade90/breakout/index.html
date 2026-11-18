@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAKOUT - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: radial-gradient(circle at 20% 10%, #3a1a5e 0%, #1c0d3a 45%, #08051a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #f5e8ff;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        canvas#gameCanvas {
+            border: 3px solid #ffb8de;
+            background: #08051a;
+            display: block;
+            box-shadow: 0 0 35px rgba(255, 184, 222, 0.4);
+            border-radius: 6px;
+        }
+        .info { color: #f5e8ff; min-width: 260px; }
+        .stat-box {
+            background: rgba(255, 184, 222, 0.08);
+            border: 2px solid #ffb8de;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+        .stat-label { font-size: 12px; text-transform: uppercase; margin-bottom: 4px; font-weight: bold; color: #ffd166; }
+        .stat-value { font-size: 26px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: bold; color: #fff; }
+        button, .mode-btn {
+            width: 100%;
+            padding: 9px;
+            background: #ffb8de;
+            color: #1a0a30;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px 0;
+            border-radius: 4px;
+            transition: transform 0.15s, background 0.15s;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        }
+        button:hover, .mode-btn:hover { transform: scale(1.03); background: #ffd166; }
+        .mode-btn.active { background: #9be36b; color: #08051a; }
+        .controls, .difficulty-box {
+            background: rgba(255, 184, 222, 0.08);
+            border: 2px solid #ffb8de;
+            padding: 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="info">
+            <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="score">0</div></div>
+            <div class="stat-box"><div class="stat-label">Level</div><div class="stat-value" id="level">1</div></div>
+            <div class="stat-box"><div class="stat-label">Lives</div><div class="stat-value" id="lives">3</div></div>
+            <div class="stat-box"><div class="stat-label">Bricks</div><div class="stat-value" id="bricks">30</div></div>
+            <div class="controls">
+                <strong style="color:#ffd166">CONTROLS</strong>
+                <p>&larr; &rarr; Move paddle</p>
+                <p>SPACE Launch ball</p>
+                <p>P Pause &nbsp; M Mute</p>
+            </div>
+            <div class="difficulty-box">
+                <strong style="color:#ffd166">DIFFICULTY</strong><br/>
+                <button class="mode-btn" data-diff="easy" onclick="game.setDifficulty('easy', this)">Easy</button>
+                <button class="mode-btn active" data-diff="medium" onclick="game.setDifficulty('medium', this)">Medium</button>
+                <button class="mode-btn" data-diff="hard" onclick="game.setDifficulty('hard', this)">Hard</button>
+            </div>
+            <div class="stat-box" style="font-size:12px">
+                <strong style="color:#ffd166">ACTIVE POWERUP</strong>
+                <div id="activePowerup">None</div>
+            </div>
+            <button onclick="game.start()">START GAME</button>
+            <button onclick="game.restart()">NEW GAME</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+    <script>
+        const audio = {
+            ctx: null, muted: false,
+            init() {
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                this.muted = localStorage.getItem('breakout-muted') === '1';
+            },
+            resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('breakout-muted', this.muted ? '1' : '0');
+            },
+            tone(freq, dur, type, gain) {
+                if (!this.ctx || this.muted) return;
+                this.resume();
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(gain || 0.18, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start();
+                o.stop(this.ctx.currentTime + dur);
+            },
+            paddle() { this.tone(380, 0.06, 'square', 0.2); },
+            brick()  { this.tone(560, 0.05, 'triangle', 0.18); },
+            powerup(){ this.tone(720, 0.1, 'sine', 0.2); setTimeout(()=>this.tone(960,0.1,'sine',0.18),80); },
+            lose()   { this.tone(220, 0.25, 'sawtooth', 0.22); },
+            launch() { this.tone(500, 0.08, 'square', 0.18); }
+        };
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 600,
+            height: 400,
+            paddleWidth: 70,
+            paddleHeight: 12,
+            ballRadius: 4,
+            brickWidth: 60,
+            brickHeight: 14,
+            paddle: null, ball: null,
+            bricks: [], powerups: [], particles: [], popups: [],
+            shake: { mag: 0, dx: 0, dy: 0 },
+            score: 0, level: 1, lives: 3,
+            gameRunning: false, gamePaused: false, gameOver: false,
+            ballLaunched: false,
+            activePowerup: null, powerupTimer: 0,
+            titleAlpha: 1, gameOverAlpha: 0, time: 0, stars: [],
+            difficulty: 'medium', paddleTargetX: 0,
+            diffMap: {
+                easy:   { speed: 0.85 },
+                medium: { speed: 1.0 },
+                hard:   { speed: 1.25 }
+            },
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                audio.init();
+                this.difficulty = localStorage.getItem('breakout-difficulty') || 'medium';
+                document.querySelectorAll('[data-diff]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.diff === this.difficulty);
+                });
+                this.paddle = { x: this.width / 2 - this.paddleWidth / 2, y: this.height - 30 };
+                this.paddleTargetX = this.paddle.x;
+                this.ball = { x: this.paddle.x + this.paddleWidth / 2, y: this.paddle.y - 10, vx: 0, vy: 0, trail: [] };
+                for (let i = 0; i < 50; i++) {
+                    this.stars.push({ x: Math.random()*this.width, y: Math.random()*this.height*0.7, s: Math.random()*1.5+0.2, t: Math.random()*6.28 });
+                }
+                this.setupInput();
+                this.createBricks();
+                this.gameLoop();
+            },
+            setDifficulty(d, btn) {
+                this.difficulty = d;
+                localStorage.setItem('breakout-difficulty', d);
+                document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+            },
+            createBricks() {
+                this.bricks = [];
+                const cols = Math.floor(this.width / this.brickWidth);
+                const rows = 5 + Math.floor(this.level / 2);
+                const palette = ['#ff5cc8', '#ffb8de', '#ffd166', '#9be36b', '#4cd9ff'];
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const h = Math.min(3, 1 + Math.floor(this.level / 3));
+                        this.bricks.push({
+                            x: col * this.brickWidth + 1,
+                            y: 50 + row * (this.brickHeight + 2),
+                            width: this.brickWidth - 2,
+                            height: this.brickHeight,
+                            health: h, maxHealth: h,
+                            color: palette[row % palette.length]
+                        });
+                    }
+                }
+            },
+            start() {
+                if (this.gameOver) return;
+                if (!this.ballLaunched) {
+                    this.ballLaunched = true; this.gameRunning = true; this.titleAlpha = 0;
+                    const sp = this.diffMap[this.difficulty].speed;
+                    this.ball.vx = (Math.random() - 0.5) * 4 * sp;
+                    this.ball.vy = -5 * sp;
+                    audio.launch();
+                }
+            },
+            emitParticles(x, y, color, count) {
+                count = count || 14; const limit = 200;
+                for (let i = 0; i < count; i++) {
+                    if (this.particles.length >= limit) break;
+                    const a = Math.random() * Math.PI * 2;
+                    const s = Math.random() * 3.5 + 0.7;
+                    this.particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 30, max: 30, color });
+                }
+            },
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || '#ffd166', life: 50, max: 50 });
+            },
+            triggerShake(mag) { this.shake.mag = Math.max(this.shake.mag, mag); },
+            update() {
+                this.time++;
+                this.paddle.x += (this.paddleTargetX - this.paddle.x) * 0.35;
+                for (let i = this.particles.length-1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.96; p.vy *= 0.96; p.vy += 0.05;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i,1);
+                }
+                for (let i = this.popups.length-1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y -= 0.8; p.life--;
+                    if (p.life <= 0) this.popups.splice(i,1);
+                }
+                if (this.shake.mag > 0.1) {
+                    this.shake.dx = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.dy = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.mag *= 0.85;
+                } else { this.shake.dx = 0; this.shake.dy = 0; }
+                if (this.gameOver) {
+                    this.gameOverAlpha = Math.min(1, this.gameOverAlpha + 0.04);
+                }
+                if (!this.gameRunning || this.gamePaused) return;
+                if (this.ballLaunched) {
+                    this.ball.trail.push({x:this.ball.x, y:this.ball.y});
+                    if (this.ball.trail.length > 10) this.ball.trail.shift();
+                    this.ball.x += this.ball.vx;
+                    this.ball.y += this.ball.vy;
+                    if (this.ball.x - this.ballRadius < 0 || this.ball.x + this.ballRadius > this.width) {
+                        this.ball.vx = -this.ball.vx;
+                        this.ball.x = Math.max(this.ballRadius, Math.min(this.width - this.ballRadius, this.ball.x));
+                    }
+                    if (this.ball.y - this.ballRadius < 0) { this.ball.vy = -this.ball.vy; }
+                    if (this.ball.y + this.ballRadius > this.paddle.y &&
+                        this.ball.y - this.ballRadius < this.paddle.y + this.paddleHeight &&
+                        this.ball.x > this.paddle.x && this.ball.x < this.paddle.x + this.paddleWidth) {
+                        this.ball.vy = -Math.abs(this.ball.vy);
+                        this.ball.y = this.paddle.y - this.ballRadius;
+                        const collidePoint = this.ball.x - (this.paddle.x + this.paddleWidth / 2);
+                        this.ball.vx += collidePoint * 0.1;
+                        audio.paddle();
+                        this.emitParticles(this.ball.x, this.paddle.y, '#ffd166', 8);
+                    }
+                    for (let i = this.bricks.length - 1; i >= 0; i--) {
+                        const brick = this.bricks[i];
+                        if (this.ball.x > brick.x && this.ball.x < brick.x + brick.width &&
+                            this.ball.y > brick.y && this.ball.y < brick.y + brick.height) {
+                            brick.health--;
+                            if (brick.health <= 0) {
+                                this.bricks.splice(i, 1);
+                                const points = 100 * this.level;
+                                this.score += points;
+                                this.addPopup(brick.x + brick.width/2, brick.y, '+' + points, brick.color);
+                                this.emitParticles(brick.x + brick.width/2, brick.y + brick.height/2, brick.color, 16);
+                                this.triggerShake(3);
+                                if (Math.random() < 0.1) this.spawnPowerup(brick.x, brick.y);
+                            } else {
+                                this.emitParticles(this.ball.x, this.ball.y, brick.color, 5);
+                            }
+                            audio.brick();
+                            this.ball.vy = -this.ball.vy;
+                            break;
+                        }
+                    }
+                    if (this.ball.y > this.height) {
+                        this.lives--;
+                        audio.lose();
+                        this.triggerShake(10);
+                        if (this.lives <= 0) {
+                            this.gameOver = true; this.gameRunning = false;
+                        } else {
+                            this.resetBall();
+                        }
+                    }
+                    if (this.bricks.length === 0) {
+                        this.level++;
+                        this.createBricks();
+                        this.resetBall();
+                        this.addPopup(this.width/2, this.height/2, 'LEVEL ' + this.level, '#9be36b');
+                    }
+                }
+                for (let i = this.powerups.length - 1; i >= 0; i--) {
+                    const pu = this.powerups[i];
+                    pu.y += 2;
+                    if (pu.y > this.paddle.y - 10 && pu.y < this.paddle.y + 20 &&
+                        pu.x > this.paddle.x && pu.x < this.paddle.x + this.paddleWidth) {
+                        this.activatePowerup(pu.type);
+                        this.powerups.splice(i, 1);
+                        audio.powerup();
+                    } else if (pu.y > this.height) {
+                        this.powerups.splice(i, 1);
+                    }
+                }
+                if (this.powerupTimer > 0) {
+                    this.powerupTimer--;
+                    if (this.powerupTimer === 0) {
+                        this.activePowerup = null;
+                        this.paddleWidth = 70;
+                    }
+                }
+            },
+            resetBall() {
+                this.ball.x = this.paddle.x + this.paddleWidth / 2;
+                this.ball.y = this.paddle.y - 10;
+                this.ball.vx = 0; this.ball.vy = 0;
+                this.ball.trail = [];
+                this.ballLaunched = false;
+            },
+            spawnPowerup(x, y) {
+                const types = ['expand', 'slow', 'fast', 'multi'];
+                this.powerups.push({
+                    x: x + this.brickWidth/2, y,
+                    type: types[Math.floor(Math.random() * types.length)],
+                    size: 12
+                });
+            },
+            activatePowerup(type) {
+                this.activePowerup = type;
+                this.powerupTimer = 300;
+                switch(type) {
+                    case 'expand': this.paddleWidth = 100; break;
+                    case 'slow': this.ball.vx *= 0.7; this.ball.vy *= 0.7; break;
+                    case 'fast': this.ball.vx *= 1.3; this.ball.vy *= 1.3; break;
+                    case 'multi': this.score += 500; this.addPopup(this.paddle.x + this.paddleWidth/2, this.paddle.y - 20, '+500 BONUS', '#ffd166'); break;
+                }
+            },
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.translate(this.shake.dx, this.shake.dy);
+                const bg = ctx.createLinearGradient(0, 0, 0, this.height);
+                bg.addColorStop(0, '#1a0a30'); bg.addColorStop(1, '#08051a');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, this.width, this.height);
+                for (const s of this.stars) {
+                    const a = 0.4 + 0.6 * Math.sin(s.t + this.time * 0.04);
+                    ctx.fillStyle = `rgba(255, 220, 240, ${a})`;
+                    ctx.fillRect(s.x, s.y, s.s, s.s);
+                }
+                for (let i = 0; i < this.ball.trail.length; i++) {
+                    const t = this.ball.trail[i];
+                    const a = i / this.ball.trail.length;
+                    ctx.fillStyle = `rgba(255, 209, 102, ${a*0.35})`;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.ballRadius * a, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                const pgrd = ctx.createLinearGradient(this.paddle.x, this.paddle.y, this.paddle.x, this.paddle.y + this.paddleHeight);
+                pgrd.addColorStop(0, '#9be36b'); pgrd.addColorStop(1, '#3a8a2c');
+                ctx.shadowColor = '#9be36b'; ctx.shadowBlur = 14;
+                ctx.fillStyle = pgrd;
+                ctx.fillRect(this.paddle.x, this.paddle.y, this.paddleWidth, this.paddleHeight);
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.ball.x, this.ball.y, this.ballRadius + 1, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                for (let brick of this.bricks) {
+                    const ratio = brick.health / brick.maxHealth;
+                    const grd = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
+                    grd.addColorStop(0, brick.color);
+                    grd.addColorStop(1, this.darken(brick.color, 0.55));
+                    ctx.globalAlpha = 0.35 + ratio * 0.65;
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+                    ctx.strokeRect(brick.x+0.5, brick.y+0.5, brick.width-1, brick.height-1);
+                    ctx.globalAlpha = 1;
+                }
+                for (let pu of this.powerups) {
+                    ctx.shadowColor = '#ff5cc8'; ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#ff5cc8';
+                    ctx.fillRect(pu.x - pu.size / 2, pu.y, pu.size, pu.size);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 10px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(pu.type[0].toUpperCase(), pu.x, pu.y + 9);
+                    ctx.shadowBlur = 0;
+                    ctx.textAlign = 'left';
+                }
+                for (const p of this.particles) {
+                    const a = p.life / p.max;
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x-1.5, p.y-1.5, 3, 3);
+                }
+                ctx.globalAlpha = 1;
+                ctx.font = 'bold 24px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('SCORE ' + this.score, 10, 28, '#fff', '#000');
+                ctx.font = '18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('LIVES ' + this.lives, this.width - 110, 24, '#ffd166', '#000');
+                this.outline('LVL ' + this.level, this.width/2 - 30, 24, '#9be36b', '#000');
+                for (const p of this.popups) {
+                    ctx.globalAlpha = p.life / p.max;
+                    ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline(p.text, p.x, p.y, p.color, '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                if (this.titleAlpha > 0.01) {
+                    ctx.globalAlpha = this.titleAlpha;
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.font = 'bold 54px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline('BREAKOUT', this.width/2, this.height/2 - 30, '#ffb8de', '#000');
+                    ctx.font = '20px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('PRESS SPACE TO LAUNCH', this.width/2, this.height/2 + 8, '#ffd166', '#000');
+                    ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('Arrows move - P pause - M mute', this.width/2, this.height/2 + 36, '#f5e8ff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                    if (this.ballLaunched) this.titleAlpha = Math.max(0, this.titleAlpha - 0.05);
+                }
+                if (this.gamePaused) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.fillStyle = '#ffb8de';
+                    ctx.font = 'bold 32px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PAUSED', this.width / 2, this.height / 2);
+                    ctx.textAlign = 'left';
+                }
+                if (this.gameOver) {
+                    ctx.globalAlpha = this.gameOverAlpha;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.font = 'bold 44px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline('GAME OVER', this.width / 2, this.height / 2 - 20, '#ff5cc8', '#000');
+                    ctx.font = '20px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline(`Final Score: ${this.score}`, this.width / 2, this.height / 2 + 20, '#fff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                ctx.restore();
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('bricks').textContent = this.bricks.length;
+                document.getElementById('activePowerup').textContent = this.activePowerup || 'None';
+            },
+            darken(hex, f) {
+                const m = hex.match(/^#([0-9a-f]{6})$/i);
+                if (!m) return hex;
+                const n = parseInt(m[1], 16);
+                const r = Math.floor(((n>>16)&255) * f);
+                const g = Math.floor(((n>>8)&255) * f);
+                const b = Math.floor((n&255) * f);
+                return `rgb(${r},${g},${b})`;
+            },
+            outline(text, x, y, fill, stroke) {
+                const ctx = this.ctx;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = stroke;
+                ctx.strokeText(text, x, y);
+                ctx.fillStyle = fill;
+                ctx.fillText(text, x, y);
+            },
+            setupInput() {
+                const keys = {};
+                document.addEventListener('keydown', (e) => {
+                    keys[e.key.toLowerCase()] = true;
+                    audio.resume();
+                    if (e.key === ' ') { this.start(); e.preventDefault(); }
+                    if (e.key.toLowerCase() === 'p') { this.gamePaused = !this.gamePaused; }
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+                });
+                document.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+                setInterval(() => {
+                    const spd = 8 * this.diffMap[this.difficulty].speed;
+                    if (keys['arrowleft']) this.paddleTargetX = Math.max(0, this.paddleTargetX - spd);
+                    if (keys['arrowright']) this.paddleTargetX = Math.min(this.width - this.paddleWidth, this.paddleTargetX + spd);
+                }, 16);
+            },
+            restart() {
+                this.score = 0; this.level = 1; this.lives = 3;
+                this.gameRunning = false; this.gamePaused = false; this.gameOver = false;
+                this.ballLaunched = false;
+                this.activePowerup = null;
+                this.paddleWidth = 70;
+                this.paddle = { x: this.width / 2 - this.paddleWidth / 2, y: this.height - 30 };
+                this.paddleTargetX = this.paddle.x;
+                this.titleAlpha = 1; this.gameOverAlpha = 0;
+                this.particles = []; this.popups = [];
+                this.resetBall();
+                this.createBricks();
+                this.powerups = [];
+            },
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+        game.init();
+    </script>
+</body>
+</html>

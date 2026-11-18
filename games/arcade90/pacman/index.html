@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAC-MAN - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: radial-gradient(circle at top, #1a1a4a 0%, #000040 60%, #000020 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffe66d;
+        }
+        .container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+        canvas#gameCanvas {
+            border: 3px solid #ffe66d;
+            background: #000028;
+            display: block;
+            box-shadow: 0 0 40px rgba(255, 230, 109, 0.4);
+            border-radius: 4px;
+        }
+        .info { color: #ffe66d; min-width: 250px; font-family: inherit; }
+        .stat-box {
+            background: rgba(255, 230, 109, 0.08);
+            border: 2px solid #ffe66d;
+            padding: 14px;
+            margin-bottom: 14px;
+            border-radius: 4px;
+        }
+        .stat-label { font-size: 12px; margin-bottom: 5px; letter-spacing: 1px; color: #ff6e9c; }
+        .stat-value { font-size: 26px; font-weight: bold; color: #ffe66d; }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #ffe66d;
+            color: #000028;
+            border: 1px solid #ffe66d;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px 0;
+            font-family: inherit;
+            border-radius: 4px;
+        }
+        button:hover { background: #ff6e9c; border-color: #ff6e9c; color: #fff; }
+        .controls {
+            background: rgba(255, 230, 109, 0.06);
+            border: 2px solid #ffe66d;
+            padding: 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="400" height="420"></canvas>
+        <div class="info">
+            <div class="stat-box"><div class="stat-label">SCORE</div><div class="stat-value" id="score">0</div></div>
+            <div class="stat-box"><div class="stat-label">HIGH SCORE</div><div class="stat-value" id="highScore">0</div></div>
+            <div class="stat-box"><div class="stat-label">LEVEL</div><div class="stat-value" id="level">1</div></div>
+            <div class="stat-box"><div class="stat-label">LIVES</div><div class="stat-value" id="lives">3</div></div>
+            <div class="stat-box"><div class="stat-label">DOTS LEFT</div><div class="stat-value" id="dots">240</div></div>
+            <div class="controls">
+                <strong>CONTROLS</strong><br/>
+                Arrow Keys - Move<br/>
+                P - Pause &nbsp; M - Mute<br/>
+                ENTER - Restart<br/>
+                1/2/3 - Difficulty (on title)
+            </div>
+            <button onclick="game.start()">START GAME</button>
+            <button onclick="game.restart()">NEW GAME</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 20;
+        const CELL_SIZE = 20;
+        const COLS = 20;
+        const ROWS = 18;
+
+        const PAL = {
+            bg: '#000028', wall: '#3b58ff',
+            yellow: '#ffe66d', pink: '#ff6e9c',
+            cyan: '#4dd0ff', white: '#fff5d6'
+        };
+
+        const audio = {
+            ctx: null,
+            muted: localStorage.getItem('pacman-muted') === '1',
+            ensure() { if (!this.ctx) { try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } },
+            beep(freq, dur, type, vol) {
+                if (this.muted) return;
+                this.ensure(); if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, t);
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(t); o.stop(t + dur + 0.02);
+            },
+            dot()    { this.beep(523 + (Math.random()*40), 0.04, 'square', 0.05); },
+            pellet() { this.beep(330, 0.15, 'triangle', 0.14); this.beep(440, 0.15, 'triangle', 0.1); },
+            ghost()  { this.beep(800, 0.1, 'square', 0.16); this.beep(1100, 0.12, 'square', 0.14); },
+            die()    { this.beep(220, 0.3, 'sawtooth', 0.18); this.beep(110, 0.45, 'sawtooth', 0.14); },
+            level()  { this.beep(523, 0.1, 'triangle', 0.14); this.beep(784, 0.15, 'triangle', 0.14); },
+            toggleMute() { this.muted = !this.muted; localStorage.setItem('pacman-muted', this.muted?'1':'0'); }
+        };
+
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            maze: [],
+            pacman: { x: 10, y: 16, direction: 0, nextDirection: 0, mouthOpen: true, renderX: 10, renderY: 16 },
+            ghosts: [],
+            dots: [],
+            powerPellets: [],
+            score: 0,
+            highScore: parseInt(localStorage.getItem('pacman-highscore') || '0', 10),
+            level: 1,
+            lives: 3,
+            gameRunning: false,
+            gamePaused: false,
+            gameOver: false,
+            powerPelletActive: false,
+            powerPelletTimer: 0,
+            mouthTimer: 0,
+            totalDots: 0,
+            tick: 0,
+
+            screen: 'title',
+            screenAlpha: 0,
+
+            difficulty: localStorage.getItem('pacman-difficulty') || 'medium',
+            diffIndex: 1,
+            // Difficulty scaling: ghost speed (mod numerator).
+            // Tick-based speed fix preserved: Pac-Man % 8, ghosts % 10 (medium baseline).
+            ghostMod: 10,
+            pacmanMod: 8,
+
+            particles: [], popups: [],
+            shakeAmount: 0, shakeDuration: 0, shakeX: 0, shakeY: 0,
+
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.diffIndex = ['easy','medium','hard'].indexOf(this.difficulty);
+                if (this.diffIndex < 0) { this.diffIndex = 1; this.difficulty = 'medium'; }
+                this.applyDifficulty();
+                this.createMaze();
+                this.createGhosts();
+                this.placeDots();
+                this.setupInput();
+                this.gameLoop();
+            },
+
+            applyDifficulty() {
+                // Larger mod = slower. Easy makes ghosts slower (12), Hard faster (8).
+                // Pac-Man keeps % 8 baseline regardless to preserve fix.
+                this.ghostMod = [13, 10, 8][this.diffIndex];
+                this.pacmanMod = 8;
+            },
+
+            createMaze() {
+                const mazeData = [
+                    '####################',
+                    '#........#.........#',
+                    '#.##.####.####.##..#',
+                    '#.##.####.####.##..#',
+                    '#..................#',
+                    '#.####.#...#.####..#',
+                    '#......#...#.....#.#',
+                    '#.#####.###..#####.#',
+                    '#..................#',
+                    '#.####.####.#####..#',
+                    '#.....#.....#....#.#',
+                    '#.#####.###.#.###..#',
+                    '#..................#',
+                    '#.##.####.####.##..#',
+                    '#....#....#.....#..#',
+                    '#.#####.##########.#',
+                    '#..................#',
+                    '####################',
+                ];
+                this.maze = mazeData.map(row => row.split(''));
+            },
+
+            createGhosts() {
+                this.ghosts = [
+                    { x: 9, y: 10, color: '#ff5d5d', direction: 1, renderX: 9, renderY: 10 },
+                    { x: 10, y: 10, color: '#ff6e9c', direction: 0, renderX: 10, renderY: 10 },
+                    { x: 8, y: 12, color: '#4dd0ff', direction: 1, renderX: 8, renderY: 12 },
+                    { x: 11, y: 12, color: '#ffb851', direction: 0, renderX: 11, renderY: 12 }
+                ];
+            },
+
+            placeDots() {
+                this.dots = [];
+                for (let y = 1; y < ROWS - 1; y++) {
+                    for (let x = 1; x < COLS - 1; x++) {
+                        if (this.maze[y][x] === '.') this.dots.push({ x, y });
+                    }
+                }
+                this.totalDots = this.dots.length;
+                this.powerPellets = [
+                    { x: 1, y: 1 },
+                    { x: 18, y: 1 },
+                    { x: 1, y: 15 },
+                    { x: 18, y: 15 }
+                ];
+            },
+
+            start() {
+                if (!this.gameRunning && !this.gameOver) {
+                    audio.ensure();
+                    this.gameRunning = true;
+                    this.screen = 'playing';
+                    this.screenAlpha = 0;
+                }
+            },
+
+            setDifficulty(idx) {
+                this.diffIndex = idx;
+                this.difficulty = ['easy','medium','hard'][idx];
+                localStorage.setItem('pacman-difficulty', this.difficulty);
+                this.applyDifficulty();
+            },
+
+            shake(amount, dur) {
+                this.shakeAmount = Math.max(this.shakeAmount, amount);
+                this.shakeDuration = Math.max(this.shakeDuration, dur);
+            },
+
+            addPopup(x, y, text, color) {
+                this.popups.push({ x: x * CELL_SIZE + CELL_SIZE/2, y: y * CELL_SIZE, text, color: color || PAL.yellow, life: 50, max: 50 });
+            },
+
+            createParticles(x, y, n, color) {
+                for (let i = 0; i < n; i++) {
+                    this.particles.push({
+                        x: x * CELL_SIZE + CELL_SIZE/2,
+                        y: y * CELL_SIZE + CELL_SIZE/2,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 30, max: 30,
+                        size: 2 + Math.random() * 2,
+                        color: color || PAL.yellow
+                    });
+                }
+                if (this.particles.length > 200) this.particles.splice(0, this.particles.length - 200);
+            },
+
+            moveGhosts() {
+                const dirs = [[1, 0], [-1, 0], [0, -1], [0, 1]];
+                for (let ghost of this.ghosts) {
+                    const randomDir = dirs[Math.floor(Math.random() * dirs.length)];
+                    const nx = ghost.x + randomDir[0];
+                    const ny = ghost.y + randomDir[1];
+                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && this.maze[ny][nx] !== '#') {
+                        ghost.x = nx;
+                        ghost.y = ny;
+                    }
+                }
+            },
+
+            update() {
+                // lerps + visual systems always
+                this.pacman.renderX += (this.pacman.x - this.pacman.renderX) * 0.35;
+                this.pacman.renderY += (this.pacman.y - this.pacman.renderY) * 0.35;
+                for (const gh of this.ghosts) {
+                    gh.renderX += (gh.x - gh.renderX) * 0.3;
+                    gh.renderY += (gh.y - gh.renderY) * 0.3;
+                }
+                if (this.shakeDuration > 0) {
+                    this.shakeDuration--;
+                    const decay = Math.exp(-0.05 * (30 - this.shakeDuration));
+                    this.shakeX = (Math.random() - 0.5) * this.shakeAmount * decay;
+                    this.shakeY = (Math.random() - 0.5) * this.shakeAmount * decay;
+                    if (this.shakeDuration <= 0) { this.shakeAmount = 0; this.shakeX = 0; this.shakeY = 0; }
+                }
+                this.screenAlpha = Math.min(1, this.screenAlpha + 0.04);
+                for (let i = this.popups.length - 1; i >= 0; i--) {
+                    this.popups[i].y -= 0.8;
+                    this.popups[i].life--;
+                    if (this.popups[i].life <= 0) this.popups.splice(i, 1);
+                }
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy *= 0.96;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                }
+
+                if (!this.gameRunning || this.gamePaused) return;
+
+                this.tick++;
+                // Preserved fix: Pac-Man moves on % pacmanMod, ghosts on % ghostMod.
+                const pacmanMoves = this.tick % this.pacmanMod === 0;
+                const ghostsMove = this.tick % this.ghostMod === 0;
+
+                if (!pacmanMoves) {
+                    this.mouthTimer++;
+                    if (this.mouthTimer > 10) {
+                        this.pacman.mouthOpen = !this.pacman.mouthOpen;
+                        this.mouthTimer = 0;
+                    }
+                    if (this.powerPelletActive) {
+                        this.powerPelletTimer--;
+                        if (this.powerPelletTimer <= 0) this.powerPelletActive = false;
+                    }
+                    if (ghostsMove) this.moveGhosts();
+                    return;
+                }
+
+                this.pacman.direction = this.pacman.nextDirection;
+                const dirs = [[1, 0], [-1, 0], [0, -1], [0, 1]];
+                const dir = dirs[this.pacman.direction];
+                const newX = this.pacman.x + dir[0];
+                const newY = this.pacman.y + dir[1];
+
+                if (newX >= 0 && newX < COLS && newY >= 0 && newY < ROWS && this.maze[newY][newX] !== '#') {
+                    this.pacman.x = newX;
+                    this.pacman.y = newY;
+                }
+
+                for (let i = this.dots.length - 1; i >= 0; i--) {
+                    if (this.dots[i].x === this.pacman.x && this.dots[i].y === this.pacman.y) {
+                        this.dots.splice(i, 1);
+                        this.score += 10;
+                        audio.dot();
+                    }
+                }
+
+                for (let i = this.powerPellets.length - 1; i >= 0; i--) {
+                    if (this.powerPellets[i].x === this.pacman.x && this.powerPellets[i].y === this.pacman.y) {
+                        this.powerPellets.splice(i, 1);
+                        this.powerPelletActive = true;
+                        this.powerPelletTimer = 200;
+                        this.score += 50;
+                        audio.pellet();
+                        this.addPopup(this.pacman.x, this.pacman.y, '+50', PAL.pink);
+                        this.createParticles(this.pacman.x, this.pacman.y, 16, PAL.pink);
+                    }
+                }
+
+                if (ghostsMove) this.moveGhosts();
+
+                for (let ghost of this.ghosts) {
+                    if (ghost.x === this.pacman.x && ghost.y === this.pacman.y) {
+                        if (this.powerPelletActive) {
+                            this.createParticles(ghost.x, ghost.y, 18, PAL.cyan);
+                            this.addPopup(ghost.x, ghost.y, '+200', PAL.cyan);
+                            ghost.x = 10;
+                            ghost.y = 10;
+                            ghost.renderX = 10;
+                            ghost.renderY = 10;
+                            this.score += 200;
+                            audio.ghost();
+                        } else {
+                            this.lives--;
+                            audio.die();
+                            this.shake(10, 28);
+                            this.createParticles(this.pacman.x, this.pacman.y, 24, PAL.yellow);
+                            if (this.lives <= 0) {
+                                this.gameOver = true;
+                                this.gameRunning = false;
+                                this.screen = 'gameover';
+                                this.screenAlpha = 0;
+                                if (this.score > this.highScore) {
+                                    this.highScore = this.score;
+                                    localStorage.setItem('pacman-highscore', String(this.highScore));
+                                }
+                            }
+                            this.pacman = { x: 10, y: 15, direction: 0, nextDirection: 0, mouthOpen: true, renderX: 10, renderY: 15 };
+                        }
+                    }
+                }
+
+                if (this.dots.length === 0) {
+                    this.level++;
+                    audio.level();
+                    this.shake(5, 16);
+                    this.addPopup(COLS/2 - 1, ROWS/2 - 1, 'LEVEL ' + this.level, PAL.cyan);
+                    this.placeDots();
+                }
+
+                if (this.powerPelletActive) {
+                    this.powerPelletTimer--;
+                    if (this.powerPelletTimer <= 0) this.powerPelletActive = false;
+                }
+
+                this.mouthTimer++;
+                if (this.mouthTimer > 10) {
+                    this.pacman.mouthOpen = !this.pacman.mouthOpen;
+                    this.mouthTimer = 0;
+                }
+            },
+
+            drawWall(x, y) {
+                const px = x * CELL_SIZE;
+                const py = y * CELL_SIZE;
+                const g = this.ctx.createLinearGradient(px, py, px, py + CELL_SIZE);
+                g.addColorStop(0, '#6b88ff');
+                g.addColorStop(1, '#1c2cb8');
+                this.ctx.fillStyle = g;
+                this.ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                this.ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+                this.ctx.strokeRect(px + 0.5, py + 0.5, CELL_SIZE - 1, CELL_SIZE - 1);
+            },
+
+            draw() {
+                this.ctx.save();
+                this.ctx.translate(this.shakeX, this.shakeY);
+
+                this.ctx.fillStyle = PAL.bg;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                // soft vignette
+                const vg = this.ctx.createRadialGradient(this.canvas.width/2, this.canvas.height/2, 30, this.canvas.width/2, this.canvas.height/2, this.canvas.width*0.8);
+                vg.addColorStop(0, 'rgba(255,230,109,0.04)');
+                vg.addColorStop(1, 'rgba(0,0,0,0.5)');
+                this.ctx.fillStyle = vg;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        if (this.maze[y][x] === '#') this.drawWall(x, y);
+                    }
+                }
+
+                this.ctx.fillStyle = '#ffd7bc';
+                for (let dot of this.dots) {
+                    this.ctx.fillRect(dot.x * CELL_SIZE + 9, dot.y * CELL_SIZE + 9, 2, 2);
+                }
+
+                // Power pellets w/ glow
+                this.ctx.save();
+                this.ctx.shadowColor = this.powerPelletActive ? PAL.yellow : PAL.pink;
+                this.ctx.shadowBlur = 14;
+                this.ctx.fillStyle = this.powerPelletActive ? PAL.yellow : PAL.pink;
+                for (let pellet of this.powerPellets) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(pellet.x * CELL_SIZE + 10, pellet.y * CELL_SIZE + 10, 4 + Math.sin(this.tick * 0.2) * 1, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.restore();
+
+                // Pac-Man with shadow + lerp
+                this.ctx.save();
+                this.ctx.shadowColor = PAL.yellow;
+                this.ctx.shadowBlur = 14;
+                const cx = this.pacman.renderX * CELL_SIZE + 10;
+                const cy = this.pacman.renderY * CELL_SIZE + 10;
+                const angles = [0, Math.PI, -Math.PI/2, Math.PI/2];
+                const facing = angles[this.pacman.direction];
+                const mouthAngle = this.pacman.mouthOpen ? 0.4 : 0.05;
+                const grad = this.ctx.createRadialGradient(cx - 2, cy - 2, 1, cx, cy, 9);
+                grad.addColorStop(0, '#fffbe6');
+                grad.addColorStop(1, PAL.yellow);
+                this.ctx.fillStyle = grad;
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, 8, facing + mouthAngle, facing - mouthAngle + Math.PI * 2);
+                this.ctx.lineTo(cx, cy);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.restore();
+
+                // Ghosts (rounded body + eyes)
+                for (let ghost of this.ghosts) {
+                    const gx = ghost.renderX * CELL_SIZE + 10;
+                    const gy = ghost.renderY * CELL_SIZE + 10;
+                    const color = this.powerPelletActive ? '#3030ff' : ghost.color;
+                    this.ctx.save();
+                    this.ctx.shadowColor = color;
+                    this.ctx.shadowBlur = 8;
+                    const g = this.ctx.createLinearGradient(gx, gy - 8, gx, gy + 8);
+                    g.addColorStop(0, color);
+                    g.addColorStop(1, this.darken(color, 0.3));
+                    this.ctx.fillStyle = g;
+                    this.ctx.beginPath();
+                    this.ctx.arc(gx, gy - 1, 8, Math.PI, 0);
+                    this.ctx.lineTo(gx + 8, gy + 7);
+                    this.ctx.lineTo(gx + 5, gy + 4);
+                    this.ctx.lineTo(gx + 2, gy + 7);
+                    this.ctx.lineTo(gx - 2, gy + 4);
+                    this.ctx.lineTo(gx - 5, gy + 7);
+                    this.ctx.lineTo(gx - 8, gy + 4);
+                    this.ctx.lineTo(gx - 8, gy - 1);
+                    this.ctx.fill();
+                    // eyes
+                    this.ctx.shadowBlur = 0;
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.beginPath(); this.ctx.arc(gx - 3, gy - 2, 2.2, 0, Math.PI*2); this.ctx.fill();
+                    this.ctx.beginPath(); this.ctx.arc(gx + 3, gy - 2, 2.2, 0, Math.PI*2); this.ctx.fill();
+                    this.ctx.fillStyle = '#000';
+                    this.ctx.beginPath(); this.ctx.arc(gx - 3, gy - 2, 1.1, 0, Math.PI*2); this.ctx.fill();
+                    this.ctx.beginPath(); this.ctx.arc(gx + 3, gy - 2, 1.1, 0, Math.PI*2); this.ctx.fill();
+                    this.ctx.restore();
+                }
+
+                // Particles
+                for (const p of this.particles) {
+                    this.ctx.globalAlpha = p.life / p.max;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                }
+                this.ctx.globalAlpha = 1;
+
+                // Popups
+                for (const pp of this.popups) {
+                    this.ctx.globalAlpha = pp.life / pp.max;
+                    this.ctx.font = 'bold 16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.strokeText(pp.text, pp.x, pp.y);
+                    this.ctx.fillStyle = pp.color;
+                    this.ctx.fillText(pp.text, pp.x, pp.y);
+                }
+                this.ctx.globalAlpha = 1;
+                this.ctx.textAlign = 'left';
+
+                // HUD
+                this.ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = '#000';
+                this.ctx.strokeText('SCORE ' + this.score, 6, 18);
+                this.ctx.fillStyle = PAL.yellow;
+                this.ctx.fillText('SCORE ' + this.score, 6, 18);
+                this.ctx.font = 'bold 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.strokeText('HI ' + this.highScore, this.canvas.width - 110, 18);
+                this.ctx.fillStyle = PAL.pink;
+                this.ctx.fillText('HI ' + this.highScore, this.canvas.width - 110, 18);
+                if (audio.muted) {
+                    this.ctx.fillStyle = PAL.pink;
+                    this.ctx.fillText('MUTED', this.canvas.width - 60, this.canvas.height - 8);
+                }
+
+                if (this.gamePaused) this.drawPause();
+                if (this.screen === 'title') this.drawTitle();
+                if (this.screen === 'gameover') this.drawGameOver();
+
+                this.ctx.restore();
+
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('highScore').textContent = this.highScore;
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('dots').textContent = this.dots.length;
+            },
+
+            darken(hex, amt) {
+                if (hex.startsWith('rgb')) return hex;
+                const c = hex.replace('#','');
+                const r = parseInt(c.substr(0,2),16);
+                const g = parseInt(c.substr(2,2),16);
+                const b = parseInt(c.substr(4,2),16);
+                const lr = Math.max(0, Math.round(r * (1 - amt)));
+                const lg = Math.max(0, Math.round(g * (1 - amt)));
+                const lb = Math.max(0, Math.round(b * (1 - amt)));
+                return 'rgb(' + lr + ',' + lg + ',' + lb + ')';
+            },
+
+            drawPause() {
+                this.ctx.fillStyle = 'rgba(0, 0, 40, 0.7)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = PAL.yellow;
+                this.ctx.font = 'bold 28px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+                this.ctx.textAlign = 'left';
+            },
+
+            drawTitle() {
+                this.ctx.globalAlpha = this.screenAlpha;
+                this.ctx.fillStyle = 'rgba(0, 0, 40, 0.85)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.textAlign = 'center';
+                this.ctx.shadowColor = PAL.yellow;
+                this.ctx.shadowBlur = 20;
+                this.ctx.fillStyle = PAL.yellow;
+                this.ctx.font = 'bold 40px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('PAC-MAN', this.canvas.width/2, 100);
+                this.ctx.shadowBlur = 0;
+                this.ctx.font = 'bold 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.fillText('DIFFICULTY: ' + this.difficulty.toUpperCase(), this.canvas.width/2, 150);
+                this.ctx.font = '11px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillStyle = PAL.pink;
+                this.ctx.fillText('1=Easy  2=Medium  3=Hard', this.canvas.width/2, 170);
+
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.font = '12px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                const lines = [
+                    'Arrow Keys to move',
+                    'Eat all dots to clear the level',
+                    'Power pellets let you eat ghosts',
+                    'P pause   M mute',
+                    '',
+                    'Press SPACE / ENTER to begin'
+                ];
+                lines.forEach((l, i) => this.ctx.fillText(l, this.canvas.width/2, 210 + i * 20));
+                this.ctx.textAlign = 'left';
+                this.ctx.globalAlpha = 1;
+            },
+
+            drawGameOver() {
+                this.ctx.globalAlpha = this.screenAlpha;
+                this.ctx.fillStyle = 'rgba(0, 0, 40, 0.9)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = PAL.pink;
+                this.ctx.shadowColor = PAL.pink;
+                this.ctx.shadowBlur = 18;
+                this.ctx.font = 'bold 32px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('GAME OVER', this.canvas.width/2, this.canvas.height/2 - 40);
+                this.ctx.shadowBlur = 0;
+                this.ctx.fillStyle = PAL.yellow;
+                this.ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('Final: ' + this.score, this.canvas.width/2, this.canvas.height/2);
+                this.ctx.fillStyle = PAL.cyan;
+                this.ctx.fillText('High: ' + this.highScore, this.canvas.width/2, this.canvas.height/2 + 26);
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.font = '13px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('Press ENTER to restart', this.canvas.width/2, this.canvas.height/2 + 60);
+                this.ctx.textAlign = 'left';
+                this.ctx.globalAlpha = 1;
+            },
+
+            setupInput() {
+                document.addEventListener('keydown', (e) => {
+                    if (this.screen === 'title') {
+                        if (e.key === '1') this.setDifficulty(0);
+                        if (e.key === '2') this.setDifficulty(1);
+                        if (e.key === '3') this.setDifficulty(2);
+                        if (e.key === 'Enter' || e.key === ' ') { this.start(); e.preventDefault(); return; }
+                    }
+                    if (this.gameOver && e.key === 'Enter') { this.restart(); return; }
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+
+                    switch(e.key) {
+                        case 'ArrowRight': this.pacman.nextDirection = 0; break;
+                        case 'ArrowLeft': this.pacman.nextDirection = 1; break;
+                        case 'ArrowUp': this.pacman.nextDirection = 2; break;
+                        case 'ArrowDown': this.pacman.nextDirection = 3; break;
+                        case 'p': case 'P': this.gamePaused = !this.gamePaused; break;
+                    }
+                });
+            },
+
+            restart() {
+                this.score = 0;
+                this.level = 1;
+                this.lives = 3;
+                this.gameRunning = false;
+                this.gamePaused = false;
+                this.gameOver = false;
+                this.powerPelletActive = false;
+                this.pacman = { x: 10, y: 15, direction: 0, nextDirection: 0, mouthOpen: true, renderX: 10, renderY: 15 };
+                this.particles = [];
+                this.popups = [];
+                this.tick = 0;
+                this.applyDifficulty();
+                this.createGhosts();
+                this.placeDots();
+                this.screen = 'title';
+                this.screenAlpha = 0;
+                this.draw();
+            },
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>

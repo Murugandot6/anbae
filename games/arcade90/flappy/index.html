@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLAPPY - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: linear-gradient(180deg, #ffb38a 0%, #ffd166 40%, #4cd9ff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #2a1a0a;
+        }
+        .container {
+            text-align: center;
+            max-width: 480px;
+        }
+        canvas#gameCanvas {
+            border: 3px solid #2a1a0a;
+            background: #87ceeb;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            border-radius: 6px;
+        }
+        h1 {
+            color: #2a1a0a;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 0 #fff;
+        }
+        .info { color: #2a1a0a; margin-top: 16px; }
+        .score-display {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2a1a0a;
+            text-shadow: 1px 1px 0 #fff;
+            margin: 10px 0;
+        }
+        .controls {
+            font-size: 13px;
+            margin: 12px 0;
+            color: #2a1a0a;
+            background: rgba(255,255,255,0.6);
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid #2a1a0a;
+        }
+        .difficulty-box {
+            background: rgba(255,255,255,0.6);
+            border: 2px solid #2a1a0a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        button, .mode-btn {
+            padding: 9px 16px;
+            background: #2a1a0a;
+            color: #ffd166;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 4px;
+            transition: transform 0.15s, background 0.15s;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        }
+        button:hover, .mode-btn:hover { background: #ff5cc8; color: #fff; transform: scale(1.04); }
+        .mode-btn.active { background: #ff5cc8; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FLAPPY</h1>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="info">
+            <div class="score-display" id="score">0</div>
+            <div class="controls">
+                <strong>CONTROLS</strong><br/>
+                CLICK or SPACE - Flap<br/>
+                P - Pause &nbsp; M - Mute audio<br/>
+                Avoid the pipes!
+            </div>
+            <div class="difficulty-box">
+                <strong>DIFFICULTY</strong><br/>
+                <button class="mode-btn" data-diff="easy" onclick="game.setDifficulty('easy', this)">Easy</button>
+                <button class="mode-btn active" data-diff="medium" onclick="game.setDifficulty('medium', this)">Medium</button>
+                <button class="mode-btn" data-diff="hard" onclick="game.setDifficulty('hard', this)">Hard</button>
+            </div>
+            <button onclick="game.togglePause()">PAUSE / RESET</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+    <script>
+        const audio = {
+            ctx: null, muted: false,
+            init() {
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                this.muted = localStorage.getItem('flappy-muted') === '1';
+            },
+            resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('flappy-muted', this.muted ? '1' : '0');
+            },
+            tone(freq, dur, type, gain) {
+                if (!this.ctx || this.muted) return;
+                this.resume();
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(gain || 0.18, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start();
+                o.stop(this.ctx.currentTime + dur);
+            },
+            flap()  { this.tone(640, 0.06, 'sine', 0.16); },
+            pass()  { this.tone(820, 0.08, 'triangle', 0.18); setTimeout(()=>this.tone(1040,0.1,'triangle',0.16),60); },
+            crash() { this.tone(220, 0.3, 'sawtooth', 0.22); setTimeout(()=>this.tone(140,0.3,'sawtooth',0.2),100); }
+        };
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 400,
+            height: 600,
+            bird: { x: 50, y: 300, width: 30, height: 24, vy: 0, gravity: 0.5, flapPower: -10, angle: 0 },
+            pipes: [],
+            score: 0, best: 0,
+            gameRunning: false, gamePaused: false, gameOver: false,
+            frameCount: 0,
+            pipeGap: 140,
+            pipeSpacing: 300,
+            difficulty: 'medium',
+            particles: [], popups: [],
+            shake: { mag: 0, dx: 0, dy: 0 },
+            titleAlpha: 1, gameOverAlpha: 0,
+            clouds: [], t: 0,
+            diffMap: {
+                easy:   { gap: 170, spacing: 320 },
+                medium: { gap: 140, spacing: 300 },
+                hard:   { gap: 105, spacing: 260 }
+            },
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                audio.init();
+                this.difficulty = localStorage.getItem('flappy-difficulty') || 'medium';
+                this.best = parseInt(localStorage.getItem('flappy-best') || '0', 10);
+                document.querySelectorAll('[data-diff]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.diff === this.difficulty);
+                });
+                for (let i = 0; i < 5; i++) {
+                    this.clouds.push({ x: Math.random()*this.width, y: Math.random()*this.height*0.5, s: 20 + Math.random()*30, v: 0.2 + Math.random()*0.4 });
+                }
+                this.applyDifficulty();
+                this.setupInput();
+                this.startGame();
+                this.gameLoop();
+            },
+            setDifficulty(d, btn) {
+                this.difficulty = d;
+                localStorage.setItem('flappy-difficulty', d);
+                document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                this.applyDifficulty();
+                this.startGame();
+            },
+            applyDifficulty() {
+                const d = this.diffMap[this.difficulty];
+                this.pipeGap = d.gap;
+                this.pipeSpacing = d.spacing;
+            },
+            startGame() {
+                this.bird = { x: 50, y: 300, width: 30, height: 24, vy: 0, gravity: 0.5, flapPower: -10, angle: 0 };
+                this.pipes = [];
+                this.score = 0;
+                this.gameRunning = true;
+                this.gamePaused = false;
+                this.gameOver = false;
+                this.frameCount = 0;
+                this.particles = [];
+                this.popups = [];
+                this.titleAlpha = 1;
+                this.gameOverAlpha = 0;
+            },
+            flap() {
+                if (this.gameRunning && !this.gamePaused) {
+                    this.bird.vy = this.bird.flapPower;
+                    this.bird.angle = -0.5;
+                    audio.flap();
+                    this.titleAlpha = Math.max(0, this.titleAlpha - 0.25);
+                    this.emitParticles(this.bird.x, this.bird.y + this.bird.height, '#ffd166', 5);
+                }
+            },
+            emitParticles(x, y, color, count) {
+                count = count || 14; const limit = 200;
+                for (let i = 0; i < count; i++) {
+                    if (this.particles.length >= limit) break;
+                    const a = Math.random() * Math.PI * 2;
+                    const s = Math.random() * 3 + 0.5;
+                    this.particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 30, max: 30, color });
+                }
+            },
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || '#ffd166', life: 50, max: 50 });
+            },
+            triggerShake(mag) { this.shake.mag = Math.max(this.shake.mag, mag); },
+            update() {
+                this.t++;
+                // clouds drift
+                for (const c of this.clouds) {
+                    c.x -= c.v;
+                    if (c.x + c.s < 0) { c.x = this.width + 20; c.y = Math.random()*this.height*0.5; }
+                }
+                // particles & popups
+                for (let i = this.particles.length-1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.1;
+                    p.vx *= 0.97; p.vy *= 0.97;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i,1);
+                }
+                for (let i = this.popups.length-1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y -= 0.7; p.life--;
+                    if (p.life <= 0) this.popups.splice(i,1);
+                }
+                if (this.shake.mag > 0.1) {
+                    this.shake.dx = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.dy = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.mag *= 0.85;
+                } else { this.shake.dx = 0; this.shake.dy = 0; }
+                if (this.gameOver) {
+                    this.gameOverAlpha = Math.min(1, this.gameOverAlpha + 0.05);
+                }
+                if (!this.gameRunning || this.gamePaused) return;
+                this.bird.vy += this.bird.gravity;
+                this.bird.y += this.bird.vy;
+                this.bird.angle += 0.04;
+                if (this.bird.angle > 0.8) this.bird.angle = 0.8;
+                if (this.bird.y < 0 || this.bird.y + this.bird.height > this.height) {
+                    this.endGame();
+                    return;
+                }
+                this.frameCount++;
+                if (this.frameCount % this.pipeSpacing === 0) {
+                    const pipeY = Math.floor(Math.random() * (this.height - this.pipeGap - 200)) + 100;
+                    this.pipes.push({ x: this.width, y: pipeY, width: 50, passed: false });
+                }
+                for (let i = this.pipes.length - 1; i >= 0; i--) {
+                    const pipe = this.pipes[i];
+                    pipe.x -= 5;
+                    if (pipe.x + pipe.width < this.bird.x && !pipe.passed) {
+                        pipe.passed = true;
+                        this.score++;
+                        audio.pass();
+                        this.addPopup(pipe.x + pipe.width/2, pipe.y + this.pipeGap/2, '+1', '#ffd166');
+                        this.emitParticles(this.bird.x + 12, this.bird.y + 12, '#9be36b', 8);
+                    }
+                    if (pipe.x + pipe.width < 0) {
+                        this.pipes.splice(i, 1);
+                    }
+                    const birdLeft = this.bird.x;
+                    const birdRight = this.bird.x + this.bird.width;
+                    const birdTop = this.bird.y;
+                    const birdBottom = this.bird.y + this.bird.height;
+                    if (birdRight > pipe.x && birdLeft < pipe.x + pipe.width) {
+                        if (birdTop < pipe.y || birdBottom > pipe.y + this.pipeGap) {
+                            this.endGame();
+                            return;
+                        }
+                    }
+                }
+            },
+            endGame() {
+                this.gameRunning = false;
+                this.gameOver = true;
+                audio.crash();
+                this.triggerShake(14);
+                this.emitParticles(this.bird.x + 15, this.bird.y + 12, '#ff5e7a', 36);
+                if (this.score > this.best) {
+                    this.best = this.score;
+                    localStorage.setItem('flappy-best', String(this.best));
+                }
+            },
+            togglePause() {
+                if (this.gameRunning) {
+                    this.gamePaused = !this.gamePaused;
+                } else {
+                    this.startGame();
+                }
+            },
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.translate(this.shake.dx, this.shake.dy);
+                const grad = ctx.createLinearGradient(0, 0, 0, this.height);
+                grad.addColorStop(0, '#ff9b3d');
+                grad.addColorStop(0.35, '#ffd166');
+                grad.addColorStop(0.7, '#9be3ff');
+                grad.addColorStop(1, '#4cd9ff');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, this.width, this.height);
+                // sun
+                ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 30;
+                ctx.fillStyle = '#fff7d6';
+                ctx.beginPath();
+                ctx.arc(this.width - 60, 80, 30, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // clouds
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                for (const c of this.clouds) {
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, c.s*0.6, 0, Math.PI*2);
+                    ctx.arc(c.x + c.s*0.5, c.y - c.s*0.2, c.s*0.55, 0, Math.PI*2);
+                    ctx.arc(c.x - c.s*0.5, c.y, c.s*0.45, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                // pipes
+                for (let pipe of this.pipes) {
+                    const grdT = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipe.width, 0);
+                    grdT.addColorStop(0, '#2e8a4e');
+                    grdT.addColorStop(0.5, '#6dffb1');
+                    grdT.addColorStop(1, '#2e8a4e');
+                    ctx.fillStyle = grdT;
+                    ctx.fillRect(pipe.x, 0, pipe.width, pipe.y);
+                    ctx.fillRect(pipe.x - 4, pipe.y - 18, pipe.width + 8, 18);
+                    ctx.fillRect(pipe.x, pipe.y + this.pipeGap, pipe.width, this.height - (pipe.y + this.pipeGap));
+                    ctx.fillRect(pipe.x - 4, pipe.y + this.pipeGap, pipe.width + 8, 18);
+                    ctx.strokeStyle = 'rgba(0, 50, 20, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(pipe.x - 4, pipe.y - 18, pipe.width + 8, 18);
+                    ctx.strokeRect(pipe.x - 4, pipe.y + this.pipeGap, pipe.width + 8, 18);
+                }
+                // bird with rotation
+                ctx.save();
+                ctx.translate(this.bird.x + this.bird.width/2, this.bird.y + this.bird.height/2);
+                ctx.rotate(this.bird.angle);
+                ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+                const bgrd = ctx.createRadialGradient(-4, -4, 2, 0, 0, this.bird.width/2);
+                bgrd.addColorStop(0, '#fff7d6');
+                bgrd.addColorStop(0.5, '#ffd166');
+                bgrd.addColorStop(1, '#c98a1a');
+                ctx.fillStyle = bgrd;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.bird.width/2, this.bird.height/2, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // wing
+                ctx.fillStyle = '#ff9b3d';
+                const wingY = Math.sin(this.t*0.3) * 3;
+                ctx.beginPath();
+                ctx.ellipse(-2, wingY, 8, 5, 0, 0, Math.PI*2);
+                ctx.fill();
+                // eye
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(7, -4, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(8, -4, 2, 0, Math.PI*2);
+                ctx.fill();
+                // beak
+                ctx.fillStyle = '#ff5e7a';
+                ctx.beginPath();
+                ctx.moveTo(12, 0); ctx.lineTo(20, -2); ctx.lineTo(20, 3); ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                // particles
+                for (const p of this.particles) {
+                    const a = p.life / p.max;
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x-1.5, p.y-1.5, 3, 3);
+                }
+                ctx.globalAlpha = 1;
+                // popups
+                for (const p of this.popups) {
+                    ctx.globalAlpha = p.life / p.max;
+                    ctx.font = 'bold 22px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline(p.text, p.x, p.y, p.color, '#000');
+                    ctx.globalAlpha = 1;
+                }
+                // HUD
+                ctx.font = 'bold 42px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                ctx.textAlign = 'center';
+                this.outline(this.score, this.width/2, 60, '#fff', '#2a1a0a');
+                ctx.font = '18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('BEST ' + this.best, this.width/2, 92, '#ffd166', '#2a1a0a');
+                ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                ctx.textAlign = 'left';
+                this.outline(this.difficulty.toUpperCase(), 10, this.height - 12, '#fff', '#2a1a0a');
+                ctx.textAlign = 'right';
+                this.outline(audio.muted ? 'MUTED' : 'SOUND', this.width - 10, this.height - 12, '#fff', '#2a1a0a');
+                ctx.textAlign = 'left';
+                if (this.titleAlpha > 0.01 && !this.gameOver) {
+                    ctx.globalAlpha = this.titleAlpha;
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.textAlign = 'center';
+                    ctx.font = 'bold 44px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('FLAPPY', this.width/2, this.height/2 - 30, '#ffd166', '#2a1a0a');
+                    ctx.font = '18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('SPACE / CLICK to flap', this.width/2, this.height/2 + 4, '#2a1a0a', '#fff');
+                    this.outline('Avoid the pipes', this.width/2, this.height/2 + 28, '#2a1a0a', '#fff');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                if (this.gamePaused) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.fillStyle = '#ffd166';
+                    ctx.font = 'bold 36px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PAUSED', this.width / 2, this.height / 2);
+                    ctx.textAlign = 'left';
+                }
+                if (this.gameOver) {
+                    ctx.globalAlpha = this.gameOverAlpha;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.font = 'bold 36px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline('GAME OVER', this.width / 2, this.height / 2 - 40, '#ff5e7a', '#000');
+                    ctx.font = '22px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline(`Score: ${this.score}`, this.width / 2, this.height / 2 + 4, '#fff', '#000');
+                    this.outline(`Best: ${this.best}`, this.width / 2, this.height / 2 + 32, '#ffd166', '#000');
+                    ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('Click PAUSE / RESET to play again', this.width / 2, this.height / 2 + 64, '#fff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                ctx.restore();
+                document.getElementById('score').textContent = this.score;
+            },
+            outline(text, x, y, fill, stroke) {
+                const ctx = this.ctx;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = stroke;
+                ctx.strokeText(text, x, y);
+                ctx.fillStyle = fill;
+                ctx.fillText(text, x, y);
+            },
+            setupInput() {
+                this.canvas.addEventListener('click', () => { audio.resume(); this.flap(); });
+                document.addEventListener('keydown', (e) => {
+                    audio.resume();
+                    if (e.key === ' ') { this.flap(); e.preventDefault(); }
+                    if (e.key.toLowerCase() === 'p') this.togglePause();
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+                });
+            },
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+        game.init();
+    </script>
+</body>
+</html>

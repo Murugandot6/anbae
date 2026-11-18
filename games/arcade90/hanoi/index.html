@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOWER OF HANOI - 90s Games</title>
+    <style>
+        :root {
+            --wood-dark:  #3a2414;
+            --wood-mid:   #6b4424;
+            --wood-light: #b07640;
+            --stone:      #c9a87c;
+            --gold:       #f0c75e;
+            --ink:        #f7ecd0;
+            --shadow:     rgba(0,0,0,0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background:
+                radial-gradient(ellipse at top, #5a3820 0%, var(--wood-dark) 70%, #1a0e08 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--ink);
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 2px, transparent 2px 14px);
+            pointer-events: none;
+        }
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.06s ease-out;
+        }
+        h1 {
+            margin-bottom: 8px;
+            font-size: 30px;
+            letter-spacing: 6px;
+            color: var(--ink);
+            text-shadow: 2px 2px 0 var(--wood-dark), 0 0 18px rgba(240,199,94,0.3);
+        }
+        .subtitle { font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 14px; }
+        .top-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .pill {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--gold);
+            color: var(--ink);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .pill:hover { background: var(--gold); color: var(--wood-dark); }
+        .pill.active { background: var(--gold); color: var(--wood-dark); font-weight: bold; }
+        .game-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            background:
+                linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 100%),
+                repeating-linear-gradient(90deg, rgba(58,36,20,0.5) 0 4px, rgba(107,68,36,0.4) 4px 12px);
+            padding: 30px 30px 20px 30px;
+            border: 3px solid var(--gold);
+            border-radius: 10px;
+            margin: 16px 0;
+            min-width: 620px;
+            box-shadow: 0 0 30px rgba(240,199,94,0.2), inset 0 0 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .game-area::after {
+            content: '';
+            position: absolute;
+            left: 20px; right: 20px;
+            bottom: 12px;
+            height: 16px;
+            background: linear-gradient(to bottom, var(--stone), #8a7050);
+            border-radius: 4px;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 4px 8px var(--shadow);
+        }
+        .rod {
+            display: flex;
+            flex-direction: column-reverse;
+            width: 120px;
+            height: 320px;
+            position: relative;
+            cursor: pointer;
+            align-items: center;
+            padding-bottom: 18px;
+            z-index: 1;
+        }
+        .rod::before {
+            content: '';
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 280px;
+            background:
+                linear-gradient(to right, #4a2a14, var(--wood-light), #4a2a14);
+            border-radius: 4px;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.5);
+        }
+        .rod.target-hint::before {
+            background: linear-gradient(to right, #4a2a14, var(--gold), #4a2a14);
+            box-shadow: 0 0 14px var(--gold);
+        }
+        .disk {
+            border-radius: 8px;
+            cursor: grab;
+            margin: 2px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 13px;
+            border: 2px solid rgba(0,0,0,0.4);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
+            transition: transform 0.35s cubic-bezier(0.4, 1.4, 0.5, 1), box-shadow 0.2s;
+            box-shadow: 0 3px 6px var(--shadow), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        .disk.selected {
+            transform: translateY(-12px) scale(1.04);
+            box-shadow: 0 0 20px var(--gold), 0 6px 12px var(--shadow), inset 0 2px 0 rgba(255,255,255,0.3);
+        }
+        .disk.moving {
+            animation: moveBob 0.35s ease-out;
+        }
+        @keyframes moveBob {
+            0%   { transform: translateY(0) scale(1); }
+            40%  { transform: translateY(-18px) scale(1.05); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        .info {
+            margin: 14px 0;
+            display: inline-flex;
+            gap: 30px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--gold);
+            padding: 10px 24px;
+            border-radius: 10px;
+        }
+        .stat { text-align: center; }
+        .stat .label { font-size: 11px; color: var(--gold); letter-spacing: 2px; }
+        .stat .val { font-size: 24px; color: var(--ink); font-weight: bold; text-shadow: 1px 1px 0 var(--wood-dark); }
+        button.action {
+            padding: 10px 18px;
+            background: var(--gold);
+            color: var(--wood-dark);
+            border: 2px solid var(--ink);
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        button.action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+        .controls-hint {
+            font-size: 11px;
+            color: rgba(247,236,208,0.6);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        #fx-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s ease;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .overlay h2 {
+            color: var(--gold);
+            font-size: 44px;
+            letter-spacing: 6px;
+            text-shadow: 3px 3px 0 #000, 0 0 24px rgba(240,199,94,0.6);
+            margin-bottom: 16px;
+        }
+        .overlay p { color: var(--ink); font-size: 16px; margin: 6px 0; letter-spacing: 1px; }
+        .popup {
+            position: fixed;
+            font-weight: bold;
+            font-size: 22px;
+            font-family: inherit;
+            text-shadow: 2px 2px 0 #000;
+            pointer-events: none;
+            z-index: 90;
+            animation: popupFloat 1.1s ease-out forwards;
+            color: var(--gold);
+        }
+        @keyframes popupFloat {
+            0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+            20%  { transform: translateY(-10px) scale(1.1); opacity: 1; }
+            100% { transform: translateY(-70px) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fx-canvas"></canvas>
+    <div class="container" id="gameContainer">
+        <h1>TOWER OF HANOI</h1>
+        <div class="subtitle">MOVE ALL DISKS TO THE RIGHT ROD</div>
+
+        <div class="top-bar" id="difficultyBar"></div>
+
+        <div class="game-area">
+            <div class="rod" id="rod0" data-rod="0"></div>
+            <div class="rod" id="rod1" data-rod="1"></div>
+            <div class="rod" id="rod2" data-rod="2"></div>
+        </div>
+
+        <div class="info">
+            <div class="stat"><div class="label">MOVES</div><div class="val" id="moves">0</div></div>
+            <div class="stat"><div class="label">MINIMUM</div><div class="val" id="minimum">7</div></div>
+            <div class="stat"><div class="label">BEST</div><div class="val" id="best">--</div></div>
+        </div>
+
+        <div>
+            <button class="action" onclick="game.reset()">RESET</button>
+            <button class="action" onclick="game.toggleMute()" id="muteBtn">SOUND: ON</button>
+            <button class="action" onclick="location.href='../'">BACK</button>
+        </div>
+        <div class="controls-hint">CLICK DISK THEN A ROD  |  KEYS 1/2/3 SELECT RODS  |  M TO MUTE  |  R TO RESET</div>
+    </div>
+
+    <div class="overlay" id="winOverlay">
+        <h2>SOLVED!</h2>
+        <p id="winSummary"></p>
+        <p id="winBest"></p>
+        <button class="action" style="margin-top:18px" onclick="game.reset()">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const DIFFICULTIES = {
+            easy:   { label: 'EASY (3)',   disks: 3 },
+            medium: { label: 'MEDIUM (5)', disks: 5 },
+            hard:   { label: 'HARD (7)',   disks: 7 }
+        };
+
+        const DISK_COLORS = [
+            '#e74c3c', '#e67e22', '#f1c40f', '#27ae60',
+            '#3498db', '#9b59b6', '#1abc9c', '#e84393'
+        ];
+
+        const fxCanvas = document.getElementById('fx-canvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        function resizeFx() { fxCanvas.width = innerWidth; fxCanvas.height = innerHeight; }
+        resizeFx();
+        addEventListener('resize', resizeFx);
+
+        const particles = [];
+        function emit(x, y, color, count) {
+            for (let i = 0; i < count && particles.length < 200; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const s = 0.5 + Math.random() * 3;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(a) * s,
+                    vy: Math.sin(a) * s - 1,
+                    life: 1,
+                    size: 1.5 + Math.random() * 2.5,
+                    color
+                });
+            }
+        }
+        function tick() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.14;
+                p.life -= 0.02;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                fxCtx.globalAlpha = p.life;
+                fxCtx.fillStyle = p.color;
+                fxCtx.beginPath();
+                fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                fxCtx.fill();
+            }
+            fxCtx.globalAlpha = 1;
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        function shake(intensity) {
+            const c = document.getElementById('gameContainer');
+            let t = 0;
+            const id = setInterval(() => {
+                t++;
+                const dx = (Math.random() - 0.5) * intensity;
+                const dy = (Math.random() - 0.5) * intensity;
+                c.style.transform = `translate(${dx}px, ${dy}px)`;
+                if (t > 8) { clearInterval(id); c.style.transform = ''; }
+            }, 16);
+        }
+
+        function popup(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'popup';
+            el.textContent = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            if (color) el.style.color = color;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1100);
+        }
+
+        let audioCtx = null;
+        function getAudio() {
+            if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                catch (e) {}
+            }
+            return audioCtx;
+        }
+        function beep(freq, dur, type, vol) {
+            if (game.muted) return;
+            const ac = getAudio();
+            if (!ac) return;
+            const osc = ac.createOscillator();
+            const g = ac.createGain();
+            osc.connect(g);
+            g.connect(ac.destination);
+            osc.frequency.value = freq;
+            osc.type = type || 'sine';
+            g.gain.setValueAtTime(vol || 0.18, ac.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+            osc.start();
+            osc.stop(ac.currentTime + dur);
+        }
+        function sfxSelect() { beep(440, 0.08, 'triangle', 0.14); }
+        function sfxMove()   { beep(330, 0.12, 'sine', 0.18); setTimeout(()=>beep(440, 0.1, 'sine', 0.14), 60); }
+        function sfxBad()    { beep(150, 0.22, 'sawtooth', 0.18); }
+        function sfxWin()    { [523,659,784,1047,1319].forEach((f,i)=> setTimeout(()=> beep(f, 0.2, 'triangle', 0.2), i*110)); }
+
+        const game = {
+            rods: [[], [], []],
+            selectedRod: null,
+            moves: 0,
+            won: false,
+            difficulty: localStorage.getItem('hanoi-difficulty') || 'easy',
+            muted: localStorage.getItem('hanoi-muted') === '1',
+
+            init() {
+                this.renderDifficulty();
+                this.reset();
+                this.setupInput();
+                this.updateMute();
+            },
+
+            renderDifficulty() {
+                const bar = document.getElementById('difficultyBar');
+                bar.innerHTML = '';
+                Object.keys(DIFFICULTIES).forEach(k => {
+                    const el = document.createElement('div');
+                    el.className = 'pill' + (k === this.difficulty ? ' active' : '');
+                    el.textContent = DIFFICULTIES[k].label;
+                    el.onclick = () => {
+                        this.difficulty = k;
+                        localStorage.setItem('hanoi-difficulty', k);
+                        this.reset();
+                    };
+                    bar.appendChild(el);
+                });
+            },
+
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('hanoi-muted', this.muted ? '1' : '0');
+                this.updateMute();
+            },
+
+            updateMute() {
+                const b = document.getElementById('muteBtn');
+                if (b) b.textContent = 'SOUND: ' + (this.muted ? 'OFF' : 'ON');
+            },
+
+            get diskCount() { return DIFFICULTIES[this.difficulty].disks; },
+
+            reset() {
+                document.getElementById('winOverlay').classList.remove('show');
+                this.rods = [[], [], []];
+                for (let i = this.diskCount; i > 0; i--) {
+                    this.rods[0].push(i);
+                }
+                this.selectedRod = null;
+                this.moves = 0;
+                this.won = false;
+                this.renderDifficulty();
+                this.render();
+            },
+
+            selectDisk(rodIndex) {
+                if (this.rods[rodIndex].length > 0) {
+                    this.selectedRod = rodIndex;
+                    sfxSelect();
+                }
+            },
+
+            moveDisk(targetRodIndex, x, y) {
+                if (this.selectedRod === null) {
+                    if (this.rods[targetRodIndex].length > 0) {
+                        this.selectDisk(targetRodIndex);
+                        this.render();
+                    }
+                    return;
+                }
+                if (this.selectedRod === targetRodIndex) {
+                    this.selectedRod = null;
+                    this.render();
+                    return;
+                }
+
+                const sourceDisk = this.rods[this.selectedRod][this.rods[this.selectedRod].length - 1];
+                const targetDisk = this.rods[targetRodIndex].length > 0
+                    ? this.rods[targetRodIndex][this.rods[targetRodIndex].length - 1]
+                    : null;
+
+                if (targetDisk === null || sourceDisk < targetDisk) {
+                    this.rods[targetRodIndex].push(sourceDisk);
+                    this.rods[this.selectedRod].pop();
+                    this.moves++;
+                    sfxMove();
+                    const color = DISK_COLORS[(sourceDisk - 1) % DISK_COLORS.length];
+                    if (x !== undefined) {
+                        emit(x, y, color, 16);
+                        popup(x - 10, y - 20, '+', color);
+                    }
+                    this.selectedRod = null;
+                    this.render(true, targetRodIndex);
+
+                    if (this.rods[2].length === this.diskCount) {
+                        this.win();
+                    }
+                } else {
+                    sfxBad();
+                    shake(8);
+                    this.selectedRod = null;
+                    this.render();
+                }
+            },
+
+            win() {
+                if (this.won) return;
+                this.won = true;
+                const min = Math.pow(2, this.diskCount) - 1;
+                const bestKey = 'hanoi-best-' + this.difficulty;
+                const prev = parseInt(localStorage.getItem(bestKey) || '0');
+                if (!prev || this.moves < prev) {
+                    localStorage.setItem(bestKey, this.moves);
+                }
+                setTimeout(() => {
+                    sfxWin();
+                    for (let i = 0; i < 6; i++) {
+                        setTimeout(() => emit(
+                            innerWidth/2 + (Math.random()-0.5)*220,
+                            innerHeight/2 + (Math.random()-0.5)*220,
+                            DISK_COLORS[i % DISK_COLORS.length], 22), i*90);
+                    }
+                    document.getElementById('winSummary').textContent =
+                        this.moves + ' MOVES  -  OPTIMAL: ' + min;
+                    document.getElementById('winBest').textContent =
+                        'BEST: ' + (localStorage.getItem(bestKey) || this.moves);
+                    document.getElementById('winOverlay').classList.add('show');
+                }, 250);
+            },
+
+            render(animateTop, animateRodIndex) {
+                for (let rodIndex = 0; rodIndex < 3; rodIndex++) {
+                    const rodEl = document.getElementById(`rod${rodIndex}`);
+                    rodEl.innerHTML = '';
+                    rodEl.classList.toggle('target-hint',
+                        this.selectedRod !== null && rodIndex !== this.selectedRod);
+
+                    for (let idx = 0; idx < this.rods[rodIndex].length; idx++) {
+                        const disk = this.rods[rodIndex][idx];
+                        const diskEl = document.createElement('div');
+                        diskEl.className = 'disk';
+                        const w = 32 + disk * 12;
+                        diskEl.style.width = w + 'px';
+                        diskEl.style.height = '22px';
+                        const color = DISK_COLORS[(disk - 1) % DISK_COLORS.length];
+                        diskEl.style.background = `linear-gradient(to bottom, ${color}, ${this.darken(color, 0.4)})`;
+                        diskEl.textContent = disk;
+                        const isTop = idx === this.rods[rodIndex].length - 1;
+                        if (this.selectedRod === rodIndex && isTop) {
+                            diskEl.classList.add('selected');
+                        }
+                        if (animateTop && rodIndex === animateRodIndex && isTop) {
+                            diskEl.classList.add('moving');
+                        }
+                        rodEl.appendChild(diskEl);
+                    }
+                }
+
+                document.getElementById('moves').textContent = this.moves;
+                document.getElementById('minimum').textContent = Math.pow(2, this.diskCount) - 1;
+                const best = localStorage.getItem('hanoi-best-' + this.difficulty);
+                document.getElementById('best').textContent = best || '--';
+            },
+
+            darken(hex, amt) {
+                const n = parseInt(hex.slice(1), 16);
+                let r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
+                r = Math.max(0, Math.floor(r * (1 - amt)));
+                g = Math.max(0, Math.floor(g * (1 - amt)));
+                b = Math.max(0, Math.floor(b * (1 - amt)));
+                return `rgb(${r},${g},${b})`;
+            },
+
+            setupInput() {
+                for (let rodIndex = 0; rodIndex < 3; rodIndex++) {
+                    const rodEl = document.getElementById(`rod${rodIndex}`);
+                    rodEl.addEventListener('click', (e) => {
+                        this.moveDisk(rodIndex, e.clientX, e.clientY);
+                    });
+                }
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === '1') this.handleKey(0);
+                    if (e.key === '2') this.handleKey(1);
+                    if (e.key === '3') this.handleKey(2);
+                    if (e.key.toLowerCase() === 'm') this.toggleMute();
+                    if (e.key.toLowerCase() === 'r') this.reset();
+                });
+            },
+
+            handleKey(rod) {
+                const rodEl = document.getElementById('rod' + rod);
+                const rect = rodEl.getBoundingClientRect();
+                this.moveDisk(rod, rect.left + rect.width/2, rect.top + rect.height/2);
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>

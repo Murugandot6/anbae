@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COLOR MATCH - 90s Games</title>
+    <style>
+        :root {
+            --bg-1: #1b0033;
+            --bg-2: #4a0080;
+            --accent: #ff00aa;
+            --gold: #ffd700;
+            --cyan: #00e6ff;
+            --ink: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background:
+                radial-gradient(circle at 20% 30%, #ff0080 0%, var(--bg-2) 35%, var(--bg-1) 80%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--ink);
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 18px);
+            pointer-events: none;
+            animation: shimmer 8s linear infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 0 0; }
+            100% { background-position: 36px 36px; }
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.06s ease-out;
+        }
+        h1 {
+            font-size: 32px;
+            letter-spacing: 6px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 18px var(--cyan), 2px 2px 0 #000;
+        }
+        .subtitle { font-size: 12px; color: var(--gold); letter-spacing: 2px; }
+        .top-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+        .pill {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--gold);
+            color: var(--ink);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .pill:hover { background: var(--gold); color: #000; }
+        .pill.active { background: var(--gold); color: #000; font-weight: bold; }
+        canvas#gameCanvas {
+            border: 3px solid var(--gold);
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            display: block;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255,0,170,0.2);
+            border-radius: 8px;
+        }
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .info {
+            color: var(--gold);
+            min-width: 260px;
+        }
+        .stat-box {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--gold);
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+        .stat-label { font-size: 11px; text-transform: uppercase; margin-bottom: 4px; font-weight: bold; letter-spacing: 2px; }
+        .stat-value { font-size: 28px; font-weight: bold; color: var(--ink); text-shadow: 1px 1px 0 #000; }
+        button.action {
+            width: 100%;
+            padding: 10px;
+            background: var(--gold);
+            color: #000;
+            border: 2px solid var(--ink);
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin: 4px 0;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        button.action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .controls {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--cyan);
+            padding: 12px;
+            font-size: 11px;
+            border-radius: 6px;
+            line-height: 1.6;
+            color: var(--ink);
+            letter-spacing: 1px;
+        }
+        .controls strong { color: var(--cyan); }
+        #fx-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s ease;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+        .overlay h2 {
+            color: var(--accent);
+            font-size: 46px;
+            letter-spacing: 6px;
+            text-shadow: 3px 3px 0 #000, 0 0 24px rgba(255,0,170,0.7);
+            margin-bottom: 16px;
+        }
+        .overlay p { color: var(--ink); font-size: 16px; margin: 6px 0; letter-spacing: 1px; }
+        .popup {
+            position: fixed;
+            font-weight: bold;
+            font-size: 26px;
+            font-family: inherit;
+            text-shadow: 2px 2px 0 #000;
+            pointer-events: none;
+            z-index: 90;
+            animation: popupFloat 1.1s ease-out forwards;
+        }
+        @keyframes popupFloat {
+            0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+            20%  { transform: translateY(-10px) scale(1.15); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fx-canvas"></canvas>
+    <div class="container" id="gameContainer">
+        <div>
+            <h1>COLOR MATCH</h1>
+            <div class="subtitle">MATCH THE CENTER COLOR</div>
+            <div class="top-bar" id="difficultyBar"></div>
+            <canvas id="gameCanvas" width="500" height="500"></canvas>
+        </div>
+        <div class="panel">
+            <div class="info">
+                <div class="stat-box">
+                    <div class="stat-label">SCORE</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">ACCURACY</div>
+                    <div class="stat-value" id="accuracy">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">BEST</div>
+                    <div class="stat-value" id="best">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">TIME LEFT</div>
+                    <div class="stat-value" id="timeLeft">--</div>
+                </div>
+            </div>
+            <div class="controls">
+                <strong>RULES</strong><br/>
+                Click the BAR that matches<br/>
+                the center color. Beat the clock!<br/>
+                <strong>KEYS</strong> 1-4 click bars<br/>
+                <strong>M</strong> mute  &middot; <strong>R</strong> reset
+            </div>
+            <button class="action" onclick="game.start()">START</button>
+            <button class="action" onclick="game.restart()">RESET</button>
+            <button class="action" onclick="game.toggleMute()" id="muteBtn">SOUND: ON</button>
+            <button class="action" onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="gameOverOverlay">
+        <h2>GAME OVER</h2>
+        <p id="goSummary"></p>
+        <p id="goBest"></p>
+        <button class="action" style="max-width:240px;margin-top:18px" onclick="game.restart();game.start();">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const DIFFICULTIES = {
+            easy:   { label: 'EASY 90s',  time: 90 },
+            medium: { label: 'MED 60s',   time: 60 },
+            hard:   { label: 'HARD 30s',  time: 30 }
+        };
+
+        const PALETTE = [
+            {r: 255, g: 40,  b: 80 },  // red
+            {r: 60,  g: 220, b: 100},  // green
+            {r: 60,  g: 130, b: 255},  // blue
+            {r: 255, g: 200, b: 30 },  // yellow
+            {r: 240, g: 80,  b: 255}   // magenta
+        ];
+
+        const fxCanvas = document.getElementById('fx-canvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        function resizeFx() { fxCanvas.width = innerWidth; fxCanvas.height = innerHeight; }
+        resizeFx();
+        addEventListener('resize', resizeFx);
+
+        const particles = [];
+        function emit(x, y, color, count) {
+            for (let i = 0; i < count && particles.length < 200; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const s = 1 + Math.random() * 4;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(a) * s,
+                    vy: Math.sin(a) * s,
+                    life: 1,
+                    size: 2 + Math.random() * 3,
+                    color
+                });
+            }
+        }
+        function tickFx() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.14;
+                p.life -= 0.022;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                fxCtx.globalAlpha = p.life;
+                fxCtx.fillStyle = p.color;
+                fxCtx.beginPath();
+                fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                fxCtx.fill();
+            }
+            fxCtx.globalAlpha = 1;
+            requestAnimationFrame(tickFx);
+        }
+        tickFx();
+
+        function shake(intensity) {
+            const c = document.getElementById('gameContainer');
+            let t = 0;
+            const id = setInterval(() => {
+                t++;
+                const dx = (Math.random() - 0.5) * intensity;
+                const dy = (Math.random() - 0.5) * intensity;
+                c.style.transform = `translate(${dx}px, ${dy}px)`;
+                if (t > 8) { clearInterval(id); c.style.transform = ''; }
+            }, 16);
+        }
+
+        function popup(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'popup';
+            el.textContent = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color || '#ffd700';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1100);
+        }
+
+        let audioCtx = null;
+        function getAudio() {
+            if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                catch (e) {}
+            }
+            return audioCtx;
+        }
+        function beep(freq, dur, type, vol) {
+            if (game.muted) return;
+            const ac = getAudio();
+            if (!ac) return;
+            const osc = ac.createOscillator();
+            const g = ac.createGain();
+            osc.connect(g);
+            g.connect(ac.destination);
+            osc.frequency.value = freq;
+            osc.type = type || 'sine';
+            g.gain.setValueAtTime(vol || 0.18, ac.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+            osc.start();
+            osc.stop(ac.currentTime + dur);
+        }
+        function sfxMatch() { beep(880, 0.1, 'triangle', 0.18); setTimeout(()=>beep(1175, 0.14, 'triangle', 0.16), 70); }
+        function sfxMiss()  { beep(150, 0.22, 'sawtooth', 0.18); }
+        function sfxOver()  { [440,330,220,165].forEach((f,i)=> setTimeout(()=> beep(f, 0.22, 'sawtooth', 0.18), i*120)); }
+
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 500,
+            height: 500,
+
+            centerColor: { r: 255, g: 0, b: 0 },
+            barColors: [],
+            score: 0,
+            correct: 0,
+            total: 0,
+            best: parseInt(localStorage.getItem('colorMatchBest') || '0'),
+            gameRunning: false,
+            gameOver: false,
+            timeLeft: 60,
+            initialTime: 60,
+            difficulty: localStorage.getItem('colormatch-difficulty') || 'medium',
+            muted: localStorage.getItem('colormatch-muted') === '1',
+            titleFade: 1,
+            timer: null,
+
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.renderDifficulty();
+                this.updateMute();
+                this.applyDifficulty();
+                this.setupInput();
+                this.generateColors();
+                this.gameLoop();
+            },
+
+            renderDifficulty() {
+                const bar = document.getElementById('difficultyBar');
+                bar.innerHTML = '';
+                Object.keys(DIFFICULTIES).forEach(k => {
+                    const el = document.createElement('div');
+                    el.className = 'pill' + (k === this.difficulty ? ' active' : '');
+                    el.textContent = DIFFICULTIES[k].label;
+                    el.onclick = () => {
+                        if (this.gameRunning) return;
+                        this.difficulty = k;
+                        localStorage.setItem('colormatch-difficulty', k);
+                        this.applyDifficulty();
+                        this.restart();
+                        this.renderDifficulty();
+                    };
+                    bar.appendChild(el);
+                });
+            },
+
+            applyDifficulty() {
+                this.initialTime = DIFFICULTIES[this.difficulty].time;
+                this.timeLeft = this.initialTime;
+                const bestKey = 'colormatch-best-' + this.difficulty;
+                this.best = parseInt(localStorage.getItem(bestKey) || '0');
+            },
+
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('colormatch-muted', this.muted ? '1' : '0');
+                this.updateMute();
+            },
+
+            updateMute() {
+                const b = document.getElementById('muteBtn');
+                if (b) b.textContent = 'SOUND: ' + (this.muted ? 'OFF' : 'ON');
+            },
+
+            generateColors() {
+                const base = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+                this.centerColor = { ...base };
+
+                this.barColors = [];
+                const correctIndex = Math.floor(Math.random() * 4);
+                const used = [correctIndex];
+
+                for (let i = 0; i < 4; i++) {
+                    if (i === correctIndex) {
+                        this.barColors.push({ ...base, correct: true });
+                    } else {
+                        let pick;
+                        do {
+                            pick = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+                        } while (pick.r === base.r && pick.g === base.g && pick.b === base.b);
+                        this.barColors.push({
+                            r: pick.r + (Math.random()*30-15) | 0,
+                            g: pick.g + (Math.random()*30-15) | 0,
+                            b: pick.b + (Math.random()*30-15) | 0,
+                            correct: false
+                        });
+                    }
+                }
+            },
+
+            start() {
+                if (this.gameRunning || this.gameOver) return;
+                document.getElementById('gameOverOverlay').classList.remove('show');
+                this.gameRunning = true;
+                this.timeLeft = this.initialTime;
+
+                this.timer = setInterval(() => {
+                    if (this.gameRunning) {
+                        this.timeLeft--;
+                        if (this.timeLeft <= 0) {
+                            this.gameOver = true;
+                            this.gameRunning = false;
+                            clearInterval(this.timer);
+                            const bestKey = 'colormatch-best-' + this.difficulty;
+                            if (this.score > this.best) {
+                                this.best = this.score;
+                                localStorage.setItem(bestKey, this.best);
+                                localStorage.setItem('colorMatchBest', this.best);
+                            }
+                            sfxOver();
+                            setTimeout(() => {
+                                document.getElementById('goSummary').textContent =
+                                    'SCORE: ' + this.score + '  -  ACCURACY: ' +
+                                    (this.total > 0 ? Math.round(this.correct/this.total*100) : 0) + '%';
+                                document.getElementById('goBest').textContent = 'BEST: ' + this.best;
+                                document.getElementById('gameOverOverlay').classList.add('show');
+                            }, 200);
+                        }
+                    }
+                }, 1000);
+            },
+
+            selectBar(index, evt) {
+                if (!this.gameRunning) return;
+
+                const bar = this.barColors[index];
+                this.total++;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const cx = evt ? evt.clientX : rect.left + this.width/2;
+                const cy = evt ? evt.clientY : rect.top + this.height/2;
+
+                if (bar.correct) {
+                    const pts = Math.max(1, this.timeLeft);
+                    this.score += pts;
+                    this.correct++;
+                    const c = `rgb(${bar.r},${bar.g},${bar.b})`;
+                    emit(cx, cy, c, 22);
+                    popup(cx - 24, cy - 30, '+' + pts, c);
+                    sfxMatch();
+                } else {
+                    this.score = Math.max(0, this.score - 5);
+                    popup(cx - 12, cy - 30, '-5', '#ff5050');
+                    sfxMiss();
+                    shake(8);
+                }
+
+                this.generateColors();
+            },
+
+            draw() {
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+                gradient.addColorStop(0, '#1a1a2e');
+                gradient.addColorStop(1, '#16213e');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                this.ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+                this.ctx.lineWidth = 1;
+                for (let y = 20; y < this.height; y += 20) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(this.width, y);
+                    this.ctx.stroke();
+                }
+
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const radius = 80;
+
+                const cc = this.centerColor;
+                this.ctx.save();
+                this.ctx.shadowColor = `rgb(${cc.r},${cc.g},${cc.b})`;
+                this.ctx.shadowBlur = 30;
+                this.ctx.fillStyle = `rgb(${cc.r}, ${cc.g}, ${cc.b})`;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.restore();
+
+                this.ctx.strokeStyle = '#ffd700';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+
+                const barHeight = 60;
+                const barWidth = 130;
+                const positions = [
+                    { x: centerX - barWidth - 50, y: centerY - barHeight / 2 },
+                    { x: centerX + 50,            y: centerY - barHeight / 2 },
+                    { x: centerX - barWidth / 2,  y: centerY - barHeight - 50 },
+                    { x: centerX - barWidth / 2,  y: centerY + 50 }
+                ];
+
+                for (let i = 0; i < 4; i++) {
+                    const bar = this.barColors[i];
+                    const pos = positions[i];
+
+                    this.ctx.save();
+                    this.ctx.shadowColor = `rgb(${bar.r},${bar.g},${bar.b})`;
+                    this.ctx.shadowBlur = 14;
+                    const grad = this.ctx.createLinearGradient(pos.x, pos.y, pos.x, pos.y + barHeight);
+                    grad.addColorStop(0, `rgb(${bar.r}, ${bar.g}, ${bar.b})`);
+                    grad.addColorStop(1, `rgb(${(bar.r*0.7)|0}, ${(bar.g*0.7)|0}, ${(bar.b*0.7)|0})`);
+                    this.ctx.fillStyle = grad;
+                    this.ctx.fillRect(pos.x, pos.y, barWidth, barHeight);
+                    this.ctx.restore();
+
+                    this.ctx.strokeStyle = '#ffd700';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(pos.x, pos.y, barWidth, barHeight);
+                }
+
+                this.ctx.fillStyle = '#ffd700';
+                this.ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.textAlign = 'left';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = '#000';
+                const drawHud = (txt, x, y) => {
+                    this.ctx.strokeText(txt, x, y);
+                    this.ctx.fillText(txt, x, y);
+                };
+                drawHud('SCORE ' + this.score, 12, 26);
+                drawHud('TIME  ' + this.timeLeft + 's', 12, 50);
+                const acc = this.total > 0 ? Math.round((this.correct / this.total) * 100) : 0;
+                drawHud('ACC   ' + acc + '%', 12, 74);
+
+                if (!this.gameRunning && !this.gameOver) {
+                    this.titleFade = Math.min(1, this.titleFade + 0.02);
+                    this.ctx.fillStyle = `rgba(0,0,0,${0.55 * this.titleFade})`;
+                    this.ctx.fillRect(0, 0, this.width, this.height);
+                    this.ctx.fillStyle = `rgba(255,215,0,${this.titleFade})`;
+                    this.ctx.strokeStyle = `rgba(0,0,0,${this.titleFade})`;
+                    this.ctx.font = 'bold 28px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.lineWidth = 4;
+                    this.ctx.strokeText('PRESS START', this.width/2, this.height/2 - 10);
+                    this.ctx.fillText('PRESS START', this.width/2, this.height/2 - 10);
+                    this.ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.ctx.fillStyle = `rgba(255,255,255,${this.titleFade*0.8})`;
+                    this.ctx.fillText('CLICK A BAR TO MATCH THE CENTER COLOR', this.width/2, this.height/2 + 24);
+                } else {
+                    this.titleFade = 0;
+                }
+
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('accuracy').textContent = this.total > 0 ? Math.round((this.correct / this.total) * 100) + '%' : '0%';
+                document.getElementById('best').textContent = this.best;
+                document.getElementById('timeLeft').textContent = this.gameRunning ? this.timeLeft + 's' : '--';
+            },
+
+            setupInput() {
+                this.canvas.addEventListener('click', (e) => {
+                    if (!this.gameRunning) {
+                        this.start();
+                        return;
+                    }
+                    const rect = this.canvas.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const clickY = e.clientY - rect.top;
+                    const centerX = this.width / 2;
+                    const centerY = this.height / 2;
+                    const barHeight = 60;
+                    const barWidth = 130;
+
+                    if (clickX >= centerX - barWidth - 50 && clickX <= centerX - 50 &&
+                        clickY >= centerY - barHeight/2 && clickY <= centerY + barHeight/2) {
+                        this.selectBar(0, e);
+                    } else if (clickX >= centerX + 50 && clickX <= centerX + 50 + barWidth &&
+                             clickY >= centerY - barHeight/2 && clickY <= centerY + barHeight/2) {
+                        this.selectBar(1, e);
+                    } else if (clickX >= centerX - barWidth/2 && clickX <= centerX + barWidth/2 &&
+                             clickY >= centerY - barHeight - 50 && clickY <= centerY - 50) {
+                        this.selectBar(2, e);
+                    } else if (clickX >= centerX - barWidth/2 && clickX <= centerX + barWidth/2 &&
+                             clickY >= centerY + 50 && clickY <= centerY + 50 + barHeight) {
+                        this.selectBar(3, e);
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key.toLowerCase() === 'm') this.toggleMute();
+                    if (e.key.toLowerCase() === 'r') { this.restart(); }
+                    const idx = ['1','2','3','4'].indexOf(e.key);
+                    if (idx >= 0 && this.gameRunning) {
+                        const rect = this.canvas.getBoundingClientRect();
+                        this.selectBar(idx, { clientX: rect.left + rect.width/2, clientY: rect.top + rect.height/2 });
+                    }
+                });
+            },
+
+            restart() {
+                document.getElementById('gameOverOverlay').classList.remove('show');
+                this.score = 0;
+                this.correct = 0;
+                this.total = 0;
+                this.gameRunning = false;
+                this.gameOver = false;
+                this.timeLeft = this.initialTime;
+                this.titleFade = 0.4;
+                if (this.timer) clearInterval(this.timer);
+                this.generateColors();
+            },
+
+            gameLoop() {
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>

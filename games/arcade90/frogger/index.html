@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FROGGER - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: linear-gradient(to bottom, #06241a 0%, #022914 60%, #010f0a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #d4ffe8;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        canvas#gameCanvas {
+            border: 3px solid #6dffb1;
+            background: #02140c;
+            display: block;
+            box-shadow: 0 0 32px rgba(109, 255, 177, 0.4);
+            border-radius: 6px;
+        }
+        .info { color: #d4ffe8; min-width: 230px; }
+        .stat-box {
+            background: rgba(109, 255, 177, 0.08);
+            border: 2px solid #6dffb1;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+        .stat-label { font-size: 12px; margin-bottom: 4px; color: #ffd166; font-weight: bold; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #fff; }
+        button, .mode-btn {
+            width: 100%;
+            padding: 9px;
+            background: #6dffb1;
+            color: #02140c;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            transition: transform 0.15s, background 0.15s;
+        }
+        button:hover, .mode-btn:hover { transform: scale(1.03); background: #ffd166; }
+        .mode-btn.active { background: #ff7a8a; color: #fff; }
+        .controls, .difficulty-box {
+            background: rgba(109, 255, 177, 0.08);
+            border: 2px solid #6dffb1;
+            padding: 12px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.6;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+        <div class="info">
+            <div class="stat-box"><div class="stat-label">SCORE</div><div class="stat-value" id="score">0</div></div>
+            <div class="stat-box"><div class="stat-label">LEVEL</div><div class="stat-value" id="level">1</div></div>
+            <div class="stat-box"><div class="stat-label">LIVES</div><div class="stat-value" id="lives">3</div></div>
+            <div class="stat-box"><div class="stat-label">TIME</div><div class="stat-value" id="time">30</div></div>
+            <div class="controls">
+                <strong style="color:#ffd166">CONTROLS</strong><br/>
+                ARROW KEYS - Move<br/>
+                SPACE - Start<br/>
+                M - Mute audio<br/>
+                Reach the safe zone!
+            </div>
+            <div class="difficulty-box">
+                <strong style="color:#ffd166">DIFFICULTY</strong><br/>
+                <button class="mode-btn" data-diff="easy" onclick="game.setDifficulty('easy', this)">Easy</button>
+                <button class="mode-btn active" data-diff="medium" onclick="game.setDifficulty('medium', this)">Medium</button>
+                <button class="mode-btn" data-diff="hard" onclick="game.setDifficulty('hard', this)">Hard</button>
+            </div>
+            <button onclick="game.start()">START</button>
+            <button onclick="game.restart()">RESTART</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+    <script>
+        const audio = {
+            ctx: null, muted: false,
+            init() {
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                this.muted = localStorage.getItem('frogger-muted') === '1';
+            },
+            resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('frogger-muted', this.muted ? '1' : '0');
+            },
+            tone(freq, dur, type, gain) {
+                if (!this.ctx || this.muted) return;
+                this.resume();
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(gain || 0.18, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start();
+                o.stop(this.ctx.currentTime + dur);
+            },
+            hop()    { this.tone(580, 0.06, 'square', 0.16); },
+            squash() { this.tone(180, 0.3, 'sawtooth', 0.22); },
+            splash() { this.tone(240, 0.22, 'triangle', 0.18); },
+            safe()   { this.tone(660, 0.08, 'sine', 0.2); setTimeout(()=>this.tone(880,0.12,'sine',0.18),80); }
+        };
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 400,
+            height: 500,
+            frog: { x: 8, y: 24, width: 1, height: 1, renderX: 8, renderY: 24, hopT: 0 },
+            cars: [], logs: [],
+            lives: 3, score: 0, level: 1, time: 30,
+            gameRunning: false, gameOver: false,
+            cellSize: 20, timerInterval: null,
+            difficulty: 'medium',
+            particles: [], popups: [],
+            shake: { mag: 0, dx: 0, dy: 0 },
+            titleAlpha: 1, gameOverAlpha: 0, t: 0,
+            diffMap: { easy: 0.7, medium: 1.0, hard: 1.4 },
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                audio.init();
+                this.difficulty = localStorage.getItem('frogger-difficulty') || 'medium';
+                document.querySelectorAll('[data-diff]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.diff === this.difficulty);
+                });
+                this.setupInput();
+                this.createLanes();
+                this.gameLoop();
+            },
+            setDifficulty(d, btn) {
+                this.difficulty = d;
+                localStorage.setItem('frogger-difficulty', d);
+                document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                this.createLanes();
+            },
+            createLanes() {
+                this.cars = []; this.logs = [];
+                const speeds = [2, -2.5, 1.5, -2, 2.5];
+                const carColors = ['#ff5e7a','#ff9b3d','#ffd166','#ff5cc8','#ffae8a'];
+                for (let i = 0; i < 5; i++) {
+                    const laneY = 5 + i * 3;
+                    for (let j = 0; j < 3; j++) {
+                        this.cars.push({
+                            x: j * 15, y: laneY, width: 2, height: 1.5,
+                            speed: speeds[i], color: carColors[i % 5]
+                        });
+                    }
+                }
+                const logSpeeds = [1.5, -2, 1.8];
+                for (let i = 0; i < 3; i++) {
+                    const laneY = 12 + i * 3;
+                    for (let j = 0; j < 2; j++) {
+                        this.logs.push({
+                            x: j * 20, y: laneY, width: 4, height: 1,
+                            speed: logSpeeds[i]
+                        });
+                    }
+                }
+            },
+            start() {
+                if (!this.gameRunning && !this.gameOver) {
+                    this.gameRunning = true; this.titleAlpha = 0;
+                    if (!this.timerInterval) {
+                        this.time = 30;
+                        this.timerInterval = setInterval(() => {
+                            this.time--;
+                            if (this.time <= 0) this.endLife('time');
+                        }, 1000);
+                    }
+                }
+            },
+            emitParticles(x, y, color, count) {
+                count = count || 14; const limit = 200;
+                for (let i = 0; i < count; i++) {
+                    if (this.particles.length >= limit) break;
+                    const a = Math.random() * Math.PI * 2;
+                    const s = Math.random() * 3 + 0.7;
+                    this.particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 28, max: 28, color });
+                }
+            },
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || '#ffd166', life: 50, max: 50 });
+            },
+            triggerShake(mag) { this.shake.mag = Math.max(this.shake.mag, mag); },
+            update() {
+                this.t++;
+                const diffMul = this.diffMap[this.difficulty];
+                this.frog.renderX += (this.frog.x - this.frog.renderX) * 0.4;
+                this.frog.renderY += (this.frog.y - this.frog.renderY) * 0.4;
+                if (this.frog.hopT > 0) this.frog.hopT--;
+                for (let i = this.particles.length-1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.96; p.vy *= 0.96; p.vy += 0.05;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i,1);
+                }
+                for (let i = this.popups.length-1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y -= 0.6; p.life--;
+                    if (p.life <= 0) this.popups.splice(i,1);
+                }
+                if (this.shake.mag > 0.1) {
+                    this.shake.dx = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.dy = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.mag *= 0.85;
+                } else { this.shake.dx = 0; this.shake.dy = 0; }
+                if (this.gameOver) {
+                    this.gameOverAlpha = Math.min(1, this.gameOverAlpha + 0.04);
+                }
+                if (!this.gameRunning) return;
+                for (let car of this.cars) {
+                    car.x += car.speed * 0.05 * diffMul;
+                    if (car.x > 20) car.x = -3;
+                    if (car.x < -3) car.x = 20;
+                }
+                for (let log of this.logs) {
+                    log.x += log.speed * 0.05 * diffMul;
+                    if (log.x > 20) log.x = -5;
+                    if (log.x < -5) log.x = 20;
+                }
+                for (let car of this.cars) {
+                    if (this.frog.y >= car.y - 1 && this.frog.y <= car.y + 1.5 &&
+                        this.frog.x >= car.x - 1 && this.frog.x <= car.x + car.width) {
+                        this.endLife('car');
+                        return;
+                    }
+                }
+                let onLog = false;
+                for (let log of this.logs) {
+                    if (this.frog.y >= log.y - 1 && this.frog.y <= log.y + log.height) {
+                        if (this.frog.x >= log.x - 1 && this.frog.x <= log.x + log.width) {
+                            this.frog.x += log.speed * 0.05 * diffMul;
+                            onLog = true;
+                        }
+                    }
+                }
+                if (this.frog.y >= 12 && this.frog.y <= 20 && !onLog) {
+                    this.endLife('water');
+                    return;
+                }
+                if (this.frog.y < 2) {
+                    this.score += 100;
+                    this.time += 10;
+                    audio.safe();
+                    this.emitParticles((this.frog.x+0.5)*this.cellSize, (this.frog.y+0.5)*this.cellSize, '#9be36b', 28);
+                    this.addPopup((this.frog.x+0.5)*this.cellSize, this.frog.y*this.cellSize, '+100', '#9be36b');
+                    this.frog.x = 8; this.frog.y = 24;
+                    this.frog.renderX = 8; this.frog.renderY = 24;
+                }
+                if (this.frog.y < 0) {
+                    this.endLife('bounds');
+                    return;
+                }
+            },
+            endLife(reason) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+                this.lives--;
+                audio.squash();
+                if (reason === 'water') audio.splash();
+                this.triggerShake(10);
+                const fx = (this.frog.x+0.5)*this.cellSize;
+                const fy = (this.frog.y+0.5)*this.cellSize;
+                const col = reason === 'water' ? '#4cd9ff' : '#ff5e7a';
+                this.emitParticles(fx, fy, col, 30);
+                this.addPopup(fx, fy - 12, reason === 'water' ? 'SPLASH' : 'SQUISH', col);
+                if (this.lives <= 0) {
+                    this.gameOver = true; this.gameRunning = false;
+                } else {
+                    this.frog = { x: 8, y: 24, width: 1, height: 1, renderX: 8, renderY: 24, hopT: 0 };
+                    this.time = 30;
+                    this.gameRunning = false;
+                }
+            },
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.translate(this.shake.dx, this.shake.dy);
+                const bg = ctx.createLinearGradient(0, 0, 0, this.height);
+                bg.addColorStop(0, '#3a7a4a'); bg.addColorStop(1, '#022914');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, this.width, this.height);
+                const goalGrd = ctx.createLinearGradient(0, 0, 0, this.cellSize * 2);
+                goalGrd.addColorStop(0, '#9be36b'); goalGrd.addColorStop(1, '#3a8a2c');
+                ctx.fillStyle = goalGrd;
+                ctx.fillRect(0, 0, this.width, this.cellSize * 2);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('SAFE ZONE', this.width/2, this.cellSize * 1.3);
+                ctx.textAlign = 'left';
+                const roadGrd = ctx.createLinearGradient(0, this.cellSize*5, 0, this.cellSize*10);
+                roadGrd.addColorStop(0, '#444'); roadGrd.addColorStop(1, '#222');
+                ctx.fillStyle = roadGrd;
+                ctx.fillRect(0, this.cellSize * 5, this.width, this.cellSize * 5);
+                ctx.strokeStyle = 'rgba(255, 230, 100, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([12, 8]);
+                for (let i = 1; i < 5; i++) {
+                    const y = this.cellSize * (5 + i);
+                    ctx.beginPath();
+                    ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
+                }
+                ctx.setLineDash([]);
+                const riverGrd = ctx.createLinearGradient(0, this.cellSize*12, 0, this.cellSize*20);
+                riverGrd.addColorStop(0, '#1d6fb8'); riverGrd.addColorStop(1, '#0a3a6a');
+                ctx.fillStyle = riverGrd;
+                ctx.fillRect(0, this.cellSize * 12, this.width, this.cellSize * 8);
+                ctx.strokeStyle = 'rgba(180, 220, 255, 0.25)';
+                for (let i = 0; i < 6; i++) {
+                    const yy = this.cellSize*12 + i*this.cellSize*1.3 + Math.sin(this.t*0.05 + i)*4;
+                    ctx.beginPath();
+                    ctx.moveTo(0, yy); ctx.lineTo(this.width, yy); ctx.stroke();
+                }
+                const medGrd = ctx.createLinearGradient(0, this.cellSize*10, 0, this.cellSize*12);
+                medGrd.addColorStop(0, '#3a7a4a'); medGrd.addColorStop(1, '#1a4a2a');
+                ctx.fillStyle = medGrd;
+                ctx.fillRect(0, this.cellSize*10, this.width, this.cellSize*2);
+                for (let car of this.cars) {
+                    const cx = car.x * this.cellSize;
+                    const cy = car.y * this.cellSize;
+                    const cw = car.width * this.cellSize;
+                    const ch = car.height * this.cellSize;
+                    const cgrd = ctx.createLinearGradient(cx, cy, cx, cy+ch);
+                    cgrd.addColorStop(0, car.color); cgrd.addColorStop(1, '#222');
+                    ctx.shadowColor = car.color; ctx.shadowBlur = 8;
+                    ctx.fillStyle = cgrd;
+                    ctx.fillRect(cx, cy, cw, ch);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fillRect(cx + cw*0.2, cy + 2, cw*0.6, ch*0.3);
+                }
+                for (let log of this.logs) {
+                    const lx = log.x * this.cellSize;
+                    const ly = log.y * this.cellSize;
+                    const lw = log.width * this.cellSize;
+                    const lh = log.height * this.cellSize;
+                    const lgrd = ctx.createLinearGradient(lx, ly, lx, ly+lh);
+                    lgrd.addColorStop(0, '#a06a3a'); lgrd.addColorStop(1, '#5a3818');
+                    ctx.fillStyle = lgrd;
+                    ctx.fillRect(lx, ly, lw, lh);
+                    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+                    ctx.lineWidth = 1;
+                    for (let i = 1; i < log.width; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(lx + i*this.cellSize, ly);
+                        ctx.lineTo(lx + i*this.cellSize, ly + lh);
+                        ctx.stroke();
+                    }
+                }
+                const hopScale = 1 + Math.sin((1 - this.frog.hopT/8) * Math.PI) * 0.15;
+                const fx = (this.frog.renderX + 0.5) * this.cellSize;
+                const fy = (this.frog.renderY + 0.5) * this.cellSize;
+                const fr = this.cellSize * 0.4 * hopScale;
+                ctx.shadowColor = '#6dffb1'; ctx.shadowBlur = 16;
+                const fgrd = ctx.createRadialGradient(fx - 2, fy - 2, 1, fx, fy, fr);
+                fgrd.addColorStop(0, '#d4ffe8'); fgrd.addColorStop(0.5, '#6dffb1'); fgrd.addColorStop(1, '#2e8a4e');
+                ctx.fillStyle = fgrd;
+                ctx.beginPath();
+                ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(fx - fr*0.4, fy - fr*0.4, fr*0.25, 0, Math.PI*2);
+                ctx.arc(fx + fr*0.4, fy - fr*0.4, fr*0.25, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(fx - fr*0.4, fy - fr*0.4, fr*0.1, 0, Math.PI*2);
+                ctx.arc(fx + fr*0.4, fy - fr*0.4, fr*0.1, 0, Math.PI*2);
+                ctx.fill();
+                for (const p of this.particles) {
+                    const a = p.life / p.max;
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x-2, p.y-2, 4, 4);
+                }
+                ctx.globalAlpha = 1;
+                for (const p of this.popups) {
+                    ctx.globalAlpha = p.life / p.max;
+                    ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline(p.text, p.x, p.y, p.color, '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('LIVES ' + this.lives, 8, this.height - 10, '#ff7a8a', '#000');
+                this.outline('SCORE ' + this.score, 110, this.height - 10, '#fff', '#000');
+                this.outline('TIME ' + this.time, 270, this.height - 10, this.time < 10 ? '#ff5e7a' : '#ffd166', '#000');
+                if (this.titleAlpha > 0.01) {
+                    ctx.globalAlpha = this.titleAlpha;
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.textAlign = 'center';
+                    ctx.font = 'bold 40px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('FROGGER', this.width/2, this.height/2 - 20, '#6dffb1', '#000');
+                    ctx.font = '16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('PRESS START or SPACE', this.width/2, this.height/2 + 10, '#ffd166', '#000');
+                    ctx.font = '12px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('Arrows move - M mute', this.width/2, this.height/2 + 36, '#d4ffe8', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                    if (this.gameRunning) this.titleAlpha = Math.max(0, this.titleAlpha - 0.05);
+                }
+                if (this.gameOver) {
+                    ctx.globalAlpha = this.gameOverAlpha;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.font = 'bold 32px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline('GAME OVER', this.width / 2, this.height / 2 - 10, '#ff5e7a', '#000');
+                    ctx.font = '16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline(`Score: ${this.score}`, this.width / 2, this.height / 2 + 18, '#fff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                ctx.restore();
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('time').textContent = this.time;
+            },
+            outline(text, x, y, fill, stroke) {
+                const ctx = this.ctx;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = stroke;
+                ctx.strokeText(text, x, y);
+                ctx.fillStyle = fill;
+                ctx.fillText(text, x, y);
+            },
+            setupInput() {
+                document.addEventListener('keydown', (e) => {
+                    audio.resume();
+                    if (e.key.toLowerCase() === 'm') { audio.toggleMute(); return; }
+                    if (!this.gameRunning) {
+                        if (e.key === ' ') { this.start(); e.preventDefault(); }
+                        return;
+                    }
+                    let moved = false;
+                    switch(e.key) {
+                        case 'ArrowUp': this.frog.y = Math.max(0, this.frog.y - 1); moved = true; break;
+                        case 'ArrowDown': this.frog.y = Math.min(24, this.frog.y + 1); moved = true; break;
+                        case 'ArrowLeft': this.frog.x = Math.max(0, this.frog.x - 1); moved = true; break;
+                        case 'ArrowRight': this.frog.x = Math.min(19, this.frog.x + 1); moved = true; break;
+                    }
+                    if (moved) {
+                        audio.hop();
+                        this.frog.hopT = 8;
+                        this.emitParticles((this.frog.x+0.5)*this.cellSize, (this.frog.y+0.5)*this.cellSize, '#6dffb1', 6);
+                    }
+                });
+            },
+            restart() {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+                this.frog = { x: 8, y: 24, width: 1, height: 1, renderX: 8, renderY: 24, hopT: 0 };
+                this.lives = 3; this.score = 0; this.level = 1; this.time = 30;
+                this.gameRunning = false; this.gameOver = false;
+                this.titleAlpha = 1; this.gameOverAlpha = 0;
+                this.particles = []; this.popups = [];
+                this.createLanes();
+            },
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+        game.init();
+    </script>
+</body>
+</html>

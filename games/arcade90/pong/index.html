@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PONG - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: radial-gradient(ellipse at top, #0b0f24 0%, #050614 60%, #02030a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e6f7ff;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        canvas#gameCanvas {
+            border: 3px solid #4cd9ff;
+            background: #02030a;
+            display: block;
+            box-shadow: 0 0 40px rgba(76, 217, 255, 0.45), inset 0 0 30px rgba(255, 92, 200, 0.08);
+            border-radius: 6px;
+        }
+        .sidebar { color: #e6f7ff; min-width: 260px; }
+        .score-display {
+            background: rgba(76, 217, 255, 0.08);
+            border: 2px solid #4cd9ff;
+            padding: 18px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .player-score {
+            font-size: 38px;
+            font-weight: bold;
+            color: #4cd9ff;
+            margin: 8px 0;
+            text-shadow: 0 0 10px rgba(76, 217, 255, 0.7);
+        }
+        .controls-box, .mode-select, .stats {
+            background: rgba(76, 217, 255, 0.08);
+            border: 2px solid #4cd9ff;
+            padding: 14px;
+            margin-bottom: 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .mode-btn, button {
+            width: 100%;
+            padding: 9px;
+            margin: 4px 0;
+            background: #4cd9ff;
+            color: #02030a;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: transform 0.15s, background 0.15s;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        }
+        .mode-btn:hover, button:hover { transform: scale(1.03); background: #ff5cc8; color: #fff; }
+        .mode-btn.active { background: #ff5cc8; color: #fff; }
+        .stat-line { display: flex; justify-content: space-between; margin: 6px 0; color: #b8d8e6; }
+        .stat-label { color: #4cd9ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div class="sidebar">
+            <div class="score-display">
+                <div style="font-size: 13px; color: #4cd9ff; margin-bottom: 6px;">PLAYER 1 vs CPU</div>
+                <div style="display: flex; justify-content: space-around;">
+                    <div>
+                        <div style="font-size: 12px; color: #4cd9ff;">YOU</div>
+                        <div class="player-score" id="p1Score">0</div>
+                    </div>
+                    <div style="font-size: 26px; color: #4cd9ff;">:</div>
+                    <div>
+                        <div style="font-size: 12px; color: #4cd9ff;">CPU</div>
+                        <div class="player-score" id="p2Score">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-box">
+                <strong style="color:#ffd166">CONTROLS</strong>
+                <p>W / S - Move paddle</p>
+                <p>SPACE - Serve ball</p>
+                <p>P - Pause &nbsp; M - Mute</p>
+            </div>
+            <div class="mode-select">
+                <div style="color: #ffd166; font-weight: bold; margin-bottom: 8px;">GAME MODE</div>
+                <button class="mode-btn active" data-mode="cpu" onclick="game.setMode('cpu', this)">vs CPU</button>
+                <button class="mode-btn" data-mode="2player" onclick="game.setMode('2player', this)">2 Player</button>
+                <button class="mode-btn" data-mode="rally" onclick="game.setMode('rally', this)">Rally Mode</button>
+            </div>
+            <div class="mode-select">
+                <div style="color: #ffd166; font-weight: bold; margin-bottom: 8px;">DIFFICULTY</div>
+                <button class="mode-btn" data-diff="easy" onclick="game.setDifficulty('easy', this)">Easy</button>
+                <button class="mode-btn active" data-diff="medium" onclick="game.setDifficulty('medium', this)">Medium</button>
+                <button class="mode-btn" data-diff="hard" onclick="game.setDifficulty('hard', this)">Hard</button>
+            </div>
+            <button onclick="game.startBall()">START GAME</button>
+            <button onclick="game.restart()">NEW GAME</button>
+            <button onclick="location.href='../'">BACK</button>
+            <div class="stats">
+                <div class="stat-line"><span class="stat-label">Ball Speed:</span><span id="ballSpeed">1.0x</span></div>
+                <div class="stat-line"><span class="stat-label">Rally Count:</span><span id="rally">0</span></div>
+                <div class="stat-line"><span class="stat-label">Longest Rally:</span><span id="longest">0</span></div>
+                <div class="stat-line"><span class="stat-label">Total Points:</span><span id="totalPoints">0</span></div>
+                <div class="stat-line"><span class="stat-label">Audio:</span><span id="audioState">ON</span></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const audio = {
+            ctx: null, muted: false,
+            init() {
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                this.muted = localStorage.getItem('pong-muted') === '1';
+            },
+            resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('pong-muted', this.muted ? '1' : '0');
+                document.getElementById('audioState').textContent = this.muted ? 'MUTED' : 'ON';
+            },
+            tone(freq, dur, type, gain) {
+                if (!this.ctx || this.muted) return;
+                this.resume();
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(gain || 0.18, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start();
+                o.stop(this.ctx.currentTime + dur);
+            },
+            paddleHit() { this.tone(420, 0.06, 'square', 0.22); },
+            wallHit()   { this.tone(260, 0.05, 'triangle', 0.16); },
+            score()     { this.tone(660, 0.08, 'sawtooth', 0.2); setTimeout(()=>this.tone(880,0.12,'sawtooth',0.18), 90); },
+            serve()     { this.tone(520, 0.07, 'square', 0.18); }
+        };
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 800,
+            height: 400,
+            paddleWidth: 10,
+            paddleHeight: 80,
+            ballSize: 6,
+            p1: { x: 20, y: 160, targetY: 160 },
+            p2: { x: 770, y: 160, targetY: 160 },
+            ball: { x: 400, y: 200, vx: 0, vy: 0, trail: [] },
+            p1Score: 0, p2Score: 0,
+            rallies: 0, currentRally: 0, longestRally: 0,
+            ballSpeedMultiplier: 1,
+            mode: 'cpu', difficulty: 'medium',
+            gameRunning: false, gamePaused: false, ballStarted: false,
+            particles: [], popups: [],
+            shake: { mag: 0, dx: 0, dy: 0 },
+            titleAlpha: 1, time: 0, stars: [],
+            diffMap: {
+                easy:   { ballBase: 3.0, cpuSpeed: 2.2 },
+                medium: { ballBase: 4.0, cpuSpeed: 3.0 },
+                hard:   { ballBase: 5.2, cpuSpeed: 4.0 }
+            },
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                audio.init();
+                document.getElementById('audioState').textContent = audio.muted ? 'MUTED' : 'ON';
+                this.difficulty = localStorage.getItem('pong-difficulty') || 'medium';
+                document.querySelectorAll('[data-diff]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.diff === this.difficulty);
+                });
+                for (let i = 0; i < 60; i++) {
+                    this.stars.push({ x: Math.random()*this.width, y: Math.random()*this.height, s: Math.random()*1.5+0.3, t: Math.random()*Math.PI*2 });
+                }
+                this.setupInput();
+                this.gameLoop();
+            },
+            setMode(mode, btn) {
+                this.mode = mode;
+                document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                this.restart();
+            },
+            setDifficulty(d, btn) {
+                this.difficulty = d;
+                localStorage.setItem('pong-difficulty', d);
+                document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+            },
+            restart() {
+                this.p1Score = 0; this.p2Score = 0;
+                this.rallies = 0; this.currentRally = 0; this.longestRally = 0;
+                this.ballSpeedMultiplier = 1;
+                this.ballStarted = false; this.gameRunning = false; this.gamePaused = false;
+                this.particles = []; this.popups = []; this.titleAlpha = 1;
+                this.resetBall();
+            },
+            resetBall() {
+                this.ball.x = this.width / 2; this.ball.y = this.height / 2;
+                this.ball.vx = 0; this.ball.vy = 0; this.ball.trail = [];
+                this.currentRally = 0;
+            },
+            startBall() {
+                if (!this.ballStarted) {
+                    this.ballStarted = true; this.gameRunning = true; this.titleAlpha = 0;
+                    const base = this.diffMap[this.difficulty].ballBase;
+                    this.ball.vx = (Math.random() > 0.5 ? 1 : -1) * base * this.ballSpeedMultiplier;
+                    this.ball.vy = (Math.random() - 0.5) * (base * 0.7) * this.ballSpeedMultiplier;
+                    audio.serve();
+                }
+            },
+            emitParticles(x, y, color, count) {
+                const limit = 200; count = count || 14;
+                for (let i = 0; i < count; i++) {
+                    if (this.particles.length >= limit) break;
+                    const a = Math.random() * Math.PI * 2;
+                    const s = Math.random() * 4 + 1;
+                    this.particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 30, max: 30, color });
+                }
+            },
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || '#ffd166', life: 60, max: 60 });
+            },
+            triggerShake(mag) { this.shake.mag = Math.max(this.shake.mag, mag); },
+            update() {
+                this.time++;
+                this.p1.y += (this.p1.targetY - this.p1.y) * 0.35;
+                if (this.shake.mag > 0.1) {
+                    this.shake.dx = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.dy = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.mag *= 0.85;
+                } else { this.shake.dx = 0; this.shake.dy = 0; }
+                for (let i = this.particles.length-1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.96; p.vy *= 0.96;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i,1);
+                }
+                for (let i = this.popups.length-1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y -= 0.8; p.life--;
+                    if (p.life <= 0) this.popups.splice(i,1);
+                }
+                if (!this.gameRunning || this.gamePaused) return;
+                this.ball.trail.push({x:this.ball.x, y:this.ball.y});
+                if (this.ball.trail.length > 12) this.ball.trail.shift();
+                this.ball.x += this.ball.vx;
+                this.ball.y += this.ball.vy;
+                if (this.ball.y - this.ballSize < 0 || this.ball.y + this.ballSize > this.height) {
+                    this.ball.vy = -this.ball.vy;
+                    this.ball.y = Math.max(this.ballSize, Math.min(this.height - this.ballSize, this.ball.y));
+                    audio.wallHit();
+                    this.emitParticles(this.ball.x, this.ball.y, '#4cd9ff', 6);
+                }
+                if (this.ball.x - this.ballSize < this.p1.x + this.paddleWidth &&
+                    this.ball.x - this.ballSize > this.p1.x - 4 &&
+                    this.ball.y > this.p1.y && this.ball.y < this.p1.y + this.paddleHeight) {
+                    this.ball.vx = -this.ball.vx;
+                    this.ball.x = this.p1.x + this.paddleWidth + this.ballSize;
+                    const collidePoint = this.ball.y - (this.p1.y + this.paddleHeight / 2);
+                    this.ball.vy = (collidePoint / (this.paddleHeight / 2)) * 5 * this.ballSpeedMultiplier;
+                    this.currentRally++;
+                    if (this.currentRally > this.longestRally) this.longestRally = this.currentRally;
+                    audio.paddleHit();
+                    this.emitParticles(this.ball.x, this.ball.y, '#ffd166', 18);
+                    this.triggerShake(4);
+                    this.addPopup(this.ball.x, this.ball.y - 16, '+1', '#ffd166');
+                }
+                if (this.ball.x + this.ballSize > this.p2.x &&
+                    this.ball.x + this.ballSize < this.p2.x + this.paddleWidth + 4 &&
+                    this.ball.y > this.p2.y && this.ball.y < this.p2.y + this.paddleHeight) {
+                    this.ball.vx = -this.ball.vx;
+                    this.ball.x = this.p2.x - this.ballSize;
+                    const collidePoint = this.ball.y - (this.p2.y + this.paddleHeight / 2);
+                    this.ball.vy = (collidePoint / (this.paddleHeight / 2)) * 5 * this.ballSpeedMultiplier;
+                    this.currentRally++;
+                    if (this.currentRally > this.longestRally) this.longestRally = this.currentRally;
+                    audio.paddleHit();
+                    this.emitParticles(this.ball.x, this.ball.y, '#ff5cc8', 18);
+                    this.triggerShake(4);
+                }
+                if (this.ball.x < 0) {
+                    this.p2Score++;
+                    this.ballSpeedMultiplier = 1 + (this.p2Score + this.p1Score) * 0.05;
+                    this.currentRally = 0;
+                    this.resetBall();
+                    this.ballStarted = false; this.gameRunning = false;
+                    audio.score();
+                    this.triggerShake(10);
+                    this.emitParticles(40, this.height/2, '#ff5cc8', 40);
+                    this.addPopup(this.width*0.75, 80, 'CPU SCORES', '#ff5cc8');
+                }
+                if (this.ball.x > this.width) {
+                    this.p1Score++;
+                    this.ballSpeedMultiplier = 1 + (this.p2Score + this.p1Score) * 0.05;
+                    this.currentRally = 0;
+                    this.resetBall();
+                    this.ballStarted = false; this.gameRunning = false;
+                    audio.score();
+                    this.triggerShake(10);
+                    this.emitParticles(this.width-40, this.height/2, '#4cd9ff', 40);
+                    this.addPopup(this.width*0.25, 80, 'YOU SCORE', '#4cd9ff');
+                }
+                if (this.mode === 'cpu' && this.gameRunning) {
+                    const paddleCenter = this.p2.y + this.paddleHeight / 2;
+                    const cpuSpd = this.diffMap[this.difficulty].cpuSpeed;
+                    if (paddleCenter < this.ball.y - 10) {
+                        this.p2.y = Math.min(this.height - this.paddleHeight, this.p2.y + cpuSpd);
+                    } else if (paddleCenter > this.ball.y + 10) {
+                        this.p2.y = Math.max(0, this.p2.y - cpuSpd);
+                    }
+                }
+            },
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.translate(this.shake.dx, this.shake.dy);
+                const bg = ctx.createRadialGradient(this.width/2, this.height/2, 50, this.width/2, this.height/2, this.width*0.7);
+                bg.addColorStop(0, '#0a1838'); bg.addColorStop(0.6, '#050a1c'); bg.addColorStop(1, '#02030a');
+                ctx.fillStyle = bg; ctx.fillRect(0, 0, this.width, this.height);
+                for (const s of this.stars) {
+                    const a = 0.4 + 0.6 * Math.sin(s.t + this.time * 0.03);
+                    ctx.fillStyle = `rgba(180, 220, 255, ${a})`;
+                    ctx.fillRect(s.x, s.y, s.s, s.s);
+                }
+                ctx.strokeStyle = 'rgba(76, 217, 255, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([8, 8]);
+                ctx.beginPath();
+                ctx.moveTo(this.width/2, 0); ctx.lineTo(this.width/2, this.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                for (let i = 0; i < this.ball.trail.length; i++) {
+                    const t = this.ball.trail[i];
+                    const a = i / this.ball.trail.length;
+                    ctx.fillStyle = `rgba(255, 92, 200, ${a * 0.4})`;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.ballSize * a, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                const drawPaddle = (p, c1, c2) => {
+                    const grd = ctx.createLinearGradient(p.x, p.y, p.x + this.paddleWidth, p.y + this.paddleHeight);
+                    grd.addColorStop(0, c1); grd.addColorStop(1, c2);
+                    ctx.shadowColor = c1; ctx.shadowBlur = 18;
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(p.x, p.y, this.paddleWidth, this.paddleHeight);
+                    ctx.shadowBlur = 0;
+                };
+                drawPaddle(this.p1, '#4cd9ff', '#1d6fb8');
+                drawPaddle(this.p2, '#ff5cc8', '#9a2a78');
+                ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 22;
+                ctx.fillStyle = '#fff7d6';
+                ctx.beginPath();
+                ctx.arc(this.ball.x, this.ball.y, this.ballSize, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                for (const p of this.particles) {
+                    const a = p.life / p.max;
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x-1.5, p.y-1.5, 3, 3);
+                }
+                ctx.globalAlpha = 1;
+                ctx.font = 'bold 56px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(76, 217, 255, 0.18)';
+                ctx.fillText(this.p1Score, this.width/4, 70);
+                ctx.fillStyle = 'rgba(255, 92, 200, 0.18)';
+                ctx.fillText(this.p2Score, (this.width*3)/4, 70);
+                ctx.font = '20px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                ctx.textAlign = 'left';
+                this.outlineText(`RALLY ${this.currentRally}`, 14, 26, '#ffd166', '#000');
+                this.outlineText(`MODE ${this.mode.toUpperCase()}`, 14, this.height - 12, '#9be36b', '#000');
+                ctx.textAlign = 'right';
+                this.outlineText(`${this.difficulty.toUpperCase()}`, this.width - 14, 26, '#ff5cc8', '#000');
+                this.outlineText(audio.muted ? 'MUTED' : 'SOUND', this.width - 14, this.height - 12, '#b8d8e6', '#000');
+                ctx.textAlign = 'left';
+                for (const p of this.popups) {
+                    ctx.globalAlpha = p.life / p.max;
+                    ctx.font = 'bold 24px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outlineText(p.text, p.x, p.y, p.color, '#000');
+                    ctx.globalAlpha = 1;
+                }
+                if (this.titleAlpha > 0.01) {
+                    ctx.globalAlpha = this.titleAlpha;
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.textAlign = 'center';
+                    ctx.font = 'bold 64px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outlineText('PONG', this.width/2, this.height/2 - 30, '#4cd9ff', '#000');
+                    ctx.font = '20px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outlineText('PRESS SPACE TO SERVE', this.width/2, this.height/2 + 14, '#ffd166', '#000');
+                    ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outlineText('W/S move - P pause - M mute', this.width/2, this.height/2 + 44, '#b8d8e6', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                    if (this.ballStarted) this.titleAlpha = Math.max(0, this.titleAlpha - 0.05);
+                }
+                if (this.gamePaused) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.fillStyle = '#4cd9ff';
+                    ctx.font = 'bold 40px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('PAUSED', this.width/2, this.height/2);
+                    ctx.textAlign = 'left';
+                }
+                ctx.restore();
+                document.getElementById('p1Score').textContent = this.p1Score;
+                document.getElementById('p2Score').textContent = this.p2Score;
+                document.getElementById('rally').textContent = this.currentRally;
+                document.getElementById('longest').textContent = this.longestRally;
+                document.getElementById('ballSpeed').textContent = this.ballSpeedMultiplier.toFixed(1) + 'x';
+                document.getElementById('totalPoints').textContent = this.p1Score + this.p2Score;
+            },
+            outlineText(text, x, y, fill, stroke) {
+                const ctx = this.ctx;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = stroke;
+                ctx.strokeText(text, x, y);
+                ctx.fillStyle = fill;
+                ctx.fillText(text, x, y);
+            },
+            setupInput() {
+                const keys = {};
+                document.addEventListener('keydown', (e) => {
+                    keys[e.key.toLowerCase()] = true;
+                    audio.resume();
+                    if (e.key === ' ') { this.startBall(); e.preventDefault(); }
+                    if (e.key.toLowerCase() === 'p') { if (this.gameRunning) this.gamePaused = !this.gamePaused; }
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+                });
+                document.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+                const updatePaddlePosition = () => {
+                    if (keys['w']) this.p1.targetY = Math.max(0, this.p1.targetY - 6);
+                    if (keys['s']) this.p1.targetY = Math.min(this.height - this.paddleHeight, this.p1.targetY + 6);
+                    if (this.mode === '2player') {
+                        if (keys['arrowup']) this.p2.y = Math.max(0, this.p2.y - 5);
+                        if (keys['arrowdown']) this.p2.y = Math.min(this.height - this.paddleHeight, this.p2.y + 5);
+                    }
+                };
+                setInterval(updatePaddlePosition, 20);
+            },
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+        game.init();
+    </script>
+</body>
+</html>

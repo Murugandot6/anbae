@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --c1: #fff8dc;
+            --c2: #f7c873;
+            --c3: #f08a3c;
+            --c4: #c25210;
+            --c5: #5a2a06;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            color: var(--c5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at 20% 20%, #fff3c4 0%, #f7c873 35%, #f08a3c 70%, #c25210 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 28px);
+            pointer-events: none;
+            animation: drift 18s linear infinite;
+        }
+        @keyframes drift {
+            0% { transform: translate(0,0); }
+            100% { transform: translate(56px,56px); }
+        }
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        h1 {
+            color: var(--c5);
+            font-size: 44px;
+            margin-bottom: 6px;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 0 var(--c2), 0 4px 12px rgba(90,42,6,0.35);
+        }
+        .subtitle { color: var(--c4); font-size: 14px; margin-bottom: 16px; letter-spacing: 1px; }
+        .info-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .info-box {
+            background: linear-gradient(180deg, var(--c2), var(--c3));
+            border: 2px solid var(--c5);
+            border-radius: 6px;
+            padding: 10px 18px;
+            min-width: 110px;
+            box-shadow: 0 4px 0 var(--c5);
+        }
+        .info-label { color: var(--c5); font-size: 12px; margin-bottom: 4px; letter-spacing: 2px; }
+        .info-value { color: var(--c1); font-size: 28px; font-weight: bold; text-shadow: 0 2px 0 var(--c5); }
+        .stage {
+            position: relative;
+            width: 360px;
+            margin: 0 auto;
+        }
+        canvas#board {
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 10px 28px rgba(90,42,6,0.4), inset 0 0 0 4px var(--c5);
+            background: #b88a55;
+        }
+        canvas#fx {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .controls {
+            margin-top: 18px;
+        }
+        button, select {
+            padding: 10px 18px;
+            background: linear-gradient(180deg, var(--c3), var(--c4));
+            color: var(--c1);
+            border: 2px solid var(--c5);
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 0 var(--c5);
+        }
+        button:hover { transform: translateY(-1px); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--c5); }
+        .message {
+            margin-top: 16px;
+            font-size: 18px;
+            color: var(--c5);
+            min-height: 22px;
+            font-weight: bold;
+            text-shadow: 0 1px 0 var(--c2);
+        }
+        .diff-row { margin: 6px 0 14px; }
+        .diff-row label { font-size: 13px; letter-spacing: 1px; margin-right: 6px; color: var(--c5); }
+        .hint { color: var(--c5); font-size: 12px; opacity: 0.85; margin-top: 8px; }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--c1);
+            text-shadow: 0 2px 0 var(--c5);
+            background: rgba(90, 42, 6, 0.78);
+            border-radius: 10px;
+            font-size: 22px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            text-align: center;
+            padding: 10px;
+        }
+        .overlay.show { opacity: 1; }
+        .overlay .big { font-size: 30px; margin-bottom: 8px; letter-spacing: 2px; }
+        .overlay .small { font-size: 13px; opacity: 0.85; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2048</h1>
+        <p class="subtitle">JOIN TILES TO REACH 2048</p>
+
+        <div class="info-row">
+            <div class="info-box">
+                <div class="info-label">SCORE</div>
+                <div class="info-value" id="score">0</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">BEST</div>
+                <div class="info-value" id="best">0</div>
+            </div>
+        </div>
+
+        <div class="diff-row">
+            <label for="diff">DIFFICULTY</label>
+            <select id="diff" onchange="game.setDifficulty(this.value)">
+                <option value="easy">EASY</option>
+                <option value="medium" selected>MEDIUM</option>
+                <option value="hard">HARD</option>
+            </select>
+        </div>
+
+        <div class="stage">
+            <canvas id="board" width="360" height="360"></canvas>
+            <canvas id="fx" width="360" height="360"></canvas>
+            <div id="overlay" class="overlay"></div>
+        </div>
+
+        <div class="controls">
+            <button onclick="game.reset()">NEW GAME</button>
+            <button onclick="game.toggleMute()" id="muteBtn">SOUND: ON</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+
+        <div class="hint">Arrow keys to slide tiles &middot; M to mute &middot; Merge to score</div>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const Sfx = (() => {
+            let ctx = null, muted = false;
+            function ensure() {
+                if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+                return ctx;
+            }
+            function beep(freq, dur, type = 'square', vol = 0.08) {
+                if (muted) return;
+                const c = ensure(); if (!c) return;
+                const o = c.createOscillator(), g = c.createGain();
+                o.type = type; o.frequency.value = freq;
+                g.gain.value = vol;
+                o.connect(g); g.connect(c.destination);
+                const t = c.currentTime;
+                g.gain.setValueAtTime(vol, t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.start(t); o.stop(t + dur);
+            }
+            return {
+                move() { beep(220, 0.06, 'square', 0.05); },
+                merge(value) { beep(330 + Math.log2(value) * 40, 0.18, 'triangle', 0.1); },
+                win() { beep(660, 0.12); setTimeout(() => beep(880, 0.2, 'sine', 0.12), 120); },
+                over() { beep(160, 0.3, 'sawtooth', 0.1); },
+                toggle() { muted = !muted; return muted; },
+                isMuted() { return muted; }
+            };
+        })();
+
+        const DIFF = {
+            easy: { start: 3, label: 'EASY' },
+            medium: { start: 2, label: 'MEDIUM' },
+            hard: { start: 1, label: 'HARD' }
+        };
+        const TILE_PX = 70, GAP = 10, PAD = 10;
+        const board = document.getElementById('board');
+        const fxc = document.getElementById('fx');
+        const bctx = board.getContext('2d');
+        const fctx = fxc.getContext('2d');
+
+        const game = {
+            grid: [],
+            score: 0,
+            best: parseInt(localStorage.getItem('best2048') || '0') || 0,
+            gameOver: false,
+            won: false,
+            difficulty: localStorage.getItem('2048-difficulty') || 'medium',
+            shake: 0,
+            shakeX: 0, shakeY: 0,
+            particles: [],
+            popups: [],
+            anim: [],
+            animT: 0,
+            ANIM_TIME: 9,
+
+            init() {
+                document.getElementById('diff').value = this.difficulty;
+                this.reset();
+                this.loop();
+            },
+
+            setDifficulty(d) {
+                this.difficulty = d;
+                localStorage.setItem('2048-difficulty', d);
+                this.reset();
+            },
+
+            toggleMute() {
+                const m = Sfx.toggle();
+                document.getElementById('muteBtn').textContent = m ? 'SOUND: OFF' : 'SOUND: ON';
+            },
+
+            reset() {
+                this.grid = Array(4).fill().map(() => Array(4).fill(0));
+                this.score = 0;
+                this.gameOver = false;
+                this.won = false;
+                this.particles.length = 0;
+                this.popups.length = 0;
+                this.anim.length = 0;
+                this.animT = 0;
+                const start = DIFF[this.difficulty].start;
+                for (let i = 0; i < start; i++) this.addNewTile();
+                this.hideOverlay();
+                document.getElementById('message').textContent = '';
+                document.getElementById('best').textContent = this.best;
+                document.getElementById('score').textContent = this.score;
+            },
+
+            hideOverlay() {
+                const o = document.getElementById('overlay');
+                o.classList.remove('show');
+                o.innerHTML = '';
+            },
+
+            showOverlay(big, small) {
+                const o = document.getElementById('overlay');
+                o.innerHTML = '<div class="big">' + big + '</div><div class="small">' + small + '</div>';
+                o.classList.add('show');
+            },
+
+            addNewTile() {
+                const empty = [];
+                for (let y = 0; y < 4; y++) {
+                    for (let x = 0; x < 4; x++) {
+                        if (this.grid[y][x] === 0) empty.push({x, y});
+                    }
+                }
+                if (empty.length > 0) {
+                    const pos = empty[Math.floor(Math.random() * empty.length)];
+                    this.grid[pos.y][pos.x] = Math.random() < 0.9 ? 2 : 4;
+                    this.anim.push({ type: 'spawn', x: pos.x, y: pos.y, t: 0 });
+                }
+            },
+
+            move(direction) {
+                if (this.gameOver || this.animT > 0) return;
+
+                let moved = false;
+                const oldGrid = JSON.parse(JSON.stringify(this.grid));
+                const merges = [];
+
+                if (direction === 'left' || direction === 'right') {
+                    for (let y = 0; y < 4; y++) {
+                        if (direction === 'right') this.grid[y].reverse();
+                        const result = this.compressRow(this.grid[y]);
+                        this.grid[y] = result.row;
+                        if (direction === 'right') {
+                            this.grid[y].reverse();
+                            result.merged.forEach(m => merges.push({ x: 3 - m.idx, y, value: m.value }));
+                        } else {
+                            result.merged.forEach(m => merges.push({ x: m.idx, y, value: m.value }));
+                        }
+                    }
+                } else {
+                    for (let x = 0; x < 4; x++) {
+                        let col = [];
+                        for (let y = 0; y < 4; y++) col.push(this.grid[y][x]);
+                        if (direction === 'down') col.reverse();
+                        const result = this.compressRow(col);
+                        let row = result.row;
+                        if (direction === 'down') {
+                            row.reverse();
+                            result.merged.forEach(m => merges.push({ x, y: 3 - m.idx, value: m.value }));
+                        } else {
+                            result.merged.forEach(m => merges.push({ x, y: m.idx, value: m.value }));
+                        }
+                        for (let y = 0; y < 4; y++) this.grid[y][x] = row[y];
+                    }
+                }
+
+                moved = JSON.stringify(oldGrid) !== JSON.stringify(this.grid);
+                if (moved) {
+                    Sfx.move();
+                    this.animT = this.ANIM_TIME;
+                    for (const m of merges) {
+                        this.anim.push({ type: 'merge', x: m.x, y: m.y, value: m.value, t: 0 });
+                        this.spawnParticles(this.cellCenterX(m.x), this.cellCenterY(m.y), m.value);
+                        this.popups.push({ x: this.cellCenterX(m.x), y: this.cellCenterY(m.y), text: '+' + m.value, life: 36, vy: -0.6 });
+                        Sfx.merge(m.value);
+                        this.shake = Math.min(8, 2 + Math.log2(m.value));
+                    }
+                    this.addNewTile();
+                    this.checkGameState();
+                    this.updateScore();
+                }
+            },
+
+            compressRow(row) {
+                row = row.filter(x => x !== 0);
+                const merged = [];
+                for (let i = 0; i < row.length - 1; i++) {
+                    if (row[i] === row[i + 1]) {
+                        row[i] *= 2;
+                        this.score += row[i];
+                        merged.push({ idx: i, value: row[i] });
+                        row.splice(i + 1, 1);
+                    }
+                }
+                while (row.length < 4) row.push(0);
+                return { row, merged };
+            },
+
+            checkGameState() {
+                let won = false;
+                let canMove = false;
+                for (let y = 0; y < 4; y++) {
+                    for (let x = 0; x < 4; x++) {
+                        if (this.grid[y][x] === 2048) won = true;
+                        if (this.grid[y][x] === 0) canMove = true;
+                        if (x < 3 && this.grid[y][x] === this.grid[y][x + 1]) canMove = true;
+                        if (y < 3 && this.grid[y][x] === this.grid[y + 1][x]) canMove = true;
+                    }
+                }
+                if (won && !this.won) {
+                    this.won = true;
+                    document.getElementById('message').textContent = 'YOU REACHED 2048!';
+                    this.showOverlay('YOU WIN!', 'Press NEW GAME to keep going');
+                    Sfx.win();
+                }
+                if (!canMove) {
+                    this.gameOver = true;
+                    document.getElementById('message').textContent = 'GAME OVER';
+                    this.showOverlay('GAME OVER', 'Score: ' + this.score);
+                    Sfx.over();
+                }
+            },
+
+            updateScore() {
+                document.getElementById('score').textContent = this.score;
+                if (this.score > this.best) {
+                    this.best = this.score;
+                    localStorage.setItem('best2048', this.best);
+                    document.getElementById('best').textContent = this.best;
+                }
+            },
+
+            cellCenterX(gx) { return PAD + gx * (TILE_PX + GAP) + TILE_PX / 2; },
+            cellCenterY(gy) { return PAD + gy * (TILE_PX + GAP) + TILE_PX / 2; },
+
+            spawnParticles(x, y, value) {
+                const count = Math.min(20, 8 + Math.floor(Math.log2(value)));
+                const cap = 200;
+                for (let i = 0; i < count && this.particles.length < cap; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const s = 1 + Math.random() * 3.5;
+                    this.particles.push({
+                        x, y,
+                        vx: Math.cos(a) * s,
+                        vy: Math.sin(a) * s,
+                        life: 28 + Math.random() * 12,
+                        max: 40,
+                        color: this.tileColor(value),
+                        size: 2 + Math.random() * 2.5
+                    });
+                }
+            },
+
+            tileColor(v) {
+                const palette = {
+                    2: '#fff8dc', 4: '#ffe9a8', 8: '#f7c873',
+                    16: '#f4a649', 32: '#f08a3c', 64: '#e0671e',
+                    128: '#c25210', 256: '#a93f0a', 512: '#8a3208',
+                    1024: '#6b2606', 2048: '#5a2a06'
+                };
+                return palette[v] || '#5a2a06';
+            },
+
+            tileTextColor(v) {
+                return v <= 4 ? '#5a2a06' : '#fff8dc';
+            },
+
+            drawTile(x, y, value, scale) {
+                if (scale === undefined) scale = 1;
+                const cx = this.cellCenterX(x);
+                const cy = this.cellCenterY(y);
+                const half = (TILE_PX / 2) * scale;
+                bctx.save();
+                bctx.translate(cx, cy);
+                bctx.shadowColor = 'rgba(90,42,6,0.45)';
+                bctx.shadowBlur = 10;
+                bctx.shadowOffsetY = 3;
+                const grad = bctx.createLinearGradient(0, -half, 0, half);
+                const col = this.tileColor(value);
+                grad.addColorStop(0, this.lighten(col, 0.2));
+                grad.addColorStop(1, col);
+                bctx.fillStyle = grad;
+                this.roundRect(bctx, -half, -half, half * 2, half * 2, 6);
+                bctx.fill();
+                bctx.restore();
+
+                bctx.save();
+                bctx.translate(cx, cy);
+                bctx.fillStyle = this.tileTextColor(value);
+                bctx.textAlign = 'center';
+                bctx.textBaseline = 'middle';
+                const len = String(value).length;
+                const fontSize = Math.floor((len <= 2 ? 30 : len === 3 ? 24 : 18) * scale);
+                bctx.font = 'bold ' + fontSize + 'px ui-monospace, "SF Mono", Menlo, monospace';
+                bctx.strokeStyle = 'rgba(90,42,6,0.35)';
+                bctx.lineWidth = 2;
+                bctx.strokeText(value, 0, 1);
+                bctx.fillText(value, 0, 1);
+                bctx.restore();
+            },
+
+            lighten(hex, amt) {
+                const n = parseInt(hex.slice(1), 16);
+                let r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
+                r = Math.min(255, Math.floor(r + (255 - r) * amt));
+                g = Math.min(255, Math.floor(g + (255 - g) * amt));
+                b = Math.min(255, Math.floor(b + (255 - b) * amt));
+                return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+            },
+
+            roundRect(c, x, y, w, h, r) {
+                c.beginPath();
+                c.moveTo(x + r, y);
+                c.lineTo(x + w - r, y);
+                c.quadraticCurveTo(x + w, y, x + w, y + r);
+                c.lineTo(x + w, y + h - r);
+                c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                c.lineTo(x + r, y + h);
+                c.quadraticCurveTo(x, y + h, x, y + h - r);
+                c.lineTo(x, y + r);
+                c.quadraticCurveTo(x, y, x + r, y);
+                c.closePath();
+            },
+
+            drawBoard() {
+                if (this.shake > 0) {
+                    this.shakeX = (Math.random() - 0.5) * this.shake;
+                    this.shakeY = (Math.random() - 0.5) * this.shake;
+                    this.shake *= 0.85;
+                    if (this.shake < 0.2) this.shake = 0;
+                } else {
+                    this.shakeX = this.shakeY = 0;
+                }
+
+                bctx.save();
+                bctx.translate(this.shakeX, this.shakeY);
+
+                bctx.fillStyle = '#b88a55';
+                bctx.fillRect(0, 0, board.width, board.height);
+
+                for (let y = 0; y < 4; y++) {
+                    for (let x = 0; x < 4; x++) {
+                        const px = PAD + x * (TILE_PX + GAP);
+                        const py = PAD + y * (TILE_PX + GAP);
+                        bctx.fillStyle = 'rgba(255,248,220,0.18)';
+                        this.roundRect(bctx, px, py, TILE_PX, TILE_PX, 5);
+                        bctx.fill();
+                    }
+                }
+
+                for (let y = 0; y < 4; y++) {
+                    for (let x = 0; x < 4; x++) {
+                        const v = this.grid[y][x];
+                        if (v === 0) continue;
+                        let scale = 1;
+                        for (const a of this.anim) {
+                            if (a.x === x && a.y === y) {
+                                if (a.type === 'spawn') {
+                                    scale = Math.min(1, a.t / 8);
+                                } else if (a.type === 'merge') {
+                                    const p = a.t / 10;
+                                    scale = 1 + 0.18 * Math.sin(p * Math.PI);
+                                }
+                            }
+                        }
+                        this.drawTile(x, y, v, scale);
+                    }
+                }
+
+                bctx.restore();
+            },
+
+            drawFx() {
+                fctx.clearRect(0, 0, fxc.width, fxc.height);
+                fctx.save();
+                fctx.translate(this.shakeX, this.shakeY);
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.94; p.vy *= 0.94;
+                    p.life--;
+                    if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+                    fctx.globalAlpha = Math.max(0, p.life / p.max);
+                    fctx.fillStyle = p.color;
+                    fctx.beginPath();
+                    fctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    fctx.fill();
+                }
+                fctx.globalAlpha = 1;
+
+                for (let i = this.popups.length - 1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y += p.vy;
+                    p.vy *= 0.96;
+                    p.life--;
+                    if (p.life <= 0) { this.popups.splice(i, 1); continue; }
+                    fctx.globalAlpha = Math.min(1, p.life / 18);
+                    fctx.font = 'bold 20px ui-monospace, "SF Mono", Menlo, monospace';
+                    fctx.textAlign = 'center';
+                    fctx.lineWidth = 3;
+                    fctx.strokeStyle = '#5a2a06';
+                    fctx.strokeText(p.text, p.x, p.y);
+                    fctx.fillStyle = '#fff8dc';
+                    fctx.fillText(p.text, p.x, p.y);
+                }
+                fctx.globalAlpha = 1;
+                fctx.restore();
+            },
+
+            loop() {
+                if (this.animT > 0) this.animT--;
+                for (let i = this.anim.length - 1; i >= 0; i--) {
+                    this.anim[i].t++;
+                    if (this.anim[i].t > 16) this.anim.splice(i, 1);
+                }
+                this.drawBoard();
+                this.drawFx();
+                requestAnimationFrame(() => this.loop());
+            }
+        };
+
+        game.init();
+
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft': game.move('left'); e.preventDefault(); break;
+                case 'ArrowRight': game.move('right'); e.preventDefault(); break;
+                case 'ArrowUp': game.move('up'); e.preventDefault(); break;
+                case 'ArrowDown': game.move('down'); e.preventDefault(); break;
+                case 'm': case 'M': game.toggleMute(); break;
+            }
+        });
+    </script>
+</body>
+</html>

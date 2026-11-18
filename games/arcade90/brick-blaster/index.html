@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRICK BLASTER - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: radial-gradient(ellipse at center, #1a0a3a 0%, #0a0518 60%, #02010a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e6f7ff;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        canvas#gameCanvas {
+            border: 3px solid #6dffb1;
+            background: #02010a;
+            display: block;
+            box-shadow: 0 0 40px rgba(109, 255, 177, 0.45);
+            border-radius: 6px;
+            cursor: crosshair;
+        }
+        .info { color: #e6f7ff; min-width: 250px; }
+        .stat-box {
+            background: rgba(109, 255, 177, 0.08);
+            border: 2px solid #6dffb1;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+        .stat-label { font-size: 12px; text-transform: uppercase; margin-bottom: 4px; font-weight: bold; color: #ffd166; }
+        .stat-value { font-size: 26px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: bold; color: #fff; }
+        button, .mode-btn {
+            width: 100%;
+            padding: 9px;
+            background: #6dffb1;
+            color: #02010a;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px 0;
+            border-radius: 4px;
+            transition: transform 0.15s, background 0.15s;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        }
+        button:hover, .mode-btn:hover { transform: scale(1.03); background: #ffd166; }
+        .mode-btn.active { background: #ff5cc8; color: #fff; }
+        .controls, .difficulty-box {
+            background: rgba(109, 255, 177, 0.08);
+            border: 2px solid #6dffb1;
+            padding: 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="info">
+            <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="score">0</div></div>
+            <div class="stat-box"><div class="stat-label">Level</div><div class="stat-value" id="level">1</div></div>
+            <div class="stat-box"><div class="stat-label">Bricks</div><div class="stat-value" id="bricks">0</div></div>
+            <div class="controls">
+                <strong style="color:#ffd166">CONTROLS</strong><br/>
+                MOVE Mouse - Aim<br/>
+                CLICK - Fire ball<br/>
+                M - Mute audio<br/>
+                Bounce and break!
+            </div>
+            <div class="difficulty-box">
+                <strong style="color:#ffd166">DIFFICULTY</strong><br/>
+                <button class="mode-btn" data-diff="easy" onclick="game.setDifficulty('easy', this)">Easy</button>
+                <button class="mode-btn active" data-diff="medium" onclick="game.setDifficulty('medium', this)">Medium</button>
+                <button class="mode-btn" data-diff="hard" onclick="game.setDifficulty('hard', this)">Hard</button>
+            </div>
+            <button onclick="game.start()">START GAME</button>
+            <button onclick="game.restart()">NEW GAME</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+    <script>
+        const audio = {
+            ctx: null, muted: false,
+            init() {
+                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+                this.muted = localStorage.getItem('brick-blaster-muted') === '1';
+            },
+            resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+            toggleMute() {
+                this.muted = !this.muted;
+                localStorage.setItem('brick-blaster-muted', this.muted ? '1' : '0');
+            },
+            tone(freq, dur, type, gain) {
+                if (!this.ctx || this.muted) return;
+                this.resume();
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(gain || 0.18, this.ctx.currentTime + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g).connect(this.ctx.destination);
+                o.start();
+                o.stop(this.ctx.currentTime + dur);
+            },
+            launch() { this.tone(500, 0.08, 'square', 0.2); },
+            paddle() { this.tone(380, 0.06, 'square', 0.18); },
+            brick()  { this.tone(620, 0.05, 'triangle', 0.18); },
+            lose()   { this.tone(180, 0.3, 'sawtooth', 0.22); },
+            levelup(){ this.tone(640, 0.08, 'sine', 0.2); setTimeout(()=>this.tone(960,0.12,'sine',0.18),80); }
+        };
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 400,
+            height: 600,
+            ball: { x: 200, y: 500, vx: 0, vy: 0, radius: 6, fired: false, trail: [] },
+            paddle: { x: 175, y: 550, width: 50, height: 10 },
+            bricks: [], particles: [], popups: [],
+            shake: { mag: 0, dx: 0, dy: 0 },
+            score: 0, level: 1, brickCount: 0,
+            gameRunning: false, gameOver: false,
+            mouseX: 200,
+            difficulty: 'medium',
+            titleAlpha: 1, gameOverAlpha: 0, t: 0, stars: [],
+            diffMap: { easy: 0.8, medium: 1.0, hard: 1.25 },
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                audio.init();
+                this.difficulty = localStorage.getItem('brick-blaster-difficulty') || 'medium';
+                document.querySelectorAll('[data-diff]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.diff === this.difficulty);
+                });
+                for (let i = 0; i < 50; i++) {
+                    this.stars.push({ x: Math.random()*this.width, y: Math.random()*this.height, s: Math.random()*1.5+0.3, t: Math.random()*6.28 });
+                }
+                this.generateBricks();
+                this.setupInput();
+                this.gameLoop();
+            },
+            setDifficulty(d, btn) {
+                this.difficulty = d;
+                localStorage.setItem('brick-blaster-difficulty', d);
+                document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+            },
+            generateBricks() {
+                this.bricks = [];
+                this.brickCount = 0;
+                const rows = 3 + this.level;
+                const cols = 8;
+                const brickWidth = this.width / cols;
+                const brickHeight = 16;
+                const palette = ['#ff5cc8', '#ffb8de', '#ffd166', '#9be36b', '#4cd9ff'];
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        const h = 1 + Math.floor(this.level / 2);
+                        this.bricks.push({
+                            x: j * brickWidth,
+                            y: 50 + i * (brickHeight + 4),
+                            width: brickWidth - 2,
+                            height: brickHeight,
+                            health: h, maxHealth: h,
+                            color: palette[(i+j) % palette.length]
+                        });
+                        this.brickCount++;
+                    }
+                }
+            },
+            start() {
+                if (this.gameOver) return;
+                if (!this.ball.fired) {
+                    this.gameRunning = true;
+                    this.ball.fired = true;
+                    this.titleAlpha = 0;
+                    const angle = (this.mouseX - this.ball.x) / 50;
+                    const sp = this.diffMap[this.difficulty];
+                    this.ball.vx = angle * sp;
+                    this.ball.vy = -8 * sp;
+                    audio.launch();
+                }
+            },
+            emitParticles(x, y, color, count) {
+                count = count || 14; const limit = 200;
+                for (let i = 0; i < count; i++) {
+                    if (this.particles.length >= limit) break;
+                    const a = Math.random() * Math.PI * 2;
+                    const s = Math.random() * 3.5 + 0.7;
+                    this.particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 30, max: 30, color });
+                }
+            },
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || '#ffd166', life: 50, max: 50 });
+            },
+            triggerShake(mag) { this.shake.mag = Math.max(this.shake.mag, mag); },
+            update() {
+                this.t++;
+                for (let i = this.particles.length-1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vx *= 0.96; p.vy *= 0.96; p.vy += 0.05;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i,1);
+                }
+                for (let i = this.popups.length-1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y -= 0.7; p.life--;
+                    if (p.life <= 0) this.popups.splice(i,1);
+                }
+                if (this.shake.mag > 0.1) {
+                    this.shake.dx = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.dy = (Math.random()-0.5) * this.shake.mag;
+                    this.shake.mag *= 0.85;
+                } else { this.shake.dx = 0; this.shake.dy = 0; }
+                if (this.gameOver) {
+                    this.gameOverAlpha = Math.min(1, this.gameOverAlpha + 0.04);
+                }
+                if (!this.gameRunning) return;
+                if (this.ball.fired) {
+                    this.ball.trail.push({x: this.ball.x, y: this.ball.y});
+                    if (this.ball.trail.length > 10) this.ball.trail.shift();
+                    this.ball.vy += 0.3;
+                    this.ball.x += this.ball.vx;
+                    this.ball.y += this.ball.vy;
+                    if (this.ball.x - this.ball.radius < 0 || this.ball.x + this.ball.radius > this.width) {
+                        this.ball.vx = -this.ball.vx;
+                        this.ball.x = Math.max(this.ball.radius, Math.min(this.width - this.ball.radius, this.ball.x));
+                    }
+                    if (this.ball.y - this.ball.radius < 0) {
+                        this.ball.vy = -this.ball.vy;
+                        this.ball.y = this.ball.radius;
+                    }
+                    if (this.ball.vy > 0 &&
+                        this.ball.x > this.paddle.x &&
+                        this.ball.x < this.paddle.x + this.paddle.width &&
+                        this.ball.y + this.ball.radius > this.paddle.y &&
+                        this.ball.y < this.paddle.y + this.paddle.height) {
+                        this.ball.vy = -Math.abs(this.ball.vy);
+                        const hitPos = (this.ball.x - this.paddle.x) / this.paddle.width;
+                        this.ball.vx = (hitPos - 0.5) * 8;
+                        this.ball.y = this.paddle.y - this.ball.radius;
+                        audio.paddle();
+                        this.emitParticles(this.ball.x, this.paddle.y, '#ffd166', 6);
+                    }
+                    for (let i = this.bricks.length - 1; i >= 0; i--) {
+                        const brick = this.bricks[i];
+                        if (this.ball.x + this.ball.radius > brick.x &&
+                            this.ball.x - this.ball.radius < brick.x + brick.width &&
+                            this.ball.y + this.ball.radius > brick.y &&
+                            this.ball.y - this.ball.radius < brick.y + brick.height) {
+                            brick.health--;
+                            if (brick.health <= 0) {
+                                this.emitParticles(brick.x + brick.width / 2, brick.y + brick.height / 2, brick.color, 18);
+                                this.bricks.splice(i, 1);
+                                const pts = 10 * this.level;
+                                this.score += pts;
+                                this.addPopup(brick.x + brick.width/2, brick.y, '+' + pts, brick.color);
+                                this.triggerShake(3);
+                            } else {
+                                this.emitParticles(this.ball.x, this.ball.y, brick.color, 4);
+                            }
+                            audio.brick();
+                            this.ball.vy = -this.ball.vy;
+                            break;
+                        }
+                    }
+                    if (this.bricks.length === 0) {
+                        this.levelUp();
+                    }
+                    if (this.ball.y > this.height) {
+                        this.gameOver = true;
+                        this.gameRunning = false;
+                        audio.lose();
+                        this.triggerShake(12);
+                    }
+                }
+            },
+            levelUp() {
+                this.level++;
+                this.ball.fired = false;
+                this.ball.x = 200; this.ball.y = 500;
+                this.ball.vx = 0; this.ball.vy = 0;
+                this.ball.trail = [];
+                this.generateBricks();
+                audio.levelup();
+                this.addPopup(this.width/2, this.height/2, 'LEVEL ' + this.level, '#9be36b');
+            },
+            draw() {
+                const ctx = this.ctx;
+                ctx.save();
+                ctx.translate(this.shake.dx, this.shake.dy);
+                const bg = ctx.createRadialGradient(this.width/2, this.height*0.3, 30, this.width/2, this.height*0.3, this.height);
+                bg.addColorStop(0, '#1a0a3a');
+                bg.addColorStop(0.6, '#0a0518');
+                bg.addColorStop(1, '#02010a');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, this.width, this.height);
+                for (const s of this.stars) {
+                    const a = 0.4 + 0.6 * Math.sin(s.t + this.t * 0.04);
+                    ctx.fillStyle = `rgba(220, 220, 255, ${a})`;
+                    ctx.fillRect(s.x, s.y, s.s, s.s);
+                }
+                // Bricks gradient
+                for (let brick of this.bricks) {
+                    const ratio = brick.health / brick.maxHealth;
+                    const grd = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
+                    grd.addColorStop(0, brick.color);
+                    grd.addColorStop(1, this.darken(brick.color, 0.5));
+                    ctx.globalAlpha = 0.4 + ratio * 0.6;
+                    ctx.fillStyle = grd;
+                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                    ctx.strokeRect(brick.x+0.5, brick.y+0.5, brick.width-1, brick.height-1);
+                    ctx.globalAlpha = 1;
+                }
+                // Paddle gradient
+                const pgrd = ctx.createLinearGradient(this.paddle.x, this.paddle.y, this.paddle.x, this.paddle.y + this.paddle.height);
+                pgrd.addColorStop(0, '#ffd166'); pgrd.addColorStop(1, '#c98a1a');
+                ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+                ctx.fillStyle = pgrd;
+                ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
+                ctx.shadowBlur = 0;
+                // Ball trail
+                for (let i = 0; i < this.ball.trail.length; i++) {
+                    const t = this.ball.trail[i];
+                    const a = i / this.ball.trail.length;
+                    ctx.fillStyle = `rgba(255, 92, 200, ${a*0.4})`;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.ball.radius * a, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                // Ball
+                ctx.shadowColor = '#ff5cc8'; ctx.shadowBlur = 20;
+                const bgrd = ctx.createRadialGradient(this.ball.x - 2, this.ball.y - 2, 1, this.ball.x, this.ball.y, this.ball.radius);
+                bgrd.addColorStop(0, '#fff');
+                bgrd.addColorStop(0.5, '#ffb8de');
+                bgrd.addColorStop(1, '#ff5cc8');
+                ctx.fillStyle = bgrd;
+                ctx.beginPath();
+                ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // Particles
+                for (let p of this.particles) {
+                    const a = p.life / p.max;
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x-2, p.y-2, 4, 4);
+                }
+                ctx.globalAlpha = 1;
+                // Aim line
+                if (!this.ball.fired && !this.gameOver) {
+                    ctx.strokeStyle = 'rgba(255, 209, 102, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 6]);
+                    const angle = (this.mouseX - this.ball.x) / 50;
+                    ctx.beginPath();
+                    ctx.moveTo(this.ball.x, this.ball.y);
+                    ctx.lineTo(this.ball.x + angle * 50, this.ball.y - 80);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                // HUD
+                ctx.font = 'bold 22px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('SCORE ' + this.score, 10, 28, '#fff', '#000');
+                ctx.font = '18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.outline('LVL ' + this.level, this.width - 80, 24, '#9be36b', '#000');
+                // Popups
+                for (const p of this.popups) {
+                    ctx.globalAlpha = p.life / p.max;
+                    ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline(p.text, p.x, p.y, p.color, '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                if (this.titleAlpha > 0.01) {
+                    ctx.globalAlpha = this.titleAlpha;
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.textAlign = 'center';
+                    ctx.font = 'bold 34px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('BRICK BLASTER', this.width/2, this.height/2 - 30, '#6dffb1', '#000');
+                    ctx.font = '16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('AIM with mouse - CLICK to fire', this.width/2, this.height/2 + 6, '#ffd166', '#000');
+                    ctx.font = '12px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline('M mute', this.width/2, this.height/2 + 30, '#e6f7ff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                    if (this.ball.fired) this.titleAlpha = Math.max(0, this.titleAlpha - 0.05);
+                }
+                if (this.gameOver) {
+                    ctx.globalAlpha = this.gameOverAlpha;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                    ctx.fillRect(0, 0, this.width, this.height);
+                    ctx.font = 'bold 32px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    ctx.textAlign = 'center';
+                    this.outline('GAME OVER', this.width / 2, this.height / 2 - 10, '#ff5cc8', '#000');
+                    ctx.font = '16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.outline(`Score: ${this.score}`, this.width / 2, this.height / 2 + 24, '#fff', '#000');
+                    ctx.globalAlpha = 1;
+                    ctx.textAlign = 'left';
+                }
+                ctx.restore();
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('bricks').textContent = this.bricks.length;
+            },
+            darken(hex, f) {
+                const m = hex.match(/^#([0-9a-f]{6})$/i);
+                if (!m) return hex;
+                const n = parseInt(m[1], 16);
+                const r = Math.floor(((n>>16)&255) * f);
+                const g = Math.floor(((n>>8)&255) * f);
+                const b = Math.floor((n&255) * f);
+                return `rgb(${r},${g},${b})`;
+            },
+            outline(text, x, y, fill, stroke) {
+                const ctx = this.ctx;
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = stroke;
+                ctx.strokeText(text, x, y);
+                ctx.fillStyle = fill;
+                ctx.fillText(text, x, y);
+            },
+            setupInput() {
+                this.canvas.addEventListener('mousemove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.mouseX = e.clientX - rect.left;
+                    this.paddle.x = Math.max(0, Math.min(this.width - this.paddle.width, this.mouseX - this.paddle.width / 2));
+                });
+                this.canvas.addEventListener('mousedown', () => {
+                    audio.resume();
+                    if (!this.gameOver && !this.ball.fired) {
+                        this.start();
+                    }
+                });
+                document.addEventListener('keydown', (e) => {
+                    audio.resume();
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+                    if (e.key === ' ') { this.start(); e.preventDefault(); }
+                });
+            },
+            restart() {
+                this.ball = { x: 200, y: 500, vx: 0, vy: 0, radius: 6, fired: false, trail: [] };
+                this.score = 0; this.level = 1;
+                this.gameRunning = false; this.gameOver = false;
+                this.titleAlpha = 1; this.gameOverAlpha = 0;
+                this.particles = []; this.popups = [];
+                this.generateBricks();
+            },
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+        game.init();
+    </script>
+</body>
+</html>

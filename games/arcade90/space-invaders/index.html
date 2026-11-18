@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPACE INVADERS - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            background: linear-gradient(180deg, #020a18 0%, #02030a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #c8ffe8;
+        }
+        .container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+        canvas#gameCanvas {
+            border: 3px solid #3eea8a;
+            background: #02030a;
+            display: block;
+            box-shadow: 0 0 40px rgba(62, 234, 138, 0.35);
+            border-radius: 4px;
+        }
+        .info { color: #c8ffe8; min-width: 250px; font-family: inherit; }
+        .stat-box {
+            background: rgba(62, 234, 138, 0.08);
+            border: 2px solid #3eea8a;
+            padding: 14px;
+            margin-bottom: 14px;
+            border-radius: 4px;
+        }
+        .stat-label { font-size: 12px; text-transform: uppercase; margin-bottom: 5px; color: #ffd166; letter-spacing: 1px; }
+        .stat-value { font-size: 26px; font-weight: bold; color: #c8ffe8; }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #3eea8a;
+            color: #02030a;
+            border: 1px solid #3eea8a;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px 0;
+            font-family: inherit;
+            border-radius: 4px;
+        }
+        button:hover { background: #ffd166; border-color: #ffd166; }
+        .controls {
+            background: rgba(62, 234, 138, 0.06);
+            border: 2px solid #3eea8a;
+            padding: 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="480" height="600"></canvas>
+        <div class="info">
+            <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="score">0</div></div>
+            <div class="stat-box"><div class="stat-label">High Score</div><div class="stat-value" id="highScore">0</div></div>
+            <div class="stat-box"><div class="stat-label">Wave</div><div class="stat-value" id="wave">1</div></div>
+            <div class="stat-box"><div class="stat-label">Lives</div><div class="stat-value" id="lives">3</div></div>
+            <div class="stat-box"><div class="stat-label">Enemies</div><div class="stat-value" id="enemies">10</div></div>
+            <div class="controls">
+                <strong>CONTROLS</strong><br/>
+                Arrow Keys - Move<br/>
+                SPACE - Fire<br/>
+                P - Pause &nbsp; M - Mute<br/>
+                ENTER - Restart<br/>
+                1/2/3 - Difficulty (on title)
+            </div>
+            <button onclick="game.start()">START GAME</button>
+            <button onclick="game.restart()">NEW GAME</button>
+            <button onclick="location.href='../'">BACK</button>
+        </div>
+    </div>
+
+    <script>
+        const PAL = {
+            bg: '#02030a',
+            green: '#3eea8a',
+            red: '#ff5d5d',
+            gold: '#ffd166',
+            cyan: '#4dd0ff',
+            white: '#c8ffe8'
+        };
+
+        const audio = {
+            ctx: null,
+            muted: localStorage.getItem('space-invaders-muted') === '1',
+            ensure() { if (!this.ctx) { try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } },
+            beep(freq, dur, type, vol) {
+                if (this.muted) return;
+                this.ensure(); if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type || 'square';
+                o.frequency.setValueAtTime(freq, t);
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(vol || 0.13, t + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.connect(g); g.connect(this.ctx.destination);
+                o.start(t); o.stop(t + dur + 0.02);
+            },
+            fire()  { this.beep(720, 0.07, 'square', 0.08); },
+            hit()   { this.beep(180, 0.18, 'sawtooth', 0.16); },
+            die()   { this.beep(220, 0.3, 'sawtooth', 0.18); this.beep(110, 0.45, 'sawtooth', 0.14); },
+            step()  { this.beep(160, 0.04, 'square', 0.06); },
+            wave()  { this.beep(523, 0.1, 'triangle', 0.14); this.beep(784, 0.15, 'triangle', 0.14); },
+            toggleMute() { this.muted = !this.muted; localStorage.setItem('space-invaders-muted', this.muted?'1':'0'); }
+        };
+
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            width: 480, height: 600,
+
+            player: null,
+            enemies: [],
+            bullets: [],
+            enemyBullets: [],
+            explosions: [],
+            particles: [],
+            popups: [],
+            stars: [],
+
+            score: 0,
+            highScore: parseInt(localStorage.getItem('space-invaders-highscore') || '0', 10),
+            wave: 1,
+            lives: 3,
+            gameRunning: false,
+            gamePaused: false,
+            gameOver: false,
+            waveStartTime: 0,
+            enemyMoveDirection: 1,
+            enemyMoveCounter: 0,
+
+            screen: 'title',
+            screenAlpha: 0,
+
+            difficulty: localStorage.getItem('space-invaders-difficulty') || 'medium',
+            diffIndex: 1,
+            enemyMoveInterval: 30,
+            shootRateMul: 1,
+
+            shakeAmount: 0, shakeDuration: 0, shakeX: 0, shakeY: 0,
+
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.diffIndex = ['easy','medium','hard'].indexOf(this.difficulty);
+                if (this.diffIndex < 0) { this.diffIndex = 1; this.difficulty = 'medium'; }
+                this.applyDifficulty();
+                this.player = { x: this.width / 2 - 15, y: this.height - 40, width: 30, height: 30, health: 1, renderX: this.width / 2 - 15 };
+                this.makeStars();
+                this.setupInput();
+                this.spawnWave();
+                this.gameLoop();
+            },
+
+            applyDifficulty() {
+                // smaller interval = faster enemies; larger shootRateMul = more frequent shots
+                this.enemyMoveInterval = [40, 30, 22][this.diffIndex];
+                this.shootRateMul = [0.6, 1.0, 1.5][this.diffIndex];
+            },
+
+            setDifficulty(idx) {
+                this.diffIndex = idx;
+                this.difficulty = ['easy','medium','hard'][idx];
+                localStorage.setItem('space-invaders-difficulty', this.difficulty);
+                this.applyDifficulty();
+            },
+
+            makeStars() {
+                this.stars = [];
+                for (let i = 0; i < 60; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        r: Math.random() * 1.3 + 0.3,
+                        speed: 0.2 + Math.random() * 0.6,
+                        tw: Math.random() * Math.PI * 2
+                    });
+                }
+            },
+
+            spawnWave() {
+                this.enemies = [];
+                const enemyCount = 10 + (this.wave - 1) * 2;
+                const spacing = this.width / (enemyCount + 1);
+                for (let i = 0; i < enemyCount; i++) {
+                    this.enemies.push({
+                        x: spacing * (i + 1) - 15,
+                        y: 40 + (Math.floor(i / 5)) * 50,
+                        width: 30,
+                        height: 30,
+                        health: 1,
+                        shootTimer: Math.random() * 100
+                    });
+                }
+                this.waveStartTime = Date.now();
+            },
+
+            start() {
+                if (!this.gameRunning && !this.gameOver) {
+                    audio.ensure();
+                    this.gameRunning = true;
+                    this.screen = 'playing';
+                    this.screenAlpha = 0;
+                }
+            },
+
+            shake(amount, dur) {
+                this.shakeAmount = Math.max(this.shakeAmount, amount);
+                this.shakeDuration = Math.max(this.shakeDuration, dur);
+            },
+
+            addPopup(x, y, text, color) {
+                this.popups.push({ x, y, text, color: color || PAL.gold, life: 50, max: 50 });
+            },
+
+            createParticles(x, y, n, color) {
+                for (let i = 0; i < n; i++) {
+                    this.particles.push({
+                        x, y,
+                        vx: (Math.random() - 0.5) * 5,
+                        vy: (Math.random() - 0.5) * 5,
+                        life: 30, max: 30,
+                        size: 2 + Math.random() * 2,
+                        color: color || PAL.gold
+                    });
+                }
+                if (this.particles.length > 200) this.particles.splice(0, this.particles.length - 200);
+            },
+
+            update() {
+                // bg star scroll
+                for (const s of this.stars) {
+                    s.y += s.speed;
+                    s.tw += 0.05;
+                    if (s.y > this.height) { s.y = 0; s.x = Math.random() * this.width; }
+                }
+                if (this.shakeDuration > 0) {
+                    this.shakeDuration--;
+                    const decay = Math.exp(-0.05 * (30 - this.shakeDuration));
+                    this.shakeX = (Math.random() - 0.5) * this.shakeAmount * decay;
+                    this.shakeY = (Math.random() - 0.5) * this.shakeAmount * decay;
+                    if (this.shakeDuration <= 0) { this.shakeAmount = 0; this.shakeX = 0; this.shakeY = 0; }
+                }
+                this.screenAlpha = Math.min(1, this.screenAlpha + 0.04);
+
+                // lerp player render
+                this.player.renderX += (this.player.x - this.player.renderX) * 0.4;
+
+                for (let i = this.popups.length - 1; i >= 0; i--) {
+                    this.popups[i].y -= 0.8; this.popups[i].life--;
+                    if (this.popups[i].life <= 0) this.popups.splice(i, 1);
+                }
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy *= 0.96;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                }
+
+                if (!this.gameRunning || this.gamePaused) return;
+
+                this.enemyMoveCounter++;
+                if (this.enemyMoveCounter % this.enemyMoveInterval === 0) {
+                    audio.step();
+                    let hitEdge = false;
+                    for (let enemy of this.enemies) {
+                        enemy.x += this.enemyMoveDirection * 20;
+                        if (enemy.x < 0 || enemy.x + enemy.width > this.width) hitEdge = true;
+                    }
+                    if (hitEdge) {
+                        this.enemyMoveDirection = -this.enemyMoveDirection;
+                        for (let enemy of this.enemies) enemy.y += 30;
+                    }
+                }
+
+                for (let enemy of this.enemies) {
+                    enemy.shootTimer -= this.shootRateMul;
+                    if (enemy.shootTimer < 0) {
+                        this.enemyBullets.push({
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y + enemy.height,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: 3 + Math.random()
+                        });
+                        enemy.shootTimer = 50 + Math.random() * 50;
+                    }
+                }
+
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const bullet = this.bullets[i];
+                    bullet.y -= 6;
+                    if (bullet.y < 0) this.bullets.splice(i, 1);
+                }
+
+                for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
+                    const bullet = this.enemyBullets[i];
+                    bullet.x += bullet.vx;
+                    bullet.y += bullet.vy;
+                    if (bullet.y > this.height) this.enemyBullets.splice(i, 1);
+                }
+
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const bullet = this.bullets[i];
+                    for (let j = this.enemies.length - 1; j >= 0; j--) {
+                        const enemy = this.enemies[j];
+                        if (bullet.x > enemy.x && bullet.x < enemy.x + enemy.width &&
+                            bullet.y > enemy.y && bullet.y < enemy.y + enemy.height) {
+                            this.explosions.push({ x: enemy.x + 15, y: enemy.y + 15, life: 16, max: 16 });
+                            this.createParticles(enemy.x + 15, enemy.y + 15, 12, PAL.red);
+                            this.enemies.splice(j, 1);
+                            this.bullets.splice(i, 1);
+                            const pts = 100 * this.wave;
+                            this.score += pts;
+                            this.addPopup(enemy.x + 15, enemy.y, '+' + pts, PAL.gold);
+                            audio.hit();
+                            this.shake(2, 8);
+                            break;
+                        }
+                    }
+                }
+
+                for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
+                    const bullet = this.enemyBullets[i];
+                    if (bullet.x > this.player.x && bullet.x < this.player.x + this.player.width &&
+                        bullet.y > this.player.y && bullet.y < this.player.y + this.player.height) {
+                        this.lives--;
+                        this.explosions.push({ x: this.player.x + 15, y: this.player.y + 15, life: 22, max: 22 });
+                        this.createParticles(this.player.x + 15, this.player.y + 15, 22, PAL.gold);
+                        this.enemyBullets.splice(i, 1);
+                        audio.die();
+                        this.shake(12, 30);
+                        if (this.lives <= 0) {
+                            this.gameOver = true;
+                            this.gameRunning = false;
+                            this.screen = 'gameover';
+                            this.screenAlpha = 0;
+                            if (this.score > this.highScore) {
+                                this.highScore = this.score;
+                                localStorage.setItem('space-invaders-highscore', String(this.highScore));
+                            }
+                        }
+                    }
+                }
+
+                for (let enemy of this.enemies) {
+                    if (enemy.y > this.height) {
+                        this.lives = 0;
+                        this.gameOver = true;
+                        this.gameRunning = false;
+                        this.screen = 'gameover';
+                        this.screenAlpha = 0;
+                        if (this.score > this.highScore) {
+                            this.highScore = this.score;
+                            localStorage.setItem('space-invaders-highscore', String(this.highScore));
+                        }
+                    }
+                }
+
+                if (this.enemies.length === 0) {
+                    this.wave++;
+                    audio.wave();
+                    this.shake(4, 14);
+                    this.addPopup(this.width / 2, this.height / 2, 'WAVE ' + this.wave, PAL.cyan);
+                    this.spawnWave();
+                }
+
+                for (let i = this.explosions.length - 1; i >= 0; i--) {
+                    this.explosions[i].life--;
+                    if (this.explosions[i].life < 0) this.explosions.splice(i, 1);
+                }
+            },
+
+            drawBackground() {
+                this.ctx.fillStyle = PAL.bg;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                // soft vertical gradient
+                const g = this.ctx.createLinearGradient(0, 0, 0, this.height);
+                g.addColorStop(0, 'rgba(62, 234, 138, 0.06)');
+                g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                this.ctx.fillStyle = g;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                // stars
+                for (const s of this.stars) {
+                    this.ctx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(s.tw));
+                    this.ctx.fillStyle = PAL.white;
+                    this.ctx.fillRect(s.x, s.y, s.r, s.r);
+                }
+                this.ctx.globalAlpha = 1;
+            },
+
+            drawPlayer() {
+                const x = this.player.renderX;
+                const y = this.player.y;
+                this.ctx.save();
+                this.ctx.shadowColor = PAL.green;
+                this.ctx.shadowBlur = 12;
+                const g = this.ctx.createLinearGradient(x, y, x, y + 30);
+                g.addColorStop(0, '#a8ffcd');
+                g.addColorStop(1, PAL.green);
+                this.ctx.fillStyle = g;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + 15, y);
+                this.ctx.lineTo(x + 30, y + 25);
+                this.ctx.lineTo(x + 22, y + 28);
+                this.ctx.lineTo(x + 15, y + 22);
+                this.ctx.lineTo(x + 8, y + 28);
+                this.ctx.lineTo(x, y + 25);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.fillStyle = PAL.cyan;
+                this.ctx.fillRect(x + 13, y - 6, 4, 6);
+                this.ctx.restore();
+            },
+
+            drawEnemy(e) {
+                const x = e.x, y = e.y;
+                this.ctx.save();
+                const g = this.ctx.createLinearGradient(x, y, x, y + 30);
+                g.addColorStop(0, '#ffb3b3');
+                g.addColorStop(1, PAL.red);
+                this.ctx.fillStyle = g;
+                // body
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + 5, y + 6);
+                this.ctx.lineTo(x + 25, y + 6);
+                this.ctx.lineTo(x + 28, y + 18);
+                this.ctx.lineTo(x + 22, y + 22);
+                this.ctx.lineTo(x + 24, y + 28);
+                this.ctx.lineTo(x + 18, y + 24);
+                this.ctx.lineTo(x + 12, y + 24);
+                this.ctx.lineTo(x + 6, y + 28);
+                this.ctx.lineTo(x + 8, y + 22);
+                this.ctx.lineTo(x + 2, y + 18);
+                this.ctx.closePath();
+                this.ctx.fill();
+                // eyes
+                this.ctx.fillStyle = '#fff';
+                this.ctx.fillRect(x + 8, y + 11, 4, 4);
+                this.ctx.fillRect(x + 18, y + 11, 4, 4);
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(x + 9, y + 12, 2, 2);
+                this.ctx.fillRect(x + 19, y + 12, 2, 2);
+                this.ctx.restore();
+            },
+
+            draw() {
+                this.ctx.save();
+                this.ctx.translate(this.shakeX, this.shakeY);
+
+                this.drawBackground();
+
+                if (this.screen === 'playing' || this.gameOver) this.drawPlayer();
+
+                for (let enemy of this.enemies) this.drawEnemy(enemy);
+
+                // bullets (player)
+                this.ctx.save();
+                this.ctx.shadowColor = PAL.green;
+                this.ctx.shadowBlur = 8;
+                this.ctx.fillStyle = PAL.green;
+                for (let bullet of this.bullets) this.ctx.fillRect(bullet.x - 1.5, bullet.y, 3, 10);
+                this.ctx.restore();
+
+                // enemy bullets
+                this.ctx.fillStyle = PAL.gold;
+                for (let bullet of this.enemyBullets) this.ctx.fillRect(bullet.x - 2, bullet.y, 4, 8);
+
+                // explosions
+                for (let exp of this.explosions) {
+                    const t = 1 - exp.life / exp.max;
+                    const size = 4 + t * 20;
+                    this.ctx.globalAlpha = exp.life / exp.max;
+                    const g = this.ctx.createRadialGradient(exp.x, exp.y, 1, exp.x, exp.y, size);
+                    g.addColorStop(0, PAL.gold);
+                    g.addColorStop(1, 'rgba(255, 80, 0, 0)');
+                    this.ctx.fillStyle = g;
+                    this.ctx.beginPath();
+                    this.ctx.arc(exp.x, exp.y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.globalAlpha = 1;
+
+                // particles
+                for (const p of this.particles) {
+                    this.ctx.globalAlpha = p.life / p.max;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                }
+                this.ctx.globalAlpha = 1;
+
+                // popups
+                for (const pp of this.popups) {
+                    this.ctx.globalAlpha = pp.life / pp.max;
+                    this.ctx.font = 'bold 16px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.strokeText(pp.text, pp.x, pp.y);
+                    this.ctx.fillStyle = pp.color;
+                    this.ctx.fillText(pp.text, pp.x, pp.y);
+                }
+                this.ctx.globalAlpha = 1;
+                this.ctx.textAlign = 'left';
+
+                // HUD
+                this.ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = '#000';
+                this.ctx.strokeText('SCORE ' + this.score, 8, 22);
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.fillText('SCORE ' + this.score, 8, 22);
+                this.ctx.font = 'bold 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.strokeText('WAVE ' + this.wave, 220, 22);
+                this.ctx.fillStyle = PAL.cyan;
+                this.ctx.fillText('WAVE ' + this.wave, 220, 22);
+                this.ctx.strokeText('HI ' + this.highScore, 340, 22);
+                this.ctx.fillStyle = PAL.gold;
+                this.ctx.fillText('HI ' + this.highScore, 340, 22);
+
+                // lives
+                this.ctx.fillStyle = PAL.green;
+                for (let i = 0; i < this.lives; i++) {
+                    const lx = 12 + i * 22;
+                    const ly = this.height - 18;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(lx + 8, ly);
+                    this.ctx.lineTo(lx + 16, ly + 14);
+                    this.ctx.lineTo(lx, ly + 14);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                }
+
+                if (audio.muted) {
+                    this.ctx.fillStyle = PAL.red;
+                    this.ctx.font = 'bold 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                    this.ctx.fillText('MUTED', this.width - 70, this.height - 8);
+                }
+
+                if (this.gamePaused) this.drawPause();
+                if (this.screen === 'title') this.drawTitle();
+                if (this.screen === 'gameover') this.drawGameOver();
+
+                this.ctx.restore();
+
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('highScore').textContent = this.highScore;
+                document.getElementById('wave').textContent = this.wave;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('enemies').textContent = this.enemies.length;
+            },
+
+            drawPause() {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.fillStyle = PAL.green;
+                this.ctx.font = 'bold 28px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('PAUSED', this.width / 2, this.height / 2);
+                this.ctx.textAlign = 'left';
+            },
+
+            drawTitle() {
+                this.ctx.globalAlpha = this.screenAlpha;
+                this.ctx.fillStyle = 'rgba(2,3,10,0.78)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.textAlign = 'center';
+                this.ctx.shadowColor = PAL.green;
+                this.ctx.shadowBlur = 20;
+                this.ctx.fillStyle = PAL.green;
+                this.ctx.font = 'bold 44px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('SPACE', this.width/2, 140);
+                this.ctx.fillText('INVADERS', this.width/2, 190);
+                this.ctx.shadowBlur = 0;
+
+                this.ctx.font = 'bold 18px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.fillText('DIFFICULTY: ' + this.difficulty.toUpperCase(), this.width/2, 260);
+                this.ctx.font = '13px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillStyle = PAL.gold;
+                this.ctx.fillText('1 = Easy   2 = Medium   3 = Hard', this.width/2, 285);
+
+                this.ctx.font = '13px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillStyle = PAL.white;
+                const lines = [
+                    'Arrow Keys to move',
+                    'SPACE to fire',
+                    'P pause  M mute',
+                    '',
+                    'Press SPACE or ENTER to launch'
+                ];
+                lines.forEach((l, i) => this.ctx.fillText(l, this.width/2, 340 + i * 22));
+                this.ctx.textAlign = 'left';
+                this.ctx.globalAlpha = 1;
+            },
+
+            drawGameOver() {
+                this.ctx.globalAlpha = this.screenAlpha;
+                this.ctx.fillStyle = 'rgba(2,3,10,0.88)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                this.ctx.textAlign = 'center';
+                this.ctx.fillStyle = PAL.red;
+                this.ctx.shadowColor = PAL.red;
+                this.ctx.shadowBlur = 18;
+                this.ctx.font = 'bold 40px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('GAME OVER', this.width/2, this.height/2 - 50);
+                this.ctx.shadowBlur = 0;
+                this.ctx.fillStyle = PAL.white;
+                this.ctx.font = 'bold 20px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('Final: ' + this.score, this.width/2, this.height/2);
+                this.ctx.fillStyle = PAL.gold;
+                this.ctx.fillText('High: ' + this.highScore, this.width/2, this.height/2 + 30);
+                this.ctx.fillStyle = PAL.cyan;
+                this.ctx.font = '14px ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+                this.ctx.fillText('Press ENTER to restart', this.width/2, this.height/2 + 70);
+                this.ctx.textAlign = 'left';
+                this.ctx.globalAlpha = 1;
+            },
+
+            setupInput() {
+                const keys = {};
+                document.addEventListener('keydown', (e) => {
+                    keys[e.key.toLowerCase()] = true;
+                    if (this.screen === 'title') {
+                        if (e.key === '1') this.setDifficulty(0);
+                        if (e.key === '2') this.setDifficulty(1);
+                        if (e.key === '3') this.setDifficulty(2);
+                        if (e.key === 'Enter' || e.key === ' ') { this.start(); e.preventDefault(); return; }
+                    }
+                    if (this.gameOver && e.key === 'Enter') { this.restart(); return; }
+                    if (e.key === ' ') {
+                        if (this.gameRunning && !this.gamePaused) {
+                            this.bullets.push({ x: this.player.x + this.player.width / 2, y: this.player.y });
+                            audio.fire();
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.key.toLowerCase() === 'p') this.gamePaused = !this.gamePaused;
+                    if (e.key.toLowerCase() === 'm') audio.toggleMute();
+                });
+                document.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+
+                setInterval(() => {
+                    if (keys['arrowleft']) this.player.x = Math.max(0, this.player.x - 5);
+                    if (keys['arrowright']) this.player.x = Math.min(this.width - this.player.width, this.player.x + 5);
+                }, 16);
+            },
+
+            restart() {
+                this.score = 0;
+                this.wave = 1;
+                this.lives = 3;
+                this.gameRunning = false;
+                this.gamePaused = false;
+                this.gameOver = false;
+                this.bullets = [];
+                this.enemyBullets = [];
+                this.explosions = [];
+                this.particles = [];
+                this.popups = [];
+                this.player = { x: this.width / 2 - 15, y: this.height - 40, width: 30, height: 30, health: 1, renderX: this.width / 2 - 15 };
+                this.applyDifficulty();
+                this.spawnWave();
+                this.screen = 'title';
+                this.screenAlpha = 0;
+                this.draw();
+            },
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>

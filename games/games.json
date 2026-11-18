@@ -1,5 +1,5 @@
 {
- "count": 106,
+ "count": 220,
  "games": [
   {
    "name": "1 - Forest",
@@ -44,10 +44,22 @@
    "category": "html5"
   },
   {
+   "name": "8-Bit Quest",
+   "path": "arcade90/8bit-quest/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "2048",
    "path": "projects/2048/index.html",
    "icon": "projects/2048/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "2048 (90s)",
+   "path": "arcade90/2048/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "2048 (Original)",
@@ -62,10 +74,52 @@
    "category": "html5"
   },
   {
+   "name": "AGAR",
+   "path": "arcade90/agar/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Among Us",
    "path": "projects/among-us/index.html",
    "icon": "projects/among-us/unnamed.jpg",
    "category": "html5"
+  },
+  {
+   "name": "APEX PREDATOR",
+   "path": "arcade90/apex-predator/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Arcade Classic",
+   "path": "arcade90/arcade-classic/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Arcade Fever",
+   "path": "arcade90/arcade-fever/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "ASTEROIDS",
+   "path": "arcade90/asteroids/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "AURORA BURST",
+   "path": "arcade90/aurora-burst/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "AURORA DANCE",
+   "path": "arcade90/aurora-dance/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Ball Sort Puzzle",
@@ -86,6 +140,12 @@
    "category": "html5"
   },
   {
+   "name": "Binary Blast",
+   "path": "arcade90/binary-blast/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Bitlife",
    "path": "projects/bitlife/index.html",
    "icon": "projects/bitlife/thumb.png",
@@ -102,6 +162,12 @@
    "name": "Block Drop",
    "path": "free/tetris/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "BLOCK SQUAD",
+   "path": "arcade90/block-squad/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -129,15 +195,39 @@
    "license": "MIT"
   },
   {
+   "name": "BOUNCE PALACE",
+   "path": "arcade90/bounce-palace/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Boxing Random",
    "path": "projects/boxing-random/frame.html",
    "icon": "projects/boxing-random/unnamed.png",
    "category": "html5"
   },
   {
+   "name": "BREAKOUT",
+   "path": "arcade90/breakout/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "BRICK BLASTER",
+   "path": "arcade90/brick-blaster/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Brick Burst",
    "path": "free/breakout/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "Bullet Hell - Action Game",
+   "path": "arcade90/bullet-hell/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -153,10 +243,34 @@
    "license": "MIT"
   },
   {
+   "name": "Cartridge Dash",
+   "path": "arcade90/cartridge-dash/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Cassette Quest",
+   "path": "arcade90/cassette-quest/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Cell Machine",
    "path": "projects/cell-machine/index.html",
    "icon": "projects/cell-machine/img/te9nDu.png",
    "category": "html5"
+  },
+  {
+   "name": "Chain Reaction - Action Game",
+   "path": "arcade90/chain-reaction/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Chip-Tune Battle",
+   "path": "arcade90/chip-tune-battle/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Chrome Dino",
@@ -165,10 +279,40 @@
    "category": "html5"
   },
   {
+   "name": "CHRONO JUMP",
+   "path": "arcade90/chrono-jump/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Cipher Crack - Puzzle Game",
+   "path": "arcade90/cipher-crack/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "circlO",
    "path": "projects/circlo/index.html",
    "icon": "projects/circlo/img/download.png",
    "category": "html5"
+  },
+  {
+   "name": "Code Runner",
+   "path": "arcade90/code-runner/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "COLOR MATCH",
+   "path": "arcade90/color-match/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Combo Master - Action Game",
+   "path": "arcade90/combo-master/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Conway's Game of Life",
@@ -189,16 +333,52 @@
    "category": "html5"
   },
   {
+   "name": "CRYSTAL DASH",
+   "path": "arcade90/crystal-dash/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "CRYSTAL FUSION",
+   "path": "arcade90/crystal-fusion/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Cut The Rope",
    "path": "projects/ctr-time-travel/index.html",
    "icon": "projects/ctr-time-travel/thumb.png",
    "category": "html5"
   },
   {
+   "name": "Cyber Breach",
+   "path": "arcade90/cyber-breach/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "CYBER RUSH",
+   "path": "arcade90/cyber-rush/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Data Surge",
+   "path": "arcade90/data-surge/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Death Run 3D",
    "path": "projects/death-run-3d/index.html",
    "icon": "projects/death-run-3d/img/death.png",
    "category": "html5"
+  },
+  {
+   "name": "Digital Maze",
+   "path": "arcade90/digital-maze/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Doodle Jump",
@@ -219,6 +399,30 @@
    "category": "html5"
   },
   {
+   "name": "Earth Digger",
+   "path": "arcade90/earth-digger/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "EARTHQUAKE SURVIVAL",
+   "path": "arcade90/earthquake-survival/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "ECHO SYNC",
+   "path": "arcade90/echo-sync/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "ECLIPSE RUNNER",
+   "path": "arcade90/eclipse-runner/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Edge Surf",
    "path": "projects/edge-surf/index.html",
    "icon": "projects/edge-surf/favicon.svg",
@@ -232,10 +436,52 @@
    "fresh": true
   },
   {
+   "name": "Fast Reflex - Action Game",
+   "path": "arcade90/fast-reflex/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "FLAPPY",
+   "path": "arcade90/flappy/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Flappy Bird",
    "path": "projects/flappy-bird/index.html",
    "icon": "projects/flappy-bird/assets/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "FLAPPY FALL",
+   "path": "arcade90/flappy-fall/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "FLOW STATE",
+   "path": "arcade90/flow-state/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Forest Guardian",
+   "path": "arcade90/forest-guardian/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "FROGGER",
+   "path": "arcade90/frogger/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "FROST MAZE",
+   "path": "arcade90/frost-maze/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Gem Swap",
@@ -282,9 +528,21 @@
    "category": "html5"
   },
   {
+   "name": "GRAVITY BALL",
+   "path": "arcade90/gravity-ball/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Grove Guard",
    "path": "free/tower-defense/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "HEXAGON DEFENSE",
+   "path": "arcade90/hexagon-defense/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -300,9 +558,45 @@
    "category": "html5"
   },
   {
+   "name": "INFERNO DASH",
+   "path": "arcade90/inferno-dash/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "INFINITY BURST",
+   "path": "arcade90/infinity-burst/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "JUMP QUEST",
+   "path": "arcade90/jump-quest/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "LASER DEFENDER",
+   "path": "arcade90/laser-defender/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "LASER GRID",
+   "path": "arcade90/laser-grid/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Leaf Leap",
    "path": "free/platformer/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "LIGHTNING STRIKE",
+   "path": "arcade90/lightning-strike/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -312,10 +606,34 @@
    "category": "html5"
   },
   {
+   "name": "Logic Gate - Puzzle Game",
+   "path": "arcade90/logic-gate/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "MARBLE RUN",
+   "path": "arcade90/marble-run/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Mario",
    "path": "projects/mario/index.html",
    "icon": "projects/mario/Theme/Mario.jpg",
    "category": "html5"
+  },
+  {
+   "name": "Math Marathon - Puzzle Game",
+   "path": "arcade90/math-marathon/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "MATRIX TRACE",
+   "path": "arcade90/matrix-trace/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Maze Dash",
@@ -324,9 +642,21 @@
    "license": "MIT"
   },
   {
+   "name": "MEMORY",
+   "path": "arcade90/memory/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Memory Match",
    "path": "free/memory-game/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "METEOR STRIKE",
+   "path": "arcade90/meteor-strike/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -341,6 +671,18 @@
    "path": "projects/minesweeper/index.html",
    "icon": "projects/minesweeper/img/minesweeper.png",
    "category": "html5"
+  },
+  {
+   "name": "MINESWEEPER (90s)",
+   "path": "arcade90/minesweeper/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Minimalist Zen",
+   "path": "arcade90/minimalist-zen/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Moto X3M",
@@ -373,9 +715,63 @@
    "category": "html5"
   },
   {
+   "name": "Nature Collector",
+   "path": "arcade90/nature-collector/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "NEBULA COLLECTOR",
+   "path": "arcade90/nebula-collector/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "NEON PORTAL",
+   "path": "arcade90/neon-portal/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "NEON SURGE",
+   "path": "arcade90/neon-surge/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "NEXUS BLOCKS",
+   "path": "arcade90/nexus-blocks/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "NEXUS PAINTER",
+   "path": "arcade90/nexus-painter/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Nova Patrol",
    "path": "free/space-shooter/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "NOVA STRIKE",
+   "path": "arcade90/nova-strike/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Ocean Explorer",
+   "path": "arcade90/ocean-explorer/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "ORBIT DEFENDER",
+   "path": "arcade90/orbit-defender/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -383,6 +779,12 @@
    "path": "projects/pacman/index.html",
    "icon": "projects/pacman/thumbnail.png",
    "category": "html5"
+  },
+  {
+   "name": "PAC-MAN (90s)",
+   "path": "arcade90/pacman/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Paddle Duel",
@@ -421,10 +823,58 @@
    "category": "html5"
   },
   {
+   "name": "PHANTOM PATH",
+   "path": "arcade90/phantom-path/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PING PONG 2 PLAYER",
+   "path": "arcade90/ping-pong-2p/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PIXEL BLAST",
+   "path": "arcade90/pixel-blast/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PIXEL PAINTER",
+   "path": "arcade90/pixel-painter/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Pixel Perfect",
+   "path": "arcade90/pixel-perfect/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PLASMA COLLECTOR",
+   "path": "arcade90/plasma-collector/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Poker",
    "path": "projects/poker/poker.html",
    "icon": "projects/poker/static/images/logo.png",
    "category": "html5"
+  },
+  {
+   "name": "PONG",
+   "path": "arcade90/pong/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PRISM MATCH",
+   "path": "arcade90/prism-match/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Project Sand",
@@ -433,15 +883,81 @@
    "category": "html5"
   },
   {
+   "name": "PULSE BEAT",
+   "path": "arcade90/pulse-beat/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PULSE RUNNER",
+   "path": "arcade90/pulse-runner/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "PUZZLE MATCH",
+   "path": "arcade90/puzzle-match/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "QUAKE RUNNER",
+   "path": "arcade90/quake-runner/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "QUANTUM SYNC",
+   "path": "arcade90/quantum-sync/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Quick Quiz",
    "path": "free/quiz-game/index.html",
    "category": "free",
    "license": "MIT"
   },
   {
+   "name": "QUICK TAP",
+   "path": "arcade90/quick-tap/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Reel Rush",
    "path": "free/casino-games/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "RESONANCE GRID",
+   "path": "arcade90/resonance-grid/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Retro Racer",
+   "path": "arcade90/retro-racer/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Rhythm Master - Action Game",
+   "path": "arcade90/rhythm-master/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "RHYTHM TAP",
+   "path": "arcade90/rhythm-tap/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Riddle Realm - Puzzle Game",
+   "path": "arcade90/riddle-realm/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -499,6 +1015,12 @@
    "category": "html5"
   },
   {
+   "name": "ROTATOR",
+   "path": "arcade90/rotator/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Save the Doge",
    "path": "projects/save-the-doge/index.html",
    "icon": "projects/save-the-doge/thumb.png",
@@ -506,10 +1028,34 @@
    "popular": true
   },
   {
+   "name": "Sequence Solver - Puzzle Game",
+   "path": "arcade90/sequence-solver/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SHADOW DASH",
+   "path": "arcade90/shadow-dash/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SIMON",
+   "path": "arcade90/simon/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Sister Location",
    "path": "projects/fnaf-5/index.html",
    "icon": "projects/fnaf-5/favicon.jpg",
    "category": "html5"
+  },
+  {
+   "name": "Sky Flyer",
+   "path": "arcade90/sky-flyer/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Slide 15",
@@ -542,10 +1088,28 @@
    "license": "MIT"
   },
   {
+   "name": "SNAKE (90s)",
+   "path": "arcade90/snake/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Soccer Random",
    "path": "projects/soccer-random/frame.html",
    "icon": "projects/soccer-random/unnamed.png",
    "category": "html5"
+  },
+  {
+   "name": "SOKOBAN",
+   "path": "arcade90/sokoban/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SOLAR FLARE",
+   "path": "arcade90/solar-flare/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Solitare",
@@ -557,6 +1121,24 @@
    "name": "Sort It Out",
    "path": "free/drag-and-drop-game/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "SPACE INVADERS",
+   "path": "arcade90/space-invaders/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SPACE MAZE",
+   "path": "arcade90/space-maze/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SPECTRUM RUNNER",
+   "path": "arcade90/spectrum-runner/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -578,9 +1160,51 @@
    "license": "MIT"
   },
   {
+   "name": "SURGE DEFENDER",
+   "path": "arcade90/surge-defender/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "SYNTH WAVE",
+   "path": "arcade90/synth-wave/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TEMPEST SURGE",
+   "path": "arcade90/tempest-surge/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TETRIS",
+   "path": "arcade90/tetris/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Tic-Tac-Toe",
    "path": "free/board-game/index.html",
    "category": "free",
+   "license": "MIT"
+  },
+  {
+   "name": "TIDAL WAVE",
+   "path": "arcade90/tidal-wave/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TIME RACER",
+   "path": "arcade90/time-racer/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TITAN CLASH",
+   "path": "arcade90/titan-clash/index.html",
+   "category": "arcade90",
    "license": "MIT"
   },
   {
@@ -588,6 +1212,36 @@
    "path": "projects/totm/index.html",
    "icon": "projects/totm/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "TORNADO VORTEX",
+   "path": "arcade90/tornado-vortex/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TOWER OF HANOI",
+   "path": "arcade90/hanoi/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "TSUNAMI ESCAPE",
+   "path": "arcade90/tsunami-escape/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "Vaporwave Escape",
+   "path": "arcade90/vaporwave-escape/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "VELOCITY ZERO",
+   "path": "arcade90/velocity-zero/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Vex 3",
@@ -614,6 +1268,30 @@
    "category": "html5"
   },
   {
+   "name": "Void Collector",
+   "path": "arcade90/void-collector/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "VOID ESCAPE",
+   "path": "arcade90/void-escape/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "VOID JUMPER",
+   "path": "arcade90/void-jumper/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
+   "name": "VOLCANIC ERUPTION",
+   "path": "arcade90/volcanic-eruption/index.html",
+   "category": "arcade90",
+   "license": "MIT"
+  },
+  {
    "name": "Volley Random",
    "path": "projects/volley-random/frame.html",
    "icon": "projects/volley-random/unnamed.png",
@@ -630,6 +1308,12 @@
    "path": "projects/wbwwb/index.html",
    "icon": "projects/wbwwb/thumb.png",
    "category": "html5"
+  },
+  {
+   "name": "WHACK-A-MOLE",
+   "path": "arcade90/whack-a-mole/index.html",
+   "category": "arcade90",
+   "license": "MIT"
   },
   {
    "name": "Word Search",

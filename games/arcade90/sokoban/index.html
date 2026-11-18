@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOKOBAN - 90s Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --c1: #f4ead0;
+            --c2: #d8b075;
+            --c3: #a0703a;
+            --c4: #6b3e1c;
+            --c5: #2c1a0a;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            color: var(--c1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(216,176,117,0.45), transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(107,62,28,0.5), transparent 55%),
+                linear-gradient(160deg, #2c1a0a 0%, #4d2f14 60%, #6b3e1c 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(90deg, rgba(244,234,208,0.03) 0 1px, transparent 1px 22px),
+                        repeating-linear-gradient(0deg, rgba(244,234,208,0.03) 0 1px, transparent 1px 22px);
+            pointer-events: none;
+            animation: pan 30s linear infinite;
+        }
+        @keyframes pan { 0% { background-position: 0 0; } 100% { background-position: 44px 44px; } }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        h1 {
+            color: var(--c1);
+            font-size: 36px;
+            margin-bottom: 6px;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 0 var(--c4), 0 4px 14px rgba(44,26,10,0.7);
+        }
+        .subtitle {
+            color: var(--c2);
+            font-size: 13px;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        .stage {
+            position: relative;
+            width: 360px;
+            margin: 0 auto;
+        }
+        canvas#gameCanvas {
+            display: block;
+            border: 4px solid var(--c4);
+            border-radius: 10px;
+            background: #4d2f14;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.5), inset 0 0 30px rgba(44,26,10,0.6);
+            width: 360px;
+            height: 360px;
+        }
+        canvas#fxCanvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .info {
+            color: var(--c1);
+            margin-top: 16px;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .controls-hint {
+            margin: 6px 0 12px;
+            color: var(--c2);
+            font-size: 13px;
+        }
+        .stats {
+            display: inline-flex;
+            gap: 18px;
+            margin-top: 6px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .stats span { color: var(--c1); text-shadow: 0 1px 0 var(--c5); }
+        .stats .v { color: #f4d168; }
+        button, select {
+            padding: 10px 18px;
+            background: linear-gradient(180deg, var(--c2), var(--c3));
+            color: var(--c5);
+            border: 2px solid var(--c4);
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 0 var(--c4);
+        }
+        button:hover { transform: translateY(-1px); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--c4); }
+        .diff-row { margin: 6px 0 10px; }
+        .diff-row label { font-size: 13px; letter-spacing: 1px; margin-right: 6px; color: var(--c1); }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--c1);
+            background: rgba(44, 26, 10, 0.85);
+            border-radius: 10px;
+            font-size: 22px;
+            opacity: 0;
+            transition: opacity 0.45s;
+            pointer-events: none;
+            text-align: center;
+            padding: 10px;
+        }
+        .overlay.show { opacity: 1; }
+        .overlay .big { font-size: 30px; margin-bottom: 8px; letter-spacing: 3px; text-shadow: 0 0 14px var(--c2); }
+        .overlay .small { font-size: 14px; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SOKOBAN</h1>
+        <p class="subtitle">PUSH BOXES ONTO GOALS</p>
+
+        <div class="diff-row">
+            <label for="diffSelect">DIFFICULTY</label>
+            <select id="diffSelect" onchange="game.setDifficulty(this.value)">
+                <option value="easy">EASY</option>
+                <option value="medium" selected>MEDIUM</option>
+                <option value="hard">HARD</option>
+            </select>
+        </div>
+
+        <div class="stage">
+            <canvas id="gameCanvas" width="320" height="320"></canvas>
+            <canvas id="fxCanvas" width="360" height="360" style="width:360px;height:360px;"></canvas>
+            <div class="overlay" id="overlay"></div>
+        </div>
+
+        <div class="info">
+            <div class="controls-hint">ARROW KEYS to move &middot; M to mute</div>
+            <div class="stats">
+                <span>LEVEL: <span class="v" id="level">1</span></span>
+                <span>MOVES: <span class="v" id="moves">0</span></span>
+            </div>
+            <div style="margin-top: 12px;">
+                <button onclick="game.reset()">RESTART</button>
+                <button onclick="game.nextLevel()">NEXT</button>
+                <button onclick="game.toggleMute()" id="muteBtn">SOUND: ON</button>
+                <button onclick="location.href='../'">BACK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LEVELS = [
+            { boxes: [[4, 4]], goals: [[4, 3]], player: { x: 3, y: 4 } },
+            { boxes: [[3, 4]], goals: [[5, 4]], player: { x: 2, y: 4 } },
+            { boxes: [[3, 3], [5, 3]], goals: [[3, 5], [5, 5]], player: { x: 4, y: 4 } }
+        ];
+
+        const DIFF_LEVELS = {
+            easy: [0, 1, 2],
+            medium: [1, 2, 0],
+            hard: [2, 1, 0]
+        };
+
+        const Sfx = (() => {
+            let ctx = null, muted = false;
+            function ensure() { if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return ctx; }
+            function beep(freq, dur, type, vol) {
+                if (muted) return;
+                if (!type) type = 'square';
+                if (!vol) vol = 0.06;
+                const c = ensure(); if (!c) return;
+                const o = c.createOscillator(), g = c.createGain();
+                o.type = type; o.frequency.value = freq;
+                g.gain.value = vol;
+                o.connect(g); g.connect(c.destination);
+                const t = c.currentTime;
+                g.gain.setValueAtTime(vol, t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.start(t); o.stop(t + dur);
+            }
+            return {
+                step() { beep(220, 0.05, 'square', 0.04); },
+                push() { beep(160, 0.1, 'sawtooth', 0.07); },
+                goal() { beep(660, 0.12, 'triangle', 0.09); setTimeout(()=>beep(880, 0.16, 'sine', 0.09), 120); },
+                win() { beep(660, 0.1); setTimeout(()=>beep(880, 0.12, 'sine', 0.1), 100); setTimeout(()=>beep(1100, 0.18, 'sine', 0.1), 220); },
+                bump() { beep(120, 0.06, 'sawtooth', 0.05); },
+                toggle() { muted = !muted; return muted; }
+            };
+        })();
+
+        const game = {
+            canvas: document.getElementById('gameCanvas'),
+            fx: document.getElementById('fxCanvas'),
+            ctx: null,
+            fctx: null,
+            currentLevel: 0,
+            difficulty: localStorage.getItem('sokoban-difficulty') || 'medium',
+            width: 0,
+            height: 0,
+            cellSize: 0,
+            grid: [],
+            boxes: [],
+            goals: [],
+            player: { x: 0, y: 0 },
+            playerVis: { x: 0, y: 0 },
+            boxesVis: [],
+            moves: 0,
+            gameComplete: false,
+            particles: [],
+            popups: [],
+            shake: 0,
+            shakeX: 0, shakeY: 0,
+            previousBoxes: [],
+            time: 0,
+
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.fctx = this.fx.getContext('2d');
+                document.getElementById('diffSelect').value = this.difficulty;
+                this.setupInput();
+                this.loadLevel(0);
+                this.gameLoop();
+            },
+
+            setDifficulty(d) {
+                this.difficulty = d;
+                localStorage.setItem('sokoban-difficulty', d);
+                this.loadLevel(0);
+            },
+
+            toggleMute() {
+                const m = Sfx.toggle();
+                document.getElementById('muteBtn').textContent = m ? 'SOUND: OFF' : 'SOUND: ON';
+            },
+
+            loadLevel(levelNum) {
+                const order = DIFF_LEVELS[this.difficulty] || DIFF_LEVELS.medium;
+                this.currentLevel = ((levelNum % order.length) + order.length) % order.length;
+                const levelIdx = order[this.currentLevel];
+                const level = LEVELS[levelIdx];
+
+                this.width = 8;
+                this.height = 8;
+                this.cellSize = this.canvas.width / this.width;
+
+                this.grid = Array(8).fill().map(() => Array(8).fill(0));
+                this.boxes = level.boxes.map(b => [b[0], b[1]]);
+                this.goals = level.goals.map(g => [g[0], g[1]]);
+                this.player = { x: level.player.x, y: level.player.y };
+                this.playerVis = { x: level.player.x, y: level.player.y };
+                this.boxesVis = this.boxes.map(b => [b[0], b[1]]);
+                this.previousBoxes = this.boxes.map(b => b.slice());
+                this.moves = 0;
+                this.gameComplete = false;
+                this.particles.length = 0;
+                this.popups.length = 0;
+                this.shake = 0;
+                this.hideOverlay();
+            },
+
+            hideOverlay() {
+                const o = document.getElementById('overlay');
+                o.classList.remove('show');
+                o.innerHTML = '';
+            },
+
+            showOverlay(big, small) {
+                const o = document.getElementById('overlay');
+                o.innerHTML = '<div class="big">' + big + '</div><div class="small">' + small + '</div>';
+                o.classList.add('show');
+            },
+
+            movePlayer(dx, dy) {
+                if (this.gameComplete) return;
+
+                const newX = this.player.x + dx;
+                const newY = this.player.y + dy;
+
+                if (newX < 0 || newX >= this.width || newY < 0 || newY >= this.height) { Sfx.bump(); return; }
+
+                const boxIndex = this.boxes.findIndex(b => b[0] === newX && b[1] === newY);
+                let pushed = false;
+                if (boxIndex !== -1) {
+                    const boxNewX = newX + dx;
+                    const boxNewY = newY + dy;
+                    if (boxNewX < 0 || boxNewX >= this.width || boxNewY < 0 || boxNewY >= this.height) { Sfx.bump(); return; }
+                    this.boxes[boxIndex] = [boxNewX, boxNewY];
+                    pushed = true;
+                }
+
+                this.player.x = newX;
+                this.player.y = newY;
+                this.moves++;
+
+                if (pushed) {
+                    Sfx.push();
+                    this.shake = 3;
+                } else {
+                    Sfx.step();
+                }
+
+                for (let i = 0; i < this.boxes.length; i++) {
+                    const onGoal = this.goals.some(g => g[0] === this.boxes[i][0] && g[1] === this.boxes[i][1]);
+                    const wasOnGoal = this.previousBoxes[i] && this.goals.some(g => g[0] === this.previousBoxes[i][0] && g[1] === this.previousBoxes[i][1]);
+                    if (onGoal && !wasOnGoal) {
+                        const cx = this.boxes[i][0] * this.cellSize + this.cellSize / 2;
+                        const cy = this.boxes[i][1] * this.cellSize + this.cellSize / 2;
+                        this.burst(cx, cy, '#f4d168');
+                        this.popups.push({ x: cx, y: cy, text: 'GOAL!', life: 36, vy: -0.7 });
+                        Sfx.goal();
+                    }
+                }
+                this.previousBoxes = this.boxes.map(b => b.slice());
+
+                this.checkWin();
+            },
+
+            burst(cx, cy, col) {
+                const cap = 200;
+                for (let i = 0; i < 18 && this.particles.length < cap; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const s = 1 + Math.random() * 3;
+                    this.particles.push({
+                        x: cx, y: cy,
+                        vx: Math.cos(a) * s,
+                        vy: Math.sin(a) * s,
+                        life: 24 + Math.random() * 14,
+                        max: 38,
+                        color: col,
+                        size: 2 + Math.random() * 2
+                    });
+                }
+            },
+
+            checkWin() {
+                const allBoxesOnGoals = this.boxes.every(box =>
+                    this.goals.some(goal => goal[0] === box[0] && goal[1] === box[1])
+                );
+                if (allBoxesOnGoals) {
+                    this.gameComplete = true;
+                    this.showOverlay('LEVEL COMPLETE!', 'Moves: ' + this.moves);
+                    Sfx.win();
+                    for (let i = 0; i < 60; i++) {
+                        if (this.particles.length >= 200) break;
+                        this.particles.push({
+                            x: Math.random() * this.canvas.width,
+                            y: -5,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: 1 + Math.random() * 3,
+                            life: 60 + Math.random() * 40,
+                            max: 100,
+                            color: ['#f4d168', '#d8b075', '#a0703a', '#f4ead0'][i % 4],
+                            size: 2 + Math.random() * 2
+                        });
+                    }
+                    this.shake = 6;
+                }
+            },
+
+            drawTile(x, y) {
+                const cs = this.cellSize;
+                const px = x * cs, py = y * cs;
+                const dark = (x + y) % 2 === 0;
+                const g = this.ctx.createLinearGradient(px, py, px, py + cs);
+                g.addColorStop(0, dark ? '#5e3719' : '#4d2f14');
+                g.addColorStop(1, dark ? '#4d2f14' : '#3b240f');
+                this.ctx.fillStyle = g;
+                this.ctx.fillRect(px, py, cs, cs);
+                this.ctx.strokeStyle = 'rgba(244,234,208,0.06)';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(px + 0.5, py + 0.5, cs - 1, cs - 1);
+            },
+
+            drawGoal(gx, gy, pulse) {
+                const cs = this.cellSize;
+                const cx = gx * cs + cs / 2;
+                const cy = gy * cs + cs / 2;
+                this.ctx.save();
+                this.ctx.shadowColor = '#f4d168';
+                this.ctx.shadowBlur = 14 + 4 * pulse;
+                this.ctx.fillStyle = 'rgba(244,209,104,0.85)';
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, cs * 0.22, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#f4d168';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                this.ctx.restore();
+            },
+
+            drawBox(x, y, onGoal) {
+                const cs = this.cellSize;
+                const px = x * cs + 3, py = y * cs + 3;
+                const sz = cs - 6;
+                this.ctx.save();
+                if (onGoal) {
+                    this.ctx.shadowColor = '#f4d168';
+                    this.ctx.shadowBlur = 16;
+                }
+                const grad = this.ctx.createLinearGradient(px, py, px, py + sz);
+                grad.addColorStop(0, onGoal ? '#f6c65a' : '#c69160');
+                grad.addColorStop(1, onGoal ? '#c4862c' : '#7a4a1f');
+                this.ctx.fillStyle = grad;
+                this.roundRect(this.ctx, px, py, sz, sz, 5);
+                this.ctx.fill();
+                this.ctx.restore();
+                this.ctx.strokeStyle = 'rgba(44,26,10,0.45)';
+                this.ctx.lineWidth = 1.5;
+                this.ctx.beginPath();
+                this.ctx.moveTo(px + 4, py + sz / 2);
+                this.ctx.lineTo(px + sz - 4, py + sz / 2);
+                this.ctx.stroke();
+                this.ctx.strokeStyle = 'rgba(44,26,10,0.6)';
+                this.ctx.lineWidth = 2;
+                this.roundRect(this.ctx, px, py, sz, sz, 5);
+                this.ctx.stroke();
+            },
+
+            drawPlayer(x, y) {
+                const cs = this.cellSize;
+                const cx = x * cs + cs / 2;
+                const cy = y * cs + cs / 2;
+                this.ctx.save();
+                this.ctx.shadowColor = '#f4ead0';
+                this.ctx.shadowBlur = 12;
+                const g = this.ctx.createRadialGradient(cx - 3, cy - 3, 2, cx, cy, cs / 3);
+                g.addColorStop(0, '#fff4d6');
+                g.addColorStop(0.6, '#d8b075');
+                g.addColorStop(1, '#a0703a');
+                this.ctx.fillStyle = g;
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, cs / 3, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.restore();
+                this.ctx.fillStyle = '#2c1a0a';
+                this.ctx.beginPath();
+                this.ctx.arc(cx - 4, cy - 2, 1.6, 0, Math.PI * 2);
+                this.ctx.arc(cx + 4, cy - 2, 1.6, 0, Math.PI * 2);
+                this.ctx.fill();
+            },
+
+            roundRect(c, x, y, w, h, r) {
+                c.beginPath();
+                c.moveTo(x + r, y);
+                c.lineTo(x + w - r, y);
+                c.quadraticCurveTo(x + w, y, x + w, y + r);
+                c.lineTo(x + w, y + h - r);
+                c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                c.lineTo(x + r, y + h);
+                c.quadraticCurveTo(x, y + h, x, y + h - r);
+                c.lineTo(x, y + r);
+                c.quadraticCurveTo(x, y, x + r, y);
+                c.closePath();
+            },
+
+            updateLerp() {
+                const lerp = (a, b) => a + (b - a) * 0.3;
+                this.playerVis.x = lerp(this.playerVis.x, this.player.x);
+                this.playerVis.y = lerp(this.playerVis.y, this.player.y);
+                for (let i = 0; i < this.boxes.length; i++) {
+                    if (!this.boxesVis[i]) this.boxesVis[i] = [this.boxes[i][0], this.boxes[i][1]];
+                    this.boxesVis[i][0] = lerp(this.boxesVis[i][0], this.boxes[i][0]);
+                    this.boxesVis[i][1] = lerp(this.boxesVis[i][1], this.boxes[i][1]);
+                }
+            },
+
+            draw() {
+                this.time++;
+                this.updateLerp();
+
+                if (this.shake > 0) {
+                    this.shakeX = (Math.random() - 0.5) * this.shake;
+                    this.shakeY = (Math.random() - 0.5) * this.shake;
+                    this.shake *= 0.85;
+                    if (this.shake < 0.2) this.shake = 0;
+                } else { this.shakeX = this.shakeY = 0; }
+
+                const cw = this.canvas.width, ch = this.canvas.height;
+                this.ctx.save();
+                this.ctx.translate(this.shakeX, this.shakeY);
+
+                this.ctx.fillStyle = '#3b240f';
+                this.ctx.fillRect(0, 0, cw, ch);
+
+                for (let y = 0; y < this.height; y++) {
+                    for (let x = 0; x < this.width; x++) {
+                        this.drawTile(x, y);
+                    }
+                }
+
+                const pulse = (Math.sin(this.time * 0.08) + 1) / 2;
+                for (const goal of this.goals) {
+                    this.drawGoal(goal[0], goal[1], pulse);
+                }
+
+                for (let i = 0; i < this.boxes.length; i++) {
+                    const onGoal = this.goals.some(g => g[0] === this.boxes[i][0] && g[1] === this.boxes[i][1]);
+                    this.drawBox(this.boxesVis[i][0], this.boxesVis[i][1], onGoal);
+                }
+
+                this.drawPlayer(this.playerVis.x, this.playerVis.y);
+
+                this.ctx.restore();
+
+                document.getElementById('level').textContent = this.currentLevel + 1;
+                document.getElementById('moves').textContent = this.moves;
+            },
+
+            drawFx() {
+                const fc = this.fctx;
+                fc.clearRect(0, 0, this.fx.width, this.fx.height);
+                const scale = this.fx.width / this.canvas.width;
+                fc.save();
+                fc.scale(scale, scale);
+                fc.translate(this.shakeX, this.shakeY);
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.08;
+                    p.vx *= 0.96;
+                    p.life--;
+                    if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+                    fc.globalAlpha = Math.max(0, p.life / p.max);
+                    fc.fillStyle = p.color;
+                    fc.beginPath();
+                    fc.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    fc.fill();
+                }
+                fc.globalAlpha = 1;
+
+                for (let i = this.popups.length - 1; i >= 0; i--) {
+                    const p = this.popups[i];
+                    p.y += p.vy;
+                    p.vy *= 0.95;
+                    p.life--;
+                    if (p.life <= 0) { this.popups.splice(i, 1); continue; }
+                    fc.globalAlpha = Math.min(1, p.life / 20);
+                    fc.font = 'bold 20px ui-monospace, "SF Mono", Menlo, monospace';
+                    fc.textAlign = 'center';
+                    fc.lineWidth = 4;
+                    fc.strokeStyle = '#2c1a0a';
+                    fc.strokeText(p.text, p.x, p.y);
+                    fc.fillStyle = '#f4d168';
+                    fc.fillText(p.text, p.x, p.y);
+                }
+                fc.globalAlpha = 1;
+                fc.restore();
+            },
+
+            setupInput() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowUp': this.movePlayer(0, -1); e.preventDefault(); break;
+                        case 'ArrowDown': this.movePlayer(0, 1); e.preventDefault(); break;
+                        case 'ArrowLeft': this.movePlayer(-1, 0); e.preventDefault(); break;
+                        case 'ArrowRight': this.movePlayer(1, 0); e.preventDefault(); break;
+                        case 'm': case 'M': this.toggleMute(); break;
+                    }
+                });
+            },
+
+            reset() {
+                this.loadLevel(this.currentLevel);
+            },
+
+            nextLevel() {
+                this.loadLevel(this.currentLevel + 1);
+            },
+
+            gameLoop() {
+                this.draw();
+                this.drawFx();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>
